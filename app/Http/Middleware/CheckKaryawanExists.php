@@ -18,25 +18,22 @@ class CheckKaryawanExists
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check() && Auth::user()->hasRole('karyawan')) {
-            $userkaryawan = Userkaryawan::where('id_user', Auth::id())->first();
+            $userId = Auth::id();
+            $isValid = \Illuminate\Support\Facades\Cache::remember('user_karyawan_valid_' . $userId, 300, function () use ($userId) {
+                $userkaryawan = Userkaryawan::where('id_user', $userId)->first();
+                if (!$userkaryawan) {
+                    return false;
+                }
+                return Karyawan::where('nik', $userkaryawan->nik)->exists();
+            });
 
-            // Cek 1: user_karyawan tidak ada
-            if (!$userkaryawan) {
+            if (!$isValid) {
+                \Illuminate\Support\Facades\Cache::forget('user_karyawan_valid_' . $userId);
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
                 return redirect()->route('loginuser')
                     ->with('error', 'Akun karyawan Anda tidak valid. Silahkan hubungi administrator.');
-            }
-
-            // Cek 2: karyawan dengan NIK tersebut tidak ada
-            $karyawan = Karyawan::where('nik', $userkaryawan->nik)->first();
-            if (!$karyawan) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return redirect()->route('loginuser')
-                    ->with('error', 'Data karyawan Anda tidak ditemukan. Silahkan hubungi administrator.');
             }
         }
 
