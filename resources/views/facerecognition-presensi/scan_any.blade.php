@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="utf-8" />
-    <title>Face Recognition Presensi - Sistem Presensi</title>
+    <title>Terminal Kiosk Face Recognition - Outlet Presensi</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Sistem Presensi Face Recognition" name="description" />
-    <meta content="Coderthemes" name="author" />
+    <meta content="Smart Kiosk Face Recognition Attendance Terminal" name="description" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/img/favicon/favicon.ico') }}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <!-- Tabler Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -32,12 +36,18 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
+                        brand: {
+                            50: '#f0fdf9',
+                            100: '#ccfbf1',
+                            500: '#32745e',
+                            600: '#275d4b',
+                            700: '#1e483a',
+                            900: '#0f241d',
                         }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     }
                 }
             }
@@ -45,29 +55,43 @@
     </script>
 
     <style>
-        /* Custom styles */
-        .gradient-bg {
-            background: #1e40af;
-            /* Warna biru solid yang konsisten dengan tema admin */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #080c14;
+            color: #f1f5f9;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(50, 116, 94, 0.18) 0px, transparent 45%),
+                radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.4) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(30, 41, 59, 0.15) 0px, transparent 60%);
         }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-card {
+            background: rgba(26, 38, 57, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         .webcam-container {
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             position: relative;
+            background: #020617;
+            border: 2px solid rgba(50, 116, 94, 0.4);
+            box-shadow: 0 0 35px rgba(50, 116, 94, 0.15);
         }
 
         .webcam-container video {
             width: 100%;
             height: auto;
-            border-radius: 16px;
+            border-radius: 14px;
+            object-fit: cover;
         }
 
         .webcam-container canvas {
@@ -77,94 +101,109 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            border-radius: 16px;
+            border-radius: 14px;
         }
 
-        /* Loading animation */
+        /* Sci-Fi Target Overlay & Scan Line */
+        .scanner-laser {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            box-shadow: 0 0 15px #10b981;
+            animation: scan-laser 2.4s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 12;
+        }
+
+        @keyframes scan-laser {
+            0% { top: 6%; opacity: 0.2; }
+            50% { opacity: 0.95; }
+            100% { top: 92%; opacity: 0.2; }
+        }
+
+        .camera-corner {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-color: #10b981;
+            pointer-events: none;
+            z-index: 14;
+        }
+
+        /* Loading Overlay */
         .loading-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(8, 12, 20, 0.85);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 20;
-            border-radius: 16px;
-            backdrop-filter: blur(8px);
+            border-radius: 14px;
+            backdrop-filter: blur(10px);
         }
-
-
 
         .loading-content {
             text-align: center;
             color: white;
             padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.8);
             border-radius: 16px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .loading-icon {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             margin: 0 auto 1rem;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid #3b82f6;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #10b981;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
 
         .loading-text {
-            color: white;
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+            color: #f8fafc;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
         }
 
         .loading-subtext {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 14px;
+            color: #94a3b8;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .pulse-animation {
-            animation: pulse 2s infinite;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Face landmark styles */
+        /* Landmarks */
         .landmark-point {
             position: absolute;
             width: 3px;
             height: 3px;
-            background: #00ff00;
+            background: #10b981;
             border-radius: 50%;
-            border: 1px solid #ffffff;
             z-index: 10;
-            box-shadow: 0 0 2px rgba(0, 255, 0, 0.8);
+            box-shadow: 0 0 3px rgba(16, 185, 129, 0.9);
         }
 
         .landmark-line {
             position: absolute;
-            background: #00ff00;
+            background: #10b981;
             height: 1px;
             z-index: 9;
-            box-shadow: 0 0 1px rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 2px rgba(16, 185, 129, 0.6);
         }
 
         .face-landmarks {
@@ -175,549 +214,233 @@
             height: 100%;
             pointer-events: none;
             z-index: 15;
-            border-radius: 16px;
+            border-radius: 14px;
         }
 
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.5;
-                transform: scale(1.1);
-            }
-
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+        /* SweetAlert2 Styling */
+        .swal2-popup {
+            background: #0f172a !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            color: #f8fafc !important;
+            padding: 2rem !important;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+        .swal2-title {
+            color: #f8fafc !important;
+            font-weight: 700 !important;
+            font-size: 1.35rem !important;
         }
 
-        .camera-container {
+        .swal2-html-container {
+            color: #94a3b8 !important;
+        }
+
+        .camera-container, .canvas-container, .loading, .status-message, .employee-info {
             display: none;
         }
-
-        .canvas-container {
-            display: none;
-        }
-
-        .loading {
-            display: none;
-        }
-
-        .status-message {
-            display: none;
-        }
-
-        .employee-info {
-            display: none;
-        }
-
-
-
-
 
         .liveness-status {
             display: block;
         }
-
-        .employee-info {
-            display: none;
-        }
-
-        .photo-preview-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .photo-preview-buttons button {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .photo-preview-buttons button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        /* SweetAlert custom styles for photo display */
-        .swal2-popup {
-            max-width: 500px !important;
-            border-radius: 16px !important;
-            padding: 2rem !important;
-        }
-
-        .swal2-title {
-            font-size: 1.5rem !important;
-            font-weight: 700 !important;
-            color: #1f2937 !important;
-            margin-bottom: 1.5rem !important;
-        }
-
-        .swal2-html-container {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-        }
-
-        .employee-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-        }
-
-        .attendance-info {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
-        }
-
-        .photo-section {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #e2e8f0;
-        }
-
-        .photo-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #64748b;
-            margin-bottom: 0.75rem;
-            text-align: center;
-        }
-
-        .captured-photo {
-            max-width: 180px;
-            max-height: 135px;
-            border-radius: 12px;
-            border: 3px solid #ffffff;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            object-fit: cover;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .photo-placeholder {
-            width: 180px;
-            height: 135px;
-            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            border: 2px dashed #cbd5e1;
-        }
-
-        .message-text {
-            font-size: 0.875rem;
-            color: #64748b;
-            text-align: center;
-            line-height: 1.5;
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .success-icon {
-            animation: scaleIn 0.6s ease-out;
-        }
-
-        .employee-name {
-            animation: fadeInUp 0.6s ease-out 0.1s both;
-        }
-
-        .attendance-info {
-            animation: fadeInUp 0.6s ease-out 0.2s both;
-        }
-
-        .photo-section {
-            animation: fadeInUp 0.6s ease-out 0.3s both;
-        }
-
-        .message-text {
-            animation: fadeInUp 0.6s ease-out 0.4s both;
-        }
-
-        /* Hover effects */
-        .captured-photo:hover {
-            transform: scale(1.05);
-            transition: transform 0.3s ease;
-        }
-
-        .attendance-info:hover {
-            transform: translateY(-2px);
-            transition: transform 0.3s ease;
-        }
-
-        /* Error styles */
-        .error-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
-            animation: scaleIn 0.6s ease-out;
-        }
-
-        .error-message {
-            font-size: 1rem;
-            color: #1f2937;
-            text-align: center;
-            line-height: 1.5;
-            animation: fadeInUp 0.6s ease-out 0.1s both;
-        }
     </style>
 </head>
 
-<body class="gradient-bg min-h-screen">
-    <!-- Back Button -->
-    <button onclick="window.location.href='{{ route('facerecognition-presensi.index') }}'"
-        class="fixed top-6 left-6 z-50 glass-effect text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-all duration-200">
-        <i class="ti ti-arrow-left mr-2"></i>Kembali
-    </button>
+<body class="min-h-screen p-4 md:p-6 flex flex-col justify-between">
+    <!-- Top Bar -->
+    <header class="max-w-7xl w-full mx-auto flex items-center justify-between pb-4">
+        <a href="{{ route('facerecognition-presensi.index') }}"
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-300 hover:text-white transition-all">
+            <i class="ti ti-arrow-left"></i>
+            <span>Kembali ke Hub</span>
+        </a>
 
-    <!-- Test Voice Button -->
-    {{-- <button onclick="testVoice()"
-        class="fixed top-6 right-6 z-50 glass-effect text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-all duration-200 bg-orange-500">
-        <i class="ti ti-volume mr-2"></i>Test Suara
-    </button> --}}
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono text-emerald-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>LIVE KIOSK STATION</span>
+        </div>
+    </header>
 
     <!-- Main Container -->
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-7xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <!-- Header -->
-            <div class="bg-blue-700 text-white p-6">
-                <div class="flex items-center justify-center">
-                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mr-4">
-                        <i class="ti ti-user-check text-3xl"></i>
+    <main class="max-w-7xl w-full mx-auto my-auto">
+        <div class="glass-panel rounded-2xl overflow-hidden">
+            <!-- Header Bar -->
+            <div class="px-6 py-4 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-emerald-400">
+                        <i class="ti ti-scan text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-bold">Face Recognition Presensi</h1>
-                        <p class="text-blue-100">Deteksi wajah untuk melakukan absen karyawan</p>
+                        <h1 class="text-base font-bold text-white tracking-tight">Kiosk Presensi Wajah Outlet</h1>
+                        <p class="text-xs text-slate-400 font-mono">Posisikan wajah di dalam frame kamera</p>
+                    </div>
+                </div>
+
+                <!-- Clock Display -->
+                <div class="flex items-center gap-4 bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800">
+                    <div class="text-right font-mono">
+                        <div class="text-lg font-bold text-emerald-400 tracking-tight" id="timeDisplay">--:--:--</div>
+                        <div class="text-[11px] text-slate-400" id="dateDisplay">Memuat tanggal...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Content -->
-            <div class="flex flex-col lg:flex-row">
-                <!-- Left Side - Information -->
-                <div class="lg:w-1/2 p-8 bg-gray-50">
-                    <!-- Time Display -->
-                    <div class="text-center mb-8">
-                        <div class="text-4xl font-mono font-bold text-gray-800 mb-2" id="timeDisplay"></div>
-                        <div class="text-lg text-gray-600" id="dateDisplay"></div>
-                    </div>
-
-                    <!-- Instructions -->
-                    <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                            <i class="ti ti-info-circle text-blue-500 mr-2"></i>
-                            Cara Menggunakan
-                        </h3>
-                        <ul class="space-y-3 text-gray-600">
-                            <li class="flex items-start">
-                                <i class="ti ti-check text-green-500 mr-3 mt-1"></i>
-                                Arahkan wajah ke kamera dalam kotak biru
-                            </li>
-                            <li class="flex items-start">
-                                <i class="ti ti-check text-green-500 mr-3 mt-1"></i>
-                                Pastikan wajah terlihat jelas dan tidak blur
-                            </li>
-                            <li class="flex items-start">
-                                <i class="ti ti-check text-green-500 mr-3 mt-1"></i>
-                                Pastikan pencahayaan cukup terang
-                            </li>
-                            <li class="flex items-start">
-                                <i class="ti ti-check text-green-500 mr-3 mt-1"></i>
-                                Jaga jarak 30-50 cm dari kamera
-                            </li>
-                            <li class="flex items-start">
-                                <i class="ti ti-check text-green-500 mr-3 mt-1"></i>
-                                Sistem akan mendeteksi karyawan secara otomatis
-                            </li>
-                            {{-- <li class="flex items-start">
-                                <i class="ti ti-volume text-orange-500 mr-3 mt-1"></i>
-                                <span class="text-orange-600 font-medium">Fitur Suara:</span> Klik tombol "Test Suara" di pojok kanan atas untuk
-                                menguji
-                            </li> --}}
-                        </ul>
-                    </div>
-
-                    <!-- Liveness Detection Status -->
-                    <div class="liveness-status bg-yellow-50 rounded-xl p-6 shadow-sm mb-6">
-                        <h3 class="text-xl font-semibold text-yellow-800 mb-4 flex items-center">
-                            <i class="ti ti-mouth text-yellow-500 mr-2"></i>
-                            Liveness Detection
-                        </h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Status:</span>
-                                <span id="livenessStatus" class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Menunggu buka mulut...
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Buka Mulut:</span>
-                                <span id="mouthOpenCount" class="text-sm font-medium text-gray-800">0 / 2</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">MAR:</span>
-                                <span id="currentMAR" class="text-sm font-medium text-gray-800">0.000</span>
-                            </div>
-                            <div class="bg-white rounded-lg p-3">
-                                <p class="text-sm text-gray-600 mb-2">
-                                    <i class="ti ti-info-circle mr-1"></i>
-                                    Instruksi:
-                                </p>
-                                <ul class="text-xs text-gray-600 space-y-1">
-                                    <li>• Buka mulut 2 kali untuk verifikasi liveness</li>
-                                    <li>• Pastikan wajah terlihat jelas</li>
-                                    <li>• Jaga jarak 30-50 cm dari kamera</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Employee Info -->
-                    <div class="employee-info bg-blue-50 rounded-xl p-6 shadow-sm mb-6">
-                        <h3 class="text-xl font-semibold text-blue-800 mb-4 flex items-center">
-                            <i class="ti ti-user text-blue-500 mr-2"></i>
-                            Informasi Karyawan
-                        </h3>
-                        <div class="employee-details grid grid-cols-1 gap-3">
-                            <!-- Employee details will be populated here -->
-                        </div>
-                    </div>
-
-                    <!-- Status Dropdown -->
-                    <div class="status-dropdown mb-4">
-                        <label for="statusSelect" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="ti ti-clock mr-2"></i>Jenis Absen
+            <!-- Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+                <!-- Left Side: Controls & Live Feedback (Span 5) -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <!-- Status Dropdown (Shift In / Out) -->
+                    <div class="glass-card rounded-xl p-4">
+                        <label for="statusSelect" class="block text-xs font-mono font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+                            <i class="ti ti-clock text-emerald-400"></i>
+                            <span>JENIS PRESENSI SHIFT</span>
                         </label>
                         <select id="statusSelect"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option value="1">Absen Masuk</option>
-                            <option value="0">Absen Pulang</option>
+                                class="w-full px-4 py-2.5 bg-slate-950/90 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 font-mono">
+                            <option value="1">🟢 Absen Masuk Shift</option>
+                            <option value="0">🔴 Absen Pulang Shift</option>
                         </select>
                     </div>
 
+                    <!-- Liveness Detection Status Card -->
+                    <div class="liveness-status glass-card rounded-xl p-4 border border-slate-700/80">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-mono font-bold text-slate-300 flex items-center gap-1.5">
+                                <i class="ti ti-shield-check text-emerald-400"></i>
+                                <span>VERIFIKASI LIVENESS AI</span>
+                            </h3>
+                            <span id="livenessStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                Menunggu...
+                            </span>
+                        </div>
 
+                        <div class="grid grid-cols-2 gap-2 font-mono text-xs mb-3">
+                            <div class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800">
+                                <div class="text-[10px] text-slate-500 mb-0.5">BUKA MULUT</div>
+                                <div id="mouthOpenCount" class="text-sm font-bold text-white">0 / 2</div>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800">
+                                <div class="text-[10px] text-slate-500 mb-0.5">MAR INDEX</div>
+                                <div id="currentMAR" class="text-sm font-bold text-white">0.000</div>
+                            </div>
+                        </div>
 
-                    <!-- Status Messages -->
-                    <div class="status-message mt-6 p-4 rounded-xl font-semibold"></div>
+                        <div class="text-[11px] text-slate-400 flex items-start gap-1.5 bg-slate-950/40 p-2.5 rounded-lg">
+                            <i class="ti ti-info-circle text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                            <span>Buka mulut 2x di depan kamera untuk membuktikan kehadiran fisik nyata (anti foto palsu).</span>
+                        </div>
+                    </div>
 
-                    <!-- Loading -->
-                    <div class="loading mt-6 text-center">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <p class="mt-2 text-gray-600">Memproses absen...</p>
+                    <!-- Employee Recognized Info Card -->
+                    <div class="employee-info glass-card rounded-xl p-4 border border-emerald-500/30">
+                        <h3 class="text-xs font-mono font-bold text-emerald-400 mb-2 flex items-center gap-1.5">
+                            <i class="ti ti-user-check"></i>
+                            <span>KARYAWAN TERDETEKSI</span>
+                        </h3>
+                        <div class="employee-details text-xs">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Status Messages & Spinner -->
+                    <div class="status-message p-3 rounded-xl font-semibold text-xs font-mono text-center"></div>
+
+                    <div class="loading text-center p-3">
+                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent"></div>
+                        <p class="mt-1 text-xs text-slate-400 font-mono">Memproses pencatatan presensi...</p>
+                    </div>
+
+                    <!-- Diagnostic & Controls (Collapsed/Minimal) -->
+                    <div class="glass-card rounded-xl p-3 text-xs font-mono text-slate-400">
+                        <div class="flex items-center justify-between text-[11px] mb-2">
+                            <span>Status Kamera:</span>
+                            <span id="cameraStatus" class="text-emerald-400 font-semibold">Memuat...</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] mb-2">
+                            <span>Engine AI:</span>
+                            <span id="faceStatus" class="text-emerald-400 font-semibold">Memuat...</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px]">
+                            <span>Status Error:</span>
+                            <span id="cameraError" class="text-slate-500">-</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-800">
+                            <button onclick="restartCamera()" 
+                                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 flex items-center justify-center gap-1">
+                                <i class="ti ti-refresh"></i>
+                                <span>Reset Kamera</span>
+                            </button>
+                            <button onclick="toggleLandmarks()" id="landmarkToggle" 
+                                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 flex items-center justify-center gap-1">
+                                <i class="ti ti-eye"></i>
+                                <span>Landmarks</span>
+                            </button>
+                            <button onclick="forceVideoDisplay()" class="hidden"></button>
+                            <button onclick="resetLivenessDetection()" class="hidden"></button>
+                            <button onclick="resetCounter()" class="hidden"></button>
+                            <button onclick="forceShowAbsenButtons()" class="hidden"></button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Right Side - Camera -->
-                <div class="lg:w-1/2 p-8 bg-white">
-                    <div class="text-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Face Recognition</h2>
-                        <p class="text-gray-600">Arahkan wajah ke kamera untuk deteksi</p>
-                    </div>
+                <!-- Right Side: Camera Viewport (Span 7) -->
+                <div class="lg:col-span-7 flex flex-col items-center justify-center">
+                    <div class="w-full relative">
+                        <!-- Camera Viewport Container -->
+                        <div class="relative w-full aspect-[4/3] max-h-[520px] rounded-2xl overflow-hidden bg-slate-950 border-2 border-emerald-500/40 shadow-2xl">
+                            <!-- Reticle Corners -->
+                            <div class="camera-corner top-4 left-4 border-t-2 border-l-2 rounded-tl-lg"></div>
+                            <div class="camera-corner top-4 right-4 border-t-2 border-r-2 rounded-tr-lg"></div>
+                            <div class="camera-corner bottom-4 left-4 border-b-2 border-l-2 rounded-bl-lg"></div>
+                            <div class="camera-corner bottom-4 right-4 border-b-2 border-r-2 rounded-br-lg"></div>
 
-                    <!-- Face Recognition Container -->
-                    <div class="relative" style="min-height: 400px;">
-                        <div id="facedetection" class="webcam-container">
-                            <!-- Video will be inserted here -->
-                        </div>
-                        <!-- Landmarks container - positioned absolutely over the video -->
-                        <div id="faceLandmarks" class="face-landmarks" style="display: none;"></div>
-                        <!-- Loading overlay -->
-                        <div id="loadingOverlay" class="loading-overlay">
-                            <div class="loading-content">
-                                <div class="loading-icon"></div>
-                                <div class="loading-text">Memuat sistem face recognition...</div>
-                                <div class="loading-subtext">Mohon tunggu sebentar</div>
+                            <!-- Laser Scan Line -->
+                            <div class="scanner-laser"></div>
+
+                            <!-- Live Video Stream -->
+                            <div id="facedetection" class="webcam-container w-full h-full">
+                                <!-- Video element injected by JS -->
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Debug Info -->
-                    <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                            <i class="ti ti-info-circle mr-2"></i>Status Sistem
-                        </h4>
+                            <!-- Landmarks Overlay -->
+                            <div id="faceLandmarks" class="face-landmarks" style="display: none;"></div>
 
-                        <div class="space-y-2 mb-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Kamera:</span>
-                                <span id="cameraStatus" class="text-sm font-medium text-blue-600">Memuat...</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Face Recognition:</span>
-                                <span id="faceStatus" class="text-sm font-medium text-blue-600">Memuat model...</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Error:</span>
-                                <span id="cameraError" class="text-sm font-medium text-red-500">-</span>
-                            </div>
-                            {{-- <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Speech API:</span>
-                                <span id="speechStatus" class="text-sm font-medium text-green-600">Checking...</span>
-                            </div> --}}
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-2">
-                            <button onclick="restartCamera()"
-                                class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center justify-center">
-                                <i class="ti ti-refresh mr-2"></i>Restart Camera
-                            </button>
-                            {{-- <button onclick="testVoice()"
-                                class="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors flex items-center justify-center">
-                                <i class="ti ti-volume mr-2"></i>Test Suara
-                            </button> --}}
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="forceVideoDisplay()"
-                                    class="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors flex items-center justify-center">
-                                    <i class="ti ti-eye mr-1"></i>Force Video
-                                </button>
-                                <button onclick="toggleLandmarks()" id="landmarkToggle"
-                                    class="bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-emerald-600 transition-colors flex items-center justify-center">
-                                    <i class="ti ti-eye mr-1"></i>Landmark
-                                </button>
-                            </div>
-                            <button onclick="resetLivenessDetection()"
-                                class="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors flex items-center justify-center hidden">
-                                <i class="ti ti-refresh mr-1"></i>Reset Liveness
-                            </button>
-                            <button onclick="resetCounter()"
-                                class="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600 transition-colors flex items-center justify-center hidden">
-                                <i class="ti ti-rotate mr-1"></i>Reset Counter
-                            </button>
-                            <button onclick="forceShowAbsenButtons()"
-                                class="bg-green-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors flex items-center justify-center hidden">
-                                <i class="ti ti-user-check mr-1"></i>Force Show Absen
-                            </button>
-                            {{-- <button onclick="forcePhotoCapture()"
-                                class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center justify-center">
-                                <i class="ti ti-camera mr-1"></i>Force Capture
-                            </button>
-                            <button onclick="testPhotoPreview()"
-                                class="bg-purple-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-600 transition-colors flex items-center justify-center">
-                                <i class="ti ti-photo mr-1"></i>Test Preview
-                            </button>
-                            <button onclick="clearTestAndCapture()"
-                                class="bg-cyan-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-cyan-600 transition-colors flex items-center justify-center">
-                                <i class="ti ti-camera-plus mr-1"></i>Clear & Capture
-                            </button>
-                            <button onclick="toggleAutoSave()" id="autoSaveToggle"
-                                class="bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-emerald-600 transition-colors flex items-center justify-center">
-                                <i class="ti ti-device-floppy mr-1"></i>Auto Save: ON
-                            </button>
-                            <button onclick="toggleLivenessDetection()"
-                                class="bg-gray-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-gray-600 transition-colors flex items-center justify-center hidden">
-                                <i class="ti ti-toggle-right mr-1"></i>Disable Liveness
-                            </button>
-                            <div class="grid grid-cols-2 gap-2 hidden">
-                                <button onclick="adjustThreshold('lower')"
-                                    class="bg-purple-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-600 transition-colors flex items-center justify-center">
-                                    <i class="ti ti-minus mr-1"></i>Lower Threshold
-                                </button>
-                                <button onclick="adjustThreshold('higher')"
-                                    class="bg-purple-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-purple-600 transition-colors flex items-center justify-center">
-                                    <i class="ti ti-plus mr-1"></i>Higher Threshold
-                                </button>
-                            </div> --}}
-                        </div>
-                    </div>
-
-                    <!-- Camera for Photo Capture -->
-                    <div class="camera-container mt-6">
-                        <video id="video" class="w-full rounded-xl" autoplay></video>
-                    </div>
-
-                    <!-- Canvas for Photo -->
-                    <div class="canvas-container mt-6">
-                        <canvas id="canvas" class="w-full rounded-xl"></canvas>
-                        <!-- Photo Preview & Confirmation -->
-                        <div id="photoPreview" class="mt-4" style="display: none;">
-                            <div class="text-center">
-                                <p class="text-lg font-semibold text-gray-800 mb-4">Preview Foto Presensi</p>
-                                <div class="photo-preview-buttons">
-                                    <button onclick="savePhoto()"
-                                        class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center text-sm">
-                                        <i class="ti ti-check mr-2"></i>Simpan & Absen
-                                    </button>
-                                    <button onclick="retakePhoto()"
-                                        class="bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center text-sm">
-                                        <i class="ti ti-refresh mr-2"></i>Ambil Ulang
-                                    </button>
-                                    <button onclick="forcePhotoCapture()"
-                                        class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center text-sm">
-                                        <i class="ti ti-camera mr-2"></i>Alternatif
-                                    </button>
+                            <!-- Loading Overlay -->
+                            <div id="loadingOverlay" class="loading-overlay">
+                                <div class="loading-content">
+                                    <div class="loading-icon"></div>
+                                    <div class="loading-text">Menyiapkan Engine Face AI...</div>
+                                    <div class="loading-subtext">Mengunduh model biometrik wajah</div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Bottom Prompt -->
+                        <div class="mt-3 text-center text-xs font-mono text-slate-400 flex items-center justify-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>Arahkan pandangan langsung ke kamera &bull; Jarak 30-50 cm</span>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl w-full mx-auto text-center py-2 text-xs text-slate-600 font-mono">
+        &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; High Precision Kiosk Terminal
+    </footer>
+
+    <!-- Hidden Video & Canvas for Snapshot Capture -->
+    <div style="display: none;">
+        <video id="video" autoplay></video>
+        <canvas id="canvas"></canvas>
+        <div id="photoPreview">
+            <div class="photo-preview-buttons">
+                <button onclick="savePhoto()"></button>
+                <button onclick="retakePhoto()"></button>
+                <button onclick="forcePhotoCapture()"></button>
             </div>
         </div>
     </div>

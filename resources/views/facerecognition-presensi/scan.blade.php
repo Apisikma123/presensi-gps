@@ -1,374 +1,186 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="utf-8" />
     <title>Scan QR Code - {{ $karyawan->nama_karyawan }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Sistem Presensi QR Code" name="description" />
-    <meta content="Coderthemes" name="author" />
+    <meta content="Sistem Presensi QR Code & Biometrik" name="description" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/img/favicon/favicon.ico') }}">
 
-    <!-- App css -->
-    <link href="{{ asset('assets/css/icons.min.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset('assets/css/app.min.css') }}" rel="stylesheet" type="text/css" id="light-style" />
-    <link href="{{ asset('assets/css/app-dark.min.css') }}" rel="stylesheet" type="text/css" id="dark-style" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- QR Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf9',
+                            100: '#ccfbf1',
+                            500: '#32745e',
+                            600: '#275d4b',
+                            700: '#1e483a',
+                            900: '#0f241d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #080c14;
+            color: #f1f5f9;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(50, 116, 94, 0.18) 0px, transparent 45%),
+                radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.4) 0px, transparent 50%);
         }
 
-        .scan-container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
         }
 
-        .employee-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .employee-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-        }
-
-        .employee-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .employee-nik {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .time-display {
-            font-size: 48px;
-            font-weight: bold;
-            color: #333;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-        }
-
-        .date-display {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .scan-section {
-            margin: 30px 0;
-        }
-
-        .qr-reader {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .manual-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .btn-absen {
-            flex: 1;
-            min-width: 150px;
-            padding: 20px;
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-masuk {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-        }
-
-        .btn-pulang {
-            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-            color: white;
-        }
-
-        .btn-absen:hover {
-            opacity: 0.8;
-        }
-
-        .btn-absen:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .camera-container {
-            margin: 20px 0;
-            border-radius: 15px;
-            overflow: hidden;
+        .camera-container, .canvas-container, .loading, .status-message {
             display: none;
         }
 
-        #video {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 15px;
+        #qr-reader {
+            border: 2px solid rgba(50, 116, 94, 0.3) !important;
+            border-radius: 16px !important;
+            background: #020617 !important;
+            overflow: hidden !important;
         }
 
-        .canvas-container {
-            margin: 20px 0;
-            display: none;
+        #qr-reader video {
+            width: 100% !important;
+            border-radius: 14px !important;
         }
 
-        #canvas {
-            width: 100%;
-            max-width: 600px;
-            border-radius: 15px;
-        }
-
-        .status-message {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: bold;
-            display: none;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .loading {
-            display: none;
-            margin: 20px 0;
+        #qr-reader__scan_region, #qr-reader__scan_region>img, #qr-reader__status_span {
+            display: none !important;
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #10b981;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
+            width: 36px;
+            height: 36px;
+            animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Remove unnecessary animations */
-        .btn-absen {
-            transition: opacity 0.2s;
-        }
-
-        .back-button {
-            transition: background 0.2s;
-        }
-
-        .scan-instructions {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            color: #666;
-        }
-
-        .scan-instructions h5 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .scan-instructions ul {
-            text-align: left;
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .scan-instructions li {
-            margin-bottom: 5px;
-        }
-
-        #qr-reader {
-            border: 2px solid #ddd;
-            border-radius: 15px;
-        }
-
-        /* Force camera to be active */
-        #qr-reader video {
-            width: 100% !important;
-            height: auto !important;
-        }
-
-        /* Hide unnecessary elements */
-        #qr-reader__scan_region {
-            display: none !important;
-        }
-
-        #qr-reader__scan_region>img {
-            display: none !important;
-        }
-
-        /* Ensure QR scanner is always active */
-        #qr-reader__status_span {
-            display: none !important;
-        }
-
-        #qr-reader__camera_selection {
-            margin-bottom: 10px;
-        }
-
-        #qr-reader__dashboard_section {
-            margin-bottom: 10px;
-        }
-
-        .qr-reader-container {
-            position: relative;
-        }
-
-        .scan-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 250px;
-            height: 250px;
-            border: 3px solid #667eea;
-            border-radius: 10px;
-            pointer-events: none;
-            z-index: 10;
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 
-<body>
-    <button class="back-button" onclick="window.location.href='{{ route('facerecognition-presensi.index') }}'">
-        <i class="ti ti-arrow-left"></i> Kembali
-    </button>
+<body class="p-4 md:p-6 flex flex-col justify-between">
+    <!-- Top Bar -->
+    <header class="max-w-2xl w-full mx-auto flex items-center justify-between pb-4">
+        <button onclick="window.location.href='{{ route('facerecognition-presensi.index') }}'"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-300 hover:text-white transition-all">
+            <i class="ti ti-arrow-left"></i>
+            <span>Kembali</span>
+        </button>
 
-    <div class="scan-container">
-        <div class="employee-card">
-            <div class="employee-avatar">
-                <i class="ti ti-user"></i>
+        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono text-emerald-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>QR STATION SCAN</span>
+        </div>
+    </header>
+
+    <!-- Main Card -->
+    <main class="max-w-2xl w-full mx-auto my-auto">
+        <div class="glass-panel rounded-2xl p-6 md:p-8">
+            <!-- Employee Card Header -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                    <i class="ti ti-user text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white tracking-tight">{{ $karyawan->nama_karyawan }}</h2>
+                    <div class="text-xs text-slate-400 font-mono mt-0.5">
+                        <i class="ti ti-id me-1"></i>NIK: {{ $karyawan->nik }}
+                    </div>
+                </div>
             </div>
-            <div class="employee-name">{{ $karyawan->nama_karyawan }}</div>
-            <div class="employee-nik">NIK: {{ $karyawan->nik }}</div>
-        </div>
 
-        <div class="time-display" id="timeDisplay"></div>
-        <div class="date-display" id="dateDisplay"></div>
-
-        <div class="scan-section">
-            <h4>Scan QR Code untuk Absen</h4>
-
-            <div class="scan-instructions">
-                <h5>Cara menggunakan:</h5>
-                <ul>
-                    <li>Arahkan kamera ke QR Code</li>
-                    <li>Pastikan QR Code berada dalam kotak scan</li>
-                    <li>Tunggu hingga QR Code terdeteksi otomatis</li>
-                    <li>Atau gunakan tombol manual di bawah</li>
-                </ul>
+            <!-- Clock Display -->
+            <div class="text-center mb-6 font-mono">
+                <div class="text-3xl md:text-4xl font-extrabold text-emerald-400 tracking-tight" id="timeDisplay">--:--:--</div>
+                <div class="text-xs text-slate-400 mt-1" id="dateDisplay">Memuat tanggal...</div>
             </div>
 
-            <div class="qr-reader-container">
-                <div id="qr-reader" class="qr-reader"></div>
-                <div class="scan-overlay"></div>
+            <!-- QR Reader Viewport -->
+            <div class="mb-6">
+                <div id="qr-reader" class="rounded-xl overflow-hidden shadow-inner"></div>
             </div>
-        </div>
 
-        <div class="manual-buttons">
-            <button class="btn-absen btn-masuk" onclick="manualAbsen(1)">
-                <i class="ti ti-login me-2"></i>Absen Masuk Manual
-            </button>
-            <button class="btn-absen btn-pulang" onclick="manualAbsen(0)">
-                <i class="ti ti-logout me-2"></i>Absen Pulang Manual
-            </button>
-        </div>
+            <!-- Manual Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 mb-4 font-mono">
+                <button class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 transition-all"
+                        onclick="manualAbsen(1)">
+                    <i class="ti ti-login"></i>
+                    <span>Absen Masuk</span>
+                </button>
+                <button class="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 transition-all"
+                        onclick="manualAbsen(0)">
+                    <i class="ti ti-logout"></i>
+                    <span>Absen Pulang</span>
+                </button>
+            </div>
 
-        <div class="camera-container" id="cameraContainer">
-            <video id="video" autoplay></video>
-        </div>
+            <!-- Hidden Elements for Camera Capture -->
+            <div class="camera-container" id="cameraContainer">
+                <video id="video" autoplay></video>
+            </div>
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="canvas"></canvas>
+            </div>
 
-        <div class="canvas-container" id="canvasContainer">
-            <canvas id="canvas"></canvas>
-        </div>
+            <!-- Loading & Status -->
+            <div class="loading text-center p-3" id="loading">
+                <div class="spinner mb-2"></div>
+                <p class="text-xs text-slate-400 font-mono">Memproses presensi...</p>
+            </div>
 
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Memproses absen...</p>
+            <div class="status-message p-3 rounded-xl text-center text-xs font-mono font-semibold" id="statusMessage"></div>
         </div>
+    </main>
 
-        <div class="status-message" id="statusMessage"></div>
-    </div>
+    <!-- Footer -->
+    <footer class="max-w-2xl w-full mx-auto text-center py-2 text-xs text-slate-600 font-mono">
+        &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; QR Code Attendance
+    </footer>
 
     <!-- Vendor js -->
     <script src="{{ asset('assets/js/vendor.min.js') }}"></script>
