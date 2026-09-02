@@ -122,6 +122,46 @@
     <!-- Core JS -->
     @include('layouts.scripts')
     <!-- Page JS -->
+
+    <!-- Instant Page Acceleration & Top Progress Bar -->
+    <script src="{{ asset('assets/js/instantpage.min.js') }}" type="module"></script>
+    <style>
+        #page-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--theme-color-1, #32745e), #10b981);
+            z-index: 999999;
+            transition: width 0.2s ease, opacity 0.3s ease;
+            pointer-events: none;
+        }
+    </style>
+    <div id="page-progress-bar"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bar = document.getElementById('page-progress-bar');
+            document.querySelectorAll('a[href]:not([target="_blank"]):not([href^="#"]):not([href^="javascript:"])').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.hostname === window.location.hostname && !e.ctrlKey && !e.shiftKey && !e.metaKey && !this.classList.contains('delete-confirm') && !this.classList.contains('btn-delete')) {
+                        if (bar) {
+                            bar.style.opacity = '1';
+                            bar.style.width = '40%';
+                            setTimeout(() => { bar.style.width = '80%'; }, 120);
+                        }
+                    }
+                });
+            });
+        });
+        window.addEventListener('pageshow', function() {
+            const bar = document.getElementById('page-progress-bar');
+            if (bar) {
+                bar.style.width = '100%';
+                setTimeout(() => { bar.style.opacity = '0'; bar.style.width = '0%'; }, 200);
+            }
+        });
+    </script>
 </body>
 
 </html>
