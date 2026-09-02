@@ -92,6 +92,7 @@ Route::middleware('throttle:60,1')->controller(FacerecognitionpresensiController
     Route::get('/facerecognition-presensi', 'index')->name('facerecognition-presensi.index');
     Route::get('/facerecognition-presensi/scan/{nik}', 'scan')->name('facerecognition-presensi.scan');
     Route::get('/facerecognition-presensi/scanall', 'scanAny')->name('facerecognition-presensi.scan_any');
+    Route::get('/facerecognition-presensi/scan-any', 'scanAny');
     Route::post('/facerecognition-presensi/store', 'store')->name('facerecognition-presensi.store');
     Route::get('/facerecognition-presensi/generate/{nik}', 'getKaryawan')->name('facerecognition-presensi.generate');
     Route::get('/facerecognition/getallwajah', 'getAllWajah')->name('facerecognition.getallwajah');

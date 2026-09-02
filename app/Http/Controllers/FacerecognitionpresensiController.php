@@ -26,7 +26,13 @@ class FacerecognitionpresensiController extends Controller
 {
     public function index()
     {
-        return view('facerecognition-presensi.index');
+        $karyawan = Karyawan::where('status_aktif_karyawan', '1')
+            ->orderBy('nama_karyawan', 'asc')
+            ->get();
+        $total_biometric = Facerecognition::count();
+        $total_karyawan = Karyawan::where('status_aktif_karyawan', '1')->count();
+
+        return view('facerecognition-presensi.index', compact('karyawan', 'total_biometric', 'total_karyawan'));
     }
 
     public function scan($nik)
