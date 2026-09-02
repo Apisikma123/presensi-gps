@@ -110,9 +110,9 @@
             buttons: true,
             dangerMode: true,
             showCancelButton: true,
-            confirmButtonColor: "#554bbb",
+            confirmButtonColor: "#32745e",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, Batalkan Saja Saja!"
+            confirmButtonText: "Ya, Batalkan!"
         }).then((result) => {
             /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
