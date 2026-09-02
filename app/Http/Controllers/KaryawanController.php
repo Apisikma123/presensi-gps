@@ -156,7 +156,8 @@ class KaryawanController extends Controller
             'nama_bank' => 'nullable',
             'no_rekening' => 'nullable',
             'nama_rekening' => 'nullable',
-            'hitung_pph21' => 'nullable|boolean'
+            'hitung_pph21' => 'nullable|boolean',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
 
         // Validasi akses cabang dan departemen jika bukan super admin
@@ -191,7 +192,8 @@ class KaryawanController extends Controller
             $nikAuto = $prefix . str_pad((string)$nextNumber, 5, '0', STR_PAD_LEFT);
             $data_foto = [];
             if ($request->hasfile('foto')) {
-                $foto_name =  $nikAuto . "." . $request->file('foto')->getClientOriginalExtension();
+                $ext = $request->file('foto')->extension() ?: 'jpg';
+                $foto_name =  $nikAuto . "." . $ext;
                 $destination_foto_path = "/public/karyawan";
                 $foto = $foto_name;
                 $data_foto = [
@@ -298,7 +300,8 @@ class KaryawanController extends Controller
             'nama_bank' => 'nullable',
             'no_rekening' => 'nullable',
             'nama_rekening' => 'nullable',
-            'hitung_pph21' => 'nullable|boolean'
+            'hitung_pph21' => 'nullable|boolean',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
 
         // Validasi akses cabang dan departemen jika bukan super admin
@@ -319,7 +322,8 @@ class KaryawanController extends Controller
             $karyawan = Karyawan::where('nik', $nik)->first();
             $data_foto = [];
             if ($request->hasfile('foto')) {
-                $foto_name =  $nik . "." . $request->file('foto')->getClientOriginalExtension();
+                $ext = $request->file('foto')->extension() ?: 'jpg';
+                $foto_name =  $nik . "." . $ext;
                 $destination_foto_path = "/public/karyawan";
                 $foto = $foto_name;
                 $data_foto = [

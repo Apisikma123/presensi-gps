@@ -38,7 +38,8 @@ class PelatihanController extends Controller
         try {
             $foto = null;
             if ($request->hasFile('foto')) {
-                $foto_name = $request->nik . "-" . time() . "." . $request->file('foto')->getClientOriginalExtension();
+                $ext = $request->file('foto')->extension() ?: 'jpg';
+                $foto_name = $request->nik . "-" . time() . "." . $ext;
                 $destination_path = "/public/pelatihan";
                 $request->file('foto')->storeAs($destination_path, $foto_name);
                 $foto = $foto_name;

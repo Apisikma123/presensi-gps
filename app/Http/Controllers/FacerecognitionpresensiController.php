@@ -312,9 +312,19 @@ class FacerecognitionpresensiController extends Controller
     public function getKaryawan($nik)
     {
         try {
-            // Ambil data karyawan dengan join ke tabel jabatan
+            // Ambil data karyawan dengan join ke tabel jabatan (hanya field publik untuk display)
             $karyawan = Karyawan::leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
-                ->select('karyawan.*', 'jabatan.nama_jabatan')
+                ->select(
+                    'karyawan.nik',
+                    'karyawan.nik_show',
+                    'karyawan.nama_karyawan',
+                    'karyawan.foto',
+                    'karyawan.kode_dept',
+                    'karyawan.kode_cabang',
+                    'karyawan.kode_jabatan',
+                    'karyawan.status_aktif_karyawan',
+                    'jabatan.nama_jabatan'
+                )
                 ->where('karyawan.nik', $nik)
                 ->first();
 
@@ -335,7 +345,7 @@ class FacerecognitionpresensiController extends Controller
                 'jam_kerja' => $jamKerja
             ]);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+            return response()->json(['status' => false, 'message' => 'Terjadi kesalahan sistem.'], 500);
         }
     }
 

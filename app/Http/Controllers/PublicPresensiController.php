@@ -47,7 +47,16 @@ class PublicPresensiController extends Controller
         $rfid_uid = $request->rfid_uid;
         $karyawan = Karyawan::leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
             ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->select('karyawan.*', 'jabatan.nama_jabatan', 'departemen.nama_dept')
+            ->select(
+                'karyawan.nik',
+                'karyawan.nama_karyawan',
+                'karyawan.foto',
+                'karyawan.kode_cabang',
+                'karyawan.kode_dept',
+                'karyawan.status_aktif_karyawan',
+                'jabatan.nama_jabatan',
+                'departemen.nama_dept'
+            )
             ->where('karyawan.rfid_uid', $rfid_uid)
             ->first();
 

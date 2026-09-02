@@ -31,10 +31,17 @@ class ProfileController extends Controller
         $user_karyawan = Userkaryawan::where('id_user', $user->id)->first();
         $karyawan = Karyawan::where('nik', $user_karyawan->nik)->first();
 
+        $request->validate([
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'nama_karyawan' => 'required|string|max:255',
+            'no_hp' => 'nullable|string|max:20',
+        ]);
+
         try {
             $data_foto = [];
             if ($request->hasfile('foto')) {
-                $foto_name =  $karyawan->nik . "." . $request->file('foto')->getClientOriginalExtension();
+                $ext = $request->file('foto')->extension() ?: 'jpg';
+                $foto_name =  $karyawan->nik . "." . $ext;
                 $destination_foto_path = "/public/karyawan";
                 $foto = $foto_name;
                 $data_foto = [

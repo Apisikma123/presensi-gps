@@ -87,8 +87,8 @@ Route::middleware('guest')->group(function () {
     )->name('loginuser');
 });
 
-// Face Recognition Presensi Routes (Public - No Login Required)
-Route::controller(FacerecognitionpresensiController::class)->group(function () {
+// Face Recognition Presensi Routes (Public Kiosk - Rate Limited)
+Route::middleware('throttle:60,1')->controller(FacerecognitionpresensiController::class)->group(function () {
     Route::get('/facerecognition-presensi', 'index')->name('facerecognition-presensi.index');
     Route::get('/facerecognition-presensi/scan/{nik}', 'scan')->name('facerecognition-presensi.scan');
     Route::get('/facerecognition-presensi/scanall', 'scanAny')->name('facerecognition-presensi.scan_any');
@@ -97,8 +97,8 @@ Route::controller(FacerecognitionpresensiController::class)->group(function () {
     Route::get('/facerecognition/getallwajah', 'getAllWajah')->name('facerecognition.getallwajah');
 });
 
-// Public Kiosk Attendance Routes (RFID + Camera)
-Route::controller(App\Http\Controllers\PublicPresensiController::class)->group(function () {
+// Public Kiosk Attendance Routes (RFID + Camera - Rate Limited)
+Route::middleware('throttle:60,1')->controller(App\Http\Controllers\PublicPresensiController::class)->group(function () {
     Route::get('/public/presensi', 'index')->name('public.presensi.index');
     Route::post('/public/presensi/check-rfid', 'checkRfid')->name('public.presensi.check-rfid');
     Route::post('/public/presensi/store', 'store')->name('public.presensi.store');
@@ -533,7 +533,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/slipgaji/{kode_slip}/edit', 'edit')->name('slipgaji.edit')->can('slipgaji.edit');
             Route::put('/slipgaji/{kode_slip}/update', 'update')->name('slipgaji.update')->can('slipgaji.edit');
             Route::delete('/slipgaji/{kode_slip}/delete', 'destroy')->name('slipgaji.delete')->can('slipgaji.delete');
-            Route::get('/slipgaji/{nik}/{bulan}/{tahun}/cetakslip', 'cetakslipgaji')->name('slipgaji.cetakslip')->can('slipgaji.index');
         }
     );
 
@@ -1145,22 +1144,23 @@ Route::group(['middleware' => ['auth']], function () { // Removed userAkses:admi
     Route::post('/myproject/task/{id}/progress', [\App\Http\Controllers\ProjectMobileController::class, 'updateProgress'])->name('myproject.task.progress');
     Route::post('/myproject/task/{id}/comment', [\App\Http\Controllers\ProjectMobileController::class, 'storeComment'])->name('myproject.task.comment');
     Route::post('/myproject/task/{id}/attachment', [\App\Http\Controllers\ProjectMobileController::class, 'storeAttachment'])->name('myproject.task.attachment');
-});
-// Ajuan Jadwal Routes
-Route::group(['middleware' => ['permission:ajuanjadwal.index']], function () {
-    Route::get('/ajuanjadwal', [App\Http\Controllers\AjuanJadwalController::class, 'index'])->name('ajuanjadwal.index');
-});
 
-Route::group(['middleware' => ['permission:ajuanjadwal.create']], function () {
-    Route::get('/ajuanjadwal/create', [App\Http\Controllers\AjuanJadwalController::class, 'create'])->name('ajuanjadwal.create');
-    Route::post('/ajuanjadwal/store', [App\Http\Controllers\AjuanJadwalController::class, 'store'])->name('ajuanjadwal.store');
-    Route::delete('/ajuanjadwal/{id}/delete', [App\Http\Controllers\AjuanJadwalController::class, 'destroy'])->name('ajuanjadwal.delete');
-});
+    // Ajuan Jadwal Routes (Protected with Auth & Permission)
+    Route::group(['middleware' => ['permission:ajuanjadwal.index']], function () {
+        Route::get('/ajuanjadwal', [App\Http\Controllers\AjuanJadwalController::class, 'index'])->name('ajuanjadwal.index');
+    });
 
-Route::group(['middleware' => ['permission:ajuanjadwal.approve']], function () {
-    Route::post('/ajuanjadwal/{id}/approve', [App\Http\Controllers\AjuanJadwalController::class, 'approve'])->name('ajuanjadwal.approve');
-    Route::post('/ajuanjadwal/{id}/reject', [App\Http\Controllers\AjuanJadwalController::class, 'reject'])->name('ajuanjadwal.reject');
-    Route::post('/ajuanjadwal/{id}/cancelapprove', [App\Http\Controllers\AjuanJadwalController::class, 'cancelapprove'])->name('ajuanjadwal.cancelapprove');
+    Route::group(['middleware' => ['permission:ajuanjadwal.create']], function () {
+        Route::get('/ajuanjadwal/create', [App\Http\Controllers\AjuanJadwalController::class, 'create'])->name('ajuanjadwal.create');
+        Route::post('/ajuanjadwal/store', [App\Http\Controllers\AjuanJadwalController::class, 'store'])->name('ajuanjadwal.store');
+        Route::delete('/ajuanjadwal/{id}/delete', [App\Http\Controllers\AjuanJadwalController::class, 'destroy'])->name('ajuanjadwal.delete');
+    });
+
+    Route::group(['middleware' => ['permission:ajuanjadwal.approve']], function () {
+        Route::post('/ajuanjadwal/{id}/approve', [App\Http\Controllers\AjuanJadwalController::class, 'approve'])->name('ajuanjadwal.approve');
+        Route::post('/ajuanjadwal/{id}/reject', [App\Http\Controllers\AjuanJadwalController::class, 'reject'])->name('ajuanjadwal.reject');
+        Route::post('/ajuanjadwal/{id}/cancelapprove', [App\Http\Controllers\AjuanJadwalController::class, 'cancelapprove'])->name('ajuanjadwal.cancelapprove');
+    });
 });
 // Route::get('/storage/{path}', function ($path) {
 //     return response()->file(storage_path('app/public/' . $path));
