@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Terminal Kiosk Presensi Wajah</title>
+    <title>Kiosk Presensi Wajah - {{ $general_setting->nama_aplikasi ?? 'HR Presence' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Smart Kiosk Face Recognition Attendance Terminal" name="description" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -47,188 +47,171 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0b0f19;
-            color: #f8fafc;
+            background-color: #f8fafc;
+            color: #1e293b;
             min-height: 100vh;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(50, 116, 94, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.2) 0px, transparent 50%);
         }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .glass-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        .card-surface:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
         }
 
-        .glass-card:hover {
-            border-color: rgba(50, 116, 94, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -10px rgba(50, 116, 94, 0.2);
+        .btn-brand {
+            background-color: #32745e;
+            color: #ffffff;
+            transition: all 0.2s ease;
         }
 
-        .glow-brand {
-            box-shadow: 0 0 30px rgba(50, 116, 94, 0.35);
-        }
-
-        .pulse-dot {
-            animation: pulse-glow 2s infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
+        .btn-brand:hover {
+            background-color: #275d4b;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px -2px rgba(50, 116, 94, 0.3);
         }
     </style>
 </head>
 
 <body class="flex flex-col justify-between p-4 md:p-8">
-    <!-- Top Navigation / Header -->
-    <header class="max-w-6xl w-full mx-auto flex items-center justify-between py-4">
+    <!-- Top Header -->
+    <header class="max-w-5xl w-full mx-auto flex items-center justify-between py-2">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-emerald-400">
+            <div class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-sm">
                 <i class="ti ti-scan text-2xl"></i>
             </div>
             <div>
-                <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                    <span>Terminal Kiosk Outlet</span>
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
-                        AI Engine Ready
+                <h1 class="text-base font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                    <span>{{ $general_setting->nama_aplikasi ?? 'HR Presence' }}</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Kiosk Mode
                     </span>
                 </h1>
-                <p class="text-xs text-slate-400 font-mono">Smart Face Recognition Hub</p>
+                <p class="text-xs text-slate-500">Terminal Presensi Biometrik & QR Code</p>
             </div>
         </div>
 
         <a href="{{ route('dashboard.index') }}" 
-           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs font-medium text-slate-300 hover:text-white transition-all">
-            <i class="ti ti-arrow-left"></i>
-            <span>Kembali ke Admin</span>
+           class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 shadow-sm transition-all">
+            <i class="ti ti-arrow-left text-sm"></i>
+            <span>Kembali ke Dashboard</span>
         </a>
     </header>
 
-    <!-- Main Bento Grid Hub -->
-    <main class="max-w-6xl w-full mx-auto my-auto py-8">
-        <div class="text-center max-w-2xl mx-auto mb-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-brand-500/10 text-emerald-400 border border-brand-500/30 mb-3">
-                <i class="ti ti-device-tablet"></i>
-                STATION MODE
-            </div>
-            <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                Presensi Wajah Cerdas Otomatis
+    <!-- Main Content -->
+    <main class="max-w-5xl w-full mx-auto my-auto py-8">
+        <div class="text-center max-w-xl mx-auto mb-8">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Terminal Presensi Karyawan
             </h2>
-            <p class="text-sm text-slate-400 mt-2">
-                Pilih mode terminal absensi kamera live outlet atau kelola kartu barcode digital karyawan.
+            <p class="text-sm text-slate-500 mt-1.5">
+                Gunakan tablet outlet untuk absensi kamera wajah otomatis atau cetak kartu QR ID karyawan.
             </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <!-- Card 1: Primary Action - Launch Live Kiosk (Span 7) -->
-            <div class="md:col-span-7 glass-panel rounded-2xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden border border-brand-500/30">
-                <div class="absolute -right-12 -top-12 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
+            <!-- Card 1: Launch Face Recognition Kiosk (Span 7) -->
+            <div class="md:col-span-7 card-surface rounded-2xl p-6 md:p-8 flex flex-col justify-between border-brand-500/20">
                 <div>
                     <div class="flex items-center justify-between mb-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                            <i class="ti ti-sparkles"></i> MODE UTAMA
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <i class="ti ti-camera"></i> Rekomendasi Outlet
                         </span>
-                        <span class="text-xs text-slate-500 font-mono">Full-Screen Standalone</span>
+                        <span class="text-xs text-slate-400 font-mono">Layar Penuh Tablet</span>
                     </div>
 
-                    <h3 class="text-2xl font-bold text-white mb-2">Buka Terminal Kiosk Live</h3>
-                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
-                        Layar kamera pemindai wajah otomatis tanpa sentuh. Tempatkan di tablet kasir atau dinding outlet agar barista & staff dapat absen masuk/pulang dalam hitungan detik.
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Buka Kiosk Absen Wajah (Live)</h3>
+                    <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                        Layar kamera pemindai wajah otomatis tanpa sentuh. Staff (barista, kasir, kitchen) cukup berdiri di depan kamera untuk langsung tercatat absen masuk atau pulang.
                     </p>
 
-                    <div class="grid grid-cols-3 gap-3 mb-6 font-mono text-xs">
-                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                            <div class="text-slate-500 text-[10px] mb-1">AI DETEKSI</div>
-                            <div class="text-white font-semibold flex items-center gap-1">
-                                <i class="ti ti-cpu text-emerald-400"></i> Face API
+                    <div class="grid grid-cols-3 gap-3 mb-6 text-xs">
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <div class="text-slate-400 text-[10px] font-bold uppercase mb-0.5">Metode</div>
+                            <div class="text-slate-800 font-semibold flex items-center gap-1">
+                                <i class="ti ti-sparkles text-emerald-600"></i> Face API
                             </div>
                         </div>
-                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                            <div class="text-slate-500 text-[10px] mb-1">KECEPATAN</div>
-                            <div class="text-white font-semibold flex items-center gap-1">
-                                <i class="ti ti-bolt text-amber-400"></i> < 1 Detik
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <div class="text-slate-400 text-[10px] font-bold uppercase mb-0.5">Kecepatan</div>
+                            <div class="text-slate-800 font-semibold flex items-center gap-1">
+                                <i class="ti ti-bolt text-amber-500"></i> < 1 Detik
                             </div>
                         </div>
-                        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                            <div class="text-slate-500 text-[10px] mb-1">ANTI SPOOF</div>
-                            <div class="text-white font-semibold flex items-center gap-1">
-                                <i class="ti ti-shield-check text-sky-400"></i> Liveness
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <div class="text-slate-400 text-[10px] font-bold uppercase mb-0.5">Keamanan</div>
+                            <div class="text-slate-800 font-semibold flex items-center gap-1">
+                                <i class="ti ti-shield-check text-brand-600"></i> Anti-Spoof
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <a href="{{ route('facerecognition-presensi.scan_any') }}" 
-                   class="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-brand-500/25 glow-brand group">
-                    <i class="ti ti-camera text-lg group-hover:scale-110 transition-transform"></i>
-                    <span>Luncurkan Kiosk Absensi Sekarang</span>
+                   class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl btn-brand font-bold text-sm tracking-wide shadow-sm">
+                    <i class="ti ti-camera text-lg"></i>
+                    <span>Buka Terminal Kamera Outlet</span>
                     <i class="ti ti-arrow-right ml-1"></i>
                 </a>
             </div>
 
-            <!-- Card 2: QR & Barcode Generator Tool (Span 5) -->
-            <div class="md:col-span-5 glass-panel rounded-2xl p-6 md:p-8 flex flex-col justify-between">
+            <!-- Card 2: Generate QR Code ID Badge (Span 5) -->
+            <div class="md:col-span-5 card-surface rounded-2xl p-6 md:p-8 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-                            <i class="ti ti-qrcode"></i> BADGE TOOLS
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <i class="ti ti-qrcode"></i> Alat ID Card
                         </span>
                     </div>
 
-                    <h3 class="text-xl font-bold text-white mb-2">Generate QR Code Karyawan</h3>
-                    <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-                        Cetak kode QR kartu ID untuk staff yang belum mendaftarkan biometrik wajah.
+                    <h3 class="text-lg font-bold text-slate-900 mb-1.5">Generate QR Code Karyawan</h3>
+                    <p class="text-xs text-slate-500 mb-5 leading-relaxed">
+                        Cetak kode QR kartu identitas untuk karyawan yang belum mendaftarkan biometrik wajah.
                     </p>
 
                     <form id="qrForm" class="space-y-3 mb-4">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-400 mb-1.5 font-mono">MASUKKAN NIK KARYAWAN</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">NIK KARYAWAN</label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                     <i class="ti ti-id"></i>
                                 </span>
-                                <input type="text" id="nik" name="nik" placeholder="Contoh: 123456789" maxlength="16" required
-                                       class="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 font-mono">
+                                <input type="text" id="nik" name="nik" placeholder="Masukkan NIK..." maxlength="16" required
+                                       class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white transition-all font-mono">
                             </div>
                         </div>
                         <button type="submit" 
-                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-semibold text-xs transition-all">
+                                class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all">
                             <i class="ti ti-qrcode"></i>
-                            <span>Buat QR Code ID</span>
+                            <span>Buat QR Code</span>
                         </button>
                     </form>
 
-                    <div id="errorMessage" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium"></div>
+                    <div id="errorMessage" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium"></div>
 
-                    <div id="qrResult" class="hidden mt-4 p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                        <div id="qrCode" class="inline-block p-2 bg-white rounded-lg shadow-inner mb-3"></div>
-                        <div id="employeeInfo" class="text-xs text-slate-300"></div>
+                    <div id="qrResult" class="hidden mt-3 p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                        <div id="qrCode" class="inline-block p-2 bg-white rounded-lg border border-slate-200 shadow-sm mb-2"></div>
+                        <div id="employeeInfo" class="text-xs text-slate-700"></div>
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center gap-2 font-mono">
-                    <i class="ti ti-info-circle text-slate-400"></i>
-                    <span>Kompatibel dengan semua scanner barcode 2D</span>
+                <div class="pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-1.5">
+                    <i class="ti ti-info-circle text-brand-600"></i>
+                    <span>Dapat di-scan dengan scanner barcode standar</span>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="max-w-6xl w-full mx-auto text-center py-4 border-t border-slate-900 text-xs text-slate-600 font-mono">
-        &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; Smart Attendance Terminal
+    <footer class="max-w-5xl w-full mx-auto text-center py-2 text-xs text-slate-400">
+        &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; Sistem Presensi Karyawan
     </footer>
 
     <!-- Scripts -->
@@ -267,11 +250,11 @@
             const qrCode = document.getElementById('qrCode');
             const employeeInfo = document.getElementById('employeeInfo');
 
-            qrCode.innerHTML = `<img src="data:image/png;base64,${data.qr_code}" alt="QR Code" class="w-32 h-32 mx-auto">`;
+            qrCode.innerHTML = `<img src="data:image/png;base64,${data.qr_code}" alt="QR Code" class="w-28 h-28 mx-auto">`;
             employeeInfo.innerHTML = `
-                <div class="font-bold text-white text-sm">${data.karyawan.nama_karyawan}</div>
-                <div class="text-slate-400 font-mono mt-0.5">NIK: ${data.karyawan.nik}</div>
-                <div class="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${data.karyawan.status_aktif_karyawan == '1' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                <div class="font-bold text-slate-900 text-sm">${data.karyawan.nama_karyawan}</div>
+                <div class="text-slate-500 font-mono mt-0.5">NIK: ${data.karyawan.nik}</div>
+                <div class="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold ${data.karyawan.status_aktif_karyawan == '1' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
                     ${data.karyawan.status_aktif_karyawan == '1' ? 'Aktif' : 'Tidak Aktif'}
                 </div>
             `;

@@ -51,19 +51,15 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #080c14;
-            color: #f1f5f9;
+            background-color: #f8fafc;
+            color: #1e293b;
             min-height: 100vh;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(50, 116, 94, 0.18) 0px, transparent 45%),
-                radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.4) 0px, transparent 50%);
         }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
         }
 
         .camera-container, .canvas-container, .loading, .status-message {
@@ -71,9 +67,9 @@
         }
 
         #qr-reader {
-            border: 2px solid rgba(50, 116, 94, 0.3) !important;
+            border: 2px solid #32745e !important;
             border-radius: 16px !important;
-            background: #020617 !important;
+            background: #ffffff !important;
             overflow: hidden !important;
         }
 
@@ -87,8 +83,8 @@
         }
 
         .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #10b981;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #32745e;
             border-radius: 50%;
             width: 36px;
             height: 36px;
@@ -107,28 +103,28 @@
     <!-- Top Bar -->
     <header class="max-w-2xl w-full mx-auto flex items-center justify-between pb-4">
         <button onclick="window.location.href='{{ route('facerecognition-presensi.index') }}'"
-                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-300 hover:text-white transition-all">
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all">
             <i class="ti ti-arrow-left"></i>
-            <span>Kembali</span>
+            <span>Kembali ke Kiosk Hub</span>
         </button>
 
-        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono text-emerald-400">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>QR STATION SCAN</span>
+        <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>QR SCANNER AKTIF</span>
         </div>
     </header>
 
     <!-- Main Card -->
     <main class="max-w-2xl w-full mx-auto my-auto">
-        <div class="glass-panel rounded-2xl p-6 md:p-8">
+        <div class="card-surface rounded-2xl p-6 md:p-8">
             <!-- Employee Card Header -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-4 mb-6">
-                <div class="w-14 h-14 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-emerald-400 flex-shrink-0">
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-sm flex-shrink-0">
                     <i class="ti ti-user text-2xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-lg font-bold text-white tracking-tight">{{ $karyawan->nama_karyawan }}</h2>
-                    <div class="text-xs text-slate-400 font-mono mt-0.5">
+                    <h2 class="text-lg font-bold text-slate-900 tracking-tight">{{ $karyawan->nama_karyawan }}</h2>
+                    <div class="text-xs text-slate-500 font-mono mt-0.5">
                         <i class="ti ti-id me-1"></i>NIK: {{ $karyawan->nik }}
                     </div>
                 </div>
@@ -136,23 +132,23 @@
 
             <!-- Clock Display -->
             <div class="text-center mb-6 font-mono">
-                <div class="text-3xl md:text-4xl font-extrabold text-emerald-400 tracking-tight" id="timeDisplay">--:--:--</div>
-                <div class="text-xs text-slate-400 mt-1" id="dateDisplay">Memuat tanggal...</div>
+                <div class="text-3xl md:text-4xl font-extrabold text-brand-600 tracking-tight" id="timeDisplay">--:--:--</div>
+                <div class="text-xs text-slate-500 mt-1" id="dateDisplay">Memuat tanggal...</div>
             </div>
 
             <!-- QR Reader Viewport -->
             <div class="mb-6">
-                <div id="qr-reader" class="rounded-xl overflow-hidden shadow-inner"></div>
+                <div id="qr-reader" class="rounded-xl overflow-hidden shadow-sm"></div>
             </div>
 
             <!-- Manual Action Buttons -->
             <div class="grid grid-cols-2 gap-3 mb-4 font-mono">
-                <button class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 transition-all"
+                <button class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all"
                         onclick="manualAbsen(1)">
                     <i class="ti ti-login"></i>
                     <span>Absen Masuk</span>
                 </button>
-                <button class="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 transition-all"
+                <button class="py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all"
                         onclick="manualAbsen(0)">
                     <i class="ti ti-logout"></i>
                     <span>Absen Pulang</span>
@@ -170,7 +166,7 @@
             <!-- Loading & Status -->
             <div class="loading text-center p-3" id="loading">
                 <div class="spinner mb-2"></div>
-                <p class="text-xs text-slate-400 font-mono">Memproses presensi...</p>
+                <p class="text-xs text-slate-500 font-mono">Memproses presensi...</p>
             </div>
 
             <div class="status-message p-3 rounded-xl text-center text-xs font-mono font-semibold" id="statusMessage"></div>
@@ -178,7 +174,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="max-w-2xl w-full mx-auto text-center py-2 text-xs text-slate-600 font-mono">
+    <footer class="max-w-2xl w-full mx-auto text-center py-2 text-xs text-slate-500">
         &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; QR Code Attendance
     </footer>
 

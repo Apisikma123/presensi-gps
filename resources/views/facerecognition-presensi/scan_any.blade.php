@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Terminal Kiosk Face Recognition - Outlet Presensi</title>
+    <title>Terminal Kiosk Face Recognition - {{ $general_setting->nama_aplikasi ?? 'HR Presence' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Smart Kiosk Face Recognition Attendance Terminal" name="description" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -57,34 +57,24 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #080c14;
-            color: #f1f5f9;
+            background-color: #f8fafc;
+            color: #1e293b;
             min-height: 100vh;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(50, 116, 94, 0.18) 0px, transparent 45%),
-                radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.4) 0px, transparent 50%),
-                radial-gradient(at 50% 50%, rgba(30, 41, 59, 0.15) 0px, transparent 60%);
         }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-        }
-
-        .glass-card {
-            background: rgba(26, 38, 57, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
         }
 
         .webcam-container {
             border-radius: 16px;
             overflow: hidden;
             position: relative;
-            background: #020617;
-            border: 2px solid rgba(50, 116, 94, 0.4);
-            box-shadow: 0 0 35px rgba(50, 116, 94, 0.15);
+            background: #0f172a;
+            border: 2px solid #32745e;
+            box-shadow: 0 10px 25px -5px rgba(50, 116, 94, 0.15);
         }
 
         .webcam-container video {
@@ -104,30 +94,11 @@
             border-radius: 14px;
         }
 
-        /* Sci-Fi Target Overlay & Scan Line */
-        .scanner-laser {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #10b981, transparent);
-            box-shadow: 0 0 15px #10b981;
-            animation: scan-laser 2.4s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 12;
-        }
-
-        @keyframes scan-laser {
-            0% { top: 6%; opacity: 0.2; }
-            50% { opacity: 0.95; }
-            100% { top: 92%; opacity: 0.2; }
-        }
-
+        /* Target Frame Guide Corners */
         .camera-corner {
             position: absolute;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             border-color: #10b981;
             pointer-events: none;
             z-index: 14;
@@ -140,29 +111,28 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(8, 12, 20, 0.85);
+            background: rgba(15, 23, 42, 0.85);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 20;
             border-radius: 14px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(6px);
         }
 
         .loading-content {
             text-align: center;
             color: white;
-            padding: 2rem;
-            background: rgba(15, 23, 42, 0.8);
+            padding: 1.5rem;
+            background: rgba(30, 41, 59, 0.9);
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .loading-icon {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 1rem;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 0.75rem;
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-top: 3px solid #10b981;
             border-radius: 50%;
@@ -171,14 +141,14 @@
 
         .loading-text {
             color: #f8fafc;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             margin-bottom: 0.25rem;
         }
 
         .loading-subtext {
             color: #94a3b8;
-            font-size: 13px;
+            font-size: 12px;
             font-family: 'JetBrains Mono', monospace;
         }
 
@@ -195,7 +165,6 @@
             background: #10b981;
             border-radius: 50%;
             z-index: 10;
-            box-shadow: 0 0 3px rgba(16, 185, 129, 0.9);
         }
 
         .landmark-line {
@@ -203,7 +172,6 @@
             background: #10b981;
             height: 1px;
             z-index: 9;
-            box-shadow: 0 0 2px rgba(16, 185, 129, 0.6);
         }
 
         .face-landmarks {
@@ -217,24 +185,24 @@
             border-radius: 14px;
         }
 
-        /* SweetAlert2 Styling */
+        /* SweetAlert2 Theme Matching */
         .swal2-popup {
-            background: #0f172a !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 20px !important;
-            color: #f8fafc !important;
+            color: #1e293b !important;
             padding: 2rem !important;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
         }
 
         .swal2-title {
-            color: #f8fafc !important;
+            color: #1e293b !important;
             font-weight: 700 !important;
             font-size: 1.35rem !important;
         }
 
         .swal2-html-container {
-            color: #94a3b8 !important;
+            color: #64748b !important;
         }
 
         .camera-container, .canvas-container, .loading, .status-message, .employee-info {
@@ -251,37 +219,37 @@
     <!-- Top Bar -->
     <header class="max-w-7xl w-full mx-auto flex items-center justify-between pb-4">
         <a href="{{ route('facerecognition-presensi.index') }}"
-           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-xs font-semibold text-slate-300 hover:text-white transition-all">
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm transition-all">
             <i class="ti ti-arrow-left"></i>
-            <span>Kembali ke Hub</span>
+            <span>Kembali ke Kiosk Hub</span>
         </a>
 
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono text-emerald-400">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>LIVE KIOSK STATION</span>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>TERMINAL KAMERA AKTIF</span>
         </div>
     </header>
 
     <!-- Main Container -->
     <main class="max-w-7xl w-full mx-auto my-auto">
-        <div class="glass-panel rounded-2xl overflow-hidden">
+        <div class="card-surface rounded-2xl overflow-hidden">
             <!-- Header Bar -->
-            <div class="px-6 py-4 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-emerald-400">
-                        <i class="ti ti-scan text-2xl"></i>
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-sm">
+                        <i class="ti ti-camera text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-base font-bold text-white tracking-tight">Kiosk Presensi Wajah Outlet</h1>
-                        <p class="text-xs text-slate-400 font-mono">Posisikan wajah di dalam frame kamera</p>
+                        <h1 class="text-base font-bold text-slate-900 tracking-tight">Kiosk Presensi Wajah Outlet</h1>
+                        <p class="text-xs text-slate-500">Posisikan wajah di depan frame kamera untuk verifikasi</p>
                     </div>
                 </div>
 
                 <!-- Clock Display -->
-                <div class="flex items-center gap-4 bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-4 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
                     <div class="text-right font-mono">
-                        <div class="text-lg font-bold text-emerald-400 tracking-tight" id="timeDisplay">--:--:--</div>
-                        <div class="text-[11px] text-slate-400" id="dateDisplay">Memuat tanggal...</div>
+                        <div class="text-lg font-bold text-brand-600 tracking-tight" id="timeDisplay">--:--:--</div>
+                        <div class="text-[11px] text-slate-500" id="dateDisplay">Memuat tanggal...</div>
                     </div>
                 </div>
             </div>
@@ -291,51 +259,51 @@
                 <!-- Left Side: Controls & Live Feedback (Span 5) -->
                 <div class="lg:col-span-5 flex flex-col gap-4">
                     <!-- Status Dropdown (Shift In / Out) -->
-                    <div class="glass-card rounded-xl p-4">
-                        <label for="statusSelect" class="block text-xs font-mono font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
-                            <i class="ti ti-clock text-emerald-400"></i>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <label for="statusSelect" class="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                            <i class="ti ti-clock text-brand-600"></i>
                             <span>JENIS PRESENSI SHIFT</span>
                         </label>
                         <select id="statusSelect"
-                                class="w-full px-4 py-2.5 bg-slate-950/90 border border-slate-700 rounded-xl text-sm font-semibold text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 font-mono">
+                                class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 font-mono shadow-sm">
                             <option value="1">🟢 Absen Masuk Shift</option>
                             <option value="0">🔴 Absen Pulang Shift</option>
                         </select>
                     </div>
 
                     <!-- Liveness Detection Status Card -->
-                    <div class="liveness-status glass-card rounded-xl p-4 border border-slate-700/80">
+                    <div class="liveness-status p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-xs font-mono font-bold text-slate-300 flex items-center gap-1.5">
-                                <i class="ti ti-shield-check text-emerald-400"></i>
+                            <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i class="ti ti-shield-check text-brand-600"></i>
                                 <span>VERIFIKASI LIVENESS AI</span>
                             </h3>
-                            <span id="livenessStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            <span id="livenessStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                 Menunggu...
                             </span>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2 font-mono text-xs mb-3">
-                            <div class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                                 <div class="text-[10px] text-slate-500 mb-0.5">BUKA MULUT</div>
-                                <div id="mouthOpenCount" class="text-sm font-bold text-white">0 / 2</div>
+                                <div id="mouthOpenCount" class="text-sm font-bold text-slate-800">0 / 2</div>
                             </div>
-                            <div class="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                                 <div class="text-[10px] text-slate-500 mb-0.5">MAR INDEX</div>
-                                <div id="currentMAR" class="text-sm font-bold text-white">0.000</div>
+                                <div id="currentMAR" class="text-sm font-bold text-slate-800">0.000</div>
                             </div>
                         </div>
 
-                        <div class="text-[11px] text-slate-400 flex items-start gap-1.5 bg-slate-950/40 p-2.5 rounded-lg">
-                            <i class="ti ti-info-circle text-emerald-400 flex-shrink-0 mt-0.5"></i>
-                            <span>Buka mulut 2x di depan kamera untuk membuktikan kehadiran fisik nyata (anti foto palsu).</span>
+                        <div class="text-[11px] text-slate-500 flex items-start gap-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                            <i class="ti ti-info-circle text-brand-600 flex-shrink-0 mt-0.5"></i>
+                            <span>Buka mulut 2x di depan kamera untuk verifikasi liveness kehadiran fisik nyata.</span>
                         </div>
                     </div>
 
                     <!-- Employee Recognized Info Card -->
-                    <div class="employee-info glass-card rounded-xl p-4 border border-emerald-500/30">
-                        <h3 class="text-xs font-mono font-bold text-emerald-400 mb-2 flex items-center gap-1.5">
-                            <i class="ti ti-user-check"></i>
+                    <div class="employee-info p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <h3 class="text-xs font-bold text-emerald-900 mb-2 flex items-center gap-1.5">
+                            <i class="ti ti-user-check text-emerald-600"></i>
                             <span>KARYAWAN TERDETEKSI</span>
                         </h3>
                         <div class="employee-details text-xs">
@@ -347,32 +315,32 @@
                     <div class="status-message p-3 rounded-xl font-semibold text-xs font-mono text-center"></div>
 
                     <div class="loading text-center p-3">
-                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent"></div>
-                        <p class="mt-1 text-xs text-slate-400 font-mono">Memproses pencatatan presensi...</p>
+                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-brand-600 border-t-transparent"></div>
+                        <p class="mt-1 text-xs text-slate-500">Memproses pencatatan presensi...</p>
                     </div>
 
-                    <!-- Diagnostic & Controls (Collapsed/Minimal) -->
-                    <div class="glass-card rounded-xl p-3 text-xs font-mono text-slate-400">
+                    <!-- Diagnostic & Controls (Clean Outline) -->
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
                         <div class="flex items-center justify-between text-[11px] mb-2">
                             <span>Status Kamera:</span>
-                            <span id="cameraStatus" class="text-emerald-400 font-semibold">Memuat...</span>
+                            <span id="cameraStatus" class="text-emerald-700 font-semibold font-mono">Memuat...</span>
                         </div>
                         <div class="flex items-center justify-between text-[11px] mb-2">
                             <span>Engine AI:</span>
-                            <span id="faceStatus" class="text-emerald-400 font-semibold">Memuat...</span>
+                            <span id="faceStatus" class="text-emerald-700 font-semibold font-mono">Memuat...</span>
                         </div>
                         <div class="flex items-center justify-between text-[11px]">
                             <span>Status Error:</span>
-                            <span id="cameraError" class="text-slate-500">-</span>
+                            <span id="cameraError" class="text-slate-400 font-mono">-</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-800">
+                        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-200">
                             <button onclick="restartCamera()" 
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 flex items-center justify-center gap-1">
+                                    class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 flex items-center justify-center gap-1 shadow-sm transition-all">
                                 <i class="ti ti-refresh"></i>
                                 <span>Reset Kamera</span>
                             </button>
                             <button onclick="toggleLandmarks()" id="landmarkToggle" 
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 flex items-center justify-center gap-1">
+                                    class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700 flex items-center justify-center gap-1 shadow-sm transition-all">
                                 <i class="ti ti-eye"></i>
                                 <span>Landmarks</span>
                             </button>
@@ -388,15 +356,12 @@
                 <div class="lg:col-span-7 flex flex-col items-center justify-center">
                     <div class="w-full relative">
                         <!-- Camera Viewport Container -->
-                        <div class="relative w-full aspect-[4/3] max-h-[520px] rounded-2xl overflow-hidden bg-slate-950 border-2 border-emerald-500/40 shadow-2xl">
+                        <div class="relative w-full aspect-[4/3] max-h-[520px] rounded-2xl overflow-hidden bg-slate-900 border-2 border-brand-500 shadow-md">
                             <!-- Reticle Corners -->
                             <div class="camera-corner top-4 left-4 border-t-2 border-l-2 rounded-tl-lg"></div>
                             <div class="camera-corner top-4 right-4 border-t-2 border-r-2 rounded-tr-lg"></div>
                             <div class="camera-corner bottom-4 left-4 border-b-2 border-l-2 rounded-bl-lg"></div>
                             <div class="camera-corner bottom-4 right-4 border-b-2 border-r-2 rounded-br-lg"></div>
-
-                            <!-- Laser Scan Line -->
-                            <div class="scanner-laser"></div>
 
                             <!-- Live Video Stream -->
                             <div id="facedetection" class="webcam-container w-full h-full">
@@ -417,8 +382,8 @@
                         </div>
 
                         <!-- Bottom Prompt -->
-                        <div class="mt-3 text-center text-xs font-mono text-slate-400 flex items-center justify-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <div class="mt-3 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-ping"></span>
                             <span>Arahkan pandangan langsung ke kamera &bull; Jarak 30-50 cm</span>
                         </div>
                     </div>
@@ -428,8 +393,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="max-w-7xl w-full mx-auto text-center py-2 text-xs text-slate-600 font-mono">
-        &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; High Precision Kiosk Terminal
+    <footer class="max-w-7xl w-full mx-auto text-center py-2 text-xs text-slate-500">
+        &copy; {{ date('Y') }} {{ $general_setting->nama_aplikasi ?? 'HR Presence' }} &bull; Terminal Presensi Outlet
     </footer>
 
     <!-- Hidden Video & Canvas for Snapshot Capture -->
