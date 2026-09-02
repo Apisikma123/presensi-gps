@@ -123,8 +123,7 @@
     @include('layouts.scripts')
     <!-- Page JS -->
 
-    <!-- Instant Page Acceleration & Top Progress Bar -->
-    <script src="{{ asset('assets/js/instantpage.min.js') }}" type="module"></script>
+    <!-- Top Progress Bar Feedback -->
     <style>
         #page-progress-bar {
             position: fixed;

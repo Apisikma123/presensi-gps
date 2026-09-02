@@ -66,7 +66,7 @@ class Globalprovider extends ServiceProvider
                 $user = $auth->user();
                 $cacheKey = 'user_global_notif_' . $user->id;
 
-                $shareddata = Cache::remember($cacheKey, 15, function () use ($user) {
+                $shareddata = Cache::remember($cacheKey, 120, function () use ($user) {
                     $isSuperAdmin = $user->isSuperAdmin();
                     $userCabangs = $isSuperAdmin ? [] : $user->getCabangCodes();
                     $userDepartemens = $isSuperAdmin ? [] : $user->getDepartemenCodes();
