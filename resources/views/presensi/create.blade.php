@@ -84,6 +84,7 @@
             position: absolute;
             border-radius: 0;
             box-shadow: none;
+            pointer-events: none !important;
         }
 
         #facedetection {
@@ -636,8 +637,8 @@
                 <div class="row" style="margin-top: 0;">
                     <div class="col" id="facedetection" style="position:relative;">
                         <!-- GPS Permission Button / Status -->
-                        <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm btn-warning" style="position: absolute; top: 12px; left: 12px; z-index: 1000; border-radius: 20px; font-weight: 600; font-size: 11px; padding: 5px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 4px; border: none; background: #f39c12; color: white;">
-                            <ion-icon name="location-outline" style="font-size: 15px;"></ion-icon>
+                        <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm" style="position: absolute; top: 12px; left: 12px; z-index: 999999; pointer-events: auto; cursor: pointer; border-radius: 20px; font-weight: 600; font-size: 11px; padding: 6px 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 6px; border: none; background: #f39c12; color: white;">
+                            <ion-icon name="location-outline" style="font-size: 16px;"></ion-icon>
                             <span>Izinkan Lokasi GPS</span>
                         </button>
                         <!-- Absolute Tanggal & Jam -->
@@ -694,14 +695,11 @@
             </div>
             <!-- <div class="map-section"> ... </div> -->
             <div class="action-section">
-                @php
-                    $faceActive = ($general_setting->face_recognition == 1);
-                @endphp
-                <button class="btn btn-success bg-primary scan-button" id="absenmasuk" statuspresensi="masuk" {{ $faceActive ? 'disabled' : '' }}>
+                <button class="btn btn-success bg-primary scan-button" id="absenmasuk" statuspresensi="masuk">
                     <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon>
                     <span style="font-size:14px">Masuk</span>
                 </button>
-                <button class="btn btn-danger scan-button" id="absenpulang" statuspresensi="pulang" {{ $faceActive ? 'disabled' : '' }}>
+                <button class="btn btn-danger scan-button" id="absenpulang" statuspresensi="pulang">
                     <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon>
                     <span style="font-size:14px">Pulang</span>
                 </button>
@@ -1095,6 +1093,11 @@
             if (navigator.geolocation) {
                 requestLocationPermission(false);
             }
+
+            $(document).on('click', '#btn-request-gps', function(e) {
+                e.preventDefault();
+                requestLocationPermission(true);
+            });
 
             // Fungsi yang dijalankan ketika geolocation gagal
             function errorCallback(error) {
@@ -2455,7 +2458,6 @@
 
                         // --- ABSEN BUTTONS ---
                         let absenButtons = [document.getElementById('absenmasuk'), document.getElementById('absenpulang')];
-                        absenButtons.forEach(btn => btn.disabled = true);
 
                         const ctx = canvas.getContext("2d");
                         if (!ctx) {
@@ -2630,8 +2632,6 @@
                                                         consecutiveMatches = 0;
                                                         lastMatchResult = false;
                                                         faceRecognitionDetected = 0;
-                                                        $("#absenmasuk").prop('disabled', true);
-                                                        $("#absenpulang").prop('disabled', true);
                                                     } else {
                                                         // Wajah dikenali & pas di tengah - warna hijau
                                                         boxColor = '#4CAF50';
@@ -2640,8 +2640,6 @@
                                                         consecutiveMatches++;
                                                         if (consecutiveMatches >= requiredConsecutiveMatches) {
                                                             faceRecognitionDetected = 1;
-                                                            $("#absenmasuk").prop('disabled', false);
-                                                            $("#absenpulang").prop('disabled', false);
                                                         }
                                                         lastMatchResult = true;
                                                     }
@@ -2795,8 +2793,6 @@
                                                 ctx.fillText(label, centerX, centerY);
                                                 ctx.restore();
 
-                                                // Disable tombol absen
-                                                absenButtons.forEach(btn => btn.disabled = true);
                                             }
 
                                             isProcessing = false;
