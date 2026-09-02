@@ -577,12 +577,23 @@
 
 <div class="row mt-3">
     <div class="col-lg-12 col-sm-12 col-xs-12">
+        @php
+            $rekapStatusCount = count($status_karyawan->rekap_status ?? []);
+            $totalCards = 1 + $rekapStatusCount;
+            $colClass = match($totalCards) {
+                1 => 'col-12',
+                2 => 'col-12 col-sm-6',
+                3 => 'col-12 col-sm-6 col-md-4',
+                4 => 'col-12 col-sm-6 col-md-3',
+                default => 'col-12 col-sm-6 col-md-4 col-lg'
+            };
+        @endphp
         <div class="card mb-6">
             <div class="card-widget-separator-wrapper">
                 <div class="card-body card-widget-separator">
                     <div class="row gy-4 gy-sm-1">
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="d-flex justify-content-between align-items-start card-widget-1 border-end pb-4 pb-sm-0">
+                        <div class="{{ $colClass }}">
+                            <div class="d-flex justify-content-between align-items-start card-widget-1 {{ $totalCards > 1 ? 'border-end' : '' }} pb-4 pb-sm-0 pe-sm-3">
                                 <div>
                                     <p class="mb-1">Data Karyawan Aktif</p>
                                     <h4 class="mb-1">{{ $status_karyawan->jml_aktif }}</h4>
@@ -599,8 +610,8 @@
                                 $borderClass = ($loop->last) ? '' : 'border-end';
                                 $widgetClass = 'card-widget-' . (($loop->iteration % 4) + 1);
                             @endphp
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="d-flex justify-content-between align-items-start {{ $borderClass }} pb-4 pb-sm-0 {{ $widgetClass }}">
+                            <div class="{{ $colClass }}">
+                                <div class="d-flex justify-content-between align-items-start {{ $borderClass }} pb-4 pb-sm-0 {{ $widgetClass }} ps-sm-2 pe-sm-3">
                                     <div>
                                         <p class="mb-1">{{ $rekap->nama_status_karyawan }}</p>
                                         <h4 class="mb-1">{{ $rekap->total }}</h4>
