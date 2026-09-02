@@ -6,409 +6,467 @@
     <span>Monitoring Presensi</span>
 @endsection
 <style>
-    .presensi-card {
+    /* Minimalist Editorial Table & Card System */
+    .coffee-table-container {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-    }
-    .presensi-card:hover {
-        border-color: #cbd5e1;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-        transform: translateY(-1px);
-    }
-    .metric-grid {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr 1fr 1.2fr 1.2fr 1fr 1fr;
-        gap: 8px;
-        align-items: stretch;
-    }
-    @media (max-width: 1200px) {
-        .metric-grid {
-            grid-template-columns: repeat(4, 1fr);
-        }
-    }
-    @media (max-width: 768px) {
-        .metric-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    .metric-chip {
-        background: #f8fafc;
-        border: 1px solid #edf2f7;
-        border-radius: 10px;
-        padding: 6px 10px;
-        display: flex;
-        align-items: center;
-        gap: 9px;
-        min-height: 48px;
-        transition: all 0.15s ease;
-    }
-    .metric-chip:hover {
-        background: #f1f5f9;
-        border-color: #e2e8f0;
-    }
-    .metric-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 15px;
-        flex-shrink: 0;
-    }
-    .metric-content {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
+        border-radius: 12px;
         overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     }
-    .metric-label {
-        font-size: 10px;
+    
+    .coffee-table {
+        width: 100%;
+        margin-bottom: 0;
+        vertical-align: middle;
+        border-collapse: collapse;
+    }
+    
+    .coffee-table thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #94a3b8;
-        line-height: 1;
-        margin-bottom: 2px;
-    }
-    .metric-value {
-        font-size: 12.5px;
-        font-weight: 700;
-        color: #1e293b;
-        line-height: 1.2;
+        letter-spacing: 0.06em;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    }
+    
+    .coffee-table tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+        font-size: 13px;
+        background: #ffffff;
+        transition: background-color 0.15s ease;
+    }
+    
+    .coffee-table tbody tr:hover td {
+        background-color: #fafbfd;
+    }
+    
+    .coffee-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 9999px;
+        line-height: 1.3;
+    }
+    
+    .pill-hadir { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .pill-terlambat { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .pill-izin { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .pill-sakit { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .pill-cuti { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+    .pill-alpa { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .pill-belum { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+    /* Mobile Minimalist Card */
+    .mobile-staff-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .time-mono {
+        font-family: 'JetBrains Mono', 'Geist Mono', 'SF Mono', monospace;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .btn-action-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        transition: all 0.15s ease;
+    }
+
+    .btn-action-icon:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
     }
 </style>
 
 <div class="row">
-    <div class="col-lg-12 col-sm-12 col-xs-12">
-        <div class="card shadow-sm border-0" style="border-radius: 16px;">
-            <div class="card-header border-0 pb-0">
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <form action="{{ route('presensi.index') }}">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-lg-3 col-md-12 col-sm-12">
-                                    <x-input-with-icon label="" value="{{ Request('tanggal') }}" name="tanggal" icon="ti ti-calendar"
-                                        datepicker="flatpickr-date" placeholder="Tanggal" />
-                                </div>
-                                <div class="col-lg-3 col-md-12 col-sm-12">
-                                    <div class="form-group mb-0">
-                                        <x-select label="" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
-                                            selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch"
-                                            placeholder="Cabang" />
-                                    </div>
-                                </div>
-                                <div class="col-lg-5 col-md-12 col-sm-12">
-                                    <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
-                                        placeholder="Cari Nama Karyawan..." />
-                                </div>
-                                <div class="col-lg-1 col-md-12 col-sm-12">
-                                    <div class="form-group mb-0">
-                                        <button class="btn btn-primary w-100 rounded-3" style="height: 38px;"><i class="ti ti-search"></i></button>
-                                    </div>
-                                </div>
+    <div class="col-12">
+        <!-- Filter Header Bar -->
+        <div class="card shadow-none border mb-3" style="border-radius: 12px; border-color: #e2e8f0;">
+            <div class="card-body p-3">
+                <form action="{{ route('presensi.index') }}" method="GET">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-lg-3 col-md-6 col-12">
+                            <x-input-with-icon label="" value="{{ Request('tanggal') }}" name="tanggal" icon="ti ti-calendar"
+                                datepicker="flatpickr-date" placeholder="Pilih Tanggal..." />
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-12">
+                            <div class="form-group mb-0">
+                                <x-select label="" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
+                                    selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch"
+                                    placeholder="Semua Outlet / Cabang" />
                             </div>
-                        </form>
+                        </div>
+                        <div class="col-lg-4 col-md-8 col-12">
+                            <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
+                                placeholder="Cari nama barista, kasir, staff..." />
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-12">
+                            <button class="btn w-100 text-white fw-semibold d-flex align-items-center justify-content-center gap-1" 
+                                style="background-color: #32745e; border-radius: 8px; height: 38px;">
+                                <i class="ti ti-filter"></i>
+                                <span>Filter Data</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="row g-2">
-                            @foreach ($karyawan as $d)
-                                @php
-                                    $tanggal_presensi = !empty(Request('tanggal')) ? Request('tanggal') : date('Y-m-d');
-                                    $jam_masuk = $tanggal_presensi . ' ' . $d->jam_masuk;
-                                    $terlambat = hitungjamterlambat($d->jam_in, $jam_masuk);
-                                    $potongan_tidak_hadir = $d->status == 'a' ? $d->total_jam : 0;
-                                    $pulangcepat = hitungpulangcepat(
-                                        $tanggal_presensi,
-                                        $d->jam_out,
-                                        $d->jam_pulang,
-                                        $d->istirahat,
-                                        $d->jam_awal_istirahat,
-                                        $d->jam_akhir_istirahat,
-                                        $d->lintashari,
-                                    );
+                </form>
+            </div>
+        </div>
 
-                                    // Jika denda sudah ada di tabel presensi (laporan sudah dikunci), gunakan nilai tersebut
-                                    if ($d->denda !== null) {
-                                        $denda = $d->denda;
-                                        if ($terlambat != null) {
-                                            $potongan_jam_terlambat =
-                                                $terlambat['desimal_terlambat'] >= 1 ? $terlambat['desimal_terlambat'] : 0;
-                                        } else {
+        <!-- Main Content Area -->
+        <div class="coffee-table-container">
+            <!-- Desktop Minimalist Table View (Screen >= 992px) -->
+            <div class="table-responsive d-none d-lg-block">
+                <table class="coffee-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">No</th>
+                            <th>Karyawan Outlet</th>
+                            <th>Outlet & Posisi</th>
+                            <th>Shift Kerja</th>
+                            <th>Presensi Masuk</th>
+                            <th>Presensi Pulang</th>
+                            <th class="text-center">Status Kehadiran</th>
+                            <th class="text-end" style="width: 120px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($karyawan as $index => $d)
+                            @php
+                                $tanggal_presensi = !empty(Request('tanggal')) ? Request('tanggal') : date('Y-m-d');
+                                $jam_masuk = $tanggal_presensi . ' ' . $d->jam_masuk;
+                                $terlambat = hitungjamterlambat($d->jam_in, $jam_masuk);
+                                $potongan_tidak_hadir = $d->status == 'a' ? $d->total_jam : 0;
+                                $pulangcepat = hitungpulangcepat(
+                                    $tanggal_presensi,
+                                    $d->jam_out,
+                                    $d->jam_pulang,
+                                    $d->istirahat,
+                                    $d->jam_awal_istirahat,
+                                    $d->jam_akhir_istirahat,
+                                    $d->lintashari,
+                                );
+
+                                if ($d->denda !== null) {
+                                    $denda = $d->denda;
+                                    $potongan_jam_terlambat = ($terlambat != null && $terlambat['desimal_terlambat'] >= 1) ? $terlambat['desimal_terlambat'] : 0;
+                                } else {
+                                    if ($terlambat != null) {
+                                        if ($terlambat['desimal_terlambat'] < 1) {
                                             $potongan_jam_terlambat = 0;
-                                        }
-                                    } else {
-                                        if ($terlambat != null) {
-                                            if ($terlambat['desimal_terlambat'] < 1) {
-                                                $potongan_jam_terlambat = 0;
-                                                $denda = hitungdenda($denda_list, $terlambat['menitterlambat']);
-                                            } else {
-                                                $potongan_jam_terlambat = $terlambat['desimal_terlambat'];
-                                                $denda = 0;
-                                            }
+                                            $denda = hitungdenda($denda_list, $terlambat['menitterlambat']);
                                         } else {
-                                            $potongan_jam_terlambat = 0;
+                                            $potongan_jam_terlambat = $terlambat['desimal_terlambat'];
                                             $denda = 0;
                                         }
+                                    } else {
+                                        $potongan_jam_terlambat = 0;
+                                        $denda = 0;
                                     }
-                                    
-                                    $total_potongan_jam = $pulangcepat + $potongan_jam_terlambat + $potongan_tidak_hadir;
+                                }
 
-                                    // Avatar helper
-                                    $words = explode(' ', $d->nama_karyawan);
-                                    $initials = '';
-                                    foreach ($words as $w) {
-                                        if (isset($w[0])) $initials .= $w[0];
-                                    }
-                                    $initials = strtoupper(substr($initials, 0, 2));
-                                @endphp
-                                <div class="col-12">
-                                    <div class="card presensi-card mb-2">
-                                        <div class="card-body p-3">
-                                            {{-- Row 1: Header Info & Status --}}
-                                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                                <div class="d-flex align-items-center flex-wrap gap-2">
-                                                    @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
-                                                        <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
-                                                            class="rounded-circle shadow-sm"
-                                                            style="width: 36px; height: 36px; object-fit: cover; border: 1px solid #e2e8f0;">
-                                                    @else
-                                                        <div class="rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold"
-                                                            style="width: 36px; height: 36px; background: rgba(50, 116, 94, 0.12); color: #32745e; font-size: 13px;">
-                                                            {{ $initials }}
-                                                        </div>
-                                                    @endif
+                                $words = explode(' ', $d->nama_karyawan);
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2));
+                                $row_num = $karyawan->firstItem() ? ($karyawan->firstItem() + $index) : ($index + 1);
+                            @endphp
+                            <tr>
+                                <!-- No -->
+                                <td class="text-muted font-mono" style="font-size: 12px;">{{ $row_num }}</td>
 
-                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                        <span class="fw-bold text-dark" style="font-size: 14px;">{{ $d->nama_karyawan }}</span>
-                                                        <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 600;">
-                                                            <i class="ti ti-id me-1"></i>{{ $d->nik_show ?? $d->nik }}
-                                                        </span>
-                                                        <span class="badge" style="background: #eff6ff; color: #1e40af; font-size: 11px; font-weight: 600;">
-                                                            <i class="ti ti-building me-1"></i>{{ $d->kode_dept }}
-                                                        </span>
-                                                        <span class="badge" style="background: #fdf4ff; color: #86198f; font-size: 11px; font-weight: 600;">
-                                                            <i class="ti ti-map-pin me-1"></i>{{ $d->kode_cabang }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div>
-                                                        @if ($d->status == 'h')
-                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11.5px; font-weight: 600;">
-                                                                <i class="ti ti-circle-check me-1"></i>Hadir
-                                                            </span>
-                                                        @elseif($d->status == 'i')
-                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 11.5px; font-weight: 600;">
-                                                                <i class="ti ti-file-description me-1"></i>Izin
-                                                            </span>
-                                                        @elseif($d->status == 's')
-                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 11.5px; font-weight: 600;">
-                                                                <i class="ti ti-ambulance me-1"></i>Sakit
-                                                            </span>
-                                                        @elseif($d->status == 'a')
-                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 11.5px; font-weight: 600;">
-                                                                <i class="ti ti-x me-1"></i>Alpa
-                                                            </span>
-                                                        @elseif($d->status == 'c')
-                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; font-size: 11.5px; font-weight: 600;">
-                                                                <i class="ti ti-calendar-event me-1"></i>Cuti
-                                                            </span>
-                                                        @else
-                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-size: 11.5px; font-weight: 600;">
-                                                                <i class="ti ti-clock me-1"></i>Belum Absen
-                                                            </span>
-                                                        @endif
-                                                    </div>
-
-                                                    {{-- Actions --}}
-                                                    <div class="d-flex gap-1">
-                                                        @if (isset($d->status_potongan))
-                                                            <button class="btn btn-sm btn-icon btn-dark rounded-2" disabled title="Terkunci"><i class="ti ti-lock"></i></button>
-                                                        @else
-                                                            <a href="#" class="btn btn-sm btn-icon btn-outline-success koreksiPresensi rounded-2" nik="{{ Crypt::encrypt($d->nik) }}"
-                                                                tanggal="{{ $tanggal_presensi }}" title="Koreksi"><i class="ti ti-edit"></i></a>
-
-                                                            @if(!empty($d->id))
-                                                            <form action="{{ route('presensi.delete', $d->id) }}" method="POST"
-                                                                style="display:inline-block;" class="delete-form">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger delete-confirm rounded-2"
-                                                                    title="Hapus"><i class="ti ti-trash"></i></button>
-                                                            </form>
-                                                            @endif
-                                                        @endif
-                                    
-                                                        <a href="#" class="btn btn-sm btn-icon btn-outline-primary btngetDatamesin rounded-2" pin="{{ $d->pin }}"
-                                                            tanggal="{{ !empty(Request('tanggal')) ? Request('tanggal') : date('Y-m-d') }}" title="Log Mesin">
-                                                            <i class="ti ti-device-desktop"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                <!-- Karyawan -->
+                                <td>
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                            <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
+                                                class="rounded-circle shadow-none flex-shrink-0"
+                                                style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #e2e8f0;">
+                                        @else
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                                                style="width: 38px; height: 38px; background: rgba(50, 116, 94, 0.1); color: #32745e; font-size: 12.5px; border: 1px solid rgba(50, 116, 94, 0.2);">
+                                                {{ $initials }}
                                             </div>
-
-                                            <div class="my-2" style="border-top: 1px dashed #e2e8f0;"></div>
-
-                                            {{-- Row 2: Refined Metrics Grid --}}
-                                            <div class="metric-grid">
-                                                {{-- 1. Jadwal --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(100, 116, 139, 0.1); color: #475569;">
-                                                        <i class="ti ti-clock"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Jadwal</span>
-                                                        @if ($d->kode_jam_kerja != null)
-                                                            <span class="metric-value text-primary" style="font-size: 11.5px;">{{ $d->nama_jam_kerja }}</span>
-                                                            <span class="text-muted" style="font-size: 11px; font-weight: 600;">
-                                                                {{ date('H:i', strtotime($d->jam_masuk)) }} - {{ date('H:i', strtotime($d->jam_pulang)) }}
-                                                            </span>
-                                                        @else
-                                                            <span class="metric-value text-muted">-</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                {{-- 2. Jam Masuk --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
-                                                        <i class="ti ti-login"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Masuk</span>
-                                                        @if ($d->jam_in != null)
-                                                            <div class="d-flex align-items-center">
-                                                                <a href="#" class="btnShowpresensi_in metric-value text-dark text-decoration-none" id="{{ $d->id }}" status="in">
-                                                                    {{ date('H:i', strtotime($d->jam_in)) }}
-                                                                </a>
-                                                                @if (!empty($d->foto_in))
-                                                                    <i class="ti ti-photo text-primary ms-1" style="font-size:12px" title="Ada Foto"></i>
-                                                                @endif
-                                                                @if ($potongan_jam_terlambat > 0)
-                                                                    <span class="text-danger ms-1 fw-bold" style="font-size:10.5px">(-{{ $potongan_jam_terlambat }})</span>
-                                                                @endif
-                                                            </div>
-                                                        @else
-                                                            <span class="metric-value text-muted">-</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                {{-- 3. Jam Pulang --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(239, 68, 68, 0.1); color: #dc2626;">
-                                                        <i class="ti ti-logout"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Pulang</span>
-                                                        @if ($d->jam_out != null)
-                                                            <div class="d-flex align-items-center">
-                                                                <a href="#" class="btnShowpresensi_out metric-value text-dark text-decoration-none" id="{{ $d->id }}" status="out">
-                                                                    {{ date('H:i', strtotime($d->jam_out)) }}
-                                                                </a>
-                                                                @if (!empty($d->foto_out))
-                                                                    <i class="ti ti-photo text-primary ms-1" style="font-size:12px" title="Ada Foto"></i>
-                                                                @endif
-                                                                @if ($pulangcepat > 0)
-                                                                    <span class="text-danger ms-1 fw-bold" style="font-size:10.5px">(-{{ $pulangcepat }})</span>
-                                                                @endif
-                                                            </div>
-                                                        @else
-                                                            <span class="metric-value text-muted">-</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                {{-- 4. Istirahat --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(14, 165, 233, 0.1); color: #0284c7;">
-                                                        <i class="ti ti-coffee"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Istirahat</span>
-                                                        @if ($d->istirahat_out != null && $d->istirahat_in != null)
-                                                            <span class="metric-value text-dark" style="font-size: 11.5px;">
-                                                                {{ date('H:i', strtotime($d->istirahat_out)) }} - {{ date('H:i', strtotime($d->istirahat_in)) }}
-                                                            </span>
-                                                        @elseif($d->istirahat_out != null)
-                                                            <span class="metric-value text-warning" style="font-size: 11.5px;">
-                                                                {{ date('H:i', strtotime($d->istirahat_out)) }} - ...
-                                                            </span>
-                                                        @else
-                                                            <span class="metric-value text-muted">-</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                {{-- 5. Terlambat --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">
-                                                        <i class="ti ti-clock-exclamation"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Terlambat</span>
-                                                        @if($terlambat != null)
-                                                            <span class="metric-value text-danger" style="font-size: 11.5px;">{!! $terlambat['show'] !!}</span>
-                                                        @else
-                                                            <span class="metric-value text-success" style="font-size: 11.5px;">
-                                                                <i class="ti ti-check"></i> Tepat Waktu
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
-                                                {{-- 6. Denda --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(225, 29, 72, 0.1); color: #e11d48;">
-                                                        <i class="ti ti-coin"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Denda</span>
-                                                        <span class="metric-value {{ empty($denda) ? 'text-dark' : 'text-danger' }}">
-                                                            {{ empty($denda) ? 'Rp 0' : 'Rp ' . formatAngka($denda) }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {{-- 7. Potongan Jam --}}
-                                                <div class="metric-chip">
-                                                    <div class="metric-icon" style="background: rgba(100, 116, 139, 0.1); color: #334155;">
-                                                        <i class="ti ti-cut"></i>
-                                                    </div>
-                                                    <div class="metric-content">
-                                                        <span class="metric-label">Potongan</span>
-                                                        @if ($total_potongan_jam > 0)
-                                                            <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
-                                                                {{ formatAngkaDesimal($total_potongan_jam) }} Jam
-                                                            </span>
-                                                        @else
-                                                            <span class="metric-value text-success" style="font-size: 11.5px;">0 Jam</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-
+                                        @endif
+                                        <div class="overflow-hidden">
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 13.5px;">{{ $d->nama_karyawan }}</div>
+                                            <div class="text-muted font-mono mt-0.5" style="font-size: 11px;">
+                                                <i class="ti ti-id me-0.5"></i>{{ $d->nik_show ?? $d->nik }}
                                             </div>
                                         </div>
                                     </div>
+                                </td>
+
+                                <!-- Outlet & Role -->
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        <span class="badge" style="background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; width: fit-content;">
+                                            {{ $d->nama_jabatan ?? $d->kode_dept }}
+                                        </span>
+                                        <span class="text-muted" style="font-size: 11.5px;">
+                                            <i class="ti ti-map-pin me-1 text-slate-400"></i>{{ $d->nama_cabang ?? $d->kode_cabang }}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- Shift Kerja -->
+                                <td>
+                                    @if ($d->kode_jam_kerja != null)
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-semibold text-dark" style="font-size: 12.5px;">{{ $d->nama_jam_kerja }}</span>
+                                            <span class="text-muted font-mono" style="font-size: 11px;">
+                                                {{ date('H:i', strtotime($d->jam_masuk)) }} - {{ date('H:i', strtotime($d->jam_pulang)) }}
+                                            </span>
+                                        </div>
+                                    @else
+                                        <span class="text-muted" style="font-size: 12px;">-</span>
+                                    @endif
+                                </td>
+
+                                <!-- Jam Masuk -->
+                                <td>
+                                    @if ($d->jam_in != null)
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <a href="#" class="btnShowpresensi_in time-mono text-dark text-decoration-none fw-bold" id="{{ $d->id }}" status="in" style="font-size: 13px;" title="Lihat Foto Masuk">
+                                                {{ date('H:i', strtotime($d->jam_in)) }}
+                                                @if (!empty($d->foto_in))
+                                                    <i class="ti ti-camera text-primary ms-0.5" style="font-size: 13px;"></i>
+                                                @endif
+                                            </a>
+                                            @if ($terlambat != null && $terlambat['menitterlambat'] > 0)
+                                                <span class="badge rounded-pill bg-label-danger font-mono" style="font-size: 10px;" title="Terlambat {{ $terlambat['menitterlambat'] }} Menit">
+                                                    +{{ $terlambat['menitterlambat'] }}m
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-muted" style="font-size: 12px;">-</span>
+                                    @endif
+                                </td>
+
+                                <!-- Jam Pulang -->
+                                <td>
+                                    @if ($d->jam_out != null)
+                                        <div class="d-flex align-items-center gap-1.5">
+                                            <a href="#" class="btnShowpresensi_out time-mono text-dark text-decoration-none fw-bold" id="{{ $d->id }}" status="out" style="font-size: 13px;" title="Lihat Foto Pulang">
+                                                {{ date('H:i', strtotime($d->jam_out)) }}
+                                                @if (!empty($d->foto_out))
+                                                    <i class="ti ti-camera text-primary ms-0.5" style="font-size: 13px;"></i>
+                                                @endif
+                                            </a>
+                                            @if ($pulangcepat > 0)
+                                                <span class="badge rounded-pill bg-label-warning font-mono" style="font-size: 10px;" title="Pulang Cepat">
+                                                    -{{ $pulangcepat }}j
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-muted" style="font-size: 12px;">-</span>
+                                    @endif
+                                </td>
+
+                                <!-- Status Kehadiran -->
+                                <td class="text-center">
+                                    @if ($d->status == 'h')
+                                        @if ($terlambat != null && $terlambat['menitterlambat'] > 0)
+                                            <span class="pill-badge pill-terlambat">
+                                                <i class="ti ti-clock-exclamation"></i> Terlambat
+                                            </span>
+                                        @else
+                                            <span class="pill-badge pill-hadir">
+                                                <i class="ti ti-circle-check"></i> Tepat Waktu
+                                            </span>
+                                        @endif
+                                    @elseif($d->status == 'i')
+                                        <span class="pill-badge pill-izin">
+                                            <i class="ti ti-file-description"></i> Izin
+                                        </span>
+                                    @elseif($d->status == 's')
+                                        <span class="pill-badge pill-sakit">
+                                            <i class="ti ti-ambulance"></i> Sakit
+                                        </span>
+                                    @elseif($d->status == 'c')
+                                        <span class="pill-badge pill-cuti">
+                                            <i class="ti ti-calendar-event"></i> Cuti
+                                        </span>
+                                    @elseif($d->status == 'a')
+                                        <span class="pill-badge pill-alpa">
+                                            <i class="ti ti-x"></i> Alpa
+                                        </span>
+                                    @else
+                                        <span class="pill-badge pill-belum">
+                                            <i class="ti ti-clock"></i> Belum Masuk
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="text-end">
+                                    <div class="d-inline-flex align-items-center gap-1">
+                                        @if (isset($d->status_potongan))
+                                            <button class="btn-action-icon" disabled title="Laporan Terkunci"><i class="ti ti-lock"></i></button>
+                                        @else
+                                            <a href="#" class="btn-action-icon koreksiPresensi text-success" nik="{{ Crypt::encrypt($d->nik) }}"
+                                                tanggal="{{ $tanggal_presensi }}" title="Koreksi Presensi">
+                                                <i class="ti ti-edit"></i>
+                                            </a>
+
+                                            @if(!empty($d->id))
+                                            <form action="{{ route('presensi.delete', $d->id) }}" method="POST" class="d-inline delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-action-icon text-danger delete-confirm" title="Hapus Presensi">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+                                        @endif
+                                        
+                                        <a href="#" class="btn-action-icon text-primary btngetDatamesin" pin="{{ $d->pin }}"
+                                            tanggal="{{ $tanggal_presensi }}" title="Log Mesin">
+                                            <i class="ti ti-device-desktop"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center text-muted">
+                                        <i class="ti ti-users-minus fs-1 mb-2 opacity-50"></i>
+                                        <h6 class="fw-bold mb-1 text-dark">Tidak Ada Data Presensi Karyawan</h6>
+                                        <small class="text-muted">Gunakan filter tanggal atau outlet di atas untuk memuat data.</small>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile View: Clean Responsive Cards (Screen < 992px) -->
+            <div class="d-lg-none p-2">
+                @forelse ($karyawan as $d)
+                    @php
+                        $tanggal_presensi = !empty(Request('tanggal')) ? Request('tanggal') : date('Y-m-d');
+                        $jam_masuk = $tanggal_presensi . ' ' . $d->jam_masuk;
+                        $terlambat = hitungjamterlambat($d->jam_in, $jam_masuk);
+                        $words = explode(' ', $d->nama_karyawan);
+                        $initials = '';
+                        foreach ($words as $w) {
+                            if (isset($w[0])) $initials .= $w[0];
+                        }
+                        $initials = strtoupper(substr($initials, 0, 2));
+                    @endphp
+                    <div class="mobile-staff-card">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                    <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
+                                        class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                                @else
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 36px; height: 36px; background: rgba(50, 116, 94, 0.1); color: #32745e; font-size: 12px;">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 13.5px;">{{ $d->nama_karyawan }}</div>
+                                    <small class="text-muted">{{ $d->nama_jabatan ?? $d->kode_dept }} • {{ $d->kode_cabang }}</small>
                                 </div>
-                            @endforeach
+                            </div>
+                            <div>
+                                @if ($d->status == 'h')
+                                    <span class="pill-badge pill-hadir" style="font-size: 10.5px;">Hadir</span>
+                                @elseif($d->status == 'i')
+                                    <span class="pill-badge pill-izin" style="font-size: 10.5px;">Izin</span>
+                                @elseif($d->status == 's')
+                                    <span class="pill-badge pill-sakit" style="font-size: 10.5px;">Sakit</span>
+                                @elseif($d->status == 'c')
+                                    <span class="pill-badge pill-cuti" style="font-size: 10.5px;">Cuti</span>
+                                @elseif($d->status == 'a')
+                                    <span class="pill-badge pill-alpa" style="font-size: 10.5px;">Alpa</span>
+                                @else
+                                    <span class="pill-badge pill-belum" style="font-size: 10.5px;">Belum</span>
+                                @endif
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-end mt-3">
-                            {{ $karyawan->links() }}
+
+                        <div class="row g-2 py-2 my-1 border-top border-bottom bg-slate-50 rounded-2 text-center" style="background: #f8fafc;">
+                            <div class="col-4">
+                                <small class="text-muted d-block text-uppercase" style="font-size: 9.5px; font-weight: 700;">Shift</small>
+                                <span class="fw-semibold text-dark" style="font-size: 11.5px;">{{ $d->nama_jam_kerja ?? '-' }}</span>
+                            </div>
+                            <div class="col-4 border-start border-end">
+                                <small class="text-muted d-block text-uppercase" style="font-size: 9.5px; font-weight: 700;">Masuk</small>
+                                <span class="time-mono text-dark" style="font-size: 12px;">{{ $d->jam_in ? date('H:i', strtotime($d->jam_in)) : '-' }}</span>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block text-uppercase" style="font-size: 9.5px; font-weight: 700;">Pulang</small>
+                                <span class="time-mono text-dark" style="font-size: 12px;">{{ $d->jam_out ? date('H:i', strtotime($d->jam_out)) : '-' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-1 mt-2">
+                            <a href="#" class="btn btn-sm btn-outline-success koreksiPresensi py-1 px-2.5 rounded-2" nik="{{ Crypt::encrypt($d->nik) }}"
+                                tanggal="{{ $tanggal_presensi }}" style="font-size: 11.5px;">
+                                <i class="ti ti-edit me-1"></i> Koreksi
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-primary btngetDatamesin py-1 px-2.5 rounded-2" pin="{{ $d->pin }}"
+                                tanggal="{{ $tanggal_presensi }}" style="font-size: 11.5px;">
+                                <i class="ti ti-device-desktop me-1"></i> Log
+                            </a>
                         </div>
                     </div>
+                @empty
+                    <div class="text-center py-5 text-muted">
+                        <i class="ti ti-users-minus fs-1 mb-2 opacity-50"></i>
+                        <p class="mb-0 fw-semibold text-dark">Tidak Ada Data Presensi</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Professional Pagination Footer -->
+            <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2" style="background: #fafbfc; border-color: #e2e8f0 !important;">
+                <div class="text-muted" style="font-size: 12.5px;">
+                    @if ($karyawan->total() > 0)
+                        Menampilkan <span class="fw-bold text-dark font-mono">{{ $karyawan->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $karyawan->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $karyawan->total() }}</span> total karyawan
+                    @else
+                        Menampilkan 0 data
+                    @endif
+                </div>
+                <div class="d-flex align-items-center">
+                    {{ $karyawan->links('pagination::bootstrap-5') }}
                 </div>
             </div>
         </div>

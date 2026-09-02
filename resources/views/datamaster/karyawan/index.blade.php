@@ -256,8 +256,17 @@
                                 @endforeach
                             </div>
                         </div>
-                        <div class="d-flex justify-content-end mt-3">
-                            {{ $karyawan->links() }}
+                        <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-3" style="background: #fafbfc; border-color: #e2e8f0 !important; border-radius: 10px;">
+                            <div class="text-muted" style="font-size: 12.5px;">
+                                @if ($karyawan->total() > 0)
+                                    Menampilkan <span class="fw-bold text-dark font-mono">{{ $karyawan->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $karyawan->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $karyawan->total() }}</span> total karyawan
+                                @else
+                                    Menampilkan 0 data
+                                @endif
+                            </div>
+                            <div class="d-flex align-items-center">
+                                {{ $karyawan->links('pagination::bootstrap-5') }}
+                            </div>
                         </div>
                     </div>
                 </div>
