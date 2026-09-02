@@ -221,9 +221,9 @@
                         </ul>
                     </li>
                     <li class="dropdown-menu-footer border-top">
-                        <a href="javascript:void(0);"
+                        <a href="{{ route('izinabsen.index') }}"
                             class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                            View all notifications
+                            Lihat Semua Pengajuan Izin
                         </a>
                     </li>
                 </ul>
@@ -242,7 +242,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                        <a class="dropdown-item" href="#">
+                        <a class="dropdown-item" href="{{ route('users.editpassword', Crypt::encrypt(Auth::user()->id)) }}">
                             <div class="d-flex">
                                 <div class="flex-shrink-0 me-3">
                                     <div class="avatar avatar-online">
@@ -254,7 +254,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <span class="fw-medium d-block">{{ Auth::user()->name }}</span>
-                                    <small class="text-muted">Admin</small>
+                                    <small class="text-muted">{{ Auth::user()->getRoleNames()->first() ?? 'Admin' }}</small>
                                 </div>
                             </div>
                         </a>
@@ -262,12 +262,12 @@
                     <li>
                         <div class="dropdown-divider"></div>
                     </li>
-                    {{-- <li>
-                        <a class="dropdown-item" href="#">
+                    <li>
+                        <a class="dropdown-item" href="{{ route('users.editpassword', Crypt::encrypt(Auth::user()->id)) }}">
                             <i class="ti ti-user-check me-2 ti-sm"></i>
-                            <span class="align-middle">My Profile</span>
+                            <span class="align-middle">Ganti Password & Profil</span>
                         </a>
-                    </li> --}}
+                    </li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

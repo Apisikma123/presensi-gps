@@ -28,12 +28,26 @@ class KaryawanApprovalController extends Controller
 
         $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
         if (!$userkaryawan || !$userkaryawan->approval_admin_id) {
-            abort(403, 'Anda tidak memiliki akses approval.');
+            $data['pendingIzinAbsen'] = collect();
+            $data['pendingIzinSakit'] = collect();
+            $data['pendingIzinCuti'] = collect();
+            $data['pendingIzinDinas'] = collect();
+            $data['pendingReimbursement'] = collect();
+            $data['admin'] = null;
+            $data['totalPending'] = 0;
+            return view('karyawanapproval.index', $data);
         }
 
         $admin = User::find($userkaryawan->approval_admin_id);
         if (!$admin) {
-            abort(403, 'Admin approval tidak ditemukan.');
+            $data['pendingIzinAbsen'] = collect();
+            $data['pendingIzinSakit'] = collect();
+            $data['pendingIzinCuti'] = collect();
+            $data['pendingIzinDinas'] = collect();
+            $data['pendingReimbursement'] = collect();
+            $data['admin'] = null;
+            $data['totalPending'] = 0;
+            return view('karyawanapproval.index', $data);
         }
 
         $adminRole = $admin->getRoleNames()->first();

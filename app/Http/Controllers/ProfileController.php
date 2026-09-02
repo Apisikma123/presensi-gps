@@ -19,7 +19,7 @@ class ProfileController extends Controller
     {
         $user = User::find(Auth::user()->id);
         $user_karyawan = Userkaryawan::where('id_user', $user->id)->first();
-        $karyawan = Karyawan::where('nik', $user_karyawan->nik)->first();
+        $karyawan = $user_karyawan ? Karyawan::where('nik', $user_karyawan->nik)->first() : null;
         $data['karyawan'] = $karyawan;
         $data['user'] = $user;
         return view('profile.index', $data);
@@ -29,7 +29,7 @@ class ProfileController extends Controller
     {
         $user = User::find(Auth::user()->id);
         $user_karyawan = Userkaryawan::where('id_user', $user->id)->first();
-        $karyawan = Karyawan::where('nik', $user_karyawan->nik)->first();
+        $karyawan = $user_karyawan ? Karyawan::where('nik', $user_karyawan->nik)->first() : null;
 
         $request->validate([
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
@@ -38,34 +38,39 @@ class ProfileController extends Controller
         ]);
 
         try {
-            $data_foto = [];
-            if ($request->hasfile('foto')) {
-                $ext = $request->file('foto')->extension() ?: 'jpg';
-                $foto_name =  $karyawan->nik . "." . $ext;
-                $destination_foto_path = "/public/karyawan";
-                $foto = $foto_name;
-                $data_foto = [
-                    'foto' => $foto
+            if ($karyawan) {
+                $data_foto = [];
+                if ($request->hasfile('foto')) {
+                    $ext = $request->file('foto')->extension() ?: 'jpg';
+                    $foto_name =  $karyawan->nik . "." . $ext;
+                    $destination_foto_path = "/public/karyawan";
+                    $foto = $foto_name;
+                    $data_foto = [
+                        'foto' => $foto
+                    ];
+                }
+
+                $data_karyawan = [
+                    'nama_karyawan' => $request->nama_karyawan,
+                    'no_ktp' => $request->no_ktp,
+                    'no_hp' => $request->no_hp,
+                    'alamat' => $request->alamat,
                 ];
+                $data = array_merge($data_karyawan, $data_foto);
+                Karyawan::where('nik', $karyawan->nik)->update($data);
+                if ($request->hasfile('foto')) {
+                    if (!Storage::exists($destination_foto_path)) {
+                        Storage::makeDirectory($destination_foto_path, 0775, true);
+                        $path = Storage::path($destination_foto_path);
+                        chmod($path, 0775);
+                    }
+                    if (!empty($karyawan->foto)) {
+                        Storage::delete($destination_foto_path . "/" . $karyawan->foto);
+                    }
+                    $request->file('foto')->storeAs($destination_foto_path, $foto_name);
+                }
             }
 
-            $data_karyawan = [
-                'nama_karyawan' => $request->nama_karyawan,
-                'no_ktp' => $request->no_ktp,
-                'no_hp' => $request->no_hp,
-                'alamat' => $request->alamat,
-            ];
-            $data = array_merge($data_karyawan, $data_foto);
-            Karyawan::where('nik', $karyawan->nik)->update($data);
-            if ($request->hasfile('foto')) {
-                if (!Storage::exists($destination_foto_path)) {
-                    Storage::makeDirectory($destination_foto_path, 0775, true);
-                    $path = Storage::path($destination_foto_path);
-                    chmod($path, 0775);
-                }
-                Storage::delete($destination_foto_path . "/" . $karyawan->foto);
-                $request->file('foto')->storeAs($destination_foto_path, $foto_name);
-            }
             User::where('id', $user->id)->update([
                 'name' => $request->nama_karyawan,
                 'email' => $request->email,

@@ -287,8 +287,8 @@
                                 <ion-icon name="shield-checkmark-outline" style="vertical-align: middle;"></ion-icon>
                                 Atas nama
                             </div>
-                            <div class="admin-name">{{ $admin->name }}</div>
-                            <div class="admin-label">{{ $admin->getRoleNames()->first() }}</div>
+                            <div class="admin-name">{{ $admin ? $admin->name : Auth::user()->name }}</div>
+                            <div class="admin-label">{{ $admin ? $admin->getRoleNames()->first() : (Auth::user()->getRoleNames()->first() ?? 'Staff') }}</div>
                         </div>
                         <div class="count-badge">
                             <div class="count-number">{{ $totalPending }}</div>

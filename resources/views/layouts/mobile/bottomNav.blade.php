@@ -121,11 +121,11 @@
             <strong>Ajuan Izin</strong>
         </div>
     </a>
-    <a href="{{ route('users.editpassword', Crypt::encrypt(Auth::user()->id)) }}"
-        class="item {{ request()->is('/users/:id/editpassword') ? 'active' : '' }}">
+    <a href="{{ route('profile.index') }}"
+        class="item {{ request()->is(['profile', 'profile/*']) ? 'active' : '' }}">
         <div class="col">
-            <ion-icon name="settings-outline"></ion-icon>
-            <strong>Setting</strong>
+            <ion-icon name="person-outline"></ion-icon>
+            <strong>Profil</strong>
         </div>
     </a>
 </div>
