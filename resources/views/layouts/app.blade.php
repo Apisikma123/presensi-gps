@@ -27,6 +27,9 @@
 
     @include('layouts.styles')
 
+    <!-- Tailwind & Vite Assets -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <!-- Helpers -->
     <script src="{{ asset('/assets/vendor/js/helpers.js') }}"></script>
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
