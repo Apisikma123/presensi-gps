@@ -23,7 +23,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         // Grant all permissions to super admin and master admin roles implicitly
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->hasRole(['super admin', 'master admin']) ? true : null;
+            if ($user && method_exists($user, 'hasRole') && ($user->hasRole('super admin') || $user->hasRole('master admin'))) {
+                return true;
+            }
         });
     }
 }

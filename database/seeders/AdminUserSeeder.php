@@ -248,6 +248,8 @@ class AdminUserSeeder extends Seeder
         // ==========================================
         // Sync Role Permissions
         // ==========================================
+        // 5. SEED & SYNC FULL PERMISSIONS
+        // ==========================================
         $groupMap = [
             'karyawan' => 18,
             'izinabsen' => 10,
@@ -269,34 +271,47 @@ class AdminUserSeeder extends Seeder
             'kunjungan' => 20,
             'lembur' => 22,
             'users' => 18,
+            'roles' => 18,
             'trackingpresensi' => 30,
+            'facerecognition' => 28,
         ];
 
+        // Ensure roles & users permissions exist
+        $extraPermissions = [
+            'roles.index', 'roles.create', 'roles.edit', 'roles.delete',
+            'roles.createrolepermission', 'roles.storerolepermission',
+        ];
+        foreach ($extraPermissions as $perm) {
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $perm], ['id_permission_group' => 18]);
+        }
+
+        // 1. Karyawan Role Permissions (Self-service mobile & attendance features)
         $karyawanPermissions = [
-            'izinabsen.create', 'izinabsen.delete',
-            'izinsakit.create', 'izinsakit.delete',
-            'izincuti.create', 'izincuti.delete',
-            'izindinas.create', 'izindinas.delete',
-            'koreksi.create', 'koreksi.delete',
-            'presensi.create',
+            'presensi.index', 'presensi.create',
+            'izinabsen.index', 'izinabsen.create', 'izinabsen.delete',
+            'izinsakit.index', 'izinsakit.create', 'izinsakit.delete',
+            'izincuti.index', 'izincuti.create', 'izincuti.delete',
+            'izindinas.index', 'izindinas.create', 'izindinas.delete',
+            'koreksi.index', 'koreksi.create', 'koreksi.delete',
             'aktivitaskaryawan.create', 'aktivitaskaryawan.delete', 'aktivitaskaryawan.edit', 'aktivitaskaryawan.index',
             'kunjungan.create', 'kunjungan.index',
-            'lembur.create',
+            'lembur.index', 'lembur.create',
         ];
         foreach ($karyawanPermissions as $perm) {
             $prefix = explode('.', $perm)[0];
-            $groupId = $groupMap[$prefix] ?? 1;
+            $groupId = $groupMap[$prefix] ?? 18;
             \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $perm], ['id_permission_group' => $groupId]);
         }
         $roleKaryawan->syncPermissions($karyawanPermissions);
 
+        // 2. Store Manager / Admin Role Permissions (Full management for outlet)
         $adminPermissions = [
             'karyawan.index', 'karyawan.create', 'karyawan.edit', 'karyawan.delete', 'karyawan.show', 'karyawan.setjamkerja', 'karyawan.setcabang',
             'departemen.index', 'departemen.create', 'departemen.edit', 'departemen.delete',
             'cabang.index', 'cabang.create', 'cabang.edit', 'cabang.delete',
             'jabatan.index', 'jabatan.create', 'jabatan.edit', 'jabatan.delete',
             'cuti.index', 'cuti.create', 'cuti.edit', 'cuti.delete',
-            'presensi.index', 'presensi.edit', 'presensi.delete', 'trackingpresensi.index',
+            'presensi.index', 'presensi.create', 'presensi.edit', 'presensi.delete', 'trackingpresensi.index',
             'izinabsen.index', 'izinabsen.create', 'izinabsen.edit', 'izinabsen.delete', 'izinabsen.approve',
             'izinsakit.index', 'izinsakit.create', 'izinsakit.edit', 'izinsakit.delete', 'izinsakit.approve',
             'izincuti.index', 'izincuti.create', 'izincuti.edit', 'izincuti.delete', 'izincuti.approve',
@@ -308,12 +323,19 @@ class AdminUserSeeder extends Seeder
             'generalsetting.index', 'generalsetting.edit',
             'laporan.presensi', 'laporan.cuti',
             'users.index', 'users.create', 'users.edit', 'users.delete',
+            'roles.index', 'roles.create', 'roles.edit', 'roles.delete', 'roles.createrolepermission', 'roles.storerolepermission',
         ];
         foreach ($adminPermissions as $perm) {
             $prefix = explode('.', $perm)[0];
-            $groupId = $groupMap[$prefix] ?? 1;
+            $groupId = $groupMap[$prefix] ?? 18;
             \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $perm], ['id_permission_group' => $groupId]);
         }
         $roleAdmin->syncPermissions($adminPermissions);
+
+        // 3. Super Admin & Master Admin Role Permissions (Every permission in the system)
+        $roleMasterAdmin = Role::firstOrCreate(['name' => 'master admin']);
+        $allPermissions = \Spatie\Permission\Models\Permission::all();
+        $role->syncPermissions($allPermissions);
+        $roleMasterAdmin->syncPermissions($allPermissions);
     }
 }
