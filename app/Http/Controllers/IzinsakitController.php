@@ -232,10 +232,15 @@ class IzinsakitController extends Controller
 
             $data_sid = [];
             if ($request->hasfile('sid')) {
-                $sid_name =  $kode_izin_sakit . ".jpg";
-                $sid = $sid_name;
+                $sid_name = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $request->file('sid'),
+                    'uploads/sid',
+                    $kode_izin_sakit,
+                    80,
+                    1280
+                );
                 $data_sid = [
-                    'doc_sid' => $sid,
+                    'doc_sid' => $sid_name,
                 ];
             }
 
@@ -253,15 +258,6 @@ class IzinsakitController extends Controller
 
             $data = array_merge($dataizinsakit, $data_sid);
             $simpandatasakit = Izinsakit::create($data);
-            if ($simpandatasakit) {
-                if ($request->hasfile('sid')) {
-                    $destination_sid_path = "/public/uploads/sid";
-                    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-                    $image = $manager->read($request->file('sid'));
-                    $encodedImage = (string) $image->toJpeg(75);
-                    \Illuminate\Support\Facades\Storage::put($destination_sid_path . "/" . $sid_name, $encodedImage);
-                }
-            }
             DB::commit();
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
@@ -590,10 +586,19 @@ class IzinsakitController extends Controller
             $izinsakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->first();
             $data_sid = [];
             if ($request->hasfile('sid')) {
-                $sid_name =  $kode_izin_sakit . ".jpg";
-                $sid = $sid_name;
+                if (!empty($izinsakit->doc_sid)) {
+                    Storage::disk('public')->delete('uploads/sid/' . $izinsakit->doc_sid);
+                }
+
+                $sid_name = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $request->file('sid'),
+                    'uploads/sid',
+                    $kode_izin_sakit,
+                    80,
+                    1280
+                );
                 $data_sid = [
-                    'doc_sid' => $sid,
+                    'doc_sid' => $sid_name,
                 ];
             }
 
@@ -603,23 +608,11 @@ class IzinsakitController extends Controller
                 'dari' => $request->dari,
                 'sampai' => $request->sampai,
                 'keterangan' => $request->keterangan,
-
             ];
 
             $data = array_merge($dataizinsakit, $data_sid);
 
             $simpandatasakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update($data);
-            if ($simpandatasakit) {
-                if ($request->hasfile('sid')) {
-                    $destination_sid_path = "/public/uploads/sid";
-                    Storage::delete($destination_sid_path . "/" . $izinsakit->doc_sid);
-                    
-                    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-                    $image = $manager->read($request->file('sid'));
-                    $encodedImage = (string) $image->toJpeg(75);
-                    \Illuminate\Support\Facades\Storage::put($destination_sid_path . "/" . $sid_name, $encodedImage);
-                }
-            }
             DB::commit();
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {

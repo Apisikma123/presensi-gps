@@ -41,16 +41,20 @@ class ProfileController extends Controller
             if ($karyawan) {
                 $data_foto = [];
                 if ($request->hasfile('foto')) {
-                    $ext = $request->file('foto')->extension() ?: 'jpg';
-                    $foto_name = $karyawan->nik . "_" . time() . "." . $ext;
-                    $data_foto = [
-                        'foto' => $foto_name
-                    ];
-
                     if (!empty($karyawan->foto) && Storage::disk('public')->exists('karyawan/' . $karyawan->foto)) {
                         Storage::disk('public')->delete('karyawan/' . $karyawan->foto);
                     }
-                    $request->file('foto')->storeAs('karyawan', $foto_name, 'public');
+
+                    $foto_name = \App\Helpers\ImageOptimizer::saveAsWebp(
+                        $request->file('foto'),
+                        'karyawan',
+                        $karyawan->nik . "_" . time(),
+                        80,
+                        800
+                    );
+                    $data_foto = [
+                        'foto' => $foto_name
+                    ];
                 }
 
                 $data_karyawan = [

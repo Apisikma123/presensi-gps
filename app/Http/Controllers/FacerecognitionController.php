@@ -148,9 +148,15 @@ class FacerecognitionController extends Controller
 
                 foreach ($files as $index => $file) {
                     $direction = isset($metadata[$index]['direction']) ? $metadata[$index]['direction'] : 'front';
+                    $baseName = $urutan . "_" . $direction;
                     
-                    $fileName = $urutan . "_" . $direction . ".png";
-                    $file->storeAs($folderPath, $fileName, 'public');
+                    $fileName = \App\Helpers\ImageOptimizer::saveAsWebp(
+                        $file,
+                        $folderPath,
+                        $baseName,
+                        85,
+                        640
+                    );
 
                     // Simpan ke database
                     Facerecognition::create([
@@ -170,16 +176,21 @@ class FacerecognitionController extends Controller
                 $urutan = $cekWajah + 1;
                 foreach ($images as $img) {
                     $direction = isset($img['direction']) ? $img['direction'] : 'front';
+                    $baseName = $urutan . "_" . $direction;
                     $image = $img['image'];
-                    $image_parts = explode(';base64', $image);
-                    $image_base64 = base64_decode($image_parts[1]);
-                    $fileName = $urutan . "_" . $direction . ".png";
+                    
+                    $fileName = \App\Helpers\ImageOptimizer::saveAsWebp(
+                        $image,
+                        $folderPath,
+                        $baseName,
+                        85,
+                        640
+                    );
                     
                     Facerecognition::create([
                         'nik' => $request->nik,
                         'wajah' => $fileName
                     ]);
-                    Storage::disk('public')->put($folderPath . '/' . $fileName, $image_base64);
                     $saved[] = $fileName;
                     $urutan++;
                 }
@@ -189,15 +200,19 @@ class FacerecognitionController extends Controller
                 $cekWajah = Facerecognition::where('nik', $request->nik)->count();
                 $formatName = $cekWajah + 1;
                 $image = $request->image;
-                $image_parts = explode(';base64', $image);
-                $image_base64 = base64_decode($image_parts[1]);
-                $fileName = $formatName . ".png";
+                
+                $fileName = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $image,
+                    $folderPath,
+                    (string) $formatName,
+                    85,
+                    640
+                );
                 
                 Facerecognition::create([
                     'nik' => $request->nik,
                     'wajah' => $fileName
                 ]);
-                Storage::disk('public')->put($folderPath . '/' . $fileName, $image_base64);
                 return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan', 'file' => $fileName]);
             } else {
                 return response()->json(['success' => false, 'message' => 'Tidak ada gambar yang dikirim']);

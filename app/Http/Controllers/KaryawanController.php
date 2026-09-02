@@ -192,12 +192,16 @@ class KaryawanController extends Controller
             $nikAuto = $prefix . str_pad((string)$nextNumber, 5, '0', STR_PAD_LEFT);
             $data_foto = [];
             if ($request->hasfile('foto')) {
-                $ext = $request->file('foto')->extension() ?: 'jpg';
-                $foto_name = $nikAuto . "_" . time() . "." . $ext;
+                $foto_name = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $request->file('foto'),
+                    'karyawan',
+                    $nikAuto . "_" . time(),
+                    80,
+                    800
+                );
                 $data_foto = [
                     'foto' => $foto_name
                 ];
-                $request->file('foto')->storeAs('karyawan', $foto_name, 'public');
             }
             $data_karyawan = [
                 'nik' => $nikAuto,
@@ -310,16 +314,20 @@ class KaryawanController extends Controller
             $karyawan = Karyawan::where('nik', $nik)->first();
             $data_foto = [];
             if ($request->hasfile('foto')) {
-                $ext = $request->file('foto')->extension() ?: 'jpg';
-                $foto_name = $nik . "_" . time() . "." . $ext;
-                $data_foto = [
-                    'foto' => $foto_name
-                ];
-
                 if (!empty($karyawan->foto) && Storage::disk('public')->exists('karyawan/' . $karyawan->foto)) {
                     Storage::disk('public')->delete('karyawan/' . $karyawan->foto);
                 }
-                $request->file('foto')->storeAs('karyawan', $foto_name, 'public');
+
+                $foto_name = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $request->file('foto'),
+                    'karyawan',
+                    $nik . "_" . time(),
+                    80,
+                    800
+                );
+                $data_foto = [
+                    'foto' => $foto_name
+                ];
             }
 
             $data_karyawan = [
