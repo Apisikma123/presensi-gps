@@ -72,105 +72,144 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-12">
-                            @forelse ($koreksi as $d)
-                                <div class="card mb-2 shadow-sm border">
-                                    <div class="card-body p-2">
-                                        <div class="row align-items-center">
-                                            <!-- Avatar -->
-                                            <div class="col-md-1 text-center" style="width: 60px;">
-                                                @php
-                                                    $path = !empty($d->foto) ? Storage::url('karyawan/'.$d->foto) : asset('assets/img/avatars/No_Image_Available.jpg');
-                                                @endphp
-                                                <img src="{{ $path }}" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                                            </div>
-                                            <!-- Identity -->
-                                            <div class="col-md-4">
-                                                <div class="fw-bold text-dark" style="font-size: 14px;">{{ $d->nama_karyawan }} <span class="text-muted fw-normal" style="font-size: 12px;">({{ $d->nik_show ?? $d->nik }})</span></div>
-                                                <div class="mt-1">
-                                                    <span class="badge bg-label-success" style="font-size: 10px;">{{ $d->nama_jabatan }}</span>
-                                                    <span class="badge bg-label-info" style="font-size: 10px;">{{ $d->nama_dept }}</span>
-                                                    <span class="badge bg-label-warning" style="font-size: 10px;">{{ $d->nama_cabang }}</span>
-                                                </div>
-                                            </div>
-                                            <!-- Date & Times -->
-                                            <div class="col-md-3 border-start border-end d-none d-md-block text-center">
-                                                 <div class="fw-bold text-dark" style="font-size: 13px;">{{ date('d-m-Y', strtotime($d->tanggal)) }}</div>
-                                                 <div class="text-muted" style="font-size: 11px;">
-                                                    {{ $d->kode_koreksi }} <span class="mx-1">•</span> 
-                                                    {{ $d->nama_jam_kerja }}
-                                                 </div>
-                                                 <div class="fw-bold text-primary mt-1" style="font-size: 11px;">
-                                                    In: {{ $d->jam_in ?? '-' }} | Out: {{ $d->jam_out ?? '-' }}
-                                                 </div>
-                                            </div>
-                                            
-                                            <!-- Status -->
-                                            <div class="col-md-2 text-center">
-                                                @if ($d->status == 0)
-                                                    @php
-                                                        $nextLayer = $d->getNextApprovalLayer();
-                                                    @endphp
-                                                    <span class="badge bg-label-warning py-1 px-2" style="font-size: 11px;">
-                                                        <i class="ti ti-hourglass-empty me-1"></i> Pending
-                                                    </span>
-                                                    @if ($nextLayer)
-                                                        <div class="text-muted mt-1" style="font-size: 10px; line-height: 1;">
-                                                            Menunggu: {{ $nextLayer->role_name }}
-                                                        </div>
-                                                    @endif
-                                                @elseif ($d->status == 1)
-                                                    <span class="badge bg-success py-1 px-2" style="font-size: 11px;">Disetujui</span>
-                                                @elseif ($d->status == 2)
-                                                    <span class="badge bg-danger py-1 px-2" style="font-size: 11px;">Ditolak</span>
-                                                @endif
-                                            </div>
-                                            
-                                            <!-- Actions -->
-                                            <div class="col-md-2 text-end">
-                                                <div class="btn-group shadow-sm" role="group">
-                                                    @can('koreksi.approve')
-                                                        @if ($d->status == 0)
-                                                            <a href="#" class="btn btn-sm btn-outline-primary py-1 px-2 btnApprove" 
-                                                                kode_koreksi="{{ Crypt::encrypt($d->kode_koreksi) }}" title="Approve">
-                                                                <i class="ti ti-external-link"></i>
-                                                            </a>
+                            <div class="row g-2">
+                                @forelse ($koreksi as $d)
+                                    @php
+                                        $words = explode(' ', $d->nama_karyawan);
+                                        $initials = '';
+                                        foreach ($words as $w) {
+                                            if (isset($w[0])) $initials .= $w[0];
+                                        }
+                                        $initials = strtoupper(substr($initials, 0, 2));
+                                    @endphp
+                                    <div class="col-12">
+                                        <div class="card mb-2 shadow-sm border" style="border-radius: 12px; border-color: #e2e8f0; transition: all 0.2s ease;">
+                                            <div class="card-body p-3">
+                                                <div class="row align-items-center g-2">
+                                                    <!-- Avatar & Identity -->
+                                                    <div class="col-lg-5 col-md-12 d-flex align-items-center gap-3">
+                                                        @php
+                                                            $path = Storage::url('karyawan/'.$d->foto);
+                                                        @endphp
+                                                        @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                                            <img src="{{ url($path) }}" alt="Avatar" class="rounded-circle shadow-sm flex-shrink-0" style="width: 44px; height: 44px; object-fit: cover; border: 2px solid #e2e8f0;">
+                                                        @else
+                                                            <div class="rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                                                style="width: 44px; height: 44px; background: rgba(50, 116, 94, 0.12); color: #32745e; font-size: 14px; border: 2px solid rgba(50, 116, 94, 0.2);">
+                                                                {{ $initials }}
+                                                            </div>
                                                         @endif
-                                                    @endcan
+
+                                                        <div class="overflow-hidden">
+                                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                                <span class="fw-bold text-dark" style="font-size: 14px;">{{ $d->nama_karyawan }}</span>
+                                                                <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 600;">
+                                                                    <i class="ti ti-id me-1"></i>{{ $d->nik_show ?? $d->nik }}
+                                                                </span>
+                                                            </div>
+                                                            <div class="mt-1 d-flex flex-wrap gap-1">
+                                                                <span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 10.5px; font-weight: 600;">{{ $d->nama_jabatan }}</span>
+                                                                <span class="badge" style="background: #f0fdf4; color: #15803d; font-size: 10.5px; font-weight: 600;">{{ $d->nama_dept }}</span>
+                                                                <span class="badge" style="background: #fdf4ff; color: #86198f; font-size: 10.5px; font-weight: 600;">{{ $d->nama_cabang }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Date & Times -->
+                                                    <div class="col-lg-3 col-md-6 text-center d-flex flex-column align-items-center justify-content-center">
+                                                        <div class="fw-bold text-dark" style="font-size: 12.5px;">
+                                                            <i class="ti ti-calendar me-1 text-primary"></i>
+                                                            {{ date('d M Y', strtotime($d->tanggal)) }}
+                                                        </div>
+                                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                                            <span class="badge" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 10px;">{{ $d->kode_koreksi }}</span>
+                                                            <span class="text-slate-400 mx-1">•</span>
+                                                            <span class="fw-semibold text-dark">{{ $d->nama_jam_kerja }}</span>
+                                                        </div>
+                                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                                            <span class="badge rounded-pill px-2 py-0.5" style="background: #ecfdf5; color: #059669; font-size: 10.5px;">
+                                                                In: {{ $d->jam_in ?? '-' }}
+                                                            </span>
+                                                            <span class="badge rounded-pill px-2 py-0.5" style="background: #fef2f2; color: #dc2626; font-size: 10.5px;">
+                                                                Out: {{ $d->jam_out ?? '-' }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                     
-                                                    @can('koreksi.index')
-                                                        <a href="#" class="btn btn-sm btn-outline-info btnShow py-1 px-2" kode_koreksi="{{ Crypt::encrypt($d->kode_koreksi) }}" title="Detail">
-                                                            <i class="ti ti-file-description"></i>
-                                                        </a>
-                                                    @endcan
+                                                    <!-- Status -->
+                                                    <div class="col-lg-2 col-md-6 text-center">
+                                                        @if ($d->status == 0)
+                                                            @php
+                                                                $nextLayer = $d->getNextApprovalLayer();
+                                                            @endphp
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-hourglass-empty me-1"></i> Pending
+                                                            </span>
+                                                            @if ($nextLayer)
+                                                                <div class="text-muted mt-1" style="font-size: 10px; line-height: 1.2;">
+                                                                    Menunggu: <span class="fw-semibold">{{ $nextLayer->role_name }}</span>
+                                                                </div>
+                                                            @endif
+                                                        @elseif ($d->status == 1)
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-check me-1"></i> Disetujui
+                                                            </span>
+                                                        @elseif ($d->status == 2)
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-x me-1"></i> Ditolak
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                     
-                                                    @can('koreksi.delete')
-                                                        <form method="POST" action="{{ route('koreksi.delete', Crypt::encrypt($d->kode_koreksi)) }}" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger delete-confirm py-1 px-2" title="Hapus">
-                                                                <i class="ti ti-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endcan
+                                                    <!-- Actions -->
+                                                    <div class="col-lg-2 col-md-12 text-lg-end text-center">
+                                                        <div class="btn-group shadow-sm" role="group">
+                                                            @can('koreksi.approve')
+                                                                @if ($d->status == 0)
+                                                                    <a href="#" class="btn btn-sm btn-outline-primary py-1 px-2 btnApprove" 
+                                                                        kode_koreksi="{{ Crypt::encrypt($d->kode_koreksi) }}" title="Approve">
+                                                                        <i class="ti ti-external-link"></i>
+                                                                    </a>
+                                                                @endif
+                                                            @endcan
+                                                            
+                                                            @can('koreksi.index')
+                                                                <a href="#" class="btn btn-sm btn-outline-info btnShow py-1 px-2" kode_koreksi="{{ Crypt::encrypt($d->kode_koreksi) }}" title="Detail">
+                                                                    <i class="ti ti-file-description"></i>
+                                                                </a>
+                                                            @endcan
+                                                            
+                                                            @can('koreksi.delete')
+                                                                <form method="POST" action="{{ route('koreksi.delete', Crypt::encrypt($d->kode_koreksi)) }}" class="d-inline">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="btn btn-sm btn-outline-danger delete-confirm py-1 px-2 rounded-0 rounded-end" title="Hapus">
+                                                                        <i class="ti ti-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            @endcan
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            @empty
-                                <div class="card shadow-none border">
-                                    <div class="card-body text-center p-5">
-                                        <div class="mb-3 text-muted">
-                                            <i class="ti ti-file-x" style="font-size: 5rem;"></i>
+                                @empty
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 12px;">
+                                            <div class="d-flex flex-column align-items-center opacity-75">
+                                                <i class="ti ti-file-off fs-1 text-muted mb-2"></i>
+                                                <h6 class="fw-bold mb-1">Tidak Ada Data Koreksi Absen</h6>
+                                                <small class="text-muted">Gunakan filter pencarian di atas untuk menemukan data.</small>
+                                            </div>
                                         </div>
-                                        <h4>Belum ada data koreksi</h4>
                                     </div>
-                                </div>
-                            @endforelse
-                            <div class="mt-3" style="float: right;">
-                                {{ $koreksi->links() }}
+                                @endforelse
                             </div>
                         </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ $koreksi->links() }}
                     </div>
                 </div>
             </div>

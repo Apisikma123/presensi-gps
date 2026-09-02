@@ -72,186 +72,194 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-12">
-                            @forelse ($izinsakit as $d)
-                                @php
-                                    $lama = hitungHari($d->dari, $d->sampai);
-                                @endphp
-                                <div class="card mb-2 shadow-sm border">
-                                    <div class="card-body p-2">
-                                        <div class="row align-items-center">
-                                            <!-- Avatar -->
-                                            <div class="col-md-1 text-center" style="width: 60px;">
-                                                @php
-                                                    $path = Storage::url('karyawan/'.$d->foto);
-                                                @endphp
-                                                @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
-                                                    <img src="{{ $path }}" alt="Avatar"
-                                                        class="rounded-circle"
-                                                        style="width: 40px; height: 40px; object-fit: cover;">
-                                                @else
-                                                    <img src="{{ asset('assets/img/avatars/No_Image_Available.jpg') }}"
-                                                        alt="No Image" class="rounded-circle"
-                                                        style="width: 40px; height: 40px; object-fit: cover;">
-                                                @endif
-                                            </div>
-                                            <!-- Identity -->
-                                            <div class="col-md-4">
-                                                <div class="fw-bold text-dark" style="font-size: 14px;">{{ $d->nama_karyawan }} <span class="text-muted fw-normal" style="font-size: 12px;">({{ $d->nik_show ?? $d->nik }})</span></div>
-                                                <div class="mt-1">
-                                                    <span class="badge bg-label-success" style="font-size: 10px;">{{ $d->nama_jabatan }}</span>
-                                                    <span class="badge bg-label-info" style="font-size: 10px;">{{ $d->nama_dept }}</span>
-                                                    <span class="badge bg-label-warning" style="font-size: 10px;">{{ $d->nama_cabang }}</span>
-                                                </div>
-                                                @if (!empty($d->doc_sid))
-                                                    <div class="mt-1 d-block d-md-none">
-                                                        @if (Storage::disk('public')->exists('/uploads/sid/' . $d->doc_sid))
-                                                            <a href="{{ url('storage/uploads/sid/'.$d->doc_sid) }}" target="_blank" class="text-primary" style="font-size: 11px;">
-                                                                <i class="ti ti-file-text me-1"></i>SID
-                                                            </a>
+                            <div class="row g-2">
+                                @forelse ($izinsakit as $d)
+                                    @php
+                                        $lama = hitungHari($d->dari, $d->sampai);
+                                        $words = explode(' ', $d->nama_karyawan);
+                                        $initials = '';
+                                        foreach ($words as $w) {
+                                            if (isset($w[0])) $initials .= $w[0];
+                                        }
+                                        $initials = strtoupper(substr($initials, 0, 2));
+                                    @endphp
+                                    <div class="col-12">
+                                        <div class="card mb-2 shadow-sm border" style="border-radius: 12px; border-color: #e2e8f0; transition: all 0.2s ease;">
+                                            <div class="card-body p-3">
+                                                <div class="row align-items-center g-2">
+                                                    <!-- Avatar & Identity -->
+                                                    <div class="col-lg-5 col-md-12 d-flex align-items-center gap-3">
+                                                        @php
+                                                            $path = Storage::url('karyawan/'.$d->foto);
+                                                        @endphp
+                                                        @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                                            <img src="{{ $path }}" alt="Avatar" class="rounded-circle shadow-sm flex-shrink-0" style="width: 44px; height: 44px; object-fit: cover; border: 2px solid #e2e8f0;">
                                                         @else
-                                                             <span class="text-danger" style="font-size: 11px;" title="File tidak ditemukan">
-                                                                <i class="ti ti-file-x me-1"></i>SID
+                                                            <div class="rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                                                style="width: 44px; height: 44px; background: rgba(50, 116, 94, 0.12); color: #32745e; font-size: 14px; border: 2px solid rgba(50, 116, 94, 0.2);">
+                                                                {{ $initials }}
+                                                            </div>
+                                                        @endif
+
+                                                        <div class="overflow-hidden">
+                                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                                <span class="fw-bold text-dark" style="font-size: 14px;">{{ $d->nama_karyawan }}</span>
+                                                                <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 600;">
+                                                                    <i class="ti ti-id me-1"></i>{{ $d->nik_show ?? $d->nik }}
+                                                                </span>
+                                                            </div>
+                                                            <div class="mt-1 d-flex flex-wrap gap-1 align-items-center">
+                                                                <span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 10.5px; font-weight: 600;">{{ $d->nama_jabatan }}</span>
+                                                                <span class="badge" style="background: #f0fdf4; color: #15803d; font-size: 10.5px; font-weight: 600;">{{ $d->nama_dept }}</span>
+                                                                <span class="badge" style="background: #fdf4ff; color: #86198f; font-size: 10.5px; font-weight: 600;">{{ $d->nama_cabang }}</span>
+                                                                @if (!empty($d->doc_sid))
+                                                                    @if (Storage::disk('public')->exists('/uploads/sid/' . $d->doc_sid))
+                                                                        <a href="{{ url('storage/uploads/sid/'.$d->doc_sid) }}" target="_blank" class="badge bg-label-info text-decoration-none" style="font-size: 10.5px; font-weight: 600;">
+                                                                            <i class="ti ti-file-text me-1"></i>Lihat SID
+                                                                        </a>
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Date & Generic Info -->
+                                                    <div class="col-lg-3 col-md-6 text-center d-flex flex-column align-items-center justify-content-center">
+                                                        <div class="fw-bold text-dark" style="font-size: 12.5px;">
+                                                            <i class="ti ti-calendar-event me-1 text-primary"></i>
+                                                            {{ date('d M Y', strtotime($d->dari)) }} - {{ date('d M Y', strtotime($d->sampai)) }}
+                                                        </div>
+                                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                                            <span class="badge" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 10px;">{{ $d->kode_izin_sakit }}</span>
+                                                            <span class="text-slate-400 mx-1">•</span>
+                                                            <span class="fw-semibold text-dark">{{ $lama }} Hari</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Status -->
+                                                    <div class="col-lg-2 col-md-6 text-center">
+                                                        @if ($d->status == 0)
+                                                            @php
+                                                                $nextLayer = $d->getNextApprovalLayer();
+                                                            @endphp
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-hourglass-empty me-1"></i> Pending
+                                                            </span>
+                                                            @if ($nextLayer)
+                                                                <div class="text-muted mt-1" style="font-size: 10px; line-height: 1.2;">
+                                                                    Menunggu: <span class="fw-semibold">{{ $nextLayer->role_name }}</span>
+                                                                </div>
+                                                            @endif
+                                                        @elseif ($d->status == 1)
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-check me-1"></i> Disetujui
+                                                            </span>
+                                                        @elseif ($d->status == 2)
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-x me-1"></i> Ditolak
                                                             </span>
                                                         @endif
                                                     </div>
-                                                @endif
-                                            </div>
-                                            <!-- Date & Generic Info -->
-                                            <div class="col-md-3 border-start border-end d-none d-md-block text-center">
-                                                 <div class="fw-bold text-dark" style="font-size: 13px;">{{ date('d-m-Y', strtotime($d->dari)) }} s/d {{ date('d-m-Y', strtotime($d->sampai)) }}</div>
-                                                 <div class="text-muted" style="font-size: 11px;">
-                                                    {{ $d->kode_izin_sakit }} <span class="mx-1">•</span> {{ $lama }} Hari
-                                                    @if (!empty($d->doc_sid))
-                                                        <span class="mx-1">•</span>
-                                                        @if (Storage::disk('public')->exists('/uploads/sid/' . $d->doc_sid))
-                                                            <a href="{{ url('storage/uploads/sid/'.$d->doc_sid) }}" target="_blank" class="text-primary" title="Lihat SID">
-                                                                <i class="ti ti-file-text me-1"></i>SID
-                                                            </a>
-                                                        @else
-                                                            <span class="text-danger" title="File tidak ditemukan">
-                                                                <i class="ti ti-file-x me-1"></i>SID
-                                                            </span>
-                                                        @endif
-                                                    @endif
-                                                 </div>
-                                            </div>
-                                            
-                                            <!-- Status -->
-                                            <div class="col-md-2 text-center">
-                                                @if ($d->status == 0)
-                                                    @php
-                                                        $nextLayer = $d->getNextApprovalLayer();
-                                                    @endphp
-                                                    <span class="badge bg-label-warning py-1 px-2" style="font-size: 11px;">
-                                                        <i class="ti ti-hourglass-empty me-1"></i> Pending
-                                                    </span>
-                                                    @if ($nextLayer)
-                                                        <div class="text-muted mt-1" style="font-size: 10px; line-height: 1;">
-                                                            Menunggu: {{ $nextLayer->role_name }}
+
+                                                    <!-- Actions -->
+                                                    <div class="col-lg-2 col-md-12 text-lg-end text-center">
+                                                        <div class="btn-group shadow-sm" role="group">
+                                                            @can('izinsakit.approve')
+                                                                @if ($d->status == 0)
+                                                                    @php
+                                                                        $nextLayer = $d->getNextApprovalLayer();
+                                                                        $userRole = auth()->user()->getRoleNames()->first();
+                                                                        $canApprove = false;
+                                                                        if(auth()->user()->hasRole('super admin') || ($nextLayer && $nextLayer->role_name == $userRole)){
+                                                                            $canApprove = true;
+                                                                        }
+                                                                        $canCancel = false;
+                                                                        if($d->approval_step > 1) {
+                                                                            $lastStep = $d->approval_step - 1;
+                                                                            $lastApproval = $d->approvals->where('level', $lastStep)->where('user_id', auth()->id())->first();
+                                                                            if($lastApproval) {
+                                                                                $canCancel = true;
+                                                                            }
+                                                                        }
+                                                                    @endphp
+                                                                    
+                                                                    @if($canApprove)
+                                                                        <a href="#" class="btn btn-sm btn-outline-primary btnApprove py-1 px-2"
+                                                                            kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}" title="Approve">
+                                                                            <i class="ti ti-external-link"></i>
+                                                                        </a>
+                                                                    @endif
+
+                                                                    @if($canCancel)
+                                                                        <form method="POST" name="deleteform" class="deleteform d-inline"
+                                                                            action="{{ route('izinsakit.cancelapprove', Crypt::encrypt($d->kode_izin_sakit)) }}">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button type="submit" class="btn btn-sm btn-outline-warning cancel-confirm rounded-0 py-1 px-2" title="Batalkan Approval">
+                                                                                <i class="ti ti-arrow-back-up"></i>
+                                                                            </button>
+                                                                        </form>
+                                                                    @endif
+
+                                                                @elseif($d->status == 1 || $d->status == 2)
+                                                                    <form method="POST" name="deleteform" class="deleteform d-inline"
+                                                                        action="{{ route('izinsakit.cancelapprove', Crypt::encrypt($d->kode_izin_sakit)) }}">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-sm btn-outline-danger cancel-confirm rounded-0 py-1 px-2" title="Batalkan">
+                                                                            <i class="ti ti-circle-minus"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                @endif
+                                                            @endcan
+                                                            @can('izinsakit.edit')
+                                                                @if ($d->status == 0)
+                                                                    <a href="#" class="btn btn-sm btn-outline-success btnEdit py-1 px-2"
+                                                                        kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}" title="Edit">
+                                                                        <i class="ti ti-edit"></i>
+                                                                    </a>
+                                                                @endif
+                                                            @endcan
+                                                            @can('izinsakit.index')
+                                                                <a href="#" class="btn btn-sm btn-outline-info btnShow py-1 px-2"
+                                                                    kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}" title="Detail">
+                                                                    <i class="ti ti-file-description"></i>
+                                                                </a>
+                                                            @endcan
+                                                            @can('izinsakit.delete')
+                                                                @if ($d->status == 0)
+                                                                    <form method="POST" name="deleteform" class="deleteform d-inline"
+                                                                        action="{{ route('izinsakit.delete', Crypt::encrypt($d->kode_izin_sakit)) }}">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-sm btn-outline-danger delete-confirm rounded-0 rounded-end py-1 px-2" title="Hapus">
+                                                                            <i class="ti ti-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                @endif
+                                                            @endcan
                                                         </div>
-                                                    @endif
-                                                @elseif ($d->status == 1)
-                                                    <span class="badge bg-success py-1 px-2" style="font-size: 11px;">Disetujui</span>
-                                                @elseif ($d->status == 2)
-                                                    <span class="badge bg-danger py-1 px-2" style="font-size: 11px;">Ditolak</span>
-                                                @endif
-                                            </div>
-
-                                            <!-- Actions -->
-                                            <div class="col-md-2 text-end">
-                                               <div class="btn-group" role="group">
-                                                @can('izinsakit.approve')
-                                                    @if ($d->status == 0)
-                                                        @php
-                                                            $nextLayer = $d->getNextApprovalLayer();
-                                                            $userRole = auth()->user()->getRoleNames()->first();
-                                                            $canApprove = false;
-                                                            if(auth()->user()->hasRole('super admin') || ($nextLayer && $nextLayer->role_name == $userRole)){
-                                                                $canApprove = true;
-                                                            }
-                                                            $canCancel = false;
-                                                            if($d->approval_step > 1) {
-                                                                $lastStep = $d->approval_step - 1;
-                                                                $lastApproval = $d->approvals->where('level', $lastStep)->where('user_id', auth()->id())->first();
-                                                                if($lastApproval) {
-                                                                    $canCancel = true;
-                                                                }
-                                                            }
-                                                        @endphp
-                                                        
-                                                        @if($canApprove)
-                                                            <a href="#" class="btn btn-sm btn-outline-primary btnApprove py-1 px-2 rounded-0"
-                                                                kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}">
-                                                                <i class="ti ti-external-link"></i>
-                                                            </a>
-                                                        @endif
-
-                                                        @if($canCancel)
-                                                            <form method="POST" name="deleteform" class="deleteform d-inline"
-                                                                action="{{ route('izinsakit.cancelapprove', Crypt::encrypt($d->kode_izin_sakit)) }}">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-outline-warning cancel-confirm py-1 px-2 rounded-0" title="Batalkan Approval">
-                                                                    <i class="ti ti-arrow-back-up"></i>
-                                                                </button>
-                                                            </form>
-                                                        @endif
-
-                                                    @elseif($d->status == 1 || $d->status == 2)
-                                                        <form method="POST" name="deleteform" class="deleteform d-inline"
-                                                            action="{{ route('izinsakit.cancelapprove', Crypt::encrypt($d->kode_izin_sakit)) }}">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger cancel-confirm py-1 px-2 rounded-0">
-                                                                <i class="ti ti-circle-minus"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                @endcan
-                                                @can('izinsakit.edit')
-                                                    @if ($d->status == 0)
-                                                        <a href="#" class="btn btn-sm btn-outline-success btnEdit py-1 px-2 rounded-0"
-                                                            kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}"><i
-                                                                class="ti ti-edit"></i></a>
-                                                    @endif
-                                                @endcan
-                                                @can('izinsakit.index')
-                                                    <a href="#" class="btn btn-sm btn-outline-info btnShow py-1 px-2 rounded-0"
-                                                        kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}"><i
-                                                            class="ti ti-file-description"></i></a>
-                                                @endcan
-                                                @can('izinsakit.delete')
-                                                    @if ($d->status == 0)
-                                                        <form method="POST" name="deleteform" class="deleteform d-inline"
-                                                            action="{{ route('izinsakit.delete', Crypt::encrypt($d->kode_izin_sakit)) }}">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger delete-confirm py-1 px-2 rounded-0">
-                                                                <i class="ti ti-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                @endcan
-                                               </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            @empty
-                                <div class="card shadow-none border">
-                                    <div class="card-body text-center p-5">
-                                        <div class="mb-3">
-                                            <i class="ti ti-file-x text-muted" style="font-size: 6rem;"></i>
+                                @empty
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 12px;">
+                                            <div class="d-flex flex-column align-items-center opacity-75">
+                                                <i class="ti ti-file-off fs-1 text-muted mb-2"></i>
+                                                <h6 class="fw-bold mb-1">Tidak Ada Data Pengajuan Izin Sakit</h6>
+                                                <small class="text-muted">Gunakan filter pencarian di atas untuk menemukan data.</small>
+                                            </div>
                                         </div>
-                                        <h4 class="mb-1 text-muted">Belum ada data</h4>
-                                        <p class="text-secondary">Data izin sakit belum tersedia untuk periode atau filter yang dipilih.</p>
                                     </div>
-                                </div>
-                            @endforelse
-                            <div style="float: right;">
-                                {{ $izinsakit->links() }}
+                                @endforelse
                             </div>
                         </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        {{ $izinsakit->links() }}
                     </div>
                 </div>
             </div>

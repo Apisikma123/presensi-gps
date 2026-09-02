@@ -85,104 +85,118 @@
                 <div class="row">
                     <div class="col-12">
 
-                        <div class="row">
+                        <div class="row g-2">
                             <div class="col-12">
                                 @foreach ($karyawan as $d)
-                                    <div class="card mb-2 shadow-sm border">
-                                        <div class="card-body p-2">
-                                            <div class="row align-items-center">
-                                                <!-- Avatar -->
-                                                <div class="col-md-1 text-center">
+                                    @php
+                                        // Initials for avatar
+                                        $words = explode(' ', $d->nama_karyawan);
+                                        $initials = '';
+                                        foreach ($words as $w) {
+                                            if (isset($w[0])) $initials .= $w[0];
+                                        }
+                                        $initials = strtoupper(substr($initials, 0, 2));
+
+                                        $awal = new DateTime($d->tanggal_masuk);
+                                        $akhir = new DateTime();
+                                        $masa_kerja = $akhir->diff($awal);
+                                    @endphp
+                                    <div class="card mb-2 shadow-sm border" style="border-radius: 12px; border-color: #e2e8f0; transition: all 0.2s ease;">
+                                        <div class="card-body p-3">
+                                            <div class="row align-items-center g-2">
+                                                <!-- Avatar & Identity -->
+                                                <div class="col-lg-5 col-md-12 d-flex align-items-center gap-3">
                                                     @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
                                                         <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
-                                                            class="rounded-circle"
-                                                            style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #e9ecef;">
+                                                            class="rounded-circle shadow-sm flex-shrink-0"
+                                                            style="width: 44px; height: 44px; object-fit: cover; border: 2px solid #e2e8f0;">
                                                     @else
-                                                        <img src="{{ asset('assets/img/avatars/No_Image_Available.jpg') }}"
-                                                            alt="No Image" class="rounded-circle"
-                                                            style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #e9ecef;">
+                                                        <div class="rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                                            style="width: 44px; height: 44px; background: rgba(50, 116, 94, 0.12); color: #32745e; font-size: 14px; border: 2px solid rgba(50, 116, 94, 0.2);">
+                                                            {{ $initials }}
+                                                        </div>
                                                     @endif
-                                                </div>
-                                                <!-- Identity -->
-                                                <div class="col-md-4">
-                                                    <div class="fw-bold text-dark" style="font-size: 14px;">
-                                                        {{ $d->nama_karyawan }}
-                                                        <span class="text-muted fw-normal" style="font-size: 12px;">({{ $d->nik_show ?? $d->nik }})</span>
-                                                    </div>
-                                                    <div class="mt-1">
-                                                        <span class="badge bg-label-primary" style="font-size: 10px;">{{ $d->nama_jabatan }}</span>
-                                                        <span class="badge bg-label-info" style="font-size: 10px;">{{ $d->nama_dept }}</span>
-                                                        <span class="badge bg-label-warning" style="font-size: 10px;">{{ $d->nama_cabang }}</span>
-                                                        @if ($d->status_karyawan)
-                                                            @php
-                                                                $status_karyawan_text = $d->status_karyawan == 'K' ? 'Kontrak' : ($d->status_karyawan == 'T' ? 'Tetap' : $d->status_karyawan);
-                                                                $badge_class = $d->status_karyawan == 'T' ? 'bg-label-success' : 'bg-label-primary';
-                                                            @endphp
-                                                            <span class="badge {{ $badge_class }}" style="font-size: 10px;">{{ $status_karyawan_text }}</span>
-                                                        @endif
-                                                        @if ($d->jenis_upah)
-                                                            @php
-                                                                $upah_class = $d->jenis_upah == 'Harian' ? 'bg-label-info' : 'bg-label-success';
-                                                            @endphp
-                                                            <span class="badge {{ $upah_class }}" style="font-size: 10px;">{{ $d->jenis_upah }}</span>
-                                                        @endif
+
+                                                    <div class="overflow-hidden">
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            <span class="fw-bold text-dark" style="font-size: 14px;">{{ $d->nama_karyawan }}</span>
+                                                            <span class="badge" style="background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-id me-1"></i>{{ $d->nik_show ?? $d->nik }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="mt-1 d-flex flex-wrap gap-1">
+                                                            <span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 10.5px; font-weight: 600;">{{ $d->nama_jabatan }}</span>
+                                                            <span class="badge" style="background: #f0fdf4; color: #15803d; font-size: 10.5px; font-weight: 600;">{{ $d->nama_dept }}</span>
+                                                            <span class="badge" style="background: #fdf4ff; color: #86198f; font-size: 10.5px; font-weight: 600;">{{ $d->nama_cabang }}</span>
+                                                            @if ($d->status_karyawan)
+                                                                @php
+                                                                    $status_karyawan_text = $d->status_karyawan == 'K' ? 'Kontrak' : ($d->status_karyawan == 'T' ? 'Tetap' : $d->status_karyawan);
+                                                                @endphp
+                                                                <span class="badge" style="background: #fffbeb; color: #b45309; font-size: 10.5px; font-weight: 600;">{{ $status_karyawan_text }}</span>
+                                                            @endif
+                                                            @if ($d->jenis_upah)
+                                                                <span class="badge" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 10.5px; font-weight: 600;">{{ $d->jenis_upah }}</span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <!-- Status & Date -->
-                                                <div class="col-md-3 border-start border-end d-none d-md-block text-center">
-                                                    <div class="mb-1">
+
+                                                <!-- Status & Masa Kerja -->
+                                                <div class="col-lg-3 col-md-6 text-center d-flex flex-column align-items-center justify-content-center">
+                                                    <div>
                                                         @if ($d->status_aktif_karyawan == '1')
-                                                            <span class="badge bg-success py-1 px-2" style="font-size: 10px;">Aktif</span>
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-check me-1"></i>Aktif
+                                                            </span>
                                                         @else
-                                                            <span class="badge bg-danger py-1 px-2" style="font-size: 10px;">Non Aktif</span>
+                                                            <span class="badge rounded-pill px-2.5 py-1" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 11px; font-weight: 600;">
+                                                                <i class="ti ti-x me-1"></i>Non Aktif
+                                                            </span>
                                                         @endif
                                                     </div>
-                                                    <div class="text-muted" style="font-size: 11px;">
-                                                        Masuk: {{ date('d-m-Y', strtotime($d->tanggal_masuk)) }}
-                                                    </div>
-                                                    <div class="text-muted" style="font-size: 10px;">
-                                                        @php
-                                                            $awal = new DateTime($d->tanggal_masuk);
-                                                            $akhir = new DateTime();
-                                                            $masa_kerja = $akhir->diff($awal);
-                                                        @endphp
-                                                        {{ $masa_kerja->y . ' Th ' . $masa_kerja->m . ' Bln' }}
+                                                    <div class="text-muted mt-1" style="font-size: 11px;">
+                                                        Masuk: <span class="fw-semibold text-dark">{{ date('d M Y', strtotime($d->tanggal_masuk)) }}</span>
+                                                        <span class="text-slate-400 mx-1">•</span>
+                                                        <span>{{ $masa_kerja->y . ' Th ' . $masa_kerja->m . ' Bln' }}</span>
                                                     </div>
                                                 </div>
-                                                <!-- Locks -->
-                                                <div class="col-md-2 text-center d-flex justify-content-center gap-3">
-                                                    <div class="text-center">
+
+                                                <!-- Lock Security Controls -->
+                                                <div class="col-lg-2 col-md-6 d-flex justify-content-center align-items-center gap-3">
+                                                    <div class="d-flex align-items-center gap-1 p-1 px-2 rounded-2" style="background: #f8fafc; border: 1px solid #edf2f7;">
                                                         @if ($d->lock_location == '1')
                                                             <a href="{{ route('karyawan.lockunlocklocation', Crypt::encrypt($d->nik)) }}"
-                                                                data-bs-toggle="tooltip" title="Unlock Location">
-                                                                <i class="ti ti-lock text-success fs-5"></i>
+                                                                class="text-success" data-bs-toggle="tooltip" title="Location Terkunci (Klik untuk Unlock)">
+                                                                <i class="ti ti-lock fs-5"></i>
                                                             </a>
                                                         @else
                                                             <a href="{{ route('karyawan.lockunlocklocation', Crypt::encrypt($d->nik)) }}"
-                                                                data-bs-toggle="tooltip" title="Lock Location">
-                                                                <i class="ti ti-lock-open text-danger fs-5"></i>
+                                                                class="text-danger" data-bs-toggle="tooltip" title="Location Bebas (Klik untuk Lock)">
+                                                                <i class="ti ti-lock-open fs-5"></i>
                                                             </a>
                                                         @endif
-                                                        <div class="d-block text-muted" style="font-size: 9px;">Location</div>
+                                                        <span style="font-size: 10px; font-weight: 600; color: #64748b;">GPS</span>
                                                     </div>
-                                                    <div class="text-center">
+
+                                                    <div class="d-flex align-items-center gap-1 p-1 px-2 rounded-2" style="background: #f8fafc; border: 1px solid #edf2f7;">
                                                         @if ($d->lock_jam_kerja == '1')
                                                             <a href="{{ route('karyawan.lockunlockjamkerja', Crypt::encrypt($d->nik)) }}"
-                                                                data-bs-toggle="tooltip" title="Unlock Jam Kerja">
-                                                                <i class="ti ti-lock text-success fs-5"></i>
+                                                                class="text-success" data-bs-toggle="tooltip" title="Shift Terkunci (Klik untuk Unlock)">
+                                                                <i class="ti ti-lock fs-5"></i>
                                                             </a>
                                                         @else
                                                             <a href="{{ route('karyawan.lockunlockjamkerja', Crypt::encrypt($d->nik)) }}"
-                                                                data-bs-toggle="tooltip" title="Lock Jam Kerja">
-                                                                <i class="ti ti-lock-open text-danger fs-5"></i>
+                                                                class="text-danger" data-bs-toggle="tooltip" title="Shift Bebas (Klik untuk Lock)">
+                                                                <i class="ti ti-lock-open fs-5"></i>
                                                             </a>
                                                         @endif
-                                                        <div class="d-block text-muted" style="font-size: 9px;">Jam Kerja</div>
+                                                        <span style="font-size: 10px; font-weight: 600; color: #64748b;">Shift</span>
                                                     </div>
                                                 </div>
+
                                                 <!-- Actions -->
-                                                <div class="col-md-2 text-end">
-                                                    <div class="d-flex flex-column align-items-end gap-1">
+                                                <div class="col-lg-2 col-md-12 text-lg-end text-center">
+                                                    <div class="d-flex flex-lg-column align-items-lg-end align-items-center justify-content-center gap-1">
                                                         <div class="btn-group shadow-sm" role="group">
                                                             @can('karyawan.setjamkerja')
                                                                 <a href="#" class="btn btn-sm btn-outline-secondary btnSetJamkerja py-1 px-2"
@@ -224,13 +238,13 @@
                                                         @can('users.create')
                                                             @if (empty($d->id_user))
                                                                 <a href="{{ route('karyawan.createuser', Crypt::encrypt($d->nik)) }}"
-                                                                    class="btn btn-sm btn-danger py-0 px-2" style="font-size: 10px;">
+                                                                    class="btn btn-sm btn-label-danger py-0 px-2 rounded-pill mt-1" style="font-size: 10px; font-weight: 600;">
                                                                     <i class="ti ti-user-plus me-1"></i> Buat User
                                                                 </a>
                                                             @else
                                                                 <a href="{{ route('karyawan.deleteuser', Crypt::encrypt($d->nik)) }}"
-                                                                    class="btn btn-sm btn-success py-0 px-2" style="font-size: 10px;">
-                                                                    <i class="ti ti-user me-1"></i> Hapus User
+                                                                    class="btn btn-sm btn-label-success py-0 px-2 rounded-pill mt-1" style="font-size: 10px; font-weight: 600;">
+                                                                    <i class="ti ti-user-check me-1"></i> Akun Aktif
                                                                 </a>
                                                             @endif
                                                         @endcan
@@ -242,7 +256,7 @@
                                 @endforeach
                             </div>
                         </div>
-                        <div style="float: right;">
+                        <div class="d-flex justify-content-end mt-3">
                             {{ $karyawan->links() }}
                         </div>
                     </div>
@@ -259,37 +273,21 @@
 @push('myscript')
 <script>
     $(function() {
-
-        function loading() {
-            $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            </div>`);
-        };
-        loading();
-        $("#btnCreate").click(function() {
+        $("#btnCreate").click(function(e) {
+            e.preventDefault();
             $("#modal").modal("show");
             $(".modal-title").text("Tambah Data Karyawan");
             $("#loadmodal").load("{{ route('karyawan.create') }}");
         });
 
-        $("#btnImport").click(function() {
+        $("#btnImport").click(function(e) {
+            e.preventDefault();
             $("#modalImport").modal("show");
-            $("#loadmodalImport").html(`<div class="sk-wave sk-primary" style="margin:auto">
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            </div>`);
             $("#loadmodalImport").load("{{ route('karyawan.import') }}");
         });
 
-        $(".btnEdit").click(function() {
-            loading();
+        $(".btnEdit").click(function(e) {
+            e.preventDefault();
             const nik = $(this).attr("nik");
             $("#modal").modal("show");
             $(".modal-title").text("Edit Data Karyawan");
@@ -332,7 +330,7 @@
                 text: "Semua User dengan Role Karyawan akan dihapus!",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
+                confirmButtonColor: "#32745e",
                 cancelButtonColor: "#d33",
                 confirmButtonText: "Ya, Hapus Semua!",
                 cancelButtonText: "Batal"
