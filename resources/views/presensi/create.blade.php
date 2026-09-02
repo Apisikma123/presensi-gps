@@ -1001,23 +1001,74 @@
                 }
             }
 
+            // Helper to manually request location permission
+            function requestLocationPermission() {
+                if (navigator.geolocation) {
+                    const loader = document.getElementById('map-loading');
+                    if (loader) {
+                        loader.style.display = 'block';
+                        loader.innerHTML = '<div class="spinner-border text-primary mr-2" role="status"></div> Mengambil sinyal GPS...';
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            successCallback(position);
+                        },
+                        function(error) {
+                            errorCallback(error);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        }
+                    );
+                }
+            }
+
+            // Prompt user for location permission if in prompt state
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+                    if (result.state === 'prompt') {
+                        Swal.fire({
+                            title: 'Izinkan Akses Lokasi (GPS)',
+                            text: 'Sistem presensi membutuhkan izin GPS untuk memvalidasi presensi di area outlet. Silakan klik "Izinkan Lokasi" dan pilih "Allow / Izinkan" pada browser.',
+                            icon: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#32745e',
+                            confirmButtonText: 'Izinkan Lokasi',
+                            cancelButtonText: 'Nanti Saja'
+                        }).then((res) => {
+                            if (res.isConfirmed) {
+                                requestLocationPermission();
+                            }
+                        });
+                    }
+                }).catch(function(e) {
+                    console.log('Permission query not supported:', e);
+                });
+            }
+
             // Fungsi yang dijalankan ketika geolocation gagal
             function errorCallback(error) {
                 console.error("Error getting geolocation:", error);
                 
                 const loader = document.getElementById('map-loading');
                 if (loader) {
-                    loader.innerHTML = 'Gagal mendapatkan lokasi. Silakan cek izin lokasi.';
+                    loader.innerHTML = '<div class="text-danger font-weight-bold" style="font-size:12px;">GPS belum aktif. <a href="javascript:void(0)" onclick="requestLocationPermission()" style="text-decoration:underline;">Klik untuk aktifkan</a></div>';
                 }
 
                 locationPermissionGranted = false;
-                if (!locationPermissionAlertShown && error && error.code === error.PERMISSION_DENIED) {
+                locationPermissionDenied = true;
+                if (!locationPermissionAlertShown) {
                     locationPermissionAlertShown = true;
-                    locationPermissionDenied = true;
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Izin Lokasi Dibutuhkan',
-                        text: 'Akses lokasi diperlukan untuk proses presensi. Mohon izinkan lokasi pada browser/perangkat Anda.'
+                        icon: 'info',
+                        title: 'Izinkan Akses Lokasi (GPS)',
+                        text: 'Akses GPS diperlukan untuk memverifikasi lokasi presensi. Mohon aktifkan GPS dan izinkan browser mengakses lokasi perangkat Anda.',
+                        confirmButtonColor: '#32745e',
+                        confirmButtonText: 'Izinkan / Coba Lagi'
+                    }).then(() => {
+                        requestLocationPermission();
                     });
                 }
 
@@ -2941,9 +2992,17 @@
 
                 if (!lokasi || lokasi.includes('undefined') || lokasi === '') {
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Lokasi Belum Ditemukan',
-                        text: 'Sistem belum mendapatkan koordinat lokasi Anda. Mohon tunggu beberapa detik sampai peta muncul, atau pastikan GPS aktif.'
+                        icon: 'info',
+                        title: 'Izinkan Akses Lokasi (GPS)',
+                        text: 'Sistem sedang menunggu sinyal GPS lokasi Anda. Mohon klik "Aktifkan GPS" dan pastikan izin lokasi diizinkan pada browser.',
+                        showCancelButton: true,
+                        confirmButtonColor: '#32745e',
+                        confirmButtonText: 'Aktifkan GPS',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            requestLocationPermission();
+                        }
                     });
                     return false;
                 }
@@ -3082,9 +3141,17 @@
 
                 if (!lokasi || lokasi.includes('undefined') || lokasi === '') {
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Lokasi Belum Ditemukan',
-                        text: 'Sistem belum mendapatkan koordinat lokasi Anda. Mohon tunggu beberapa detik sampai peta muncul, atau pastikan GPS aktif.'
+                        icon: 'info',
+                        title: 'Izinkan Akses Lokasi (GPS)',
+                        text: 'Sistem sedang menunggu sinyal GPS lokasi Anda. Mohon klik "Aktifkan GPS" dan pastikan izin lokasi diizinkan pada browser.',
+                        showCancelButton: true,
+                        confirmButtonColor: '#32745e',
+                        confirmButtonText: 'Aktifkan GPS',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            requestLocationPermission();
+                        }
                     });
                     return false;
                 }

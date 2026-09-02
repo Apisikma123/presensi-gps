@@ -71,49 +71,13 @@
             const reasons = [];
             let score = 0;
 
-            // 1. Check Automation / Headless / DevTools Mock Sensor
-            if (navigator.webdriver) {
-                score += 80;
-                reasons.push('Browser terdeteksi menggunakan DevTools / Otomasi GPS Mocking');
+            // 1. Check Native Android Mock Provider flag (if passed by native wrapper/PWA)
+            if (coords.isMock === true || coords.mocked === true) {
+                score += 100;
+                reasons.push('Terdeteksi flag Mock Location aktif dari sistem operasi perangkat');
             }
 
-            // 2. Check Accuracy Anomaly
-            const acc = coords.accuracy;
-            if (typeof acc === 'number') {
-                if (acc <= 0) {
-                    score += 70;
-                    reasons.push('Akurasi GPS tidak valid (<= 0 meter)');
-                } else if (acc > 0 && (Number.isInteger(acc) || (acc % 1 === 0))) {
-                    // Certain mock apps force rigid integer accuracy like exactly 1, 2, 5
-                    score += 15;
-                }
-            }
-
-            // 3. Check Altitude & Speed absence (low weight to avoid false positive for indoor users)
-            if (coords.altitude === null && coords.altitudeAccuracy === null) {
-                if (coords.speed === null || coords.speed === 0) {
-                    score += 10;
-                }
-            }
-
-            // 4. Jitter Test (Across multiple samples if available)
-            if (this.samples.length >= 4) {
-                let allIdentical = true;
-                const first = this.samples[0];
-                for (let i = 1; i < this.samples.length; i++) {
-                    const s = this.samples[i];
-                    if (s.lat !== first.lat || s.lng !== first.lng) {
-                        allIdentical = false;
-                        break;
-                    }
-                }
-                if (allIdentical && (first.altitude === null || first.altitude === 0) && (first.accuracy % 1 === 0)) {
-                    score += 35;
-                    reasons.push('Koordinat satelit GPS statis / tidak memiliki fluktuasi alami');
-                }
-            }
-
-            // 5. Teleportation / Velocity Check (localStorage vs current position)
+            // 2. Extreme Impossible Teleportation (> 200km at > 900 km/h)
             try {
                 const lastLocStr = localStorage.getItem('_gps_last_teleport_check');
                 const now = Date.now();
@@ -121,14 +85,13 @@
                     const lastLoc = JSON.parse(lastLocStr);
                     const timeDiffHours = (now - lastLoc.time) / (1000 * 60 * 60);
                     
-                    if (timeDiffHours > 0.001 && timeDiffHours < 6) {
+                    if (timeDiffHours > 0.005 && timeDiffHours < 4) {
                         const dKm = this.calculateDistanceKm(lastLoc.lat, lastLoc.lng, coords.latitude, coords.longitude);
                         const speedKmh = dKm / timeDiffHours;
 
-                        // If moved > 30km at an impossible speed (> 600 km/h)
-                        if (dKm > 30 && speedKmh > 600) {
-                            score += 80;
-                            reasons.push(`Perpindahan lokasi ekstrem (${Math.round(dKm)} km dalam ${Math.round(timeDiffHours * 60)} menit, kec: ${Math.round(speedKmh)} km/jam)`);
+                        if (dKm > 200 && speedKmh > 900) {
+                            score += 100;
+                            reasons.push(`Perpindahan lokasi ekstrem (${Math.round(dKm)} km dalam ${Math.round(timeDiffHours * 60)} menit)`);
                         }
                     }
                 }
@@ -143,8 +106,8 @@
                 console.warn('[AntiFakeGPS] Teleportation storage error:', e);
             }
 
-            // A threshold of >= 60 ensures no false positives for legitimate indoor mobile users
-            const isMock = score >= 60;
+            // Only mark as mock if there is hard proof (score >= 100)
+            const isMock = score >= 100;
 
             return {
                 isMock: isMock,
