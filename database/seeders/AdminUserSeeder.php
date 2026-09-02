@@ -238,5 +238,82 @@ class AdminUserSeeder extends Seeder
                 'approval_admin_id' => $managerUser->id,
             ]
         );
+
+        // Default Coffee Shop Cuti Types
+        \App\Models\Cuti::firstOrCreate(['kode_cuti' => 'C01'], ['jenis_cuti' => 'Cuti Tahunan', 'jumlah_hari' => 12]);
+        \App\Models\Cuti::firstOrCreate(['kode_cuti' => 'C02'], ['jenis_cuti' => 'Cuti Khusus / Penting', 'jumlah_hari' => 3]);
+        \App\Models\Cuti::firstOrCreate(['kode_cuti' => 'C03'], ['jenis_cuti' => 'Cuti Menikah', 'jumlah_hari' => 3]);
+        \App\Models\Cuti::firstOrCreate(['kode_cuti' => 'C04'], ['jenis_cuti' => 'Cuti Melahirkan', 'jumlah_hari' => 90]);
+
+        // ==========================================
+        // Sync Role Permissions
+        // ==========================================
+        $groupMap = [
+            'karyawan' => 18,
+            'izinabsen' => 10,
+            'izincuti' => 11,
+            'izindinas' => 12,
+            'izinsakit' => 13,
+            'koreksi' => 27,
+            'presensi' => 28,
+            'cuti' => 11,
+            'cabang' => 47,
+            'departemen' => 18,
+            'jabatan' => 14,
+            'jamkerja' => 16,
+            'jamkerjabydept' => 15,
+            'harilibur' => 9,
+            'generalsetting' => 24,
+            'laporan' => 21,
+            'aktivitaskaryawan' => 3,
+            'kunjungan' => 20,
+            'lembur' => 22,
+            'users' => 18,
+            'trackingpresensi' => 30,
+        ];
+
+        $karyawanPermissions = [
+            'izinabsen.create', 'izinabsen.delete',
+            'izinsakit.create', 'izinsakit.delete',
+            'izincuti.create', 'izincuti.delete',
+            'izindinas.create', 'izindinas.delete',
+            'koreksi.create', 'koreksi.delete',
+            'presensi.create',
+            'aktivitaskaryawan.create', 'aktivitaskaryawan.delete', 'aktivitaskaryawan.edit', 'aktivitaskaryawan.index',
+            'kunjungan.create', 'kunjungan.index',
+            'lembur.create',
+        ];
+        foreach ($karyawanPermissions as $perm) {
+            $prefix = explode('.', $perm)[0];
+            $groupId = $groupMap[$prefix] ?? 1;
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $perm], ['id_permission_group' => $groupId]);
+        }
+        $roleKaryawan->syncPermissions($karyawanPermissions);
+
+        $adminPermissions = [
+            'karyawan.index', 'karyawan.create', 'karyawan.edit', 'karyawan.delete', 'karyawan.show', 'karyawan.setjamkerja', 'karyawan.setcabang',
+            'departemen.index', 'departemen.create', 'departemen.edit', 'departemen.delete',
+            'cabang.index', 'cabang.create', 'cabang.edit', 'cabang.delete',
+            'jabatan.index', 'jabatan.create', 'jabatan.edit', 'jabatan.delete',
+            'cuti.index', 'cuti.create', 'cuti.edit', 'cuti.delete',
+            'presensi.index', 'presensi.edit', 'presensi.delete', 'trackingpresensi.index',
+            'izinabsen.index', 'izinabsen.create', 'izinabsen.edit', 'izinabsen.delete', 'izinabsen.approve',
+            'izinsakit.index', 'izinsakit.create', 'izinsakit.edit', 'izinsakit.delete', 'izinsakit.approve',
+            'izincuti.index', 'izincuti.create', 'izincuti.edit', 'izincuti.delete', 'izincuti.approve',
+            'izindinas.index', 'izindinas.create', 'izindinas.edit', 'izindinas.delete', 'izindinas.approve',
+            'koreksi.index', 'koreksi.create', 'koreksi.delete', 'koreksi.approve',
+            'harilibur.index', 'harilibur.create', 'harilibur.edit', 'harilibur.delete', 'harilibur.setharilibur',
+            'jamkerja.index', 'jamkerja.create', 'jamkerja.edit', 'jamkerja.delete',
+            'jamkerjabydept.index', 'jamkerjabydept.create', 'jamkerjabydept.edit', 'jamkerjabydept.delete',
+            'generalsetting.index', 'generalsetting.edit',
+            'laporan.presensi', 'laporan.cuti',
+            'users.index', 'users.create', 'users.edit', 'users.delete',
+        ];
+        foreach ($adminPermissions as $perm) {
+            $prefix = explode('.', $perm)[0];
+            $groupId = $groupMap[$prefix] ?? 1;
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $perm], ['id_permission_group' => $groupId]);
+        }
+        $roleAdmin->syncPermissions($adminPermissions);
     }
 }
