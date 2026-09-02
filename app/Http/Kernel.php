@@ -39,6 +39,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\PreventPageCache::class,
             \App\Http\Middleware\CheckKaryawanExists::class,
             \App\Http\Middleware\CheckAppExpiration::class,
+            \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ],
 
         'api' => [
