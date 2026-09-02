@@ -629,145 +629,9 @@
 </div>
 
 
-<div class="row mt-3">
-    <div class="col-lg-8 col-md-6 col-sm-12">
-        <div class="row">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar me-3">
-                                <span class="avatar-initial rounded bg-label-warning">
-                                    <i class="ti ti-cake fs-4"></i>
-                                </span>
-                            </div>
-                            <div>
-                                <h4 class="mb-0">Karyawan Ulang Tahun</h4>
-                                <small class="text-muted">Selamat ulang tahun untuk karyawan yang berulang tahun hari ini</small>
-                            </div>
-                        </div>
-                        <span class="badge bg-label-warning rounded-pill">{{ count($birthday) }} Karyawan</span>
-                    </div>
-                    <div class="card-body">
-                        @if (count($birthday) > 0)
-                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                                <div>
-                                    <h6 class="mb-0">Kirim Ucapan Ulang Tahun</h6>
-                                    <small class="text-muted">Kirim ucapan ulang tahun ke semua karyawan yang berulang tahun hari ini</small>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-success btn-sm" id="btnKirimUcapan" onclick="kirimUcapanSemua()">
-                                        <i class="ti ti-brand-whatsapp me-1"></i>
-                                        <span id="btnText">Kirim ke Semua</span>
-                                        <span id="btnLoading" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="row g-3">
-                                @foreach ($birthday as $d)
-                                    @php
-                                        $umur = \Carbon\Carbon::parse($d->tanggal_lahir)->age;
-                                        $colors = ['primary', 'success', 'info', 'warning', 'danger'];
-                                        $colorIndex = $loop->index % count($colors);
-                                        $color = $colors[$colorIndex];
-                                    @endphp
-                                    <div class="col-12">
-                                        <div class="card card-border-shadow-{{ $color }} birthday-card"
-                                            style="transition: all 0.3s ease; cursor: pointer;"
-                                            onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';"
-                                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="avatar me-3" style="width: 80px; height: 80px; position: relative;">
-                                                        @if (!empty($d->foto))
-                                                            @if (Storage::disk('public')->exists('/karyawan/' . $d->foto))
-                                                                <img src="{{ getfotoKaryawan($d->foto) }}" alt="{{ $d->nama_karyawan }}"
-                                                                    class="rounded-circle border border-{{ $color }} border-3"
-                                                                    style="width: 80px; height: 80px; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                                                            @else
-                                                                <div class="avatar-initial rounded-circle bg-label-{{ $color }} d-flex align-items-center justify-content-center border border-{{ $color }} border-3"
-                                                                    style="width: 80px; height: 80px; font-size: 32px;">
-                                                                    <i class="ti ti-user"></i>
-                                                                </div>
-                                                            @endif
-                                                        @else
-                                                            <div class="avatar-initial rounded-circle bg-label-{{ $color }} d-flex align-items-center justify-content-center border border-{{ $color }} border-3"
-                                                                style="width: 80px; height: 80px; font-size: 32px;">
-                                                                <i class="ti ti-user"></i>
-                                                            </div>
-                                                        @endif
-                                                        <div class="position-absolute bottom-0 end-0 bg-{{ $color }} text-white rounded-circle d-flex align-items-center justify-content-center border border-white border-2"
-                                                            style="width: 28px; height: 28px; font-size: 14px;">
-                                                            <i class="ti ti-cake"></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                                            <h5 class="mb-0">{{ $d->nama_karyawan }}</h5>
-                                                            <span class="badge bg-label-{{ $color }} rounded-pill">{{ $umur }}
-                                                                Tahun</span>
-                                                        </div>
-                                                        <div class="row g-2">
-                                                            <div class="col-md-6">
-                                                                <div class="d-flex align-items-center mb-1">
-                                                                    <i class="ti ti-id me-2 text-{{ $color }}"></i>
-                                                                    <small class="text-muted">NIK:</small>
-                                                                    <strong class="ms-2">{{ $d->nik_show }}</strong>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="d-flex align-items-center mb-1">
-                                                                    <i class="ti ti-calendar me-2 text-{{ $color }}"></i>
-                                                                    <small class="text-muted">Tanggal Lahir:</small>
-                                                                    <strong
-                                                                        class="ms-2">{{ date('d-m-Y', strtotime($d->tanggal_lahir)) }}</strong>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="d-flex align-items-center mb-1">
-                                                                    <i class="ti ti-briefcase me-2 text-{{ $color }}"></i>
-                                                                    <small class="text-muted">Jabatan:</small>
-                                                                    <strong class="ms-2">{{ $d->nama_jabatan }}</strong>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="d-flex align-items-center mb-1">
-                                                                    <i class="ti ti-building me-2 text-{{ $color }}"></i>
-                                                                    <small class="text-muted">Dept:</small>
-                                                                    <strong class="ms-2">{{ $d->kode_dept }}</strong>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-12">
-                                                                <div class="d-flex align-items-center mb-2">
-                                                                    <i class="ti ti-map-pin me-2 text-{{ $color }}"></i>
-                                                                    <small class="text-muted">Cabang:</small>
-                                                                    <strong class="ms-2">{{ $d->nama_cabang }}</strong>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="text-center py-5">
-                                <div class="avatar mb-3" style="width: 100px; height: 100px; margin: 0 auto;">
-                                    <span class="avatar-initial rounded-circle bg-label-secondary d-flex align-items-center justify-content-center"
-                                        style="font-size: 48px;">
-                                        <i class="ti ti-cake-off"></i>
-                                    </span>
-                                </div>
-                                <h5 class="text-muted">Tidak ada karyawan yang ulang tahun hari ini</h5>
-                                <p class="text-muted mb-0">Semua karyawan akan menunggu hari ulang tahun mereka!</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="row mt-3 g-4">
+    {{-- Left Column: Kontrak & Ulang Tahun (col-xl-7 col-lg-7 col-12) --}}
+    <div class="col-xl-7 col-lg-7 col-12">
         @php
             $contractTabs = [
                 [
@@ -797,7 +661,7 @@
                     'icon' => 'ti ti-calendar-stats',
                     'items' => $kontrak_bulandepan,
                     'showRemaining' => true,
-                    'accent' => '#facc15',
+                    'accent' => '#eab308',
                     'active' => false,
                 ],
                 [
@@ -807,7 +671,7 @@
                     'icon' => 'ti ti-calendar-time',
                     'items' => $kontrak_duabulan,
                     'showRemaining' => true,
-                    'accent' => '#22c55e',
+                    'accent' => '#16a34a',
                     'active' => false,
                 ],
             ];
@@ -817,182 +681,257 @@
                     'label' => 'Lewat Tempo',
                     'count' => count($kontrak_lewat),
                     'icon' => 'ti ti-alert-triangle',
-                    'accent' => 'linear-gradient(120deg,#f43f5e,#b91c1c)',
+                    'bg' => '#fee2e2',
+                    'color' => '#dc2626',
                 ],
                 [
                     'label' => 'Bulan Ini',
                     'count' => count($kontrak_bulanini),
                     'icon' => 'ti ti-calendar-event',
-                    'accent' => 'linear-gradient(120deg,#f97316,#ea580c)',
+                    'bg' => '#ffedd5',
+                    'color' => '#ea580c',
                 ],
                 [
                     'label' => 'Bulan Depan',
                     'count' => count($kontrak_bulandepan),
                     'icon' => 'ti ti-calendar-stats',
-                    'accent' => 'linear-gradient(120deg,#facc15,#eab308)',
+                    'bg' => '#fef9c3',
+                    'color' => '#ca8a04',
                 ],
                 [
                     'label' => '2 Bulan',
                     'count' => count($kontrak_duabulan),
                     'icon' => 'ti ti-calendar-time',
-                    'accent' => 'linear-gradient(120deg,#34d399,#059669)',
+                    'bg' => '#dcfce7',
+                    'color' => '#16a34a',
                 ],
             ];
         @endphp
 
-        <div class="row mt-3">
-            <div class="col">
-                <div class="card contract-card">
-                    <div class="card-header contract-header d-flex flex-column flex-lg-row align-items-lg-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar me-3">
-                                <span class="avatar-initial rounded bg-label-success">
-                                    <i class="ti ti-briefcase-off fs-4"></i>
-                                </span>
-                            </div>
-                            <div>
-                                <h4 class="mb-0">Karyawan Habis Kontrak</h4>
-                                <small class="text-muted">Pantau kontrak yang segera atau sudah melewati jatuh tempo</small>
-                            </div>
-                        </div>
-                        <span class="badge bg-label-success rounded-pill mt-3 mt-lg-0">
-                            Total {{ count($kontrak_lewat) + count($kontrak_bulanini) + count($kontrak_bulandepan) + count($kontrak_duabulan) }}
-                            Kontrak
+        {{-- Card 1: Monitoring Kontrak Karyawan --}}
+        <div class="card contract-card mb-4">
+            <div class="card-header contract-header d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pb-2">
+                <div class="d-flex align-items-center mb-2 mb-sm-0">
+                    <div class="avatar me-3">
+                        <span class="avatar-initial rounded bg-label-success">
+                            <i class="ti ti-briefcase-off fs-4"></i>
                         </span>
                     </div>
-                    <div class="card-body">
-                        <div class="contract-summary">
-                            @foreach ($contractSummary as $summary)
-                                <div class="contract-summary__item" style="--contract-summary-bg: {{ $summary['accent'] }};">
-                                    <div class="contract-summary__icon">
-                                        <i class="{{ $summary['icon'] }}"></i>
-                                    </div>
-                                    <div>
-                                        <p class="mb-1"
-                                            style="opacity: 0.9; font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase;">
-                                            {{ $summary['label'] }}
-                                        </p>
-                                        <p class="contract-summary__count">{{ $summary['count'] }}</p>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <div class="contract-tabs nav-align-top mt-4">
-                            <ul class="nav nav-tabs" role="tablist">
-                                @foreach ($contractTabs as $tab)
-                                    <li class="nav-item" role="presentation">
-                                        <button type="button" class="nav-link {{ $tab['active'] ? 'active' : '' }}" role="tab"
-                                            data-bs-toggle="tab" data-bs-target="#{{ $tab['id'] }}" aria-controls="{{ $tab['id'] }}"
-                                            aria-selected="{{ $tab['active'] ? 'true' : 'false' }}" tabindex="{{ $tab['active'] ? '0' : '-1' }}"
-                                            style="--contract-accent: {{ $tab['accent'] }};">
-                                            <i class="{{ $tab['icon'] }} me-2"></i>
-                                            {{ $tab['label'] }}
-                                            <span class="badge rounded-pill badge-center h-px-20 w-px-20 {{ $tab['badge'] }} ms-2">
-                                                {{ count($tab['items']) }}
-                                            </span>
-                                        </button>
-                                    </li>
-                                @endforeach
-                            </ul>
-                            <div class="tab-content mt-3" style="padding: 0 !important;">
-                                @foreach ($contractTabs as $tab)
-                                    <div class="tab-pane fade {{ $tab['active'] ? 'show active' : '' }}" id="{{ $tab['id'] }}"
-                                        role="tabpanel">
-                                        @if (count($tab['items']) === 0)
-                                            <div class="contract-empty">
-                                                <i class="ti ti-confetti fs-1 mb-2 d-block"></i>
-                                                Tidak ada kontrak pada kategori ini.
-                                            </div>
-                                        @else
-                                            <div class="table-responsive contract-table-wrapper">
-                                                <table class="table table-hover align-middle mb-0 contract-table">
-                                                    <thead class="table-dark">
-                                                        <tr>
-                                                            <th>No. Kontrak</th>
-                                                            <th>NIK</th>
-                                                            <th>Nama Karyawan</th>
-                                                            <th>Jabatan</th>
-                                                            <th>Dept</th>
-                                                            <th>Cabang</th>
-                                                            <th>Akhir Kontrak</th>
-                                                            @if ($tab['showRemaining'])
-                                                                <th class="text-center">Sisa Waktu</th>
-                                                            @endif
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($tab['items'] as $d)
-                                                            @php
-                                                                $sisahari = hitungSisahari($d->sampai);
-                                                                $isLate = $sisahari < 0;
-                                                            @endphp
-                                                            <tr class="{{ $isLate ? 'contract-row--overdue' : '' }}">
-                                                                <td>{{ $d->no_kontrak }}</td>
-                                                                <td>{{ $d->nik }}</td>
-                                                                <td>{{ formatName($d->nama_karyawan) }}</td>
-                                                                <td>{{ singkatString($d->nama_jabatan) }}</td>
-                                                                <td>{{ $d->kode_dept }}</td>
-                                                                <td>{{ textupperCase($d->kode_cabang) }}</td>
-                                                                <td>{{ formatIndo($d->sampai) }}</td>
-                                                                @if ($tab['showRemaining'])
-                                                                    <td class="text-center">
-                                                                        <span
-                                                                            class="contract-pill {{ $isLate ? 'contract-pill--danger' : 'contract-pill--safe' }}">
-                                                                            {{ $sisahari }} Hari
-                                                                        </span>
-                                                                    </td>
-                                                                @endif
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold">Monitoring Kontrak Kerja</h5>
+                        <small class="text-muted">Pantau masa berlaku kontrak karyawan outlet</small>
                     </div>
                 </div>
+                <span class="badge bg-label-success rounded-pill">
+                    Total {{ count($kontrak_lewat) + count($kontrak_bulanini) + count($kontrak_bulandepan) + count($kontrak_duabulan) }} Kontrak
+                </span>
+            </div>
+            <div class="card-body pt-2">
+                <div class="row g-2 mb-3">
+                    @foreach ($contractSummary as $summary)
+                        <div class="col-6 col-sm-3">
+                            <div class="d-flex align-items-center p-2 rounded-3" style="background: {{ $summary['bg'] }}; color: {{ $summary['color'] }};">
+                                <div class="avatar avatar-xs me-2 d-flex align-items-center justify-content-center rounded-circle" style="background: rgba(255,255,255,0.6);">
+                                    <i class="{{ $summary['icon'] }} fs-6"></i>
+                                </div>
+                                <div>
+                                    <small class="d-block fw-semibold text-uppercase" style="font-size: 10px;">{{ $summary['label'] }}</small>
+                                    <span class="fw-bold fs-6">{{ $summary['count'] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="contract-tabs nav-align-top">
+                    <ul class="nav nav-tabs nav-fill" role="tablist">
+                        @foreach ($contractTabs as $tab)
+                            <li class="nav-item" role="presentation">
+                                <button type="button" class="nav-link py-2 {{ $tab['active'] ? 'active' : '' }}" role="tab"
+                                    data-bs-toggle="tab" data-bs-target="#{{ $tab['id'] }}" aria-controls="{{ $tab['id'] }}"
+                                    aria-selected="{{ $tab['active'] ? 'true' : 'false' }}">
+                                    <i class="{{ $tab['icon'] }} me-1"></i>
+                                    {{ $tab['label'] }}
+                                    <span class="badge rounded-pill {{ $tab['badge'] }} ms-1">
+                                        {{ count($tab['items']) }}
+                                    </span>
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <div class="tab-content mt-2 p-0 border-0">
+                        @foreach ($contractTabs as $tab)
+                            <div class="tab-pane fade {{ $tab['active'] ? 'show active' : '' }}" id="{{ $tab['id'] }}"
+                                role="tabpanel">
+                                @if (count($tab['items']) === 0)
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="ti ti-circle-check fs-2 text-success mb-1 d-block"></i>
+                                        <span class="fs-6">Tidak ada kontrak pada kategori ini.</span>
+                                    </div>
+                                @else
+                                    <div class="table-responsive contract-table-wrapper">
+                                        <table class="table table-hover align-middle mb-0 contract-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>No. Kontrak</th>
+                                                    <th>NIK</th>
+                                                    <th>Nama Karyawan</th>
+                                                    <th>Jabatan</th>
+                                                    <th>Cabang</th>
+                                                    <th>Akhir Kontrak</th>
+                                                    @if ($tab['showRemaining'])
+                                                        <th class="text-center">Sisa Waktu</th>
+                                                    @endif
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($tab['items'] as $d)
+                                                    @php
+                                                        $sisahari = hitungSisahari($d->sampai);
+                                                        $isLate = $sisahari < 0;
+                                                    @endphp
+                                                    <tr class="{{ $isLate ? 'contract-row--overdue' : '' }}">
+                                                        <td>{{ $d->no_kontrak }}</td>
+                                                        <td>{{ $d->nik }}</td>
+                                                        <td class="fw-semibold">{{ formatName($d->nama_karyawan) }}</td>
+                                                        <td>{{ singkatString($d->nama_jabatan) }}</td>
+                                                        <td>{{ textupperCase($d->kode_cabang) }}</td>
+                                                        <td>{{ formatIndo($d->sampai) }}</td>
+                                                        @if ($tab['showRemaining'])
+                                                            <td class="text-center">
+                                                                <span class="badge {{ $isLate ? 'bg-danger' : 'bg-success' }}">
+                                                                    {{ $sisahari }} Hari
+                                                                </span>
+                                                            </td>
+                                                        @endif
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Card 2: Karyawan Ulang Tahun --}}
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between pb-2">
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3">
+                        <span class="avatar-initial rounded bg-label-warning">
+                            <i class="ti ti-cake fs-4"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold">Karyawan Ulang Tahun Hari Ini</h5>
+                        <small class="text-muted">Notifikasi hari lahir karyawan</small>
+                    </div>
+                </div>
+                <span class="badge bg-label-warning rounded-pill">{{ count($birthday) }} Karyawan</span>
+            </div>
+            <div class="card-body pt-2">
+                @if (count($birthday) > 0)
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <h6 class="mb-0 fw-bold">Kirim Ucapan Ulang Tahun</h6>
+                            <small class="text-muted">Kirim ucapan otomatis via WhatsApp ke semua yang berulang tahun</small>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-success btn-sm" id="btnKirimUcapan" onclick="kirimUcapanSemua()">
+                                <i class="ti ti-brand-whatsapp me-1"></i>
+                                <span id="btnText">Kirim Ucapan</span>
+                                <span id="btnLoading" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        @foreach ($birthday as $d)
+                            @php
+                                $umur = \Carbon\Carbon::parse($d->tanggal_lahir)->age;
+                                $colors = ['primary', 'success', 'info', 'warning', 'danger'];
+                                $colorIndex = $loop->index % count($colors);
+                                $color = $colors[$colorIndex];
+                            @endphp
+                            <div class="col-12">
+                                <div class="card card-border-shadow-{{ $color }} p-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-3" style="width: 50px; height: 50px;">
+                                            @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                                <img src="{{ getfotoKaryawan($d->foto) }}" alt="{{ $d->nama_karyawan }}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
+                                            @else
+                                                <div class="avatar-initial rounded-circle bg-label-{{ $color }} d-flex align-items-center justify-content-center" style="font-size: 20px;">
+                                                    <i class="ti ti-user"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <h6 class="mb-0 fw-bold">{{ $d->nama_karyawan }}</h6>
+                                                <span class="badge bg-label-{{ $color }}">{{ $umur }} Tahun</span>
+                                            </div>
+                                            <small class="text-muted">{{ $d->nama_jabatan }} • {{ textupperCase($d->nama_cabang) }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="d-flex align-items-center p-3 rounded-3" style="background: #f8fafc; border: 1px dashed #e2e8f0;">
+                        <div class="avatar avatar-sm me-3">
+                            <span class="avatar-initial rounded-circle bg-label-secondary">
+                                <i class="ti ti-cake fs-5"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 text-muted fw-semibold">Tidak ada karyawan yang berulang tahun hari ini</h6>
+                            <small class="text-muted">Notifikasi ucapan akan muncul otomatis saat ada karyawan yang berulang tahun.</small>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-sm-12">
-        <div class="row mb-2">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Status Karyawan</h4>
-                    </div>
-                    <div class="card-body">
-                        {!! $chart->container() !!}
-                    </div>
+
+    {{-- Right Column: Demografi Charts (col-xl-5 col-lg-5 col-12) --}}
+    <div class="col-xl-5 col-lg-5 col-12">
+        {{-- Card 1: Rasio Jenis Kelamin --}}
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between pb-0">
+                <div class="card-title mb-0">
+                    <h5 class="m-0 me-2 fw-bold">Komposisi Jenis Kelamin</h5>
+                    <small class="text-muted">Rasio Karyawan Pria & Wanita</small>
+                </div>
+                <div class="avatar avatar-sm">
+                    <span class="avatar-initial rounded bg-label-primary">
+                        <i class="ti ti-users fs-5"></i>
+                    </span>
                 </div>
             </div>
-        </div>
-        <div class="row mb-2">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Pendidikan Karyawan</h4>
-                    </div>
-                    <div class="card-body">
-                        {!! $pddchart->container() !!}
-                    </div>
-                </div>
+            <div class="card-body">
+                {!! $jkchart->container() !!}
             </div>
         </div>
-        <div class="row">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Jenis Kelamin</h4>
-                    </div>
-                    <div class="card-body">
-                        {!! $jkchart->container() !!}
-                    </div>
+
+        {{-- Card 2: Tingkat Pendidikan Karyawan --}}
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between pb-0">
+                <div class="card-title mb-0">
+                    <h5 class="m-0 me-2 fw-bold">Tingkat Pendidikan</h5>
+                    <small class="text-muted">Distribusi Jenjang Pendidikan</small>
                 </div>
+                <div class="avatar avatar-sm">
+                    <span class="avatar-initial rounded bg-label-info">
+                        <i class="ti ti-school fs-5"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                {!! $pddchart->container() !!}
             </div>
         </div>
     </div>
