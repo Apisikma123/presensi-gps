@@ -147,10 +147,7 @@ class FacerecognitionpresensiController extends Controller
 
 
         $formatName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out;
-        $image_parts = explode(";base64", $image);
-        $image_base64 = base64_decode($image_parts[1]);
-        $fileName = $formatName . ".png";
-        $file = $folderPath . $fileName;
+        $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($image, 'public/uploads/absensi', $formatName, 80);
 
         $jam_masuk = $tanggal_presensi . " " . date('H:i', strtotime($jam_kerja->jam_masuk));
         // Jam Mulai Absen adalah 60 Menit Sebelum Jam Masuk
@@ -159,10 +156,6 @@ class FacerecognitionpresensiController extends Controller
         $jam_pulang = $tanggal_pulang . " " . $jam_kerja_pulang;
 
         $jam_mulai_pulang = date('Y-m-d H:i', strtotime('-' . $batas_jam_absen_pulang . ' minutes', strtotime($jam_pulang)));
-
-
-
-
 
         $presensi_hariini = Presensi::where('nik', $karyawan->nik)
             ->where('tanggal', $tanggal_presensi)
@@ -199,7 +192,6 @@ class FacerecognitionpresensiController extends Controller
                             'status' => 'h'
                         ]);
                     }
-                    Storage::put($file, $image_base64);
 
                     // Kirim Notifikasi Ke WA (dibungkus try-catch agar error WA tidak mempengaruhi response sukses)
                     if ($karyawan->no_hp != null || $karyawan->no_hp != "" && $generalsetting->notifikasi_wa == 1) {
@@ -248,7 +240,6 @@ class FacerecognitionpresensiController extends Controller
                             'status' => 'h'
                         ]);
                     }
-                    Storage::put($file, $image_base64);
 
                     // Kirim Notifikasi Ke WA (dibungkus try-catch agar error WA tidak mempengaruhi response sukses)
                     if ($karyawan->no_hp != null || $karyawan->no_hp != "" && $generalsetting->notifikasi_wa == 1) {

@@ -374,18 +374,8 @@ class PresensiController extends Controller
         $batas_jam_absen_pulang = $generalsetting->batas_jam_absen_pulang * 60;
 
         $formatName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out;
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $fileName = $formatName . ".png";
-            $file = $folderPath . $fileName;
-            Storage::put($file, file_get_contents($image));
-        } else {
-            $image_parts = explode(";base64", $image);
-            $image_base64 = base64_decode($image_parts[1]);
-            $fileName = $formatName . ".png";
-            $file = $folderPath . $fileName;
-            Storage::put($file, $image_base64);
-        }
+        $imageInput = $request->hasFile('image') ? $request->file('image') : $image;
+        $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80);
 
         // Gunakan Carbon dengan timezone cabang untuk perhitungan jam
         // Parse jam_masuk (bisa H:i atau H:i:s) dan gabungkan dengan tanggal

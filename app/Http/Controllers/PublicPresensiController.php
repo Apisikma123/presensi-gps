@@ -161,22 +161,14 @@ class PublicPresensiController extends Controller
         $status = ($presensi_hariini_check && $presensi_hariini_check->jam_in != null) ? 2 : 1;
         $in_out = $status == 1 ? "in" : "out";
 
-        // Image handling (base64 from webcam)
+        // Image handling (WebP optimization)
         $image = $request->image;
-        $image_parts = explode(";base64", $image);
-        $image_base64 = base64_decode($image_parts[1]);
-        $folderPath = "public/uploads/absensi/";
-        if (!Storage::exists($folderPath)) {
-            Storage::makeDirectory($folderPath, 0775, true);
-        }
+        $formatName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out;
+        $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($image, 'public/uploads/absensi', $formatName, 80);
 
         $jam_presensi = $tanggal_sekarang . " " . $jam_sekarang;
         $batas_jam_absen = $generalsetting->batas_jam_absen * 60;
         $batas_jam_absen_pulang = $generalsetting->batas_jam_absen_pulang * 60;
-
-
-        $fileName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out . ".png";
-        $file = $folderPath . $fileName;
 
         // Jam masuk & batas waktu absen
         $jam_masuk_string = $tanggal_presensi . " " . $jam_kerja->jam_masuk;
@@ -223,8 +215,6 @@ class PublicPresensiController extends Controller
                             'status' => 'h'
                         ]);
                     }
-
-                    Storage::put($file, $image_base64);
 
                     // Notifikasi WA (try-catch agar error WA tidak menggagalkan absen)
                     if ($generalsetting->notifikasi_wa == 1) {
@@ -274,8 +264,6 @@ class PublicPresensiController extends Controller
                             'status' => 'h'
                         ]);
                     }
-
-                    Storage::put($file, $image_base64);
 
                     // Notifikasi WA
                     if ($generalsetting->notifikasi_wa == 1) {
