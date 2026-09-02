@@ -635,6 +635,11 @@
             <div class="camera-section" style="position:relative;">
                 <div class="row" style="margin-top: 0;">
                     <div class="col" id="facedetection" style="position:relative;">
+                        <!-- GPS Permission Button / Status -->
+                        <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm btn-warning" style="position: absolute; top: 12px; left: 12px; z-index: 1000; border-radius: 20px; font-weight: 600; font-size: 11px; padding: 5px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 4px; border: none; background: #f39c12; color: white;">
+                            <ion-icon name="location-outline" style="font-size: 15px;"></ion-icon>
+                            <span>Izinkan Lokasi GPS</span>
+                        </button>
                         <!-- Absolute Tanggal & Jam -->
                         <div class="abs-tanggal-modern">{{ DateToIndo(date('Y-m-d')) }}</div>
                         <div class="abs-jam-modern"><span id="jam"></span></div>
@@ -942,6 +947,16 @@
                     window.AntiFakeGPS.recordSample(position);
                 }
 
+                // Update GPS status button
+                const btnGps = document.getElementById('btn-request-gps');
+                if (btnGps) {
+                    btnGps.className = "btn btn-sm btn-success";
+                    btnGps.style.background = "#27ae60";
+                    btnGps.style.boxShadow = "0 4px 12px rgba(39, 174, 96, 0.35)";
+                    btnGps.innerHTML = '<ion-icon name="checkmark-circle-outline" style="font-size: 15px;"></ion-icon><span>GPS Terhubung</span>';
+                    btnGps.disabled = false;
+                }
+
                 // === ROBUSTNESS FIX: Check if map container exists ===
                 const mapContainer = document.getElementById('map');
                 if (!mapContainer) {
@@ -1002,50 +1017,83 @@
             }
 
             // Helper to manually request location permission
-            function requestLocationPermission() {
-                if (navigator.geolocation) {
-                    const loader = document.getElementById('map-loading');
-                    if (loader) {
-                        loader.style.display = 'block';
-                        loader.innerHTML = '<div class="spinner-border text-primary mr-2" role="status"></div> Mengambil sinyal GPS...';
-                    }
-                    navigator.geolocation.getCurrentPosition(
-                        function(position) {
-                            successCallback(position);
-                        },
-                        function(error) {
-                            errorCallback(error);
-                        },
-                        {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 0
-                        }
-                    );
+            function requestLocationPermission(showToast = false) {
+                if (!navigator.geolocation) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'GPS Tidak Didukung',
+                        text: 'Browser Anda tidak mendukung fitur Geolocation GPS.'
+                    });
+                    return;
                 }
+
+                const btnGps = document.getElementById('btn-request-gps');
+                if (btnGps && showToast) {
+                    btnGps.innerHTML = '<span class="spinner-border spinner-border-sm mr-1" role="status" style="width:12px;height:12px;"></span> Menghubungkan...';
+                    btnGps.disabled = true;
+                }
+
+                const loader = document.getElementById('map-loading');
+                if (loader) {
+                    loader.style.display = 'block';
+                    loader.innerHTML = '<div class="spinner-border text-primary mr-2" role="status"></div> Mengambil sinyal GPS...';
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        successCallback(position);
+                        if (showToast) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'GPS Berhasil Diizinkan',
+                                text: 'Sinyal lokasi Anda berhasil terhubung.',
+                                timer: 2000,
+                                showConfirmButton: false,
+                                toast: true,
+                                position: 'top-end'
+                            });
+                        }
+                    },
+                    function(error) {
+                        // Fallback attempt with enableHighAccuracy: false for instant resolution indoors / desktop
+                        navigator.geolocation.getCurrentPosition(
+                            function(fallbackPos) {
+                                successCallback(fallbackPos);
+                                if (showToast) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'GPS Terhubung',
+                                        text: 'Lokasi Anda berhasil diverifikasi.',
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        toast: true,
+                                        position: 'top-end'
+                                    });
+                                }
+                            },
+                            function(finalErr) {
+                                if (btnGps) {
+                                    btnGps.className = "btn btn-sm btn-warning";
+                                    btnGps.style.background = "#f39c12";
+                                    btnGps.innerHTML = '<ion-icon name="location-outline" style="font-size: 15px;"></ion-icon><span>Izinkan Lokasi GPS</span>';
+                                    btnGps.disabled = false;
+                                }
+                                errorCallback(finalErr);
+                            },
+                            { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+                        );
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
             }
 
-            // Prompt user for location permission if in prompt state
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
-                    if (result.state === 'prompt') {
-                        Swal.fire({
-                            title: 'Izinkan Akses Lokasi (GPS)',
-                            text: 'Sistem presensi membutuhkan izin GPS untuk memvalidasi presensi di area outlet. Silakan klik "Izinkan Lokasi" dan pilih "Allow / Izinkan" pada browser.',
-                            icon: 'info',
-                            showCancelButton: true,
-                            confirmButtonColor: '#32745e',
-                            confirmButtonText: 'Izinkan Lokasi',
-                            cancelButtonText: 'Nanti Saja'
-                        }).then((res) => {
-                            if (res.isConfirmed) {
-                                requestLocationPermission();
-                            }
-                        });
-                    }
-                }).catch(function(e) {
-                    console.log('Permission query not supported:', e);
-                });
+            // Auto-trigger location permission request immediately
+            if (navigator.geolocation) {
+                requestLocationPermission(false);
             }
 
             // Fungsi yang dijalankan ketika geolocation gagal
