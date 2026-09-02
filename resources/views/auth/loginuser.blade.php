@@ -139,9 +139,34 @@
 
                             <input type="submit" value="Sign In" class="sign-btn" />
 
-                            <p class="text">
-                                Forgotten your password or you login datails?
-                                <a href="#">Get help</a> signing in
+                            <!-- Quick Demo Account Selector -->
+                            <div class="demo-box" style="margin-top: 18px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1; text-align: left;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">⚡ Quick Login (Pilih Role):</span>
+                                    <span style="font-size: 10px; color: #94a3b8;">1-Click Fill</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                                    <button type="button" onclick="fillDemo('admin', 'admin123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
+                                        <span>👑 Super Admin</span>
+                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">admin / admin123</small>
+                                    </button>
+                                    <button type="button" onclick="fillDemo('manager', 'manager123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
+                                        <span>👔 Store Manager</span>
+                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">manager / manager123</small>
+                                    </button>
+                                    <button type="button" onclick="fillDemo('barista', 'barista123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
+                                        <span>☕ Barista</span>
+                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">barista / barista123</small>
+                                    </button>
+                                    <button type="button" onclick="fillDemo('kasir', 'kasir123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
+                                        <span>💵 Kasir</span>
+                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">kasir / kasir123</small>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text" style="margin-top: 15px;">
+                                Presensi GPS & Face Recognition Coffee Shop
                             </p>
 
                         </div>
@@ -193,6 +218,21 @@
                         console.log('ServiceWorker registration failed: ', err);
                     });
             });
+        }
+    </script>
+
+    <!-- Quick Demo Autofill Script -->
+    <script>
+        function fillDemo(username, password) {
+            const userInput = document.querySelector('input[name="id_user"]');
+            const passInput = document.querySelector('input[name="password"]');
+            if (userInput && passInput) {
+                userInput.value = username;
+                passInput.value = password;
+                userInput.classList.add('active');
+                passInput.classList.add('active');
+                userInput.focus();
+            }
         }
     </script>
 
