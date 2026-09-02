@@ -23,9 +23,7 @@
 <script src="{{ asset('assets/vendor/js/feather.min.js') }}" defer></script>
 <script src="{{ asset('assets/external/js/leaflet.js') }}" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="" defer></script>
 <script src="{{ asset('assets/external/js/leaflet-routing-machine.js') }}" defer></script>
-<script src="{{ asset('assets/external/js/webcam.min.js') }}" defer></script>
-<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="{{ asset('assets/external/js/ionicons.js') }}" defer></script>
+<script src="{{ asset('assets/external/js/ionicons.js') }}" defer></script>
 
 <!-- jQuery-dependent scripts - must load after jQuery -->
  <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js') }}"></script>

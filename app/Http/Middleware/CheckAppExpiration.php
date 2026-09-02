@@ -19,7 +19,9 @@ class CheckAppExpiration
             return $next($request);
         }
 
-        $setting = \App\Models\Pengaturanumum::where('id', 1)->first();
+        $setting = \Illuminate\Support\Facades\Cache::remember('app_expiration_setting', 60, function () {
+            return \App\Models\Pengaturanumum::where('id', 1)->first();
+        });
         if ($setting && $setting->expired) {
             $expiredDate = \Carbon\Carbon::parse($setting->expired)->endOfDay();
             if (\Carbon\Carbon::now()->gt($expiredDate)) {

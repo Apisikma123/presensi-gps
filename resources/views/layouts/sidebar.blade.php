@@ -34,20 +34,18 @@
          $fullName = $authUser->name ?? 'Pengguna';
          $userName = explode(' ', $fullName)[0]; // Ambil nama depan saja
          $userEmail = $authUser->email ?? '-';
-         $userPhoto = null;
          $userRoleText = $authUser->getRoleNames()->first() ?? 'User';
 
-         $userKaryawan = \App\Models\Userkaryawan::where('id_user', $authUser->id)->first();
-         if ($userKaryawan) {
-             $sidebarKaryawan = \App\Models\Karyawan::where('nik', $userKaryawan->nik)->first();
-             if (
-                 $sidebarKaryawan &&
-                 $sidebarKaryawan->foto &&
-                 \Illuminate\Support\Facades\Storage::disk('public')->exists('/karyawan/' . $sidebarKaryawan->foto)
-             ) {
-                 $userPhoto = getfotoKaryawan($sidebarKaryawan->foto);
+         $userPhoto = \Illuminate\Support\Facades\Cache::remember('sidebar_user_photo_' . $authUser->id, 300, function() use ($authUser) {
+             $userKaryawan = \App\Models\Userkaryawan::where('id_user', $authUser->id)->first();
+             if ($userKaryawan) {
+                 $sidebarKaryawan = \App\Models\Karyawan::where('nik', $userKaryawan->nik)->first();
+                 if ($sidebarKaryawan && $sidebarKaryawan->foto && \Illuminate\Support\Facades\Storage::disk('public')->exists('/karyawan/' . $sidebarKaryawan->foto)) {
+                     return getfotoKaryawan($sidebarKaryawan->foto);
+                 }
              }
-         }
+             return null;
+         });
      @endphp
 
      <div class="px-3 pb-3 py-3">
