@@ -165,8 +165,11 @@
                                 </div>
                             </div>
 
-                            <p class="text" style="margin-top: 15px;">
+                            <p class="text" style="margin-top: 15px; margin-bottom: 4px;">
                                 Presensi GPS & Face Recognition Coffee Shop
+                            </p>
+                            <p class="text" style="margin-top: 0; font-size: 11px; color: #64748b;">
+                                Developed by <a href="https://porto-aga.vercel.app/" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: #32745e; text-decoration: underline;">Muhammad Aga Putra</a>
                             </p>
 
                         </div>
