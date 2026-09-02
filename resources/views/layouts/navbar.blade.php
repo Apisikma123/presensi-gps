@@ -107,23 +107,29 @@
              Quick links -->
 
             <!-- Notification -->
-            <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                    aria-expanded="false">
+            @php
+                $total_notif = ($notifikasi_ajuan_absen ?? 0) + ($notifikasi_reimbursement ?? 0) + (auth()->check() ? auth()->user()->unreadNotifications->where('type', '!=', 'App\Notifications\PengumumanNotification')->count() : 0);
+            @endphp
+            <li class="nav-item dropdown-notifications navbar-dropdown dropdown">
+                <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                    aria-expanded="false" title="Notifikasi">
                     <i class="ti ti-bell ti-md"></i>
-                    <span class="badge bg-danger rounded-pill badge-notifications">{{ $notifikasi_ajuan_absen + $notifikasi_reimbursement + auth()->user()->unreadNotifications->where('type', '!=', 'App\Notifications\PengumumanNotification')->count() }}</span>
+                    @if($total_notif > 0)
+                        <span class="badge bg-danger rounded-pill badge-notifications">{{ $total_notif }}</span>
+                    @endif
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end py-0">
+                <ul class="dropdown-menu dropdown-menu-end py-0" style="min-width: 330px;">
                     <li class="dropdown-menu-header border-bottom">
                         <div class="dropdown-header d-flex align-items-center py-3">
-                            <h5 class="text-body mb-0 me-auto">Notification</h5>
-                            <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
-                                data-bs-placement="top" title="Mark all as read"><i class="ti ti-mail-opened fs-4"></i></a>
+                            <h5 class="text-body mb-0 me-auto fs-6 fw-bold">Notifikasi</h5>
+                            @if($total_notif > 0)
+                                <span class="badge rounded-pill bg-label-primary font-mono">{{ $total_notif }} Baru</span>
+                            @endif
                         </div>
                     </li>
                     <li class="dropdown-notifications-list scrollable-container">
                         <ul class="list-group list-group-flush">
-                            @foreach (auth()->user()->unreadNotifications->where('type', '!=', 'App\Notifications\PengumumanNotification') as $notification)
+                            @forelse (auth()->user()->unreadNotifications->where('type', '!=', 'App\Notifications\PengumumanNotification') as $notification)
                                 <li class="list-group-item list-group-item-action dropdown-notifications-item">
                                     <div class="d-flex">
                                         <div class="flex-shrink-0 me-3">
@@ -141,105 +147,95 @@
                                         </div>
                                     </div>
                                 </li>
-                            @endforeach
-                            @php
-                                $bgcolor = '';
-                            @endphp
-                            @foreach ($data_izin as $d)
-                                @php
-                                    $link = '#';
-                                    if ($d->status == 'i') {
-                                        $keterangan = 'Izin Absen';
-                                        $bgcolor = 'info';
-                                        $link = route('izinabsen.index');
-                                    } elseif ($d->status == 's') {
-                                        $keterangan = 'Izin Sakit';
-                                        $bgcolor = 'warning';
-                                        $link = route('izinsakit.index');
-                                    } elseif ($d->status == 'c') {
-                                        $keterangan = 'Izin Cuti';
-                                        $bgcolor = 'success';
-                                        $link = route('izincuti.index');
-                                    } elseif ($d->status == 'd') {
-                                        $keterangan = 'Izin Dinas';
+                            @empty
+                            @endforelse
+
+                            @if(isset($data_izin) && count($data_izin) > 0)
+                                @foreach ($data_izin as $d)
+                                    @php
                                         $bgcolor = 'primary';
-                                        $link = route('izindinas.index');
-                                    }
-                                @endphp
-                                <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0 me-3">
-                                            <div class="avatar">
-                                                <span
-                                                    class="avatar-initial rounded-circle bg-label-{{ $bgcolor }}">{{ textUpperCase($d->status) }}</span>
+                                        $link = route('izinabsen.index');
+                                        $keterangan = 'Izin Absen';
+                                        if ($d->status == 'i') {
+                                            $keterangan = 'Izin Absen';
+                                            $bgcolor = 'info';
+                                            $link = route('izinabsen.index');
+                                        } elseif ($d->status == 's') {
+                                            $keterangan = 'Izin Sakit';
+                                            $bgcolor = 'warning';
+                                            $link = route('izinsakit.index');
+                                        } elseif ($d->status == 'c') {
+                                            $keterangan = 'Izin Cuti';
+                                            $bgcolor = 'success';
+                                            $link = route('izincuti.index');
+                                        } elseif ($d->status == 'd') {
+                                            $keterangan = 'Izin Dinas';
+                                            $bgcolor = 'primary';
+                                            $link = route('izindinas.index');
+                                        }
+                                    @endphp
+                                    <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="avatar">
+                                                    <span class="avatar-initial rounded-circle bg-label-{{ $bgcolor }} fw-bold">{{ textUpperCase($d->status) }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    <a href="{{ $link }}" class="stretched-link text-body fw-semibold">{{ $d->nama_karyawan }}</a>
+                                                </h6>
+                                                <p class="mb-0 text-muted" style="font-size: 12px;">Mengajukan {{ $keterangan }}</p>
+                                                <small class="text-muted" style="font-size: 11px;">
+                                                    {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }}
+                                                </small>
                                             </div>
                                         </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">
-                                                <a href="{{ $link }}" class="stretched-link text-body">{{ $d->nama_karyawan }}</a>
-                                            </h6>
-                                            <p class="mb-0">Mengajukan {{ $keterangan }}</p>
-                                            <small class="text-muted">
-                                                {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }}
-                                            </small>
-                                        </div>
-                                        <div class="flex-shrink-0 dropdown-notifications-actions" style="position: relative; z-index: 2;">
-                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
-                                                    class="badge badge-dot"></span></a>
-                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span class="ti ti-x"></span></a>
-                                        </div>
-                                    </div>
-                                </li>
-                            @endforeach
+                                    </li>
+                                @endforeach
+                            @endif
 
-                            @foreach ($data_reimbursement_pending as $dr)
-                                <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0 me-3">
-                                            <div class="avatar">
-                                                <span class="avatar-initial rounded-circle bg-label-danger">RM</span>
+                            @if(isset($data_reimbursement_pending) && count($data_reimbursement_pending) > 0)
+                                @foreach ($data_reimbursement_pending as $dr)
+                                    <li class="list-group-item list-group-item-action dropdown-notifications-item">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="avatar">
+                                                    <span class="avatar-initial rounded-circle bg-label-danger fw-bold">RM</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    <a href="{{ route('reimbursement.index') }}" class="stretched-link text-body fw-semibold">{{ $dr->nama_karyawan }}</a>
+                                                </h6>
+                                                <p class="mb-0 text-muted" style="font-size: 12px;">Pengajuan Reimbursement (Rp {{ number_format($dr->total_nominal, 0, ',', '.') }})</p>
+                                                <small class="text-muted" style="font-size: 11px;">
+                                                    {{ \Carbon\Carbon::parse($dr->created_at)->diffForHumans() }}
+                                                </small>
                                             </div>
                                         </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">
-                                                <a href="{{ route('reimbursement.index') }}" class="stretched-link text-body">{{ $dr->nama_karyawan }}</a>
-                                            </h6>
-                                            <p class="mb-0">Mengajukan Reimbursement (Rp {{ number_format($dr->total_nominal, 0, ',', '.') }})</p>
-                                            <small class="text-muted">
-                                                {{ \Carbon\Carbon::parse($dr->created_at)->diffForHumans() }}
-                                            </small>
-                                        </div>
-                                        <div class="flex-shrink-0 dropdown-notifications-actions" style="position: relative; z-index: 2;">
-                                            <a href="javascript:void(0)" class="dropdown-notifications-read"><span
-                                                    class="badge badge-dot"></span></a>
-                                            <a href="javascript:void(0)" class="dropdown-notifications-archive"><span class="ti ti-x"></span></a>
-                                        </div>
-                                    </div>
-                                </li>
-                            @endforeach
+                                    </li>
+                                @endforeach
+                            @endif
 
+                            @if($total_notif == 0)
+                                <li class="list-group-item text-center py-4">
+                                    <i class="ti ti-bell-off text-muted mb-2 d-block" style="font-size: 2.5rem; opacity: 0.4;"></i>
+                                    <p class="mb-0 fw-semibold text-dark" style="font-size: 13px;">Tidak ada notifikasi baru</p>
+                                    <small class="text-muted">Semua pengajuan dan aktivitas sudah diperbarui.</small>
+                                </li>
+                            @endif
                         </ul>
                     </li>
                     <li class="dropdown-menu-footer border-top">
                         <a href="{{ route('izinabsen.index') }}"
-                            class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 mb-1 align-items-center">
-                            Lihat Semua Pengajuan Izin
+                            class="dropdown-item d-flex justify-content-center text-primary p-2 h-px-40 align-items-center fw-semibold" style="font-size: 12.5px;">
+                            Lihat Semua Pengajuan
                         </a>
                     </li>
                 </ul>
             </li>
             <!--/ Notification -->
-
-            <!-- Logout -->
-            <li class="nav-item ms-2">
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-label-danger d-flex align-items-center gap-1 rounded-pill px-3 py-1.5 shadow-none" style="font-size: 12px; font-weight: 600;">
-                        <i class="ti ti-logout ti-xs"></i>
-                        <span>Log Out</span>
-                    </button>
-                </form>
-            </li>
         </ul>
     </div>
 
