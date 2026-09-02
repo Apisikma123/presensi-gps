@@ -260,6 +260,16 @@
                  </ul>
              </li>
          @endif
+
+         <li class="menu-item mt-3">
+             <form method="POST" action="{{ route('logout') }}" id="formSidebarLogout">
+                 @csrf
+                 <a href="#" onclick="event.preventDefault(); document.getElementById('formSidebarLogout').submit();" class="menu-link text-danger">
+                     <i class="menu-icon tf-icons ti ti-logout"></i>
+                     <div>Keluar / Log Out</div>
+                 </a>
+             </form>
+         </li>
      </ul>
  </aside>
  <!-- / Menu -->
