@@ -18,19 +18,21 @@ class PengajuanizinController extends Controller
         $user = User::where('id', auth()->user()->id)->first();
         $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
 
-        $izinabsen = Izinabsen::where('nik', $userkaryawan->nik)
+        $nik = $userkaryawan->nik ?? '';
+
+        $izinabsen = Izinabsen::where('nik', $nik)
             ->select('kode_izin as kode', 'tanggal', 'keterangan', 'dari', 'sampai', DB::raw('\'i\' as ket'), 'status as status_izin');
 
-        $izinsakit = Izinsakit::where('nik', $userkaryawan->nik)
+        $izinsakit = Izinsakit::where('nik', $nik)
             ->select('kode_izin_sakit as kode', 'tanggal', 'keterangan', 'dari', 'sampai', DB::raw('\'s\' as ket'), 'status as status_izin');
 
-        $izincuti = Izincuti::where('nik', $userkaryawan->nik)
+        $izincuti = Izincuti::where('nik', $nik)
             ->select('kode_izin_cuti as kode', 'tanggal', 'keterangan', 'dari', 'sampai', DB::raw('\'c\' as ket'), 'status as status_izin');
 
-        $izin_dinas = Izindinas::where('nik', $userkaryawan->nik)
+        $izin_dinas = Izindinas::where('nik', $nik)
             ->select('kode_izin_dinas as kode', 'tanggal', 'keterangan', 'dari', 'sampai', DB::raw('\'d\' as ket'), 'status as status_izin');
 
-        $koreksi = \App\Models\Koreksi::where('nik', $userkaryawan->nik)
+        $koreksi = \App\Models\Koreksi::where('nik', $nik)
             ->select('kode_koreksi as kode', 'tanggal', 'keterangan', 'tanggal as dari', 'tanggal as sampai', DB::raw('\'k\' as ket'), 'status as status_izin');
 
         $pengajuan_izin = $izinabsen->union($izinsakit)->union($izincuti)->union($izin_dinas)->union($koreksi)->orderBy('tanggal', 'desc')->get();
