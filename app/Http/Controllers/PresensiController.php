@@ -447,6 +447,50 @@ class PresensiController extends Controller
 
         //dd($presensi_hariini);
 
+        // === ANTI FAKE GPS CHECK ===
+        if ($request->has('is_mock') && $request->is_mock == '1') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Terdeteksi menggunakan aplikasi Fake GPS / Mock Location. Silakan matikan Fake GPS dan gunakan sinyal GPS asli.',
+                'notifikasi' => 'notifikasi_fakegps'
+            ], 400);
+        }
+
+        // Cek anomali kecepatan / perpindahan lokasi ekstrim dari presensi terakhir
+        $last_presensi_record = Presensi::where('nik', $karyawan->nik)
+            ->whereNotNull('lokasi_in')
+            ->whereNotNull('jam_in')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($last_presensi_record && $last_presensi_record->lokasi_in && $last_presensi_record->jam_in) {
+            $last_coords = explode(',', $last_presensi_record->lokasi_in);
+            if (count($last_coords) == 2 && is_numeric($last_coords[0]) && is_numeric($last_coords[1])) {
+                $dist_m = hitungjarak(floatval($last_coords[0]), floatval($last_coords[1]), floatval($latitude_user), floatval($longitude_user))['meters'];
+                $dist_km = $dist_m / 1000;
+
+                try {
+                    $last_time = Carbon::parse($last_presensi_record->jam_in);
+                    $diff_minutes = abs($jam_presensi_carbon->diffInMinutes($last_time));
+                    $diff_hours = $diff_minutes / 60;
+
+                    // Jika berpindah > 100 km dengan kecepatan > 800 km/jam
+                    if ($diff_hours > 0.001 && $dist_km > 100) {
+                        $speed_kmh = $dist_km / $diff_hours;
+                        if ($speed_kmh > 800) {
+                            return response()->json([
+                                'status' => false,
+                                'message' => 'Terdeteksi anomali perpindahan lokasi ekstrem (' . round($dist_km) . ' km). Terindikasi Fake GPS.',
+                                'notifikasi' => 'notifikasi_fakegps'
+                            ], 400);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Abaikan jika error parsing waktu
+                }
+            }
+        }
+
         //dd($jam_presensi . " " . $jam_akhir_masuk);
         if ($status_lock_location == 1 && $radius > $cabang->radius_cabang) {
             return response()->json(['status' => false, 'message' => 'Anda Berada Di Luar Radius Kantor, Jarak Anda ' . formatAngka($radius) . ' Meters Dari Kantor', 'notifikasi' => 'notifikasi_radius'], 400);

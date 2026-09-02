@@ -734,6 +734,8 @@
     <script src="{{ asset('assets/external/js/face-model-cache.js') }}"></script>
     <!-- html2canvas untuk capture map sebagai watermark -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <!-- Anti-Fake GPS & Mock Location Detector -->
+    <script src="{{ asset('assets/js/anti-fake-gps.js') }}?v={{ file_exists(public_path('assets/js/anti-fake-gps.js')) ? filemtime(public_path('assets/js/anti-fake-gps.js')) : time() }}"></script>
     <script type="text/javascript">
         // Fungsi yang dijalankan ketika halaman selesai dimuat
         // Menggunakan DOMContentLoaded untuk memastikan DOM sudah siap
@@ -799,6 +801,7 @@
             let mapCircle = null; // Circle untuk lokasi cabang
             let mapMarker = null; // Marker user untuk update posisi
             let geoWatchId = null; // ID watchPosition untuk cleanup
+            let lastRawPosition = null; // Raw GeolocationPosition object for mock detection
             let cameraPermissionGranted = false;
             let locationPermissionGranted = false;
             let cameraPermissionDenied = false;
@@ -823,6 +826,10 @@
                     // Start watchPosition with optimized options
                     geoWatchId = navigator.geolocation.watchPosition(
                         (position) => {
+                            lastRawPosition = position;
+                            if (window.AntiFakeGPS) {
+                                window.AntiFakeGPS.recordSample(position);
+                            }
                             const elapsed = (performance.now() - geoStartTime).toFixed(0);
                             const acc = position.coords.accuracy ? position.coords.accuracy.toFixed(0) : '?';
                             console.log(`[GPS] Position update: accuracy=${acc}m, elapsed=${elapsed}ms`);
@@ -884,6 +891,22 @@
             // Mengambil elemen HTML dengan id 'notifikasi_absenpulang'
             let notifikasi_absenpulang = document.getElementById('notifikasi_absenpulang');
 
+            // Fungsi sintesis suara notifikasi
+            function speakVoice(text) {
+                if ('speechSynthesis' in window) {
+                    try {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = 'id-ID';
+                        utterance.rate = 0.95;
+                        utterance.pitch = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    } catch (e) {
+                        console.warn('SpeechSynthesis error:', e);
+                    }
+                }
+            }
+
             // Variabel untuk menampung status face recognition
             let faceRecognitionDetected = 0; // Inisialisasi variabel face recognition detected
             // Mengambil nilai face recognition dari variabel $general_setting->face_recognition
@@ -914,6 +937,11 @@
                 locationPermissionDenied = false;
                 locationPermissionAlertShown = false;
                 
+                lastRawPosition = position;
+                if (window.AntiFakeGPS) {
+                    window.AntiFakeGPS.recordSample(position);
+                }
+
                 // === ROBUSTNESS FIX: Check if map container exists ===
                 const mapContainer = document.getElementById('map');
                 if (!mapContainer) {
@@ -2920,6 +2948,26 @@
                     return false;
                 }
 
+                // === ANTI-FAKE GPS CHECK ===
+                if (window.AntiFakeGPS) {
+                    const mockCheck = AntiFakeGPS.analyze(lastRawPosition);
+                    if (mockCheck.isMock) {
+                        speakVoice("Terdeteksi menggunakan fake GPS. Silakan matikan fake GPS dan gunakan GPS asli.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Fake GPS Terdeteksi',
+                            html: '<p style="font-size:14px; margin-bottom:10px; color:#333;">Sistem mendeteksi indikasi aplikasi Fake GPS / Mock Location:</p>' +
+                                  '<ul style="text-align:left; font-size:12px; color:#d32f2f; margin-bottom:12px; padding-left:20px;">' +
+                                  mockCheck.reasons.map(r => `<li>${r}</li>`).join('') +
+                                  '</ul>' +
+                                  '<p style="font-size:12px; font-weight:600; color:#555;">Silakan matikan aplikasi Fake GPS dan gunakan sinyal GPS asli HP Anda.</p>',
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Tutup'
+                        });
+                        return false;
+                    }
+                }
+
                 // alert(lokasi);
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
@@ -2937,8 +2985,8 @@
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
                     swal.fire({
                         icon: 'error',
-                        title: 'Oops...',
-                        text: 'Wajah tidak terdeteksi',
+                        title: 'Wajah Tidak Terdeteksi',
+                        text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
                         didClose: function() {
                             $("#absenmasuk").prop('disabled', false);
                             $("#absenpulang").prop('disabled', false);
@@ -2962,6 +3010,8 @@
                         formData.append('lokasi', lokasi);
                         formData.append('lokasi_cabang', lokasi_cabang);
                         formData.append('kode_jam_kerja', "{{ $jam_kerja->kode_jam_kerja }}");
+                        formData.append('is_mock', (window.AntiFakeGPS && AntiFakeGPS.analyze(lastRawPosition).isMock) ? '1' : '0');
+                        formData.append('mock_score', (window.AntiFakeGPS ? AntiFakeGPS.analyze(lastRawPosition).score : 0));
 
                         $.ajax({
                             type: 'POST',
@@ -2985,19 +3035,22 @@
                                 }
                             },
                             error: function(xhr) {
-                                if (xhr.responseJSON.notifikasi == "notifikasi_radius") {
-                                    notifikasi_radius.play();
-                                } else if (xhr.responseJSON.notifikasi == "notifikasi_mulaiabsen") {
-                                    notifikasi_mulaiabsen.play();
-                                } else if (xhr.responseJSON.notifikasi == "notifikasi_akhirabsen") {
-                                    notifikasi_akhirabsen.play();
-                                } else if (xhr.responseJSON.notifikasi == "notifikasi_sudahabsen") {
-                                    notifikasi_sudahabsen.play();
+                                const resp = xhr.responseJSON || {};
+                                if (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) {
+                                    speakVoice("Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.");
+                                } else if (resp.notifikasi == "notifikasi_radius") {
+                                    if (notifikasi_radius) notifikasi_radius.play();
+                                } else if (resp.notifikasi == "notifikasi_mulaiabsen") {
+                                    if (notifikasi_mulaiabsen) notifikasi_mulaiabsen.play();
+                                } else if (resp.notifikasi == "notifikasi_akhirabsen") {
+                                    if (notifikasi_akhirabsen) notifikasi_akhirabsen.play();
+                                } else if (resp.notifikasi == "notifikasi_sudahabsen") {
+                                    if (notifikasi_sudahabsen) notifikasi_sudahabsen.play();
                                 }
                                 swal.fire({
                                     icon: 'error',
-                                    title: 'Oops...',
-                                    text: xhr.responseJSON.message,
+                                    title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
+                                    text: resp.message || 'Terjadi kesalahan sistem.',
                                     didClose: function() {
                                         $("#absenmasuk").prop('disabled', false);
                                         $("#absenpulang").prop('disabled', false);
@@ -3036,6 +3089,26 @@
                     return false;
                 }
 
+                // === ANTI-FAKE GPS CHECK ===
+                if (window.AntiFakeGPS) {
+                    const mockCheck = AntiFakeGPS.analyze(lastRawPosition);
+                    if (mockCheck.isMock) {
+                        speakVoice("Terdeteksi menggunakan fake GPS. Silakan matikan fake GPS dan gunakan GPS asli.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Fake GPS Terdeteksi',
+                            html: '<p style="font-size:14px; margin-bottom:10px; color:#333;">Sistem mendeteksi indikasi aplikasi Fake GPS / Mock Location:</p>' +
+                                  '<ul style="text-align:left; font-size:12px; color:#d32f2f; margin-bottom:12px; padding-left:20px;">' +
+                                  mockCheck.reasons.map(r => `<li>${r}</li>`).join('') +
+                                  '</ul>' +
+                                  '<p style="font-size:12px; font-weight:600; color:#555;">Silakan matikan aplikasi Fake GPS dan gunakan sinyal GPS asli HP Anda.</p>',
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Tutup'
+                        });
+                        return false;
+                    }
+                }
+
                 // alert(lokasi);
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
@@ -3050,8 +3123,8 @@
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
                     swal.fire({
                         icon: 'error',
-                        title: 'Oops...',
-                        text: 'Wajah tidak terdeteksi',
+                        title: 'Wajah Tidak Terdeteksi',
+                        text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
                         didClose: function() {
                             $("#absenmasuk").prop('disabled', false);
                             $("#absenpulang").prop('disabled', false);
@@ -3072,6 +3145,8 @@
                         formData.append('lokasi', lokasi);
                         formData.append('lokasi_cabang', lokasi_cabang);
                         formData.append('kode_jam_kerja', "{{ $jam_kerja->kode_jam_kerja }}");
+                        formData.append('is_mock', (window.AntiFakeGPS && AntiFakeGPS.analyze(lastRawPosition).isMock) ? '1' : '0');
+                        formData.append('mock_score', (window.AntiFakeGPS ? AntiFakeGPS.analyze(lastRawPosition).score : 0));
 
                         $.ajax({
                             type: 'POST',
@@ -3095,19 +3170,22 @@
                                 }
                             },
                             error: function(xhr) {
-                                if (xhr.responseJSON.notifikasi == "notifikasi_radius") {
-                                    notifikasi_radius.play();
-                                } else if (xhr.responseJSON.notifikasi == "notifikasi_mulaiabsen") {
-                                    notifikasi_mulaiabsen.play();
-                                } else if (xhr.responseJSON.notifikasi == "notifikasi_akhirabsen") {
-                                    notifikasi_akhirabsen.play();
-                                } else if (xhr.responseJSON.notifikasi == "notifikasi_sudahabsen") {
-                                    notifikasi_sudahabsenpulang.play();
+                                const resp = xhr.responseJSON || {};
+                                if (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) {
+                                    speakVoice("Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.");
+                                } else if (resp.notifikasi == "notifikasi_radius") {
+                                    if (notifikasi_radius) notifikasi_radius.play();
+                                } else if (resp.notifikasi == "notifikasi_mulaiabsen") {
+                                    if (notifikasi_mulaiabsen) notifikasi_mulaiabsen.play();
+                                } else if (resp.notifikasi == "notifikasi_akhirabsen") {
+                                    if (notifikasi_akhirabsen) notifikasi_akhirabsen.play();
+                                } else if (resp.notifikasi == "notifikasi_sudahabsen") {
+                                    if (notifikasi_sudahabsenpulang) notifikasi_sudahabsenpulang.play();
                                 }
                                 swal.fire({
                                     icon: 'error',
-                                    title: 'Oops...',
-                                    text: xhr.responseJSON.message,
+                                    title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
+                                    text: resp.message || 'Terjadi kesalahan sistem.',
                                     didClose: function() {
                                         $("#absenmasuk").prop('disabled', false);
                                         $("#absenpulang").prop('disabled', false);
