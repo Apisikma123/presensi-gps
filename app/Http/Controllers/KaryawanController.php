@@ -193,12 +193,11 @@ class KaryawanController extends Controller
             $data_foto = [];
             if ($request->hasfile('foto')) {
                 $ext = $request->file('foto')->extension() ?: 'jpg';
-                $foto_name =  $nikAuto . "." . $ext;
-                $destination_foto_path = "/public/karyawan";
-                $foto = $foto_name;
+                $foto_name = $nikAuto . "_" . time() . "." . $ext;
                 $data_foto = [
-                    'foto' => $foto
+                    'foto' => $foto_name
                 ];
+                $request->file('foto')->storeAs('karyawan', $foto_name, 'public');
             }
             $data_karyawan = [
                 'nik' => $nikAuto,
@@ -233,18 +232,7 @@ class KaryawanController extends Controller
                 'password' => Hash::make('12345')
             ];
             $data = array_merge($data_karyawan, $data_foto);
-            $simpan = Karyawan::create($data);
-            if ($simpan) {
-                if ($request->hasfile('foto')) {
-                    if (!Storage::exists($destination_foto_path)) {
-                        Storage::makeDirectory($destination_foto_path, 0775, true);
-                        // Explicit chmod to ensure permissions are correct on some hosting environments
-                        $path = Storage::path($destination_foto_path);
-                        chmod($path, 0775);
-                    }
-                    $request->file('foto')->storeAs($destination_foto_path, $foto_name);
-                }
-            }
+            Karyawan::create($data);
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));
@@ -323,12 +311,15 @@ class KaryawanController extends Controller
             $data_foto = [];
             if ($request->hasfile('foto')) {
                 $ext = $request->file('foto')->extension() ?: 'jpg';
-                $foto_name =  $nik . "." . $ext;
-                $destination_foto_path = "/public/karyawan";
-                $foto = $foto_name;
+                $foto_name = $nik . "_" . time() . "." . $ext;
                 $data_foto = [
-                    'foto' => $foto
+                    'foto' => $foto_name
                 ];
+
+                if (!empty($karyawan->foto) && Storage::disk('public')->exists('karyawan/' . $karyawan->foto)) {
+                    Storage::disk('public')->delete('karyawan/' . $karyawan->foto);
+                }
+                $request->file('foto')->storeAs('karyawan', $foto_name, 'public');
             }
 
             $data_karyawan = [
@@ -385,17 +376,6 @@ class KaryawanController extends Controller
                         'id_user' => $newUser->id,
                         'nik' => $nik
                     ]);
-                }
-
-                if ($request->hasfile('foto')) {
-                    if (!Storage::exists($destination_foto_path)) {
-                        Storage::makeDirectory($destination_foto_path, 0775, true);
-                        // Explicit chmod to ensure permissions are correct on some hosting environments
-                        $path = Storage::path($destination_foto_path);
-                        chmod($path, 0775);
-                    }
-                    Storage::delete($destination_foto_path . "/" . $karyawan->foto);
-                    $request->file('foto')->storeAs($destination_foto_path, $foto_name);
                 }
             }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));

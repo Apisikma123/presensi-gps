@@ -42,12 +42,15 @@ class ProfileController extends Controller
                 $data_foto = [];
                 if ($request->hasfile('foto')) {
                     $ext = $request->file('foto')->extension() ?: 'jpg';
-                    $foto_name =  $karyawan->nik . "." . $ext;
-                    $destination_foto_path = "/public/karyawan";
-                    $foto = $foto_name;
+                    $foto_name = $karyawan->nik . "_" . time() . "." . $ext;
                     $data_foto = [
-                        'foto' => $foto
+                        'foto' => $foto_name
                     ];
+
+                    if (!empty($karyawan->foto) && Storage::disk('public')->exists('karyawan/' . $karyawan->foto)) {
+                        Storage::disk('public')->delete('karyawan/' . $karyawan->foto);
+                    }
+                    $request->file('foto')->storeAs('karyawan', $foto_name, 'public');
                 }
 
                 $data_karyawan = [
@@ -58,17 +61,6 @@ class ProfileController extends Controller
                 ];
                 $data = array_merge($data_karyawan, $data_foto);
                 Karyawan::where('nik', $karyawan->nik)->update($data);
-                if ($request->hasfile('foto')) {
-                    if (!Storage::exists($destination_foto_path)) {
-                        Storage::makeDirectory($destination_foto_path, 0775, true);
-                        $path = Storage::path($destination_foto_path);
-                        chmod($path, 0775);
-                    }
-                    if (!empty($karyawan->foto)) {
-                        Storage::delete($destination_foto_path . "/" . $karyawan->foto);
-                    }
-                    $request->file('foto')->storeAs($destination_foto_path, $foto_name);
-                }
             }
 
             User::where('id', $user->id)->update([
