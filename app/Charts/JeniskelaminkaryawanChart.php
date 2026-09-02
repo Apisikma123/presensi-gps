@@ -56,7 +56,7 @@ class JeniskelaminkaryawanChart
             // ->setSubtitle('Berdasarkan Jenis Kelamin')
             ->addData($data)
             ->setLabels($labels)
-            ->setColors(['#FF6384', '#36A2EB'])
+            ->setColors(['#2563eb', '#ec4899'])
             ->setDataLabels(true)
             ->setOptions([
                 'dataLabels' => [
