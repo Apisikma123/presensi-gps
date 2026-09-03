@@ -259,16 +259,6 @@
             </li>
         @endif
 
-         <!-- User Management -->
-         @if (auth()->user()->hasRole(['super admin']))
-             <li class="menu-item {{ request()->is(['users', 'users/*']) ? 'active' : '' }}">
-                 <a href="{{ route('users.index') }}" class="menu-link">
-                     <i class="menu-icon tf-icons ti ti-users"></i>
-                     <div>Manajemen Akun</div>
-                 </a>
-             </li>
-         @endif
-
          <li class="menu-item mt-3">
              <form method="POST" action="{{ route('logout') }}" id="formSidebarLogout">
                  @csrf
