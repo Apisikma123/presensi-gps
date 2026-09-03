@@ -18,12 +18,6 @@
                                     Tambah Data</a>
                             @endcan
                         </div>
-                        <div>
-                            @can('approvallayer.index')
-                                <a href="{{ route('approvallayer.index') }}" class="btn btn-info"><i class="fa fa-cog me-2"></i>
-                                    Konfigurasi Approval</a>
-                            @endcan
-                        </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-12">
@@ -132,17 +126,9 @@
                                                     <!-- Status -->
                                                     <div class="col-lg-2 col-md-6 text-center">
                                                         @if ($d->status == 0)
-                                                            @php
-                                                                $nextLayer = $d->getNextApprovalLayer();
-                                                            @endphp
                                                             <span class="badge rounded-pill px-2.5 py-1" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 11px; font-weight: 600;">
                                                                 <i class="ti ti-hourglass-empty me-1"></i> Pending
                                                             </span>
-                                                            @if ($nextLayer)
-                                                                <div class="text-muted mt-1" style="font-size: 10px; line-height: 1.2;">
-                                                                    Menunggu: <span class="fw-semibold">{{ $nextLayer->role_name }}</span>
-                                                                </div>
-                                                            @endif
                                                         @elseif ($d->status == 1)
                                                             <span class="badge rounded-pill px-2.5 py-1" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600;">
                                                                 <i class="ti ti-check me-1"></i> Disetujui
@@ -159,48 +145,17 @@
                                                         <div class="btn-group shadow-sm" role="group">
                                                             @can('izindinas.approve')
                                                                 @if ($d->status == 0)
-                                                                    @php
-                                                                        $nextLayer = $d->getNextApprovalLayer();
-                                                                        $userRole = auth()->user()->getRoleNames()->first();
-                                                                        $canApprove = false;
-                                                                        if(auth()->user()->hasRole('super admin') || ($nextLayer && $nextLayer->role_name == $userRole)){
-                                                                            $canApprove = true;
-                                                                        }
-                                                                        $canCancel = false;
-                                                                        if($d->approval_step > 1) {
-                                                                            $lastStep = $d->approval_step - 1;
-                                                                            $lastApproval = $d->approvals->where('level', $lastStep)->where('user_id', auth()->id())->first();
-                                                                            if($lastApproval) {
-                                                                                $canCancel = true;
-                                                                            }
-                                                                        }
-                                                                    @endphp
-                                                                    
-                                                                    @if($canApprove)
-                                                                        <a href="#" class="btn btn-sm btn-outline-primary btnApprove py-1 px-2"
-                                                                            kode_izin_dinas="{{ Crypt::encrypt($d->kode_izin_dinas) }}" title="Approve">
-                                                                            <i class="ti ti-external-link"></i>
-                                                                        </a>
-                                                                    @endif
-
-                                                                    @if($canCancel)
-                                                                        <form method="POST" name="deleteform" class="deleteform d-inline"
-                                                                            action="{{ route('izindinas.cancelapprove', Crypt::encrypt($d->kode_izin_dinas)) }}">
-                                                                            @csrf
-                                                                            @method('DELETE')
-                                                                            <button type="submit" class="btn btn-sm btn-outline-warning cancel-confirm rounded-0 py-1 px-2" title="Batalkan Approval">
-                                                                                <i class="ti ti-arrow-back-up"></i>
-                                                                            </button>
-                                                                        </form>
-                                                                    @endif
-
+                                                                    <a href="#" class="btn btn-sm btn-outline-primary btnApprove py-1 px-2"
+                                                                        kode_izin_dinas="{{ Crypt::encrypt($d->kode_izin_dinas) }}" title="Approve">
+                                                                        <i class="ti ti-external-link"></i>
+                                                                    </a>
                                                                 @elseif($d->status == 1 || $d->status == 2)
                                                                     <form method="POST" name="deleteform" class="deleteform d-inline"
                                                                         action="{{ route('izindinas.cancelapprove', Crypt::encrypt($d->kode_izin_dinas)) }}">
                                                                         @csrf
                                                                         @method('DELETE')
-                                                                        <button type="submit" class="btn btn-sm btn-outline-danger cancel-confirm rounded-0 py-1 px-2" title="Batalkan">
-                                                                            <i class="ti ti-circle-minus"></i>
+                                                                        <button type="submit" class="btn btn-sm btn-outline-warning cancel-confirm rounded-0 py-1 px-2" title="Batalkan Approval">
+                                                                            <i class="ti ti-arrow-back-up"></i>
                                                                         </button>
                                                                     </form>
                                                                 @endif

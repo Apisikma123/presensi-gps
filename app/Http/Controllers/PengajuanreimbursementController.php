@@ -140,7 +140,14 @@ class PengajuanreimbursementController extends Controller
             ->join('karyawan', 'reimbursement.nik', '=', 'karyawan.nik')
             ->select('reimbursement.*', 'karyawan.nama_karyawan')
             ->where('reimbursement.id', $id)
-            ->first();
+            ->firstOrFail();
+
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+        if (!$user->can('reimbursement.index') && (!$userkaryawan || $reimbursement->nik !== $userkaryawan->nik)) {
+            abort(403, 'Akses klaim reimbursement ditolak.');
+        }
 
         // Get Approval History
         $approvals = DB::table('approvals')
@@ -157,14 +164,17 @@ class PengajuanreimbursementController extends Controller
     public function edit($id)
     {
         $id = Crypt::decrypt($id);
-        $reimbursement = Reimbursement::with('details')->where('id', $id)->first();
+        $reimbursement = Reimbursement::with('details')->where('id', $id)->firstOrFail();
         
+        $user = User::find(auth()->user()->id);
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+        if (!$userkaryawan || $reimbursement->nik !== $userkaryawan->nik) {
+            abort(403, 'Akses pengajuan reimbursement ditolak.');
+        }
+
         if ($reimbursement->status != 'P') {
             return Redirect::back()->with(['warning' => 'Pengajuan yang sudah diproses tidak dapat diubah']);
         }
-
-        $user = User::find(auth()->user()->id);
-        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
         $karyawan = Karyawan::where('nik', $userkaryawan->nik)->first();
         
         $jenis_reimburse = DB::table('jenis_reimbursement')
@@ -186,7 +196,13 @@ class PengajuanreimbursementController extends Controller
     public function update(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
-        $reimbursement = Reimbursement::where('id', $id)->first();
+        $reimbursement = Reimbursement::where('id', $id)->firstOrFail();
+
+        $user = auth()->user();
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+        if (!$userkaryawan || $reimbursement->nik !== $userkaryawan->nik) {
+            abort(403, 'Akses pengajuan reimbursement ditolak.');
+        }
 
         if ($reimbursement->status != 'P') {
             return Redirect::back()->with(['warning' => 'Pengajuan yang sudah diproses tidak dapat diubah']);
@@ -268,7 +284,13 @@ class PengajuanreimbursementController extends Controller
     public function destroy($id)
     {
         $id = Crypt::decrypt($id);
-        $reimbursement = Reimbursement::where('id', $id)->first();
+        $reimbursement = Reimbursement::where('id', $id)->firstOrFail();
+
+        $user = auth()->user();
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+        if (!$userkaryawan || $reimbursement->nik !== $userkaryawan->nik) {
+            abort(403, 'Akses hapus pengajuan reimbursement ditolak.');
+        }
 
         if ($reimbursement->status != 'P') {
             return Redirect::back()->with(['warning' => 'Pengajuan yang sudah diproses tidak dapat dihapus']);

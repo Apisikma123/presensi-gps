@@ -1,157 +1,209 @@
 @extends('layouts.app')
-@section('titlepage', 'Jam Kerja')
+@section('titlepage', 'Master Shift Kerja')
 
 @section('content')
 @section('navigasi')
-    <div class="d-flex justify-content-between align-items-center w-100">
-        <div>
-            Jam Kerja
-            <div class="text-muted mt-1" style="font-size: 0.75rem; font-weight: normal; text-transform: none; letter-spacing: 0px;">
-                Manajemen data jadwal jam kerja organisasi.
-            </div>
-        </div>
-        <nav aria-label="breadcrumb" class="d-none d-md-block" style="font-size: 0.75rem;">
-            <ol class="breadcrumb breadcrumb-style1 mb-0">
-                <li class="breadcrumb-item">
-                    <a href="{{ route('dashboard.index') }}">
-                        <i class="ti ti-home-2 ti-xs"></i>
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="javascript:void(0);">
-                        <i class="ti ti-database ti-xs me-1"></i> Data Master
-                    </a>
-                </li>
-                <li class="breadcrumb-item active">
-                    <i class="ti ti-clock ti-xs me-1"></i> Jam Kerja
-                </li>
-            </ol>
-        </nav>
-    </div>
+    <span>Shift Kerja</span>
 @endsection
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            @can('jamkerja.create')
-                <a href="#" class="btn btn-primary" id="btnCreate">
-                    <i class="ti ti-plus me-1"></i> Tambah Jam Kerja
-                </a>
-            @endcan
-        </div>
-        <form action="{{ route('jamkerja.index') }}">
-            <div class="row g-2 mb-3">
-                <div class="col-lg-10 col-md-9 col-sm-12">
-                    <x-input-with-icon label="Cari Nama Jam Kerja" value="{{ Request('nama_jam_kerja_search') }}"
-                        name="nama_jam_kerja_search" icon="ti ti-search" hideLabel />
+<!-- Top Header Toolbar -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+            <span>Master Jadwal & Shift Kerja</span>
+            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
+                {{ $jamkerja->total() }} Total
+            </span>
+        </h5>
+        <small class="text-muted" style="font-size: 12px;">Konfigurasi jam masuk, jam pulang, waktu istirahat & shift lintas hari outlet coffee.</small>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        @can('jamkerja.create')
+            <a href="#" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate" style="height: 36px; border-radius: 8px;">
+                <i class="ti ti-plus"></i>
+                <span>Tambah Shift Kerja</span>
+            </a>
+        @endcan
+    </div>
+</div>
+
+<!-- Search & Filter Bar (Seamless Minimalist Flex Layout) -->
+<div class="card mb-3 card-filter-bar">
+    <div class="card-body p-2.5">
+        <form action="{{ route('jamkerja.index') }}" method="GET">
+            <div class="d-flex align-items-center gap-2">
+                <div class="flex-grow-1">
+                    <x-input-with-icon label="" value="{{ Request('nama_jam_kerja_search') }}" name="nama_jam_kerja_search"
+                        icon="ti ti-search" placeholder="Cari nama atau kode shift kerja..." hideLabel="true" />
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-12">
-                    <button class="btn btn-primary w-100"><i class="ti ti-search me-1"></i> Cari</button>
-                </div>
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 px-3 flex-shrink-0"
+                    style="height: 36px; border-radius: 8px; font-size: 12.5px; font-weight: 600; min-width: 90px;">
+                    <i class="ti ti-search"></i>
+                    <span>Cari</span>
+                </button>
+                @if (Request('nama_jam_kerja_search'))
+                    <a href="{{ route('jamkerja.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center p-0 flex-shrink-0"
+                        style="height: 36px; width: 36px; min-width: 36px; border-radius: 8px;" title="Reset Filter">
+                        <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                    </a>
+                @endif
             </div>
         </form>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="background-color: var(--theme-color-1) !important; color: white !important; min-height: 50px;">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-clock me-2 fs-5"></i>
-                    <h6 class="card-title mb-0 text-white">Data Jam Kerja</h6>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
-                            <tr>
-                                <th class="text-white py-3" style="width: 60px;">NO.</th>
-                                <th class="text-white py-3">KODE</th>
-                                <th class="text-white py-3">NAMA JAM KERJA</th>
-                                <th class="text-white py-3">MASUK</th>
-                                <th class="text-white py-3">PULANG</th>
-                                <th class="text-white py-3 text-center">ISTIRAHAT</th>
-                                <th class="text-white py-3">MULAI</th>
-                                <th class="text-white py-3">AKHIR</th>
-                                <th class="text-white py-3 text-center">LINTAS</th>
-                                <th class="text-white py-3 text-center">TOTAL</th>
-                                <th class="text-white py-3 text-center">WARNA</th>
-                                <th class="text-white py-3 text-center" style="width: 100px;">#</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($jamkerja as $d)
-                                <tr>
-                                    <td class="py-2">{{ $loop->iteration }}</td>
-                                    <td class="fw-bold py-2">{{ $d->kode_jam_kerja }}</td>
-                                    <td class="py-2">{{ $d->nama_jam_kerja }}</td>
-                                    <td class="py-2">{{ $d->jam_masuk }}</td>
-                                    <td class="py-2">{{ $d->jam_pulang }}</td>
-                                    <td class="py-2 text-center">
-                                        @if ($d->istirahat == 1)
-                                            <i class="ti ti-checks text-success fs-5"></i>
-                                        @else
-                                            <i class="ti ti-square-x text-danger fs-5"></i>
-                                        @endif
-                                    </td>
-                                    <td class="py-2 text-muted" style="font-size: 0.85rem;">{{ $d->jam_awal_istirahat != null ? date('H:i', strtotime($d->jam_awal_istirahat)) : '-' }}</td>
-                                    <td class="py-2 text-muted" style="font-size: 0.85rem;">{{ $d->jam_akhir_istirahat != null ? date('H:i', strtotime($d->jam_akhir_istirahat)) : '-' }}</td>
-                                    <td class="py-2 text-center">
-                                        @if ($d->lintashari == 1)
-                                            <i class="ti ti-checks text-success fs-5"></i>
-                                        @else
-                                            <i class="ti ti-square-x text-danger fs-5"></i>
-                                        @endif
-                                    </td>
-                                    <td class="py-2 text-center fw-bold">{{ $d->total_jam }}j</td>
-                                    <td class="py-2 text-center">
-                                        <div class="mx-auto" style="width: 24px; height: 24px; background-color: {{ $d->color }}; border: 2px solid white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-                                    </td>
-                                    <td class="py-2 text-center">
-                                        <div class="d-inline-flex border rounded overflow-hidden shadow-xs">
-                                            @can('jamkerja.edit')
-                                                <a href="#" class="btn btn-sm btnEdit px-2 py-1 border-0 rounded-0"
-                                                    kode_jam_kerja="{{ Crypt::encrypt($d->kode_jam_kerja) }}" title="Edit"
-                                                    style="background: #f8f9fa;">
-                                                    <i class="ti ti-edit fs-6 text-primary"></i>
-                                                </a>
-                                            @endcan
-
-                                            @can('jamkerja.delete')
-                                                <form method="POST" name="deleteform" class="deleteform m-0"
-                                                    action="{{ route('jamkerja.delete', Crypt::encrypt($d->kode_jam_kerja)) }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm delete-confirm px-2 py-1 border-0 rounded-0 border-start"
-                                                        title="Hapus" style="background: #f8f9fa;">
-                                                        <i class="ti ti-trash fs-6 text-danger"></i>
-                                                    </button>
-                                                </form>
-                                            @endcan
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            @if($jamkerja->isEmpty())
-                                <tr>
-                                    <td colspan="12" class="text-center py-4 text-muted">Data tidak ditemukan.</td>
-                                </tr>
+<!-- Table Card -->
+<div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 50px;" class="text-center">NO</th>
+                    <th>KODE & NAMA SHIFT</th>
+                    <th>JAM KERJA (WIB)</th>
+                    <th class="text-center">ISTIRAHAT</th>
+                    <th>WAKTU ISTIRAHAT</th>
+                    <th class="text-center">TIPE SHIFT</th>
+                    <th class="text-center">TOTAL JAM</th>
+                    <th class="text-center">WARNA</th>
+                    <th class="text-end" style="width: 100px;">AKSI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($jamkerja as $d)
+                    <tr>
+                        <td class="text-center font-mono text-muted" style="font-size: 12px;">
+                            {{ $loop->iteration + ($jamkerja->currentPage() - 1) * $jamkerja->perPage() }}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
+                                    {{ $d->kode_jam_kerja }}
+                                </span>
+                                <div>
+                                    <span class="fw-bold text-dark d-block" style="font-size: 13px;">{{ $d->nama_jam_kerja }}</span>
+                                    @if($d->keterangan)
+                                        <small class="text-muted" style="font-size: 11px;">{{ $d->keterangan }}</small>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-mono fw-semibold text-dark" style="font-size: 12px;">
+                                {{ substr($d->jam_masuk, 0, 5) }} - {{ substr($d->jam_pulang, 0, 5) }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            @if ($d->istirahat == 1)
+                                <span class="badge bg-label-success">Ada</span>
+                            @else
+                                <span class="badge bg-label-secondary">Tidak</span>
                             @endif
-                        </tbody>
-                    </table>
+                        </td>
+                        <td>
+                            @if ($d->jam_awal_istirahat != null)
+                                <span class="font-mono text-muted" style="font-size: 11.5px;">
+                                    {{ date('H:i', strtotime($d->jam_awal_istirahat)) }} - {{ date('H:i', strtotime($d->jam_akhir_istirahat)) }}
+                                </span>
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            @if ($d->lintashari == 1)
+                                <span class="badge bg-label-warning"><i class="ti ti-moon me-0.5"></i> Lintas Hari</span>
+                            @else
+                                <span class="badge bg-label-secondary">Reguler</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-label-primary font-mono fw-bold">
+                                {{ $d->total_jam }} Jam
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="mx-auto" style="width: 20px; height: 20px; background-color: {{ $d->color ?? '#1E4D3E' }}; border-radius: 6px; border: 1px solid rgba(0,0,0,0.12);"></div>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-1.5">
+                                @can('jamkerja.edit')
+                                    <button type="button" class="btnEdit" kode_jam_kerja="{{ Crypt::encrypt($d->kode_jam_kerja) }}" title="Edit Shift">
+                                        <i class="ti ti-edit"></i>
+                                    </button>
+                                @endcan
+
+                                @can('jamkerja.delete')
+                                    <form method="POST" name="deleteform" class="deleteform d-inline m-0"
+                                        action="{{ route('jamkerja.delete', Crypt::encrypt($d->kode_jam_kerja)) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="delete-confirm" title="Hapus Shift">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </form>
+                                @endcan
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="ti ti-clock-off text-muted fs-1 d-block mb-2" style="opacity: 0.4;"></i>
+                            <h6 class="mb-1 text-dark fw-semibold">Tidak Ada Data Shift Kerja</h6>
+                            <small class="text-muted">Klik Tambah Shift Kerja untuk membuat shift baru.</small>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination Footer with Slide Controls -->
+<div class="card" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF;">
+    <div class="card-body py-2.5 px-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <!-- Counter info -->
+            <div class="text-muted" style="font-size: 12px;">
+                @if ($jamkerja->total() > 0)
+                    Menampilkan <span class="fw-bold text-dark font-mono">{{ $jamkerja->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $jamkerja->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $jamkerja->total() }}</span> total shift
+                @else
+                    Menampilkan 0 data
+                @endif
+            </div>
+
+            <!-- Interactive Page Slider (Slide Selector) -->
+            @if ($jamkerja->lastPage() > 1)
+                <div class="page-slider-container">
+                    <small class="text-muted fw-semibold" style="font-size: 11.5px;">Slide Halaman:</small>
+                    <input type="range" class="page-slider-range" id="pageSlider"
+                        min="1" max="{{ $jamkerja->lastPage() }}" value="{{ $jamkerja->currentPage() }}"
+                        oninput="document.getElementById('sliderBadge').innerText = this.value"
+                        onchange="navigatePage(this.value)">
+                    <span class="badge bg-primary font-mono" id="sliderBadge">{{ $jamkerja->currentPage() }}</span>
                 </div>
+            @endif
+
+            <!-- Standard Pagination Links -->
+            <div class="d-flex align-items-center">
+                {{ $jamkerja->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>
 </div>
 
 <x-modal-form id="modal" show="loadmodal" />
+
 @endsection
 
 @push('myscript')
 <script>
+    function navigatePage(pageNum) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', pageNum);
+        window.location.href = url.toString();
+    }
+
     $(function() {
         function loading() {
             $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
@@ -160,24 +212,24 @@
                 <div class="sk-wave-rect"></div>
                 <div class="sk-wave-rect"></div>
                 <div class="sk-wave-rect"></div>
-                </div>`);
+            </div>`);
         };
 
         $("#btnCreate").click(function(e) {
             e.preventDefault();
+            $("#modal").modal("show");
+            $(".modal-title").text("Tambah Shift Kerja");
             loading();
-            $('#modal').modal("show");
-            $(".modal-title").text("Tambah Jam Kerja");
             $("#loadmodal").load("{{ route('jamkerja.create') }}");
         });
 
-        $(".btnEdit").click(function(e) {
+        $(document).on('click', '.btnEdit', function(e) {
             e.preventDefault();
+            const kode_jam_kerja = $(this).attr("kode_jam_kerja");
+            $("#modal").modal("show");
+            $(".modal-title").text("Edit Shift Kerja");
             loading();
-            var kode_jam_kerja = $(this).attr("kode_jam_kerja");
-            $('#modal').modal("show");
-            $(".modal-title").text("Edit Jam Kerja");
-            $("#loadmodal").load('/jamkerja/' + kode_jam_kerja + '/edit');
+            $("#loadmodal").load(`/jamkerja/${kode_jam_kerja}/edit`);
         });
     });
 </script>

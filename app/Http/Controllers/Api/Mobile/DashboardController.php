@@ -36,7 +36,9 @@ class DashboardController extends Controller
             ->where('tanggal', $hari_ini)
             ->first();
 
-        // 2. Get monthly recap stats
+        // 2. Get monthly recap stats (indexed range seek)
+        $startOfMonth = Carbon::parse($hari_ini)->startOfMonth()->toDateString();
+        $endOfMonth = Carbon::parse($hari_ini)->endOfMonth()->toDateString();
         $rekap = Presensi::select(
             DB::raw("SUM(IF(status='h', 1, 0)) as hadir"),
             DB::raw("SUM(IF(status='i', 1, 0)) as izin"),
@@ -45,9 +47,7 @@ class DashboardController extends Controller
             DB::raw("SUM(IF(status='a', 1, 0)) as alpa")
         )
             ->where('nik', $nik)
-            ->whereRaw('MONTH(tanggal) = MONTH(?)', [$hari_ini])
-            ->whereRaw('YEAR(tanggal) = YEAR(?)', [$hari_ini])
-            ->groupBy('nik')
+            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
             ->first();
 
         // 3. Check for contract warning (ends within 30 days)
@@ -100,8 +100,8 @@ class DashboardController extends Controller
         $cabang = null;
         $jamkerja = null;
         if ($karyawan) {
-            $cabang = \App\Models\Cabang::where('kode_cabang', $karyawan->kode_cabang)->first();
-            $general_setting = \App\Models\Pengaturanumum::where('id', 1)->first();
+            $cabang = \App\Models\Cabang::getByCode($karyawan->kode_cabang);
+            $general_setting = \App\Models\Pengaturanumum::getSetting();
             $timezone_cabang = $cabang->timezone ?? $general_setting->timezone ?? config('app.timezone');
             $carbon_now = Carbon::now($timezone_cabang);
             $hariini = $carbon_now->format('Y-m-d');
@@ -149,7 +149,7 @@ class DashboardController extends Controller
                 ->first();
 
             if ($ajuan_jadwal) {
-                $jamkerja = \App\Models\Jamkerja::where('kode_jam_kerja', $ajuan_jadwal->kode_jam_kerja_tujuan)->first();
+                $jamkerja = \App\Models\Jamkerja::getByCode($ajuan_jadwal->kode_jam_kerja_tujuan);
             } else {
                 // Cek Jam Kerja By Date
                 $jamkerja = \App\Models\Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
@@ -187,7 +187,7 @@ class DashboardController extends Controller
                         if ($general_setting && $general_setting->global_jamkerja_aktif) {
                             $globalJk = \App\Models\GlobalJamkerja::where('hari', $namahari)->first();
                             if ($globalJk && $globalJk->kode_jam_kerja) {
-                                $jamkerja = \App\Models\Jamkerja::where('kode_jam_kerja', $globalJk->kode_jam_kerja)->first();
+                                $jamkerja = \App\Models\Jamkerja::getByCode($globalJk->kode_jam_kerja);
                             }
                         }
                     }
@@ -204,9 +204,17 @@ class DashboardController extends Controller
             ->leftJoin('presensi_izinsakit', 'presensi_izinsakit_approve.kode_izin_sakit', '=', 'presensi_izinsakit.kode_izin_sakit')
             ->leftJoin('presensi_izincuti_approve', 'presensi.id', '=', 'presensi_izincuti_approve.id_presensi')
             ->leftJoin('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
-            ->leftJoin('mesin_fingerprints', 'presensi.id_mesin', '=', 'mesin_fingerprints.id')
             ->select(
-                'presensi.*',
+                'presensi.id',
+                'presensi.tanggal',
+                'presensi.jam_in',
+                'presensi.jam_out',
+                'presensi.foto_in',
+                'presensi.foto_out',
+                'presensi.lokasi_in',
+                'presensi.lokasi_out',
+                'presensi.status',
+                'presensi.kode_jam_kerja',
                 'presensi_jamkerja.nama_jam_kerja',
                 'presensi_jamkerja.jam_masuk',
                 'presensi_jamkerja.jam_pulang',
@@ -214,8 +222,7 @@ class DashboardController extends Controller
                 'presensi_jamkerja.lintashari',
                 'presensi_izinabsen.keterangan as keterangan_izin',
                 'presensi_izinsakit.keterangan as keterangan_izin_sakit',
-                'presensi_izincuti.keterangan as keterangan_izin_cuti',
-                'mesin_fingerprints.nama_mesin'
+                'presensi_izincuti.keterangan as keterangan_izin_cuti'
             )
             ->orderBy('presensi.tanggal', 'desc')
             ->limit(30)

@@ -200,17 +200,11 @@ class AdmsController extends Controller
             $jsonData = json_decode($jsonString, true) ?? [];
         }
 
-        // 3. Cari Data Mesin di Database
-        $mesin = MesinFingerprint::where('sn', $devId)->where('status', 'Aktif')->first();
+        // 3. Cari Data Mesin di Database (Wajib terdaftar berdasarkan SN)
+        $mesin = !empty($devId) ? MesinFingerprint::where('sn', $devId)->where('status', 'Aktif')->first() : null;
 
-        // Jika tidak ditemukan berdasarkan SN, gunakan mesin aktif pertama sebagai fallback
         if (!$mesin) {
-            $mesin = MesinFingerprint::where('status', 'Aktif')->first();
-        }
-
-        // Jika tidak ada mesin aktif sama sekali di database
-        if (!$mesin) {
-            Log::warning('No active machine found in database to process data', [
+            Log::warning('Unregistered or inactive machine attempted to send data', [
                 'sn' => $devId,
                 'ip' => $request->ip(),
                 'path' => $request->path()

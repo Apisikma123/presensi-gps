@@ -12,7 +12,11 @@ class JabatanController extends Controller
     public function index(Request $request)
     {
         $query = Jabatan::query();
-        $data['jabatan'] = $query->get();
+        if (!empty($request->nama_jabatan)) {
+            $query->where('nama_jabatan', 'like', '%' . $request->nama_jabatan . '%')
+                  ->orWhere('kode_jabatan', 'like', '%' . $request->nama_jabatan . '%');
+        }
+        $data['jabatan'] = $query->orderBy('kode_jabatan')->paginate(10)->withQueryString();
         return view('datamaster.jabatan.index', $data);
     }
 

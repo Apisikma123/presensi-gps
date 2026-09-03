@@ -182,7 +182,7 @@ class LemburController extends Controller
 
             $karyawan = Karyawan::where('nik', $userKaryawan->nik)->first();
             $cabang = Cabang::where('kode_cabang', $karyawan->kode_cabang)->first();
-            $generalsetting = Pengaturanumum::where('id', 1)->first();
+            $generalsetting = Pengaturanumum::getSetting();
 
             if (!$cabang) {
                 return response()->json([
@@ -216,14 +216,9 @@ class LemburController extends Controller
             }
 
             $in_out = $status == 1 ? "in" : "out";
-            $folderPath = "public/uploads/lembur/";
-            if (!Storage::exists($folderPath)) {
-                Storage::makeDirectory($folderPath, 0775, true);
-            }
-
-            $fileName = $karyawan->nik . "-" . $tanggal_sekarang . "-" . $in_out . ".png";
-            $imageFile = $request->file('image');
-            Storage::put($folderPath . $fileName, file_get_contents($imageFile));
+            $formatName = $karyawan->nik . "-" . $tanggal_sekarang . "-" . $in_out;
+            $imageInput = $request->hasFile('image') ? $request->file('image') : $request->input('image');
+            $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/lembur', $formatName, 80, 800);
 
             // Face Recognition verification (if enabled)
             if (isset($generalsetting->face_recognition) && $generalsetting->face_recognition == 1) {
@@ -231,19 +226,19 @@ class LemburController extends Controller
                 $folderWajahPath = "public/uploads/facerecognition/" . $nama_folder_wajah;
                 
                 if (Storage::exists($folderWajahPath) && count(Storage::files($folderWajahPath)) > 0) {
-                    $selfieFullPath = Storage::path($folderPath . $fileName);
+                    $selfieFullPath = Storage::path("public/uploads/lembur/" . $fileName);
                     $registeredDirFullPath = Storage::path($folderWajahPath);
                     
-                    $pythonPath = '/usr/bin/python3';
+                    $pythonPath = PHP_OS_FAMILY === 'Windows' ? 'python' : (file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3');
                     $scriptPath = base_path('verify_face.py');
                     
-                    $command = $pythonPath . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($selfieFullPath) . " " . escapeshellarg($registeredDirFullPath) . " 2>&1";
+                    $command = escapeshellcmd($pythonPath) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($selfieFullPath) . " " . escapeshellarg($registeredDirFullPath) . " 2>&1";
                     
                     $output = shell_exec($command);
                     $result = json_decode($output, true);
                     
                     if (!$result || !isset($result['matched']) || !$result['matched']) {
-                        Storage::delete($folderPath . $fileName);
+                        Storage::delete("public/uploads/lembur/" . $fileName);
                         
                         $failMsg = isset($result['message']) ? $result['message'] : 'Verifikasi wajah gagal. Wajah Anda tidak cocok dengan data terdaftar.';
                         return response()->json([

@@ -18,12 +18,6 @@
                                     Tambah Data</a>
                             @endcan
                         </div>
-                        <div>
-                            @can('approvallayer.index')
-                                <a href="{{ route('approvallayer.index') }}" class="btn btn-info"><i class="fa fa-cog me-2"></i>
-                                    Konfigurasi Approval</a>
-                            @endcan
-                        </div>
                     </div>
                     <div class="row mt-2">
                         <div class="col-12">

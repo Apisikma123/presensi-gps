@@ -55,15 +55,19 @@ function getdocMarker($file)
 
 function getfotoPelanggan($file)
 {
-    $url = url('/storage/pelanggan/' . $file . '?v=' . time());
-    return $url;
+    if (empty($file)) {
+        return asset('assets/img/avatars/default.png');
+    }
+    return url('/storage/pelanggan/' . $file);
 }
 
 
 function getfotoKaryawan($file)
 {
-    $url = url('/storage/karyawan/' . $file . '?v=' . time());
-    return $url;
+    if (empty($file)) {
+        return asset('assets/img/avatars/default.png');
+    }
+    return url('/storage/karyawan/' . $file);
 }
 
 
@@ -467,17 +471,16 @@ function hitungJumlahHari($tanggal_awal, $tanggal_akhir)
 
 function getdatalibur($dari, $sampai)
 {
-    $no = 1;
     $libur = [];
     $ceklibur = Detailharilibur::select(
         'nik',
         'tanggal',
         'kode_cabang',
-        'keterangan',
+        'keterangan'
     )
         ->leftJoin('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
-        // ->where('kategori', 1)
-        ->whereBetween('tanggal', [$dari, $sampai])->get();
+        ->whereBetween('tanggal', [$dari, $sampai])
+        ->get();
 
     foreach ($ceklibur as $d) {
         $libur[] = [
@@ -491,34 +494,80 @@ function getdatalibur($dari, $sampai)
     return $libur;
 }
 
+function getdataliburIndexed($dari, $sampai)
+{
+    $ceklibur = Detailharilibur::select(
+        'nik',
+        'tanggal',
+        'kode_cabang',
+        'keterangan'
+    )
+        ->leftJoin('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
+        ->whereBetween('tanggal', [$dari, $sampai])
+        ->get();
+
+    $indexed = [];
+    $by_tanggal = [];
+    $raw = [];
+
+    foreach ($ceklibur as $d) {
+        $item = [
+            'nik' => $d->nik,
+            'kode_cabang' => $d->kode_cabang,
+            'tanggal' => $d->tanggal,
+            'keterangan' => $d->keterangan
+        ];
+        $raw[] = $item;
+
+        if (!empty($d->nik)) {
+            $indexed[$d->nik . '|' . $d->tanggal][] = $item;
+        }
+        $by_tanggal[$d->tanggal][] = $item;
+    }
+
+    return [
+        'raw' => $raw,
+        'indexed' => $indexed,
+        'by_tanggal' => $by_tanggal
+    ];
+}
+
 function ceklibur($array, $search_list)
 {
+    if (empty($array)) {
+        return [];
+    }
 
-    // Create the result array
+    // Fast O(1) path if array is indexed map and search has nik and tanggal
+    if (isset($search_list['nik']) && isset($search_list['tanggal'])) {
+        $key = $search_list['nik'] . '|' . $search_list['tanggal'];
+        if (isset($array[$key])) {
+            return $array[$key];
+        }
+    }
+
+    // Fast O(1) path if search is only by tanggal
+    if (isset($search_list['tanggal']) && count($search_list) === 1 && isset($array[$search_list['tanggal']])) {
+        return $array[$search_list['tanggal']];
+    }
+
+    // Fallback: array search
     $result = array();
 
-    // Iterate over each array element
     foreach ($array as $key => $value) {
+        if (!is_array($value)) {
+            continue;
+        }
 
-        // Iterate over each search condition
         foreach ($search_list as $k => $v) {
-
-            // If the array element does not meet
-            // the search condition then continue
-            // to the next element
             if (!isset($value[$k]) || $value[$k] != $v) {
-
-                // Skip two loops
                 continue 2;
             }
         }
 
-        // Append array element's key to the
-        //result array
         $result[] = $value;
     }
 
-    // Return result
     return $result;
 }
 

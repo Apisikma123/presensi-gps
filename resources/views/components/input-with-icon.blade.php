@@ -18,7 +18,7 @@
     'hideLabel' => false,
     'id' => null,
 ])
-<div class="form-group mb-3">
+<div class="form-group {{ $hideLabel ? 'mb-0' : 'mb-3' }}">
     @if ($label && !$hideLabel)
         <label for="{{ $id ?? $name }}" class="form-label" style="font-weight: 600;">
             {{ $label }}

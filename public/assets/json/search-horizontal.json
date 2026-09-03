@@ -242,18 +242,8 @@
     },
     {
       "name": "Utilities - Log Mesin Presensi",
-      "icon": "ti-device-analytics",
-      "url": "/logmesin"
-    },
-    {
-      "name": "Utilities - Backup & Restore",
       "icon": "ti-database-export",
       "url": "/backup"
-    },
-    {
-      "name": "WA Gateway",
-      "icon": "ti-brand-whatsapp",
-      "url": "/wagateway"
     }
   ],
   "files": [],

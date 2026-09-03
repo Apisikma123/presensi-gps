@@ -1,12 +1,22 @@
 <style>
-    /* Modern Fullscreen Layout */
-    .camera-container {
-        position: fixed;
-        top: 0;
-        left: 0;
+    /* Responsive Camera Modal Container */
+    .face-capture-wrapper {
+        position: relative;
         width: 100%;
-        height: 100%;
-        z-index: 0;
+        max-width: 540px;
+        margin: 0 auto;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #0F172A;
+        border: 1px solid #1E293B;
+    }
+
+    .camera-container {
+        position: relative;
+        width: 100%;
+        height: 380px;
+        max-height: 55vh;
+        overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -22,7 +32,7 @@
 
     /* UI Overlays */
     .overlay-container {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
@@ -32,27 +42,26 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 40px 20px 100px;
+        padding: 16px;
     }
 
     /* Face Frame Guide */
     .face-frame {
         position: absolute;
-        top: 50%;
+        top: 48%;
         left: 50%;
-        transform: translate(-50%, -60%);
-        width: 280px;
-        height: 380px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 180px; /* Oval shape for face */
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7); /* Darken outside */
-        transition: all 0.3s ease;
+        transform: translate(-50%, -50%);
+        width: 190px;
+        height: 250px;
+        border: 2px dashed rgba(255, 255, 255, 0.4);
+        border-radius: 120px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+        transition: all 0.25s ease;
     }
 
     .face-frame.active {
-        border-color: #22c55e; /* Green */
-        border-width: 4px;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 50px rgba(34, 197, 94, 0.5);
+        border: 3px solid #10B981;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 25px rgba(16, 185, 129, 0.4);
     }
 
     .face-frame.scanning::after {
@@ -62,83 +71,82 @@
         left: 0;
         width: 100%;
         height: 100%;
-        border-radius: 180px;
-        box-shadow: inset 0 0 20px #22c55e;
-        animation: pulse-green 1.5s infinite;
+        border-radius: 120px;
+        box-shadow: inset 0 0 15px #10B981;
+        animation: pulse-green 1.2s infinite;
     }
 
     @keyframes pulse-green {
-        0% { opacity: 0.3; }
+        0% { opacity: 0.2; }
         50% { opacity: 0.7; }
-        100% { opacity: 0.3; }
+        100% { opacity: 0.2; }
     }
 
     /* Status & Instructions */
     .status-badge {
         align-self: center;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(10px);
-        padding: 10px 20px;
-        border-radius: 30px;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(8px);
+        padding: 6px 14px;
+        border-radius: 20px;
         color: #fff;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
-        margin-top: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         text-align: center;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
     }
     
     .status-dot {
-        width: 8px;
-        height: 8px;
+        width: 7px;
+        height: 7px;
         background: #ef4444;
         border-radius: 50%;
         display: inline-block;
     }
-    .status-dot.ready { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+    .status-dot.ready { background: #10b981; box-shadow: 0 0 8px #10b981; }
 
     /* Scanning Progress */
     .scan-progress-container {
         position: absolute;
-        bottom: -60px;
+        bottom: 15px;
         left: 50%;
         transform: translateX(-50%);
-        width: 200px;
+        width: 180px;
         text-align: center;
         opacity: 0;
-        transition: opacity 0.3s;
+        transition: opacity 0.2s;
     }
-    .scan-progress-container.show { opacity: 1; bottom: 20px; }
+    .scan-progress-container.show { opacity: 1; }
 
     .progress-bar-wrapper {
-        background: rgba(255,255,255,0.2);
-        height: 6px;
+        background: rgba(255,255,255,0.25);
+        height: 5px;
         border-radius: 3px;
         width: 100%;
         overflow: hidden;
-        margin-top: 8px;
+        margin-top: 4px;
     }
     .progress-bar-fill {
-        background: #22c55e;
+        background: #10b981;
         height: 100%;
         width: 0%;
         transition: width 0.2s linear;
     }
     .scan-text {
         color: #fff;
-        font-size: 14px;
+        font-size: 11px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
 
     /* Action Buttons */
     .action-area {
         position: absolute;
-        bottom: 120px;
+        bottom: 18px;
         left: 0;
         width: 100%;
         display: flex;
@@ -147,29 +155,29 @@
     }
 
     .btn-modern-start {
-        background: #fff;
-        color: #000;
-        border: none;
-        padding: 18px 40px;
+        background: #1E4D3E;
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 10px 24px;
         border-radius: 30px;
-        font-weight: 700;
-        font-size: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        font-weight: 600;
+        font-size: 13.5px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         display: flex;
         align-items: center;
-        gap: 10px;
-        transition: transform 0.2s;
+        gap: 8px;
+        transition: all 0.15s ease;
         cursor: pointer;
     }
-    .btn-modern-start:active { transform: scale(0.95); }
-    .btn-modern-start i { font-size: 20px; }
+    .btn-modern-start:hover { background: #163B30; }
+    .btn-modern-start:active { transform: scale(0.96); }
 
     .loading-spinner {
         display: none;
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(0,0,0,0.1);
-        border-top-color: #000;
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
@@ -177,99 +185,96 @@
 
     /* Success State */
     .success-overlay {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: #000;
-        z-index: 2000; /* Ensure high z-index */
+        background: rgba(15, 23, 42, 0.95);
+        z-index: 20;
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         color: #fff;
         pointer-events: auto;
+        border-radius: 14px;
     }
     .success-icon {
-        font-size: 80px;
-        color: #22c55e;
-        margin-bottom: 20px;
-        animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    @keyframes pop-in { 
-        0% { transform: scale(0); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+        font-size: 56px;
+        color: #10b981;
+        margin-bottom: 12px;
     }
 
     /* Warning Toast */
     .warning-toast {
         position: absolute;
-        top: 20px;
+        top: 12px;
         left: 50%;
-        transform: translateX(-50%) translateY(-100px);
-        background: rgba(239, 68, 68, 0.9);
+        transform: translateX(-50%) translateY(-50px);
+        background: rgba(220, 38, 38, 0.9);
         color: white;
-        padding: 12px 20px;
-        border-radius: 12px;
-        font-size: 14px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
         font-weight: 500;
-        transition: transform 0.3s ease;
+        transition: transform 0.25s ease;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         z-index: 100;
     }
     .warning-toast.show { transform: translateX(-50%) translateY(0); }
-
 </style>
 
-<!-- Camera View -->
-<div class="camera-container">
-    <video id="webcam-video" autoplay playsinline muted></video>
-</div>
-
-<!-- Interface Overlays -->
-<div class="overlay-container">
-    <!-- Top Status -->
-    <div class="status-badge">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Menunggu kamera...</span>
+<div class="face-capture-wrapper">
+    <!-- Camera View -->
+    <div class="camera-container">
+        <video id="webcam-video" autoplay playsinline muted></video>
     </div>
 
-    <!-- Warning Toast -->
-    <div class="warning-toast" id="warningToast">
-        <i class="ti ti-alert-circle"></i>
-        <span id="warningMessage">Peringatan</span>
-    </div>
+    <!-- Interface Overlays -->
+    <div class="overlay-container">
+        <!-- Top Status -->
+        <div class="status-badge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Menghubungkan kamera...</span>
+        </div>
 
-    <!-- Center Face Frame -->
-    <div class="face-frame" id="faceFrame">
-        <!-- Progress shown below frame -->
-        <div class="scan-progress-container" id="scanProgress">
-            <div class="scan-text">Merekam Wajah...</div>
-            <div class="progress-bar-wrapper">
-                <div class="progress-bar-fill" id="progressBarFill"></div>
+        <!-- Warning Toast -->
+        <div class="warning-toast" id="warningToast">
+            <i class="ti ti-alert-circle"></i>
+            <span id="warningMessage">Peringatan</span>
+        </div>
+
+        <!-- Center Face Frame -->
+        <div class="face-frame" id="faceFrame">
+            <!-- Progress shown below frame -->
+            <div class="scan-progress-container" id="scanProgress">
+                <div class="scan-text">Merekam Wajah...</div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 3px;">Tahan posisi... <span id="progressPercent">0%</span></div>
             </div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px;">Tahan posisi... <span id="progressPercent">0%</span></div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="action-area" id="actionArea">
+            <button class="btn-modern-start" id="btnStart" onclick="startScanning()">
+                <div class="loading-spinner" id="btnSpinner"></div>
+                <i class="ti ti-camera" id="btnIcon"></i>
+                <span id="btnText">Mulai Ambil Sample Wajah</span>
+            </button>
         </div>
     </div>
 
-    <!-- Bottom Actions -->
-    <div class="action-area" id="actionArea">
-        <button class="btn-modern-start" id="btnStart" onclick="startScanning()">
-            <div class="loading-spinner" id="btnSpinner"></div>
-            <i class="ti ti-face-id" id="btnIcon"></i>
-            <span id="btnText">Mulai Scan Wajah</span>
-        </button>
+    <!-- Success Screen -->
+    <div class="success-overlay" id="successScreen">
+        <i class="ti ti-circle-check-filled success-icon"></i>
+        <h5 class="mb-1 text-white fw-bold">Perekaman Berhasil!</h5>
+        <p class="text-white-50 text-center px-3 mb-0" style="font-size: 12.5px;">Dataset wajah berhasil disimpan ke AI engine.<br>Memperbarui halaman...</p>
     </div>
-</div>
-
-<!-- Success Screen -->
-<div class="success-overlay" id="successScreen">
-    <i class="ti ti-circle-check-filled success-icon"></i>
-    <h2 class="mb-2">Berhasil!</h2>
-    <p class="text-white-50 text-center px-4">Data wajah berhasil didaftarkan.<br>Menutup halaman...</p>
 </div>
 
 <!-- Scripts -->
@@ -522,12 +527,26 @@
         }
     }
 
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+    }
+
+    // Stop camera when modal is closed
+    $('#modal').on('hidden.bs.modal', function() {
+        stopCamera();
+    });
+
     function showSuccessScreen() {
+        stopCamera();
         const successScreen = document.getElementById('successScreen');
         successScreen.style.display = 'flex';
         setTimeout(() => {
-            location.reload(); // Reload the page/close modal context
-        }, 2000);
+            window.location.href = window.location.pathname + '#wajah';
+            window.location.reload();
+        }, 1500);
     }
 
     function handleUploadError(msg) {

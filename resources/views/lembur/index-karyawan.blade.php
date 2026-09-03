@@ -228,28 +228,28 @@
             
             {{-- Filter Inputs --}}
             <div class="px-3 py-2.5">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" style="display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important;">
                     {{-- Dari --}}
-                    <div class="flex-1">
+                    <div class="flex-1" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="dari" id="datePicker" 
                             class="w-full rounded-lg py-1.5 px-3 text-[12px] font-medium text-center focus:outline-none transition-all"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;"
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; width: 100% !important; height: 36px !important; box-sizing: border-box !important;"
                             placeholder="Dari" value="{{ Request('dari') }}" autocomplete="off" required readonly>
                     </div>
-                    <div class="flex-shrink-0 w-4 flex items-center justify-center">
+                    <div class="flex-shrink-0 w-4 flex items-center justify-center" style="flex-shrink: 0 !important; width: 16px !important;">
                         <div class="w-3 h-[1px]" style="background: #cbd5e1;"></div>
                     </div>
                     {{-- Sampai --}}
-                    <div class="flex-1">
+                    <div class="flex-1" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="sampai" id="datePicker2" 
                             class="w-full rounded-lg py-1.5 px-3 text-[12px] font-medium text-center focus:outline-none transition-all"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;"
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; width: 100% !important; height: 36px !important; box-sizing: border-box !important;"
                             placeholder="Sampai" value="{{ Request('sampai') }}" autocomplete="off" required readonly>
                     </div>
                     {{-- Button --}}
                     <button type="submit" id="btnCari"
                         class="flex-shrink-0 w-9 h-8 rounded-lg text-white flex items-center justify-center active:scale-90 transition-transform"
-                        style="background: {{ $t['primary'] }};">
+                        style="background: {{ $t['primary'] }} !important; width: 36px !important; min-width: 36px !important; max-width: 36px !important; height: 36px !important; flex: 0 0 36px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important;">
                         <ion-icon name="search-outline" class="text-base"></ion-icon>
                     </button>
                 </div>
@@ -445,7 +445,16 @@
                 monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
                 today: 'Hari ini', clear: 'Hapus', dateFormat: 'yyyy-MM-dd', timeFormat: 'HH:mm', firstDay: 1
             };
-            const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: ['today', 'clear'], position: 'bottom center' };
+            const btnToday = {
+                content: 'Hari ini',
+                className: 'air-datepicker-button-today',
+                onClick: (dp) => {
+                    const today = new Date();
+                    dp.selectDate(today);
+                    dp.setViewDate(today);
+                }
+            };
+            const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: [btnToday, 'clear'], position: 'bottom center' };
             new AirDatepicker('#datePicker', dpOpt);
             new AirDatepicker('#datePicker2', dpOpt);
 

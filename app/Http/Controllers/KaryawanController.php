@@ -36,13 +36,12 @@ class KaryawanController extends Controller
         $user = auth()->user();
 
         $query = Karyawan::query();
-        $latest_gaji = DB::table('karyawan_gaji_pokok')
-            ->select('nik', 'jenis_upah')
-            ->whereIn('kode_gaji', function ($query) {
-                $query->select(DB::raw('MAX(kode_gaji)'))
-                    ->from('karyawan_gaji_pokok')
-                    ->groupBy('nik');
-            });
+        $latest_gaji = DB::table('karyawan_gaji_pokok as g1')
+            ->join(DB::raw('(SELECT nik, MAX(kode_gaji) as max_kode FROM karyawan_gaji_pokok GROUP BY nik) as g2'), function ($join) {
+                $join->on('g1.nik', '=', 'g2.nik')
+                     ->on('g1.kode_gaji', '=', 'g2.max_kode');
+            })
+            ->select('g1.nik', 'g1.jenis_upah');
 
         $query->select('karyawan.*', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'cabang.nama_cabang', 'id_user', 'gaji.jenis_upah');
         $query->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept');
@@ -99,7 +98,8 @@ class KaryawanController extends Controller
         } else {
             $query->orderBy('karyawan.nama_karyawan', 'asc');
         }
-        $karyawan = $query->paginate(15);
+        $perPage = (int) $request->get('per_page', 10);
+        $karyawan = $query->paginate($perPage);
         $karyawan->appends($request->all());
 
         $data['karyawan'] = $karyawan;
@@ -393,42 +393,58 @@ class KaryawanController extends Controller
     }
 
 
-    public function lockunlocklocation($nik)
+    public function lockunlocklocation(Request $request, $nik)
     {
         $nik = Crypt::decrypt($nik);
         try {
             $karyawan = Karyawan::where('nik', $nik)->first();
-            if ($karyawan->lock_location == '1') {
-                $lock_location = 0;
-            } else {
-                $lock_location = 1;
-            }
+            $lock_location = $karyawan->lock_location == '1' ? 0 : 1;
 
             Karyawan::where('nik', $nik)->update([
                 'lock_location' => $lock_location
             ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => $lock_location,
+                    'message' => $lock_location == 1 ? 'Lokasi GPS Karyawan Terkunci' : 'Lokasi GPS Karyawan Bebas'
+                ]);
+            }
+
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
-    public function lockunlockjamkerja($nik)
+    public function lockunlockjamkerja(Request $request, $nik)
     {
         $nik = Crypt::decrypt($nik);
         try {
             $karyawan = Karyawan::where('nik', $nik)->first();
-            if ($karyawan->lock_jam_kerja == '1') {
-                $lock_jam_kerja = 0;
-            } else {
-                $lock_jam_kerja = 1;
-            }
+            $lock_jam_kerja = $karyawan->lock_jam_kerja == '1' ? 0 : 1;
 
             Karyawan::where('nik', $nik)->update([
                 'lock_jam_kerja' => $lock_jam_kerja
             ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => $lock_jam_kerja,
+                    'message' => $lock_jam_kerja == 1 ? 'Shift Jam Kerja Terkunci' : 'Shift Jam Kerja Bebas'
+                ]);
+            }
+
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }

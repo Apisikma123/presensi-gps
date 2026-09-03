@@ -7,18 +7,25 @@
 @endsection
 <div class="row">
     <div class="col-lg-6 col-sm-12 col-xs-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="background-color: var(--theme-color-1) !important; color: white !important; min-height: 50px;">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-printer me-2 fs-5"></i>
-                    <h6 class="card-title mb-0 text-white">Laporan Presensi Karyawan</h6>
+        <div class="card" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+            <div class="card-header d-flex justify-content-between align-items-center py-3 px-4" style="background-color: #FFFFFF !important; border-bottom: 1px solid #F1F5F9 !important;">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                        style="width: 36px; height: 36px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                        <i class="ti ti-file-analytics fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title mb-0 fw-bold text-dark" style="font-size: 14px; color: #0F172A !important;">Laporan Presensi Karyawan</h6>
+                        <small class="text-muted" style="font-size: 11.5px;">Filter rekapitulasi kehadiran, keterlambatan, dan ekspor ke Excel.</small>
+                    </div>
                 </div>
             </div>
-            <div class="card-body">
-                <form action="{{ route('laporan.cetakpresensi') }}" method="POST" target="_blank" id="formPresensi" class="mt-2">
+            <div class="card-body p-4">
+                <form action="{{ route('laporan.cetakpresensi') }}" method="POST" target="_blank" id="formPresensi">
                     @csrf
                     <input type="hidden" name="format_laporan" value="1">
                     <div class="form-group mb-3">
+                        <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Cabang / Outlet</label>
                         <select name="kode_cabang" id="kode_cabang" class="form-select select2">
                             <option value="">Semua Cabang</option>
                             @foreach ($cabang as $d)
@@ -28,6 +35,7 @@
                     </div>
 
                     <div class="form-group mb-3">
+                        <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Departemen</label>
                         <select name="kode_dept" id="kode_dept" class="form-select select2">
                             <option value="">Semua Departemen</option>
                             @foreach ($departemen as $d)
@@ -37,12 +45,14 @@
                     </div>
 
                     <div class="form-group mb-3">
+                        <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Karyawan</label>
                         <select name="nik" id="nik" class="form-select select2">
                             <option value="">Semua Karyawan</option>
                         </select>
                     </div>
 
                     <div class="form-group mb-3">
+                        <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Periode Laporan</label>
                         <select name="periode_laporan" id="periode_laporan" class="form-select">
                             <option value="">Periode Laporan</option>
                             <option value="1" selected>Periode Gaji</option>
@@ -54,11 +64,13 @@
                     <div class="row" id="baris_tanggal">
                         <div class="col-6">
                             <div class="form-group mb-3">
+                                <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Dari Tanggal</label>
                                 <input type="text" name="dari" id="dari" class="form-control flatpickr-date" placeholder="Dari">
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group mb-3">
+                                <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Sampai Tanggal</label>
                                 <input type="text" name="sampai" id="sampai" class="form-control flatpickr-date" placeholder="Sampai">
                             </div>
                         </div>
@@ -67,6 +79,7 @@
                     <div class="row" id="baris_bulan">
                         <div class="col">
                             <div class="form-group mb-3">
+                                <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Bulan</label>
                                 <select name="bulan" id="bulan" class="form-select">
                                     <option value="">Bulan</option>
                                     @foreach ($list_bulan as $d)
@@ -81,6 +94,7 @@
                     <div class="row" id="baris_tahun">
                         <div class="col">
                             <div class="form-group mb-3">
+                                <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Tahun</label>
                                 <select name="tahun" id="tahun" class="form-select">
                                     <option value="">Tahun</option>
                                     @for ($t = $start_year; $t <= date('Y'); $t++)
@@ -92,21 +106,26 @@
                     </div>
 
                     <div class="form-group mb-3">
+                        <label class="form-label text-dark fw-semibold" style="font-size: 12px;">Format Rekap</label>
                         <select name="format_rekap" id="format_rekap" class="form-select">
                             <option value="1">Format 1 (Default)</option>
                             <option value="2">Format 2 (Struktur Baru)</option>
                         </select>
                     </div>
 
-                    <div class="row mt-2">
+                    <div class="row pt-2">
                         <div class="col-lg-6 col-md-6 col-sm-12 mb-2">
-                            <button type="submit" name="submitButton" class="btn btn-primary w-100">
-                                <i class="ti ti-printer me-1"></i> Cetak
+                            <button type="submit" name="submitButton" class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center gap-1.5"
+                                style="background-color: #1E4D3E; border-color: #1E4D3E; height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
+                                <i class="ti ti-printer"></i>
+                                <span>Cetak Laporan</span>
                             </button>
                         </div>
                         <div class="col-lg-6 col-md-6 col-sm-12 mb-2">
-                            <button type="submit" name="exportButton" class="btn btn-success w-100">
-                                <i class="ti ti-download me-1"></i> Export Excel
+                            <button type="submit" name="exportButton" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center gap-1.5"
+                                style="background-color: #059669; border-color: #059669; height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
+                                <i class="ti ti-download"></i>
+                                <span>Export Excel</span>
                             </button>
                         </div>
                     </div>

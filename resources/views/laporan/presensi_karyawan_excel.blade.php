@@ -102,7 +102,7 @@
                         'tanggal' => $tanggal_presensi,
                     ];
 
-                    $ceklibur = ceklibur($datalibur, $search);
+                    $ceklibur = isset($datalibur_indexed) ? ($datalibur_indexed[$karyawan->nik . '|' . $tanggal_presensi] ?? ($datalibur_by_tanggal[$tanggal_presensi] ?? [])) : ceklibur($datalibur, $search);
 
                     // Cek snapshot lembur (data terkunci)
                     $d_row = $presensiByDate[$tanggal_presensi] ?? null;

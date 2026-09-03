@@ -31,7 +31,8 @@ class UpdateController extends Controller
     public function checkUpdate(Request $request)
     {
         try {
-            $updateServerUrl = $request->input('update_server_url');
+            // Ambil URL server resmi dari config untuk mencegah SSRF
+            $updateServerUrl = config('update.server_url');
             $result = $this->updateService->checkUpdate($updateServerUrl);
 
             return response()->json([

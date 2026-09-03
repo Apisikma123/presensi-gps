@@ -46,6 +46,16 @@ class Izinabsen extends Model
         return $this->morphMany(Approval::class, 'approvable');
     }
 
+    public function canApprove($user = null)
+    {
+        return $this->status == 0;
+    }
+
+    public function hasApproved($user = null)
+    {
+        return $this->status == 1;
+    }
+
     public function isWaitingFor($roleName)
     {
         if ($this->status != 0) return false;

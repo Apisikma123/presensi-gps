@@ -14,10 +14,10 @@ class MasterAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Dapatkan user adamadifa
-        $user = User::where('username', 'adamadifa')->first();
+        // 1. Dapatkan user admin
+        $user = User::where('username', 'admin')->first();
         if (!$user) {
-            $this->command->error("User 'adamadifa' tidak ditemukan.");
+            $this->command->error("User 'admin' tidak ditemukan.");
             return;
         }
 
@@ -30,11 +30,11 @@ class MasterAdminSeeder extends Seeder
         // 4. Assign semua permission ke role master admin
         $role->syncPermissions($permissions);
 
-        // 5. Assign role master admin ke user adamadifa
+        // 5. Assign role master admin ke user admin
         if (!$user->hasRole('master admin')) {
             $user->assignRole($role);
         }
 
-        $this->command->info("Role 'master admin' berhasil dibuat dengan " . count($permissions) . " permission dan di-assign ke user 'adamadifa'.");
+        $this->command->info("Role 'master admin' berhasil dibuat dengan " . count($permissions) . " permission dan di-assign ke user 'admin'.");
     }
 }

@@ -243,11 +243,21 @@
                 return 0;
             }
 
+            const btnToday = {
+                content: 'Hari ini',
+                className: 'air-datepicker-button-today',
+                onClick: (dp) => {
+                    const today = new Date();
+                    dp.selectDate(today);
+                    dp.setViewDate(today);
+                }
+            };
+
             const dpDari = new AirDatepicker('#dari', {
                 locale: localeIndo,
                 autoClose: true,
                 isMobile: true,
-                buttons: ['today', 'clear'],
+                buttons: [btnToday, 'clear'],
                 onSelect: ({date, formattedDate}) => {
                     let sampai = document.getElementById('sampai').value;
                     let jmlhari = hitungHari(formattedDate, sampai);
@@ -259,7 +269,7 @@
                 locale: localeIndo,
                 autoClose: true,
                 isMobile: true,
-                buttons: ['today', 'clear'],
+                buttons: [btnToday, 'clear'],
                 onSelect: ({date, formattedDate}) => {
                     let dari = document.getElementById('dari').value;
                     let jmlhari = hitungHari(dari, formattedDate);

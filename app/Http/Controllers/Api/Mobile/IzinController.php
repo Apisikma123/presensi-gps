@@ -88,7 +88,7 @@ class IzinController extends Controller
             'dari' => 'required|date_format:Y-m-d',
             'sampai' => 'required|date_format:Y-m-d|after_or_equal:dari',
             'keterangan' => 'required|string',
-            'sid' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240', // for sickness
+            'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // for sickness
         ]);
 
         if ($validator->fails()) {

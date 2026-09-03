@@ -437,12 +437,22 @@
                 dateFormat: 'yyyy-MM-dd', timeFormat: 'HH:mm', firstDay: 1
             };
 
+            const btnToday = {
+                content: 'Hari ini',
+                className: 'air-datepicker-button-today',
+                onClick: (dp) => {
+                    const today = new Date();
+                    dp.selectDate(today);
+                    dp.setViewDate(today);
+                }
+            };
+
             new AirDatepicker('#tanggal', {
                 locale: localeIndo,
                 autoClose: true,
                 isMobile: true,
                 selectedDates: [new Date()],
-                buttons: ['today', 'clear']
+                buttons: [btnToday, 'clear']
             });
 
             // ========== MONEY FORMAT ==========

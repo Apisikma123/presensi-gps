@@ -281,7 +281,7 @@ class PresensiController extends Controller
 
     function sendwa($no_hp, $message)
     {
-        dispatch(new SendWaMessage($no_hp, $message));
+        // WA Gateway removed for MVP
     }
 
 /**

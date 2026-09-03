@@ -105,7 +105,7 @@ class LaporanController extends Controller
             ->join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
             ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
             ->select('presensi.nik', 'presensi.tanggal', 'presensi_izincuti.kode_cuti')
-            ->whereRaw('YEAR(presensi.tanggal) = ?', [$tahun])
+            ->whereBetween('presensi.tanggal', ["{$tahun}-01-01", "{$tahun}-12-31"])
             ->get();
 
         // Process data structure
@@ -1720,7 +1720,10 @@ class LaporanController extends Controller
         $data['periode_dari'] = $periode_dari;
         $data['periode_sampai'] = $periode_sampai;
         $data['jmlhari'] = hitungJumlahHari($periode_dari, $periode_sampai) + 1;
-        $data['datalibur'] = getdatalibur($periode_dari, $periode_sampai);
+        $liburData = getdataliburIndexed($periode_dari, $periode_sampai);
+        $data['datalibur'] = $liburData['raw'];
+        $data['datalibur_indexed'] = $liburData['indexed'];
+        $data['datalibur_by_tanggal'] = $liburData['by_tanggal'];
         $data['generalsetting'] = $generalsetting;
         $data['jadwal_bydate'] = $jadwal_bydate;
         $data['jadwal_grup_bydate'] = $jadwal_grup_bydate;

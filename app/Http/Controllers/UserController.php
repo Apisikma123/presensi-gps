@@ -284,13 +284,19 @@ class UserController extends Controller
     public function editpassword($id)
     {
         $id = Crypt::decrypt($id);
-        $user = User::where('id', $id)->first();
+        if (auth()->id() !== (int)$id && !auth()->user()->hasRole('super admin')) {
+            abort(403, 'Akses ditolak. Anda tidak berhak mengubah data user ini.');
+        }
+        $user = User::where('id', $id)->firstOrFail();
         return view('settings.users.editpassword', compact('user'));
     }
 
     public function updatepassword(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
+        if (auth()->id() !== (int)$id && !auth()->user()->hasRole('super admin')) {
+            abort(403, 'Akses ditolak. Anda tidak berhak mengubah data user ini.');
+        }
         $request->validate([
             'username' => 'required|unique:users,username,' . $id,
             'konfirmasipassword' => 'same:passwordbaru'

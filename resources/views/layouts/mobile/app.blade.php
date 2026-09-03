@@ -101,7 +101,6 @@
     <link rel="icon" type="image/png" href="{{ asset('logo.png') }}" sizes="32x32">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logo.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/template/css/styleform.css') }}">
 
     <link rel="manifest" href="{{ asset('manifest.json') }}?v={{ file_exists(public_path('manifest.json')) ? filemtime(public_path('manifest.json')) : time() }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">

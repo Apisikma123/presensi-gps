@@ -19,6 +19,16 @@ class Izincuti extends Model
         return $this->morphMany(Approval::class, 'approvable');
     }
 
+    public function canApprove($user = null)
+    {
+        return $this->status == 0;
+    }
+
+    public function hasApproved($user = null)
+    {
+        return $this->status == 1;
+    }
+
     public function getNextApprovalLayer()
     {
         // Asumsi Feature Code untuk model ini adalah 'IZIN'

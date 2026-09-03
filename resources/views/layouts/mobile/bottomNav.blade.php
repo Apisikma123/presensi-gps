@@ -16,6 +16,14 @@
     }
 
     /* Items Layout */
+    .appBottomMenu a,
+    .appBottomMenu a:visited,
+    .appBottomMenu .item,
+    .appBottomMenu .item:visited {
+        color: #64748b !important;
+        text-decoration: none !important;
+    }
+
     .appBottomMenu .item {
         width: 20%;
         height: 56px;

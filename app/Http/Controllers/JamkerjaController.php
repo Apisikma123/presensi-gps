@@ -13,9 +13,10 @@ class JamkerjaController extends Controller
     {
         $query = Jamkerja::query();
         if (!empty($request->nama_jam_kerja_search)) {
-            $query->where('nama_jam_kerja', 'like', '%' . $request->nama_jam_kerja_search . '%');
+            $query->where('nama_jam_kerja', 'like', '%' . $request->nama_jam_kerja_search . '%')
+                  ->orWhere('kode_jam_kerja', 'like', '%' . $request->nama_jam_kerja_search . '%');
         }
-        $data['jamkerja'] = $query->get();
+        $data['jamkerja'] = $query->orderBy('jam_masuk')->paginate(10)->withQueryString();
 
         return view('datamaster.jamkerja.index', $data);
     }

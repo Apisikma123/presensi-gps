@@ -5,6 +5,9 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Login | {{ $general_setting->nama_aplikasi ?? 'Sign in' }}</title>
 
     <!-- PWA Meta Tags -->
@@ -15,7 +18,7 @@
     <meta name="description" content="Aplikasi {{ $general_setting->nama_aplikasi ?? 'Presensi GPS' }} untuk Karyawan">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#696cff">
+    <meta name="theme-color" content="#1E4D3E">
 
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="/assets/img/icons/pwa/icon-192x192.png">
@@ -237,6 +240,13 @@
                 userInput.focus();
             }
         }
+
+        // Auto-refresh token if page is restored from bfcache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
     </script>
 
     <!-- PWA Install Prompt - Only on Login Page -->

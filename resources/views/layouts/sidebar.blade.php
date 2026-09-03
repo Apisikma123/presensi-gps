@@ -1,10 +1,10 @@
  <!-- Menu -->
 
  <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-     <div class="app-brand demo" style="height: 85px !important">
-         <a href="{{ route('dashboard.index') }}" class="app-brand-link">
-             <span class="app-brand-logo rounded-circle demo d-flex align-items-center justify-content-center"
-                 style="background: var(--theme-color-2); width: 46px; height: 46px !important; overflow: hidden;">
+     <div class="app-brand demo px-3" style="height: 76px !important;">
+         <a href="{{ route('dashboard.index') }}" class="app-brand-link d-flex align-items-center text-decoration-none">
+             <span class="app-brand-logo rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="background: rgba(255, 255, 255, 0.12); width: 40px; height: 40px !important; overflow: hidden; border: 1px solid rgba(255,255,255,0.18);">
                  @if (!empty($general_setting->logo) && Storage::disk('public')->exists('logo/' . $general_setting->logo))
                      <img src="{{ asset('storage/logo/' . $general_setting->logo) }}" alt="Logo" class="w-100 h-100"
                          style="object-fit: cover;">
@@ -13,19 +13,18 @@
                          style="object-fit: cover;">
                  @endif
              </span>
-             <span class="app-brand-text demo menu-text fw-bold d-flex flex-column ms-2"
-                 style="letter-spacing: 1px; color: #fff;">
-                 <span style="font-size: 18px;">{{ $general_setting->nama_aplikasi ?? 'HR Presence' }}</span>
-                 <small class="mt-1" style="font-size: 11px; letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.7);">
+             <div class="d-flex flex-column ms-3">
+                 <span class="fw-bold text-white lh-1" style="font-size: 15px; letter-spacing: -0.01em;">
+                     {{ $general_setting->nama_aplikasi ?? 'HR Presence' }}
+                 </span>
+                 <span class="text-white-50 mt-1" style="font-size: 11px; letter-spacing: 0.02em;">
                      Smart Attendance System
-                 </small>
-                 <small class="mt-1">Version 1.0 MVP</small>
-             </span>
+                 </span>
+             </div>
          </a>
 
-         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
-             <i class="ti menu-toggle-icon d-none d-xl-block ti-sm align-top mb-4"></i>
-             <i class="ti ti-x d-block d-xl-none ti-sm align-middle"></i>
+         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-xl-none">
+             <i class="ti ti-x ti-sm align-middle text-white"></i>
          </a>
      </div>
 
@@ -48,30 +47,32 @@
          });
      @endphp
 
-     <div class="px-3 pb-3 py-3">
-         <div class="d-flex align-items-center rounded-3 p-3 shadow-sm"
-             style="background: var(--theme-color-2); border: 1px solid rgba(0,0,0,0.05);">
+     <div class="px-3 py-2 mb-2">
+         <div class="d-flex align-items-center rounded-3 p-2.5"
+             style="background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px);">
              <div class="flex-shrink-0 position-relative">
                  @if ($userPhoto)
-                     <div class="rounded-circle border border-3 shadow"
-                         style="width: 48px; height: 48px; background-image: url('{{ $userPhoto }}'); background-size: cover; background-position: center; border-color: rgba(0,0,0,0.08) !important;">
+                     <div class="rounded-circle shadow-sm"
+                         style="width: 40px; height: 40px; background-image: url('{{ $userPhoto }}'); background-size: cover; background-position: center; border: 2px solid rgba(255,255,255,0.25);">
                      </div>
                  @else
-                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow"
-                         style="width: 48px; height: 48px; font-size: 22px; background: #fff; color: var(--theme-color-2) !important;">
+                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                         style="width: 40px; height: 40px; font-size: 18px; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
                          <i class="ti ti-user"></i>
                      </div>
                  @endif
              </div>
-             <div class="flex-grow-1 ms-3">
-                 <div class="fw-bold mb-0" style="font-size: 14px; color: #fff;">{{ $userName }}</div>
-                 <small class="text-uppercase"
-                     style="letter-spacing: 0.5px; font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 500;">{{ $userRoleText }}</small>
+             <div class="flex-grow-1 ms-2.5 overflow-hidden">
+                 <div class="fw-bold text-white text-truncate mb-0" style="font-size: 13.5px;">{{ $userName }}</div>
+                 <span class="badge px-1.5 py-0.5 mt-0.5 text-uppercase"
+                     style="font-size: 9.5px; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); font-weight: 600; letter-spacing: 0.04em;">
+                     {{ $userRoleText }}
+                 </span>
              </div>
-             <a href="{{ route('profile.editprofile') }}" class="btn btn-sm rounded-2 shadow-sm"
-                 style="background: {{ $general_setting->theme_color_1 }}; border: none; color: #fff; padding: 6px 12px;"
-                 data-bs-toggle="tooltip" title="Edit Profile">
-                 <i class="ti ti-settings" style="font-size: 16px;"></i>
+             <a href="{{ route('profile.editprofile') }}" class="btn btn-sm p-1.5 ms-1 text-white rounded-2"
+                 style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);"
+                 data-bs-toggle="tooltip" title="Pengaturan Profil">
+                 <i class="ti ti-settings" style="font-size: 15px;"></i>
              </a>
          </div>
      </div>
@@ -134,11 +135,44 @@
              </li>
          @endif
 
-         <!-- Presensi & GPS (Monitoring, Tracking, Face Kiosk) -->
+         <!-- Manajemen Shift & Jadwal Operasional (Coffee Shop Roster) -->
+        @if (auth()->user()->hasAnyPermission(['jamkerja.index', 'jamkerjabydept.index', 'ajuanjadwal.index']))
+            <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*', 'jamkerjabydept', 'jamkerjabydept/*', 'ajuanjadwal', 'ajuanjadwal/*']) ? 'open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons ti ti-clock-play"></i>
+                    <div>Manajemen Shift</div>
+                </a>
+                <ul class="menu-sub">
+                    @can('jamkerja.index')
+                        <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*']) ? 'active' : '' }}">
+                            <a href="{{ route('jamkerja.index') }}" class="menu-link">
+                                <div>Master Shift Kerja</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('jamkerjabydept.index')
+                        <li class="menu-item {{ request()->is(['jamkerjabydept', 'jamkerjabydept/*']) ? 'active' : '' }}">
+                            <a href="{{ route('jamkerjabydept.index') }}" class="menu-link">
+                                <div>Jadwal Shift Departemen</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('ajuanjadwal.index')
+                        <li class="menu-item {{ request()->is(['ajuanjadwal', 'ajuanjadwal/*']) ? 'active' : '' }}">
+                            <a href="{{ route('ajuanjadwal.index') }}" class="menu-link">
+                                <div>Pengajuan Tukar Shift</div>
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
+            </li>
+        @endif
+
+        <!-- Presensi & GPS (Monitoring, Tracking) -->
          @if (auth()->user()->hasAnyPermission(['presensi.index', 'trackingpresensi.index']))
-             <li class="menu-item {{ request()->is(['presensi', 'presensi/*', 'trackingpresensi', 'trackingpresensi/*', 'facerecognition-presensi*']) ? 'open' : '' }}">
+             <li class="menu-item {{ request()->is(['presensi', 'presensi/*', 'trackingpresensi', 'trackingpresensi/*']) ? 'open' : '' }}">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
-                     <i class="menu-icon tf-icons ti ti-fingerprint"></i>
+                     <i class="menu-icon tf-icons ti ti-map-pin-check"></i>
                      <div>Presensi & GPS</div>
                  </a>
                  <ul class="menu-sub">
@@ -156,11 +190,6 @@
                              </a>
                          </li>
                      @endcan
-                     <li class="menu-item {{ request()->is(['facerecognition-presensi', 'facerecognition-presensi/*']) ? 'active' : '' }}">
-                         <a href="{{ route('facerecognition-presensi.index') }}" class="menu-link" target="_blank">
-                             <div>Kiosk Face Recognition ↗</div>
-                         </a>
-                     </li>
                  </ul>
              </li>
          @endif
@@ -204,58 +233,39 @@
              </li>
          @endif
 
-         <!-- Konfigurasi Jam Kerja & Outlet -->
-         @if (auth()->user()->hasAnyPermission(['generalsetting.index', 'jamkerja.index', 'harilibur.index']))
-             <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*', 'jamkerja', 'jamkerja/*', 'harilibur', 'harilibur/*']) ? 'open' : '' }}">
-                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                     <i class="menu-icon tf-icons ti ti-settings"></i>
-                     <div>Pengaturan Outlet</div>
-                 </a>
-                 <ul class="menu-sub">
-                     @can('generalsetting.index')
-                         <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*']) ? 'active' : '' }}">
-                             <a href="{{ route('generalsetting.index') }}" class="menu-link">
-                                 <div>Pengaturan Umum & GPS</div>
-                             </a>
-                         </li>
-                     @endcan
-                     @can('jamkerja.index')
-                         <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*']) ? 'active' : '' }}">
-                             <a href="{{ route('jamkerja.index') }}" class="menu-link">
-                                 <div>Jam Kerja & Shift</div>
-                             </a>
-                         </li>
-                     @endcan
-                     @can('harilibur.index')
-                         <li class="menu-item {{ request()->is(['harilibur', 'harilibur/*']) ? 'active' : '' }}">
-                             <a href="{{ route('harilibur.index') }}" class="menu-link">
-                                 <div>Hari Libur Outlet</div>
-                             </a>
-                         </li>
-                     @endcan
-                 </ul>
-             </li>
-         @endif
+        <!-- Konfigurasi Outlet -->
+        @if (auth()->user()->hasAnyPermission(['generalsetting.index', 'harilibur.index']))
+            <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*', 'harilibur', 'harilibur/*']) ? 'open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons ti ti-settings"></i>
+                    <div>Pengaturan Outlet</div>
+                </a>
+                <ul class="menu-sub">
+                    @can('generalsetting.index')
+                        <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*']) ? 'active' : '' }}">
+                            <a href="{{ route('generalsetting.index') }}" class="menu-link">
+                                <div>Pengaturan Umum & GPS</div>
+                            </a>
+                        </li>
+                    @endcan
+                    @can('harilibur.index')
+                        <li class="menu-item {{ request()->is(['harilibur', 'harilibur/*']) ? 'active' : '' }}">
+                            <a href="{{ route('harilibur.index') }}" class="menu-link">
+                                <div>Hari Libur Outlet</div>
+                            </a>
+                        </li>
+                    @endcan
+                </ul>
+            </li>
+        @endif
 
          <!-- User Management -->
          @if (auth()->user()->hasRole(['super admin']))
-             <li class="menu-item {{ request()->is(['users', 'users/*', 'roles', 'roles/*']) ? 'open' : '' }} ">
-                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                     <i class="menu-icon tf-icons ti ti-shield-lock"></i>
+             <li class="menu-item {{ request()->is(['users', 'users/*']) ? 'active' : '' }}">
+                 <a href="{{ route('users.index') }}" class="menu-link">
+                     <i class="menu-icon tf-icons ti ti-users"></i>
                      <div>Manajemen Akun</div>
                  </a>
-                 <ul class="menu-sub">
-                     <li class="menu-item {{ request()->is(['users', 'users/*']) ? 'active' : '' }}">
-                         <a href="{{ route('users.index') }}" class="menu-link">
-                             <div>Data User</div>
-                         </a>
-                     </li>
-                     <li class="menu-item {{ request()->is(['roles', 'roles/*']) ? 'active' : '' }}">
-                         <a href="{{ route('roles.index') }}" class="menu-link">
-                             <div>Hak Akses / Role</div>
-                         </a>
-                     </li>
-                 </ul>
              </li>
          @endif
 

@@ -16,7 +16,6 @@ use App\Models\User;
 use App\Models\Userkaryawan;
 use App\Models\Pengaturanumum;
 use App\Http\Controllers\KaryawanApprovalController;
-use App\Jobs\SendWaMessage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,13 +26,14 @@ class DashboardController extends Controller
     public function index(StatusKaryawanChart $chart, JeniskelaminkaryawanChart $jkchart, PendidikankaryawanChart $pddchart, Request $request)
     {
         $agent = new Agent();
-        $user = User::where('id', auth()->user()->id)->first();
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
 
         // Gunakan Carbon dengan timezone aplikasi (dari config/app.php)
         // BUKAN date() yang menggunakan timezone PHP default
         $hari_ini = Carbon::now(config('app.timezone'))->format('Y-m-d');
         if ($user->hasRole('karyawan')) {
-            $userkaryawan = Userkaryawan::where('id_user', auth()->user()->id)->first();
+            $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
             $data['karyawan'] = Karyawan::where('nik', $userkaryawan->nik)
                 ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
                 ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
@@ -48,10 +48,9 @@ class DashboardController extends Controller
 
                 ->leftJoin('presensi_izinsakit_approve', 'presensi.id', '=', 'presensi_izinsakit_approve.id_presensi')
                 ->leftJoin('presensi_izinsakit', 'presensi_izinsakit_approve.kode_izin_sakit', '=', 'presensi_izinsakit.kode_izin_sakit')
-
                 ->leftJoin('presensi_izincuti_approve', 'presensi.id', '=', 'presensi_izincuti_approve.id_presensi')
                 ->leftJoin('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
-                ->leftJoin('mesin_fingerprints', 'presensi.id_mesin', '=', 'mesin_fingerprints.id')
+
                 ->select(
                     'presensi.*',
                     'presensi_jamkerja.nama_jam_kerja',
@@ -61,12 +60,14 @@ class DashboardController extends Controller
                     'presensi_jamkerja.lintashari',
                     'presensi_izinabsen.keterangan as keterangan_izin',
                     'presensi_izinsakit.keterangan as keterangan_izin_sakit',
-                    'presensi_izincuti.keterangan as keterangan_izin_cuti',
-                    'mesin_fingerprints.nama_mesin'
+                    'presensi_izincuti.keterangan as keterangan_izin_cuti'
                 )
                 ->orderBy('presensi.tanggal', 'desc')
                 ->limit(30)
                 ->get();
+
+            $startOfMonth = Carbon::parse($hari_ini)->startOfMonth()->toDateString();
+            $endOfMonth = Carbon::parse($hari_ini)->endOfMonth()->toDateString();
             $data['rekappresensi'] = Presensi::select(
                 DB::raw("SUM(IF(status='h',1,0)) as hadir"),
                 DB::raw("SUM(IF(status='i',1,0)) as izin"),
@@ -74,10 +75,8 @@ class DashboardController extends Controller
                 DB::raw("SUM(IF(status='a',1,0)) as alpa"),
                 DB::raw("SUM(IF(status='c',1,0)) as cuti")
             )
-                ->groupBy('presensi.nik')
-                ->whereRaw('MONTH(presensi.tanggal) = MONTH(?)', [$hari_ini])
-                ->whereRaw('YEAR(presensi.tanggal) = YEAR(?)', [$hari_ini])
                 ->where('presensi.nik', $userkaryawan->nik)
+                ->whereBetween('presensi.tanggal', [$startOfMonth, $endOfMonth])
                 ->first();
 
             $data['lembur'] = Lembur::where('nik', $userkaryawan->nik)
@@ -144,7 +143,7 @@ class DashboardController extends Controller
 
             // Cek Pengumuman Aktif (Ambil yang terakhir dibuat)
             $data['pengumuman'] = Pengumuman::orderBy('created_at', 'desc')->first();
-            $data['namasettings'] = Pengaturanumum::first();
+            $data['namasettings'] = Pengaturanumum::getSetting();
             $data['denda_list'] = Denda::orderBy('dari')->get()->toArray();
             $data['pendingApprovalCount'] = KaryawanApprovalController::getPendingCount(auth()->user()->id);
             $data['bulan_skrg'] = Carbon::parse($hari_ini)->translatedFormat('F');
@@ -266,6 +265,86 @@ class DashboardController extends Controller
             $data['kontrak_bulanini'] = $sk->getRekapkontrak(1, !empty($targetCabangs) ? $targetCabangs : null, !empty($targetDepartemens) ? $targetDepartemens : null);
             $data['kontrak_bulandepan'] = $sk->getRekapkontrak(2, !empty($targetCabangs) ? $targetCabangs : null, !empty($targetDepartemens) ? $targetDepartemens : null);
             $data['kontrak_duabulan'] = $sk->getRekapkontrak(3, !empty($targetCabangs) ? $targetCabangs : null, !empty($targetDepartemens) ? $targetDepartemens : null);
+            // 6. Monitoring Shift Kerja Operasional Coffee Shop Hari Ini
+            $todayStr = Carbon::now(config('app.timezone'))->format('Y-m-d');
+            $namaHariIndo = getnamaHari(date('D', strtotime($todayStr)));
+
+            $masterShifts = DB::table('presensi_jamkerja')->orderBy('jam_masuk', 'asc')->get();
+
+            $karyawanList = Karyawan::where('status_aktif_karyawan', 1)
+                ->when(!empty($targetCabangs), function ($query) use ($targetCabangs) {
+                    $query->whereIn('karyawan.kode_cabang', $targetCabangs);
+                })
+                ->when(!empty($targetDepartemens), function ($query) use ($targetDepartemens) {
+                    $query->whereIn('karyawan.kode_dept', $targetDepartemens);
+                })
+                ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+                ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+                ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+                ->select(
+                    'karyawan.nik',
+                    'karyawan.nama_karyawan',
+                    'karyawan.foto',
+                    'karyawan.kode_dept',
+                    'karyawan.kode_cabang',
+                    'karyawan.kode_jabatan',
+                    'jabatan.nama_jabatan',
+                    'departemen.nama_dept',
+                    'cabang.nama_cabang'
+                )
+                ->get();
+
+            $presensiToday = DB::table('presensi')
+                ->where('tanggal', $todayStr)
+                ->pluck('status', 'nik')
+                ->toArray();
+
+            $bydateMap = DB::table('presensi_jamkerja_bydate')->where('tanggal', $todayStr)->pluck('kode_jam_kerja', 'nik')->toArray();
+            $bydayMap = DB::table('presensi_jamkerja_byday')->where('hari', $namaHariIndo)->pluck('kode_jam_kerja', 'nik')->toArray();
+            $deptMap = DB::table('presensi_jamkerja_bydept_detail')
+                ->join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
+                ->where('presensi_jamkerja_bydept_detail.hari', $namaHariIndo)
+                ->pluck('presensi_jamkerja_bydept_detail.kode_jam_kerja', 'presensi_jamkerja_bydept.kode_dept')
+                ->toArray();
+
+            $shiftSummary = [];
+            foreach ($masterShifts as $ms) {
+                $shiftSummary[$ms->kode_jam_kerja] = [
+                    'kode' => $ms->kode_jam_kerja,
+                    'nama' => $ms->nama_jam_kerja,
+                    'jam_masuk' => substr($ms->jam_masuk, 0, 5),
+                    'jam_pulang' => substr($ms->jam_pulang, 0, 5),
+                    'total_jam' => $ms->total_jam,
+                    'color' => $ms->color ?? '#1E4D3E',
+                    'karyawan' => [],
+                    'hadir' => 0,
+                    'belum_masuk' => 0,
+                ];
+            }
+
+            foreach ($karyawanList as $kar) {
+                $assignedShiftCode = $bydateMap[$kar->nik] ?? $bydayMap[$kar->nik] ?? $deptMap[$kar->kode_dept] ?? ($masterShifts->first()->kode_jam_kerja ?? null);
+                if ($assignedShiftCode && isset($shiftSummary[$assignedShiftCode])) {
+                    $statusHadir = $presensiToday[$kar->nik] ?? 'bm';
+                    if ($statusHadir === 'h') {
+                        $shiftSummary[$assignedShiftCode]['hadir']++;
+                    } else {
+                        $shiftSummary[$assignedShiftCode]['belum_masuk']++;
+                    }
+                    $shiftSummary[$assignedShiftCode]['karyawan'][] = [
+                        'nik' => $kar->nik,
+                        'nama_karyawan' => $kar->nama_karyawan,
+                        'nama_jabatan' => $kar->nama_jabatan,
+                        'nama_cabang' => $kar->nama_cabang,
+                        'foto' => $kar->foto,
+                        'status' => $statusHadir,
+                    ];
+                }
+            }
+            $data['shift_operasional'] = array_values($shiftSummary);
+            $data['total_shift_karyawan'] = count($karyawanList);
+            $data['pending_tukar_shift'] = DB::table('ajuan_jadwal')->where('status', 'p')->count();
+
             // Storage Usage Info
             if ($user->hasRole('master admin')) {
                 try {
@@ -293,7 +372,7 @@ class DashboardController extends Controller
 
             // Expiration warning alert (7 days or less)
             $data['expired_alert'] = null;
-            $setting = Pengaturanumum::first();
+            $setting = Pengaturanumum::getSetting();
             if ($setting && $setting->expired) {
                 $today = Carbon::today();
                 $expiredDate = Carbon::parse($setting->expired);
@@ -309,74 +388,6 @@ class DashboardController extends Controller
             }
 
             return view('dashboard.dashboard', $data);
-        }
-    }
-
-    public function kirimUcapanBirthday(Request $request)
-    {
-        try {
-            // Ambil karyawan yang ulang tahun hari ini (menggunakan timezone aplikasi)
-            $today = Carbon::now(config('app.timezone'));
-            $birthday = Karyawan::where('status_aktif_karyawan', 1)
-                ->whereMonth('tanggal_lahir', $today->month)
-                ->whereDay('tanggal_lahir', $today->day)
-                ->when($request->kode_cabang, function ($query) use ($request) {
-                    $query->where('kode_cabang', $request->kode_cabang);
-                })
-                ->when($request->kode_dept, function ($query) use ($request) {
-                    $query->where('kode_dept', $request->kode_dept);
-                })
-                ->whereNotNull('no_hp')
-                ->where('no_hp', '!=', '')
-                ->get();
-
-            if ($birthday->count() == 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak ada karyawan yang ulang tahun hari ini atau tidak ada nomor HP yang tersedia.'
-                ], 400);
-            }
-
-            $count = 0;
-            foreach ($birthday as $karyawan) {
-                // Hitung umur
-                $umur = Carbon::parse($karyawan->tanggal_lahir)->age;
-
-                // Format pesan ucapan ulang tahun
-                $message = "🎉 *Selamat Ulang Tahun!* 🎂\n\n";
-                $message .= "Halo *{$karyawan->nama_karyawan}*,\n\n";
-                $message .= "Di hari yang istimewa ini, kami ingin mengucapkan:\n\n";
-                $message .= "🎂 *Selamat Ulang Tahun yang ke-{$umur}!* 🎂\n\n";
-                $message .= "Semoga di hari ulang tahunmu ini:\n";
-                $message .= "✨ Panjang umur\n";
-                $message .= "✨ Sehat selalu\n";
-                $message .= "✨ Bahagia selalu\n";
-                $message .= "✨ Sukses dalam karir\n";
-                $message .= "✨ Diberkahi rezeki yang berlimpah\n\n";
-                $message .= "Terima kasih atas dedikasi dan kontribusinya selama ini. Semoga hubungan kerja kita terus berjalan dengan baik!\n\n";
-                $message .= "*Salam Hangat,*\nTim HR";
-
-                // Format nomor HP (hapus 0 di depan jika ada, pastikan format 62xxx)
-                $phoneNumber = $karyawan->no_hp;
-                $phoneNumber = preg_replace('/^0+/', '', $phoneNumber);
-                if (!str_starts_with($phoneNumber, '62')) {
-                    $phoneNumber = '62' . $phoneNumber;
-                }
-
-                // Dispatch job untuk mengirim WhatsApp
-                SendWaMessage::dispatch($phoneNumber, $message, true);
-                $count++;
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => "Ucapan ulang tahun sedang dikirim ke {$count} karyawan."
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
         }
     }
 

@@ -175,6 +175,7 @@ class AktivitasKaryawanController extends Controller
         $data = $request->only(['nik', 'aktivitas', 'lokasi']);
 
         // Handle foto upload (base64 or file)
+        $allowedExtensions = ['jpeg' => 'jpg', 'jpg' => 'jpg', 'png' => 'png', 'webp' => 'webp'];
         if ($request->filled('foto')) {
             // Handle base64 foto from camera
             $fotoData = $request->input('foto');
@@ -182,32 +183,34 @@ class AktivitasKaryawanController extends Controller
                 // Extract base64 data
                 $image_parts = explode(";base64,", $fotoData);
                 $image_type_aux = explode("image/", $image_parts[0]);
-                $image_type = $image_type_aux[1];
+                $image_type = strtolower($image_type_aux[1] ?? 'jpeg');
+                $extension = $allowedExtensions[$image_type] ?? 'jpg';
                 $image_base64 = base64_decode($image_parts[1]);
 
-                // Generate filename
-                $fotoName = time() . '_aktivitas.' . $image_type;
+                // Generate secure filename
+                $fotoName = time() . '_' . uniqid() . '_aktivitas.' . $extension;
 
                 // Save file
                 $destinationPath = 'public/uploads/aktivitas/';
                 if (!Storage::exists($destinationPath)) {
                     Storage::makeDirectory($destinationPath, 0775, true);
-                    $path = Storage::path($destinationPath);
-                    chmod($path, 0775);
                 }
                 Storage::put($destinationPath . $fotoName, $image_base64);
                 $data['foto'] = $fotoName;
             }
         } elseif ($request->hasFile('foto')) {
             // Handle file upload (for admin)
+            $request->validate([
+                'foto' => 'image|mimes:jpeg,png,jpg,webp|max:5120'
+            ]);
             $foto = $request->file('foto');
-            $fotoName = time() . '_' . $foto->getClientOriginalName();
+            $ext = strtolower($foto->getClientOriginalExtension());
+            $extension = $allowedExtensions[$ext] ?? 'jpg';
+            $fotoName = time() . '_' . uniqid() . '_aktivitas.' . $extension;
             
             $destinationPath = 'public/uploads/aktivitas';
             if (!Storage::exists($destinationPath)) {
                 Storage::makeDirectory($destinationPath, 0775, true);
-                $path = Storage::path($destinationPath);
-                chmod($path, 0775);
             }
             
             $foto->storeAs($destinationPath, $fotoName);
@@ -343,6 +346,7 @@ class AktivitasKaryawanController extends Controller
         // Handle foto upload (base64 or file)
         if ($request->filled('foto')) {
             // Handle base64 foto from camera
+            $allowedExtensions = ['jpeg' => 'jpg', 'jpg' => 'jpg', 'png' => 'png', 'webp' => 'webp'];
             $fotoData = $request->input('foto');
             if (strpos($fotoData, 'data:image') === 0) {
                 // Delete old foto if exists
@@ -353,37 +357,40 @@ class AktivitasKaryawanController extends Controller
                 // Extract base64 data
                 $image_parts = explode(";base64,", $fotoData);
                 $image_type_aux = explode("image/", $image_parts[0]);
-                $image_type = $image_type_aux[1];
+                $image_type = strtolower($image_type_aux[1] ?? 'jpeg');
+                $extension = $allowedExtensions[$image_type] ?? 'jpg';
                 $image_base64 = base64_decode($image_parts[1]);
 
-                // Generate filename
-                $fotoName = time() . '_aktivitas.' . $image_type;
+                // Generate secure filename
+                $fotoName = time() . '_' . uniqid() . '_aktivitas.' . $extension;
 
                 // Save file
                 $destinationPath = 'public/uploads/aktivitas/';
                 if (!Storage::exists($destinationPath)) {
                     Storage::makeDirectory($destinationPath, 0775, true);
-                    $path = Storage::path($destinationPath);
-                    chmod($path, 0775);
                 }
                 Storage::put($destinationPath . $fotoName, $image_base64);
                 $data['foto'] = $fotoName;
             }
         } elseif ($request->hasFile('foto')) {
             // Handle file upload (for admin)
+            $request->validate([
+                'foto' => 'image|mimes:jpeg,png,jpg,webp|max:5120'
+            ]);
             // Delete old foto if exists
             if ($aktivitaskaryawan->foto) {
                 Storage::delete('public/uploads/aktivitas/' . $aktivitaskaryawan->foto);
             }
 
             $foto = $request->file('foto');
-            $fotoName = time() . '_' . $foto->getClientOriginalName();
+            $ext = strtolower($foto->getClientOriginalExtension());
+            $allowedExtensions = ['jpeg' => 'jpg', 'jpg' => 'jpg', 'png' => 'png', 'webp' => 'webp'];
+            $extension = $allowedExtensions[$ext] ?? 'jpg';
+            $fotoName = time() . '_' . uniqid() . '_aktivitas.' . $extension;
             
             $destinationPath = 'public/uploads/aktivitas';
             if (!Storage::exists($destinationPath)) {
                 Storage::makeDirectory($destinationPath, 0775, true);
-                $path = Storage::path($destinationPath);
-                chmod($path, 0775);
             }
             
             $foto->storeAs($destinationPath, $fotoName);

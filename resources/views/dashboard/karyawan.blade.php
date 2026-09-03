@@ -7,16 +7,27 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('assets/vendor/css/toastr.min.css') }}" />
+    <script src="{{ asset('assets/vendor/libs/toastr/toastr.js') }}"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        a, a:visited {
+            color: inherit;
+            text-decoration: none;
+        }
+        button, [type='button'], [type='submit'] {
+            border: none;
+            outline: none;
+            font-family: inherit;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: {{ $t['bg_body'] ?? '#e8f0ed' }};
@@ -30,7 +41,7 @@
             padding-bottom: 80px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-        .glass-icon {
+        .glass-icon, .glass-icon:visited {
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -42,6 +53,10 @@
             justify-content: center;
             transition: all 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff !important;
+        }
+        .glass-icon ion-icon {
+            color: #ffffff !important;
         }
         .glass-icon:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.2); }
         #jam {
@@ -109,6 +124,43 @@
             word-wrap: break-word !important;
             word-break: normal !important;
             display: block;
+        }
+
+        /* DESIGN.md Consistent Menu Cards */
+        .dashboard-menu-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 4px 6px;
+            height: 76px;
+            text-align: center;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none !important;
+        }
+        .dashboard-menu-card:active {
+            transform: scale(0.93);
+            background: #f8fafc;
+        }
+        .dashboard-menu-card img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            margin: 0 auto 3px auto;
+        }
+        .dashboard-menu-card ion-icon {
+            font-size: 32px;
+            margin: 0 auto 3px auto;
+        }
+        .dashboard-menu-card span {
+            font-size: 11px;
+            font-weight: 500;
+            color: #334155;
+            line-height: 1.1;
         }
     </style>
 </head>
@@ -211,7 +263,7 @@
                                     @elseif($type == 'pengumuman')
                                         <h4 style="font-size:14px; font-weight:700; color:#0c5460; margin:0 0 2px 0; letter-spacing: -0.2px;">{{ $pengumuman->judul }}</h4>
                                         <span style="font-size:10px; color:#0c5460; opacity:.6; font-weight: 600;">{{ \Carbon\Carbon::parse($pengumuman->created_at)->translatedFormat('d F Y') }}</span>
-                                        <div style="font-size:12px; color:#0c5460; opacity:.85; margin-top:6px; line-height:1.5;">{!! Str::limit($pengumuman->isi, 100) !!}</div>
+                                        <div style="font-size:12px; color:#0c5460; opacity:.85; margin-top:6px; line-height:1.5;">{!! nl2br(e(Str::limit($pengumuman->isi, 100))) !!}</div>
                                     @endif
                                     </div>
                                 </div>
@@ -316,148 +368,108 @@
 
         @php
             $scheme = $general_setting?->mobile_theme_scheme ?? 'green';
+            
+            $quickMenus = [];
+            if (($general_setting?->absen_istirahat ?? 0) == 1 && \App\Models\KaryawanMenuSetting::isActive('absen_istirahat')) {
+                $quickMenus[] = [
+                    'href' => route('presensiistirahat.create'),
+                    'img' => 'assets/template/img/3d/praying.png',
+                    'icon' => 'cafe-outline',
+                    'title' => 'Istirahat',
+                    'id' => null,
+                ];
+            } elseif (isset($karyawan) && $karyawan->status_karyawan == 'K' && \App\Models\KaryawanMenuSetting::isActive('kontrak')) {
+                $quickMenus[] = [
+                    'href' => route('kontrak.index'),
+                    'img' => 'assets/template/img/3d/kontrak.png',
+                    'icon' => 'document-text-outline',
+                    'title' => 'Kontrak',
+                    'id' => null,
+                ];
+            }
+            if (\App\Models\KaryawanMenuSetting::isActive('lembur')) {
+                $quickMenus[] = [
+                    'href' => route('lembur.index'),
+                    'img' => 'assets/template/img/3d/clock.png',
+                    'icon' => 'time-outline',
+                    'title' => 'Lembur',
+                    'id' => null,
+                ];
+            }
+            if (\App\Models\KaryawanMenuSetting::isActive('slipgaji')) {
+                $quickMenus[] = [
+                    'href' => route('slipgaji.index'),
+                    'img' => 'assets/template/img/3d/slipgaji.png',
+                    'icon' => 'cash-outline',
+                    'title' => 'Slip Gaji',
+                    'id' => null,
+                ];
+            }
+            if (auth()->user()->can('aktivitaskaryawan.index') && \App\Models\KaryawanMenuSetting::isActive('aktivitas')) {
+                $quickMenus[] = [
+                    'href' => route('aktivitaskaryawan.index'),
+                    'img' => 'assets/template/img/3d/activity.png',
+                    'icon' => 'pulse-outline',
+                    'title' => 'Aktivitas',
+                    'id' => null,
+                ];
+            }
+            if (auth()->user()->can('kunjungan.index') && \App\Models\KaryawanMenuSetting::isActive('visit')) {
+                $quickMenus[] = [
+                    'href' => route('kunjungan.index'),
+                    'img' => 'assets/template/img/3d/maps.png',
+                    'icon' => 'map-outline',
+                    'title' => 'Visit',
+                    'id' => null,
+                ];
+            }
+            if (\App\Models\KaryawanMenuSetting::isActive('wajah')) {
+                $quickMenus[] = [
+                    'href' => 'javascript:void(0)',
+                    'img' => 'assets/template/img/3d/scanwajah.png',
+                    'icon' => 'scan-outline',
+                    'title' => 'Wajah',
+                    'id' => 'btnDaftarkanWajah',
+                ];
+            }
+            $quickMenus[] = [
+                'href' => route('shortcut.index'),
+                'img' => null,
+                'icon' => 'apps-outline',
+                'title' => 'Lainnya',
+                'id' => null,
+            ];
+
+            $menuCount = count($quickMenus);
+            $gridColsClass = $menuCount <= 4 ? "grid-cols-{$menuCount}" : "grid-cols-4";
         @endphp
         {{-- ===== MENU GRID ===== --}}
         <div class="px-4 mt-4 fade-in" style="animation-delay:.3s">
-            <div class="grid grid-cols-4 gap-2">
-                {{-- ID Card --}}
-                @if(\App\Models\KaryawanMenuSetting::isActive('idcard'))
-                <a href="{{ route('karyawan.idcard', Crypt::encrypt($karyawan->nik)) }}" class="block">
-                    <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                        @if ($scheme == 'green')
-                            <img src="{{ asset('assets/template/img/3d/card.webp') }}" alt="" style="width:40px; margin:0 auto 0;">
+            <div class="grid {{ $gridColsClass }} gap-2">
+                @foreach ($quickMenus as $menu)
+                    <a href="{{ $menu['href'] }}" @if(!empty($menu['id'])) id="{{ $menu['id'] }}" @endif class="dashboard-menu-card">
+                        @if ($scheme == 'green' && !empty($menu['img']))
+                            <img src="{{ asset($menu['img']) }}" alt="{{ $menu['title'] }}">
                         @else
-                            <ion-icon name="id-card-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
+                            <ion-icon name="{{ $menu['icon'] }}" style="color: {{ $t['primary'] ?? '#1E4D3E' }};"></ion-icon>
                         @endif
-                        <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">ID Card</span>
-                    </div>
-                </a>
-                @endif
-
-                {{-- Istirahat / Kontrak --}}
-                @if (($general_setting?->absen_istirahat ?? 0) == 1)
-                    @if(\App\Models\KaryawanMenuSetting::isActive('absen_istirahat'))
-                    <a href="{{ route('presensiistirahat.create') }}" class="block">
-                        <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                            @if ($scheme == 'green')
-                                <img src="{{ asset('assets/template/img/3d/praying.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                            @else
-                                <ion-icon name="cafe-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                            @endif
-                            <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Istirahat</span>
-                        </div>
+                        <span>{{ $menu['title'] }}</span>
                     </a>
-                    @endif
-                @else
-                    @if(\App\Models\KaryawanMenuSetting::isActive('kontrak'))
-                    <a href="{{ route('kontrak.index') }}" class="block">
-                        <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                            @if ($scheme == 'green')
-                                <img src="{{ asset('assets/template/img/3d/kontrak.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                            @else
-                                <ion-icon name="document-text-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                            @endif
-                            <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Kontrak</span>
-                        </div>
-                    </a>
-                    @endif
-                @endif
-
-                {{-- Lembur --}}
-                @if(\App\Models\KaryawanMenuSetting::isActive('lembur'))
-                <a href="{{ route('lembur.index') }}" class="block">
-                    <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                        @if ($scheme == 'green')
-                            <img src="{{ asset('assets/template/img/3d/clock.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                        @else
-                            <ion-icon name="time-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                        @endif
-                        <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Lembur</span>
-                    </div>
-                </a>
-                @endif
-
-                {{-- Slip Gaji --}}
-                @if(\App\Models\KaryawanMenuSetting::isActive('slipgaji'))
-                <a href="{{ route('slipgaji.index') }}" class="block">
-                    <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                        @if ($scheme == 'green')
-                            <img src="{{ asset('assets/template/img/3d/slipgaji.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                        @else
-                            <ion-icon name="cash-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                        @endif
-                        <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Slip Gaji</span>
-                    </div>
-                </a>
-                @endif
-
-                {{-- Aktivitas --}}
-                @can('aktivitaskaryawan.index')
-                    @if(\App\Models\KaryawanMenuSetting::isActive('aktivitas'))
-                    <a href="{{ route('aktivitaskaryawan.index') }}" class="block">
-                        <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                            @if ($scheme == 'green')
-                                <img src="{{ asset('assets/template/img/3d/activity.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                            @else
-                                <ion-icon name="pulse-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                            @endif
-                            <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Aktivitas</span>
-                        </div>
-                    </a>
-                    @endif
-                @endcan
-
-                {{-- Visit --}}
-                @can('kunjungan.index')
-                    @if(\App\Models\KaryawanMenuSetting::isActive('visit'))
-                    <a href="{{ route('kunjungan.index') }}" class="block">
-                        <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                            @if ($scheme == 'green')
-                                <img src="{{ asset('assets/template/img/3d/maps.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                            @else
-                                <ion-icon name="map-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                            @endif
-                            <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Visit</span>
-                        </div>
-                    </a>
-                    @endif
-                @endcan
-
-                {{-- Scan Wajah --}}
-                @if(\App\Models\KaryawanMenuSetting::isActive('wajah'))
-                <a href="javascript:void(0)" id="btnDaftarkanWajah" class="block">
-                    <div class="bg-white rounded-[12px] text-center" style="padding:5px 5px; line-height:0.8rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                        @if ($scheme == 'green')
-                            <img src="{{ asset('assets/template/img/3d/scanwajah.png') }}" alt="" style="width:40px; margin:0 auto 0;">
-                        @else
-                            <ion-icon name="scan-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:0;"></ion-icon>
-                        @endif
-                        <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Wajah</span>
-                    </div>
-                </a>
-                @endif
-
-                {{-- Lainnya --}}
-                <a href="{{ route('shortcut.index') }}" class="block">
-                    <div class="bg-white rounded-[12px] shadow-sm text-center" style="padding:5px 5px; line-height:0.8rem;">
-                        <ion-icon name="apps-outline" style="font-size:40px; color: {{ $t['primary'] ?? '#2d5a4c' }}; margin-bottom:2px;"></ion-icon>
-                        <br><span style="font-size:0.75rem; font-weight:400; color: {{ $t['primary'] ?? '#2d5a4c' }};">Lainnya</span>
-                    </div>
-                </a>
+                @endforeach
             </div>
         </div>
 
         {{-- ===== HISTORY LIST ===== --}}
         <div class="px-4 mt-5 fade-in" style="animation-delay:.35s; margin-bottom:30px;">
-            {{-- Tabs --}}
-            <div class="flex rounded-full overflow-hidden border border-gray-200 mb-3" style="background:#f5f5f5;">
-                <button id="tabPresensi" onclick="switchTab('presensi')" class="flex-1 py-2 text-center text-[13px] font-semibold transition-all rounded-full" style="background:{{ $t['primary'] ?? '#2d5a4c' }}; color:white;">
+            {{-- Tabs: Segmented Squircle (DESIGN.md 12px) --}}
+            <div class="flex p-1 rounded-xl border border-slate-200/80 mb-3 bg-slate-100 gap-1" style="background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 4px; display: flex; gap: 4px;">
+                <button type="button" id="tabPresensi" onclick="switchTab('presensi')" class="flex-1 py-2 text-center text-[13px] font-semibold transition-all rounded-lg" style="background:{{ $t['primary'] ?? '#1E4D3E' }}; color:white; border: none !important; outline: none !important; border-radius: 8px; padding: 8px 12px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);">
                     30 Hari terakhir
                 </button>
-                <button id="tabLembur" onclick="switchTab('lembur')" class="flex-1 py-2 text-center text-[13px] font-medium transition-all rounded-full flex items-center justify-center gap-1" style="color:#888;">
-                    Lembur
+                <button type="button" id="tabLembur" onclick="switchTab('lembur')" class="flex-1 py-2 text-center text-[13px] font-medium transition-all rounded-lg flex items-center justify-center gap-1.5" style="background: transparent; color:#64748b; border: none !important; outline: none !important; border-radius: 8px; padding: 8px 12px; cursor: pointer;">
+                    <span>Lembur</span>
                     @if(isset($notiflembur) && $notiflembur > 0)
-                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-[10px] font-bold" style="background:#ff5252;">{{ $notiflembur }}</span>
+                        <span class="inline-flex items-center justify-center px-1.5 py-0.2 rounded-md text-white text-[10px] font-bold font-mono" style="background:#ef4444;">{{ $notiflembur }}</span>
                     @endif
                 </button>
             </div>
@@ -475,7 +487,7 @@
                         $text_color = $d->status == 'h' ? ($t['primary'] ?? '#2d5a4c') : ($d->status == 'i' ? '#1e90ff' : ($d->status == 's' ? '#ff6384' : ($d->status == 'c' ? '#ff9f40' : '#e74c3c')));
                         $bg_color = $d->status == 'h' ? (($t['primary'] ?? '#2d5a4c') . '18') : ($d->status == 'i' ? '#1e90ff18' : ($d->status == 's' ? '#ff638418' : ($d->status == 'c' ? '#ff9f4018' : '#e74c3c18')));
                     @endphp
-                    <div class="bg-white rounded-[12px] mb-2 p-3 flex items-center gap-3 cursor-pointer presensi-card" 
+                    <div class="bg-white rounded-xl mb-2.5 p-3 flex items-center gap-3 cursor-pointer presensi-card border border-slate-200/80 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:shadow-sm transition-all duration-150 active:scale-[0.99]" 
                         data-tanggal="{{ DateToIndo($d->tanggal) }}"
                         data-jam-in="{{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '-' }}"
                         data-jam-out="{{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '-' }}"
@@ -484,22 +496,21 @@
                         data-status="{{ $d->status }}"
                         data-jam-kerja="{{ $d->nama_jam_kerja }}"
                         data-keterangan="{{ $d->status == 'h' ? 'Hadir' : ($d->status == 'i' ? 'Izin: ' . $d->keterangan_izin : ($d->status == 's' ? 'Sakit: ' . $d->keterangan_izin_sakit : ($d->status == 'c' ? 'Cuti: ' . $d->keterangan_izin_cuti : 'Alpha'))) }}"
-                        data-nama-mesin="{{ $d->nama_mesin }}"
-                        style="border:1px solid {{ $text_color }}4d; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+                        data-nama-mesin="{{ $d->nama_mesin }}">
                         {{-- Day Badge --}}
-                        <div class="shrink-0 flex flex-col items-center justify-center rounded-[10px]" style="width:45px; height:45px; background:{{ $bg_color }};">
-                            <span style="font-size:10px; font-weight:700; color:{{ $text_color }}; line-height:1;">{{ $day_short }}</span>
-                            <span style="font-size:16px; font-weight:800; color:{{ $text_color }}; line-height:1.2;">{{ $tgl }}</span>
+                        <div class="shrink-0 w-11 h-11 flex flex-col items-center justify-center rounded-lg bg-slate-50 border border-slate-100 text-center">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">{{ $day_short }}</span>
+                            <span class="text-[16px] font-extrabold text-slate-800 font-mono leading-none mt-1">{{ $tgl }}</span>
                         </div>
                         {{-- Details --}}
                         <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-center">
-                                <h5 style="font-size:14px; font-weight:600; color:#333; margin:0;">{{ DateToIndo($d->tanggal) }}</h5>
-                                <span style="background:#f8f9fa; color:#666; font-size:10px; border:1px solid #eee; padding:2px 6px; border-radius:20px; white-space:nowrap;">
-                                    {{ $d->nama_jam_kerja }} ({{ date('H:i', strtotime($d->jam_masuk)) }} - {{ date('H:i', strtotime($d->jam_pulang)) }})
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <h5 class="text-[13px] font-bold text-slate-800 truncate m-0 leading-tight">{{ DateToIndo($d->tanggal) }}</h5>
+                                <span class="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
+                                    {{ $d->nama_jam_kerja }}
                                 </span>
                             </div>
-                            <div style="margin-top:2px;">
+                            <div>
                                 @if ($d->status == 'h')
                                     @php
                                         $jam_in_ts = strtotime($d->jam_in);
@@ -530,47 +541,65 @@
                                         $status_potongan_row = isset($d->status_potongan) ? $d->status_potongan : $namasettings->status_potongan_jam;
                                         if ($status_potongan_row == 0) { $potongan_jam = 0; $denda_display = 0; }
                                     @endphp
-                                    <div class="flex justify-between items-center">
-                                        <span style="color:#555; font-size:12px; font-weight:500;">
-                                            {{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '__:__' }}
-                                            <span style="color:#ccc; margin:0 4px;">-</span>
-                                            {{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '__:__' }}
-                                        </span>
-                                        @if ($is_late)
-                                            <span style="background:#ff525218; color:#ff5252; font-size:10px; padding:1px 6px; border-radius:10px; font-weight:600;">Telat {{ $jam_telat > 0 ? $jam_telat . 'j ' : '' }}{{ $menit_telat }}m</span>
-                                        @else
-                                            <span style="background:{{ ($t['primary'] ?? '#2d5a4c') }}18; color:{{ $t['primary'] ?? '#2d5a4c' }}; font-size:10px; padding:1px 6px; border-radius:10px; font-weight:600;">Tepat Waktu</span>
-                                        @endif
-                                    </div>
-                                    @if ($d->jam_in != null)
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            @if ($denda_display > 0)
-                                                <span style="background:#ff525218; color:#ff5252; font-size:10px; padding:1px 6px; border-radius:10px;">Denda Rp. {{ number_format($denda_display) }}</span>
+                                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                                        <div class="flex items-center gap-1.5 text-[12px] font-mono font-semibold text-slate-700">
+                                            <ion-icon name="time-outline" class="text-[13px] text-slate-400"></ion-icon>
+                                            <span>{{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '--:--' }}</span>
+                                            <span class="text-slate-300 font-sans font-normal">—</span>
+                                            <span>{{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '--:--' }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 flex-wrap">
+                                            @if ($is_late)
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                    Telat {{ $jam_telat > 0 ? $jam_telat . 'j ' : '' }}{{ $menit_telat }}m
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    Tepat Waktu
+                                                </span>
                                             @endif
                                             @if ($pulangcepat > 0)
-                                                <span style="background:#ff525218; color:#ff5252; font-size:10px; padding:1px 6px; border-radius:10px;">Pulang Cepat</span>
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    Pulang Cepat
+                                                </span>
+                                            @endif
+                                            @if ($denda_display > 0)
+                                                <span class="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
+                                                    Denda Rp {{ number_format($denda_display) }}
+                                                </span>
                                             @endif
                                             @if ($potongan_jam > 0 && ($d->jam_out != null || $d->tanggal != date('Y-m-d')))
                                                 @if ($namasettings->status_potongan_jam == 1 || (isset($d->status_potongan) && $d->status_potongan == 1))
-                                                    <span style="background:#ff525218; color:#ff5252; font-size:10px; padding:1px 6px; border-radius:10px;">PJ: {{ number_format($potongan_jam, 2) }} Jam</span>
+                                                    <span class="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
+                                                        PJ: {{ number_format($potongan_jam, 2) }} Jam
+                                                    </span>
                                                 @endif
                                             @endif
                                         </div>
-                                    @endif
+                                    </div>
                                 @elseif ($d->status == 'i')
-                                    <span style="color:#1e90ff; font-size:12px;">Izin: {{ $d->keterangan_izin }}</span>
+                                    <div class="flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                                        <span class="truncate">Izin: {{ $d->keterangan_izin }}</span>
+                                    </div>
                                 @elseif ($d->status == 's')
-                                    <span style="color:#ff6384; font-size:12px;">Sakit: {{ $d->keterangan_izin_sakit }}</span>
+                                    <div class="flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        <span class="truncate">Sakit: {{ $d->keterangan_izin_sakit }}</span>
+                                    </div>
                                 @elseif ($d->status == 'c')
-                                    <span style="color:#ff9f40; font-size:12px;">Cuti: {{ $d->keterangan_izin_cuti }}</span>
+                                    <div class="flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        <span class="truncate">Cuti: {{ $d->keterangan_izin_cuti }}</span>
+                                    </div>
                                 @elseif ($d->status == 'a')
-                                    @php
-                                        $potongan_jam = $d->total_jam;
-                                        $denda_display = !empty($d->denda) ? $d->denda : 0;
-                                        $status_potongan_row = isset($d->status_potongan) ? $d->status_potongan : $namasettings->status_potongan_jam;
-                                        if ($status_potongan_row == 0) { $potongan_jam = 0; }
-                                    @endphp
-                                    <span style="color:#e74c3c; font-size:12px;">Alpha: Tanpa Keterangan</span>
+                                    <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 w-fit">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        <span>Alpha: Tanpa Keterangan</span>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -804,21 +833,27 @@
 
         // History Tab Switching
         function switchTab(tab) {
-            var primary = '{{ $t["primary"] ?? "#2d5a4c" }}';
+            var primary = '{{ $t["primary"] ?? "#1E4D3E" }}';
+            var tabPresensi = document.getElementById('tabPresensi');
+            var tabLembur = document.getElementById('tabLembur');
             if (tab === 'presensi') {
                 document.getElementById('contentPresensi').style.display = '';
                 document.getElementById('contentLembur').style.display = 'none';
-                document.getElementById('tabPresensi').style.background = primary;
-                document.getElementById('tabPresensi').style.color = 'white';
-                document.getElementById('tabLembur').style.background = 'transparent';
-                document.getElementById('tabLembur').style.color = '#888';
+                tabPresensi.style.background = primary;
+                tabPresensi.style.color = 'white';
+                tabPresensi.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
+                tabLembur.style.background = 'transparent';
+                tabLembur.style.color = '#64748b';
+                tabLembur.style.boxShadow = 'none';
             } else {
                 document.getElementById('contentPresensi').style.display = 'none';
                 document.getElementById('contentLembur').style.display = '';
-                document.getElementById('tabLembur').style.background = primary;
-                document.getElementById('tabLembur').style.color = 'white';
-                document.getElementById('tabPresensi').style.background = 'transparent';
-                document.getElementById('tabPresensi').style.color = '#888';
+                tabLembur.style.background = primary;
+                tabLembur.style.color = 'white';
+                tabLembur.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
+                tabPresensi.style.background = 'transparent';
+                tabPresensi.style.color = '#64748b';
+                tabPresensi.style.boxShadow = 'none';
             }
         }
 

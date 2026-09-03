@@ -13,20 +13,6 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        if ($request->expectsJson()) {
-            return null;
-        }
-
-        // Check if the session has expired
-        if (!Auth::check() && $request->hasSession()) {
-            // Clear any existing session data
-            $request->session()->flush();
-            $request->session()->regenerate();
-
-            // Set flash message for expired session
-            session()->flash('message', 'Sesi Anda telah berakhir. Silakan login kembali.');
-        }
-
-        return route('loginuser');
+        return $request->expectsJson() ? null : route('loginuser');
     }
 }

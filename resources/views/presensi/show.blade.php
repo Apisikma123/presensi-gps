@@ -153,33 +153,8 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Peta & Detail Mesin -->
+        <!-- Kolom Kanan: Peta Presensi GPS -->
         <div class="col-md-7">
-            @if ($presensi->id_mesin != null)
-                <div class="machine-info-box mb-3 shadow-sm">
-                    <div class="machine-title">
-                        <i class="ti ti-fingerprint fs-4"></i> Data Mesin Fingerprint (ADMS)
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="small text-muted d-block fw-bold text-uppercase">Nama Perangkat</label>
-                            <span class="fw-bold">{{ $presensi->mesinfingerprint->nama_mesin }}</span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="small text-muted d-block fw-bold text-uppercase">Serial Number</label>
-                            <span class="font-monospace">{{ $presensi->mesinfingerprint->sn }}</span>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="small text-muted d-block fw-bold text-uppercase">Brand / Merk</label>
-                            <span>{{ $presensi->mesinfingerprint->merk ?? '-' }}</span>
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="small text-muted d-block fw-bold text-uppercase">Lokasi Fisik</label>
-                            <span>{{ $presensi->mesinfingerprint->lokasi ?? '-' }}</span>
-                        </div>
-                    </div>
-                </div>
-            @endif
 
             <div class="presensi-detail-card">
                 <div class="card-header-custom justify-content-between">

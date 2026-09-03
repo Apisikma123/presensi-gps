@@ -51,6 +51,8 @@ class ShortcutController extends Controller
             ->orderBy('tanggal', 'desc')
             ->limit(30)
             ->get();
+        $startOfMonth = Carbon::parse($hari_ini)->startOfMonth()->toDateString();
+        $endOfMonth = Carbon::parse($hari_ini)->endOfMonth()->toDateString();
         $data['rekappresensi'] = Presensi::select(
             DB::raw("SUM(IF(status='h',1,0)) as hadir"),
             DB::raw("SUM(IF(status='i',1,0)) as izin"),
@@ -58,10 +60,8 @@ class ShortcutController extends Controller
             DB::raw("SUM(IF(status='a',1,0)) as alpa"),
             DB::raw("SUM(IF(status='c',1,0)) as cuti")
         )
-            ->groupBy('presensi.nik')
-            ->whereRaw('MONTH(presensi.tanggal) = MONTH(?)', [$hari_ini])
-            ->whereRaw('YEAR(presensi.tanggal) = YEAR(?)', [$hari_ini])
             ->where('presensi.nik', $userkaryawan->nik)
+            ->whereBetween('presensi.tanggal', [$startOfMonth, $endOfMonth])
             ->first();
 
         $data['lembur'] = Lembur::where('nik', $userkaryawan->nik)->where('status', 1)
@@ -70,9 +70,10 @@ class ShortcutController extends Controller
             ->get();
         $data['notiflembur'] = Lembur::where('nik', $userkaryawan->nik)
             ->where('status', 1)
-            ->where('lembur_in', null)
-            ->orWhere('lembur_out', null)
-            ->where('status', 1)
+            ->where(function($query) {
+                $query->whereNull('lembur_in')
+                    ->orWhereNull('lembur_out');
+            })
             ->count();
 
         // Cek apakah hari ini adalah ulang tahun karyawan

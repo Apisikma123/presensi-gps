@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Pengaturanumum extends Model
 {
@@ -11,4 +12,28 @@ class Pengaturanumum extends Model
 
     protected $table = 'pengaturan_umum';
     protected $guarded = [];
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            Cache::forget('pengaturan_umum_first');
+            Cache::forget('global_general_setting');
+        });
+        static::deleted(function () {
+            Cache::forget('pengaturan_umum_first');
+            Cache::forget('global_general_setting');
+        });
+    }
+
+    /**
+     * Get cached general settings
+     *
+     * @return \App\Models\Pengaturanumum|null
+     */
+    public static function getSetting()
+    {
+        return Cache::remember('pengaturan_umum_first', 3600, function () {
+            return static::where('id', 1)->first() ?? static::first();
+        });
+    }
 }

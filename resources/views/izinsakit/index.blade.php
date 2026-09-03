@@ -14,14 +14,8 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             @can('izinsakit.create')
-                                <a href="#" class="btn btn-primary" id="btnCreate"><i class="fa fa-plus me-2"></i>
+                                <a href="javascript:void(0);" class="btn btn-primary" id="btnCreate"><i class="fa fa-plus me-2"></i>
                                     Tambah Data</a>
-                            @endcan
-                        </div>
-                        <div>
-                            @can('approvallayer.index')
-                                <a href="{{ route('approvallayer.index') }}" class="btn btn-info"><i class="fa fa-cog me-2"></i>
-                                    Konfigurasi Approval</a>
                             @endcan
                         </div>
                     </div>
@@ -64,7 +58,10 @@
                                             selected="{{ Request('kode_dept') }}" upperCase="true" hideLabel />
                                     </div>
                                     <div class="col-lg-1 col-md-12 col-sm-12">
-                                        <button class="btn btn-primary w-100"><i class="ti ti-search"></i></button>
+                                        <button class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center shadow-sm"
+                                            style="height: 38px; border-radius: 8px; background-color: var(--theme-color-1, #1E4D3E); border: 1px solid #11382C; transition: all 0.2s ease;">
+                                            <i class="ti ti-search" style="font-size: 15px;"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </form>
@@ -139,17 +136,9 @@
                                                     <!-- Status -->
                                                     <div class="col-lg-2 col-md-6 text-center">
                                                         @if ($d->status == 0)
-                                                            @php
-                                                                $nextLayer = $d->getNextApprovalLayer();
-                                                            @endphp
                                                             <span class="badge rounded-pill px-2.5 py-1" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 11px; font-weight: 600;">
                                                                 <i class="ti ti-hourglass-empty me-1"></i> Pending
                                                             </span>
-                                                            @if ($nextLayer)
-                                                                <div class="text-muted mt-1" style="font-size: 10px; line-height: 1.2;">
-                                                                    Menunggu: <span class="fw-semibold">{{ $nextLayer->role_name }}</span>
-                                                                </div>
-                                                            @endif
                                                         @elseif ($d->status == 1)
                                                             <span class="badge rounded-pill px-2.5 py-1" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 600;">
                                                                 <i class="ti ti-check me-1"></i> Disetujui
@@ -166,48 +155,17 @@
                                                         <div class="btn-group shadow-sm" role="group">
                                                             @can('izinsakit.approve')
                                                                 @if ($d->status == 0)
-                                                                    @php
-                                                                        $nextLayer = $d->getNextApprovalLayer();
-                                                                        $userRole = auth()->user()->getRoleNames()->first();
-                                                                        $canApprove = false;
-                                                                        if(auth()->user()->hasRole('super admin') || ($nextLayer && $nextLayer->role_name == $userRole)){
-                                                                            $canApprove = true;
-                                                                        }
-                                                                        $canCancel = false;
-                                                                        if($d->approval_step > 1) {
-                                                                            $lastStep = $d->approval_step - 1;
-                                                                            $lastApproval = $d->approvals->where('level', $lastStep)->where('user_id', auth()->id())->first();
-                                                                            if($lastApproval) {
-                                                                                $canCancel = true;
-                                                                            }
-                                                                        }
-                                                                    @endphp
-                                                                    
-                                                                    @if($canApprove)
-                                                                        <a href="#" class="btn btn-sm btn-outline-primary btnApprove py-1 px-2"
-                                                                            kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}" title="Approve">
-                                                                            <i class="ti ti-external-link"></i>
-                                                                        </a>
-                                                                    @endif
-
-                                                                    @if($canCancel)
-                                                                        <form method="POST" name="deleteform" class="deleteform d-inline"
-                                                                            action="{{ route('izinsakit.cancelapprove', Crypt::encrypt($d->kode_izin_sakit)) }}">
-                                                                            @csrf
-                                                                            @method('DELETE')
-                                                                            <button type="submit" class="btn btn-sm btn-outline-warning cancel-confirm rounded-0 py-1 px-2" title="Batalkan Approval">
-                                                                                <i class="ti ti-arrow-back-up"></i>
-                                                                            </button>
-                                                                        </form>
-                                                                    @endif
-
+                                                                    <a href="#" class="btn btn-sm btn-outline-primary btnApprove py-1 px-2"
+                                                                        kode_izin_sakit="{{ Crypt::encrypt($d->kode_izin_sakit) }}" title="Approve">
+                                                                        <i class="ti ti-external-link"></i>
+                                                                    </a>
                                                                 @elseif($d->status == 1 || $d->status == 2)
                                                                     <form method="POST" name="deleteform" class="deleteform d-inline"
                                                                         action="{{ route('izinsakit.cancelapprove', Crypt::encrypt($d->kode_izin_sakit)) }}">
                                                                         @csrf
                                                                         @method('DELETE')
-                                                                        <button type="submit" class="btn btn-sm btn-outline-danger cancel-confirm rounded-0 py-1 px-2" title="Batalkan">
-                                                                            <i class="ti ti-circle-minus"></i>
+                                                                        <button type="submit" class="btn btn-sm btn-outline-warning cancel-confirm rounded-0 py-1 px-2" title="Batalkan Approval">
+                                                                            <i class="ti ti-arrow-back-up"></i>
                                                                         </button>
                                                                     </form>
                                                                 @endif
@@ -272,40 +230,28 @@
 @push('myscript')
 <script>
     $(function() {
-
-
         function loading() {
             $("#loadmodal").html(
                 `<div class="sk-wave sk-primary" style="margin:auto">
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            </div>`
+                    <div class="sk-wave-rect"></div>
+                    <div class="sk-wave-rect"></div>
+                    <div class="sk-wave-rect"></div>
+                    <div class="sk-wave-rect"></div>
+                    <div class="sk-wave-rect"></div>
+                </div>`
             );
         }
 
-        function loading() {
-            $("#loadmodal").html(
-                `<div class="sk-wave sk-primary" style="margin:auto">
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            </div>`
-            );
-        }
-
-        $("#btnCreate").click(function() {
+        $(document).on('click', '#btnCreate', function(e) {
+            e.preventDefault();
             $("#modal").modal("show");
             loading();
             $("#modal").find(".modal-title").text("Buat Izin Sakit");
             $("#loadmodal").load("/izinsakit/create");
         });
 
-        $(".btnApprove").click(function() {
+        $(document).on('click', '.btnApprove', function(e) {
+            e.preventDefault();
             const kode_izin_sakit = $(this).attr("kode_izin_sakit");
             $("#modal").modal("show");
             loading();
@@ -313,7 +259,8 @@
             $("#loadmodal").load(`/izinsakit/${kode_izin_sakit}/approve`);
         });
 
-        $(".btnShow").click(function() {
+        $(document).on('click', '.btnShow', function(e) {
+            e.preventDefault();
             const kode_izin_sakit = $(this).attr("kode_izin_sakit");
             $("#modal").modal("show");
             loading();
@@ -321,8 +268,8 @@
             $("#loadmodal").load(`/izinsakit/${kode_izin_sakit}/show`);
         });
 
-
-        $(".btnEdit").click(function() {
+        $(document).on('click', '.btnEdit', function(e) {
+            e.preventDefault();
             const kode_izin_sakit = $(this).attr("kode_izin_sakit");
             $("#modal").modal("show");
             loading();

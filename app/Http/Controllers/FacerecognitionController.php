@@ -129,7 +129,29 @@ class FacerecognitionController extends Controller
 
     public function store(Request $request)
     {
-        $karyawan = Karyawan::where('nik', $request->nik)->first();
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+
+        // Enforce identity: employees can only enroll their own face
+        if ($user->hasRole('karyawan') || !$user->can('karyawan.edit')) {
+            if (!$userkaryawan) {
+                return response()->json(['success' => false, 'message' => 'Data karyawan Anda tidak ditemukan.'], 403);
+            }
+            $targetNik = $userkaryawan->nik;
+        } else {
+            $targetNik = $request->nik ?: ($userkaryawan ? $userkaryawan->nik : null);
+        }
+
+        if (!$targetNik) {
+            return response()->json(['success' => false, 'message' => 'NIK tidak valid.'], 400);
+        }
+
+        $karyawan = Karyawan::where('nik', $targetNik)->first();
+        if (!$karyawan) {
+            return response()->json(['success' => false, 'message' => 'Karyawan tidak ditemukan.'], 404);
+        }
+
         $nama_folder = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
         $folderPath = "uploads/facerecognition/" . $nama_folder;
 
@@ -143,7 +165,7 @@ class FacerecognitionController extends Controller
             if ($request->hasFile('files')) {
                 $metadata = json_decode($request->metadata, true);
                 $files = $request->file('files');
-                $cekWajah = Facerecognition::where('nik', $request->nik)->count();
+                $cekWajah = Facerecognition::where('nik', $targetNik)->count();
                 $urutan = $cekWajah + 1;
 
                 foreach ($files as $index => $file) {
@@ -160,7 +182,7 @@ class FacerecognitionController extends Controller
 
                     // Simpan ke database
                     Facerecognition::create([
-                        'nik' => $request->nik,
+                        'nik' => $targetNik,
                         'wajah' => $fileName
                     ]);
 
@@ -172,7 +194,7 @@ class FacerecognitionController extends Controller
             } else if ($request->has('images')) {
                 // JSON Base64 string
                 $images = json_decode($request->images, true);
-                $cekWajah = Facerecognition::where('nik', $request->nik)->count();
+                $cekWajah = Facerecognition::where('nik', $targetNik)->count();
                 $urutan = $cekWajah + 1;
                 foreach ($images as $img) {
                     $direction = isset($img['direction']) ? $img['direction'] : 'front';
@@ -188,7 +210,7 @@ class FacerecognitionController extends Controller
                     );
                     
                     Facerecognition::create([
-                        'nik' => $request->nik,
+                        'nik' => $targetNik,
                         'wajah' => $fileName
                     ]);
                     $saved[] = $fileName;
@@ -197,7 +219,7 @@ class FacerecognitionController extends Controller
                 return response()->json(['success' => true, 'message' => count($saved) . ' gambar berhasil disimpan', 'files' => $saved]);
             } else if ($request->has('image')) {
                 // Satu gambar
-                $cekWajah = Facerecognition::where('nik', $request->nik)->count();
+                $cekWajah = Facerecognition::where('nik', $targetNik)->count();
                 $formatName = $cekWajah + 1;
                 $image = $request->image;
                 
@@ -210,10 +232,10 @@ class FacerecognitionController extends Controller
                 );
                 
                 Facerecognition::create([
-                    'nik' => $request->nik,
+                    'nik' => $targetNik,
                     'wajah' => $fileName
                 ]);
-                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan', 'file' => $fileName]);
+                return response()->json(['success' => true, 'message' => 'Gambar berhasil disimpan', 'file' => $fileName]);
             } else {
                 return response()->json(['success' => false, 'message' => 'Tidak ada gambar yang dikirim']);
             }
@@ -225,7 +247,15 @@ class FacerecognitionController extends Controller
     public function destroy($id)
     {
         $id = Crypt::decrypt($id);
-        $facerecognition = Facerecognition::where('id', $id)->firstorfail();
+        $facerecognition = Facerecognition::where('id', $id)->firstOrFail();
+        
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+        if (!$user->can('karyawan.edit') && (!$userkaryawan || $facerecognition->nik !== $userkaryawan->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak berhak menghapus data wajah ini.');
+        }
+
         $karyawan = Karyawan::where('nik', $facerecognition->nik)->first();
         try {
             $nama_file = $facerecognition->wajah;
@@ -241,9 +271,18 @@ class FacerecognitionController extends Controller
 
     public function getWajah()
     {
-        $user = User::where('id', auth()->user()->id)->first();
-        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
-        $wajah = Facerecognition::where('nik', $userkaryawan->nik)->get();
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([]);
+        }
+        $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
+        if (!$userkaryawan) {
+            return response()->json([]);
+        }
+        $wajah = Facerecognition::where('nik', $userkaryawan->nik)
+            ->select('id', 'nik', 'wajah')
+            ->get();
         return response()->json($wajah);
     }
 

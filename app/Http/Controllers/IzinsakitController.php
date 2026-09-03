@@ -182,7 +182,7 @@ class IzinsakitController extends Controller
                 'dari' => 'required',
                 'sampai' => 'required',
                 'keterangan' => 'required',
-                'sid' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+                'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             ]);
         } else {
             $request->validate([
@@ -190,7 +190,7 @@ class IzinsakitController extends Controller
                 'dari' => 'required',
                 'sampai' => 'required',
                 'keterangan' => 'required',
-                'sid' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+                'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             ]);
         }
 
@@ -579,7 +579,7 @@ class IzinsakitController extends Controller
             'dari' => 'required',
             'sampai' => 'required',
             'keterangan' => 'required',
-            'sid' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+            'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
         DB::beginTransaction();
         try {

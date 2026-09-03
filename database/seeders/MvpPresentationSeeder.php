@@ -137,21 +137,6 @@ class MvpPresentationSeeder extends Seeder
         $adminUser->cabangs()->sync(['MDN']);
         $adminUser->departemens()->sync(['IT', 'HRD', 'KUA', 'PRD']);
 
-        // Akun Adam Adifa diset juga namanya ke Development MVP
-        $adamUser = User::updateOrCreate(
-            ['username' => 'adamadifa'],
-            [
-                'name' => 'Development MVP',
-                'email' => 'adamadifa@gmail.com',
-                'password' => $defaultPassword,
-            ]
-        );
-        if (!$adamUser->hasRole('super admin')) {
-            $adamUser->assignRole($superRole);
-        }
-        $adamUser->cabangs()->sync(['MDN']);
-        $adamUser->departemens()->sync(['IT', 'HRD', 'KUA', 'PRD']);
-
         $this->command->info('=== 5. Membuat HANYA 2 Karyawan di Medan ===');
         $twoEmployees = [
             [

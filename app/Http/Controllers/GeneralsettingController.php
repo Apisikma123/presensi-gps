@@ -37,13 +37,14 @@ class GeneralsettingController extends Controller
             'status_potongan_jam' => 'nullable',
             'periode_laporan_dari' => 'required',
             'periode_laporan_sampai' => 'required',
-            'domain_email' => 'required|regex:/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/',
-            'provider_wa' => 'required|in:ig,fe',
-            'tujuan_notifikasi_wa' => 'required|in:0,1',
+            'domain_email' => 'nullable|string',
+            'provider_wa' => 'nullable|string',
+            'tujuan_notifikasi_wa' => 'nullable|string',
             'id_group_wa' => 'nullable|string|max:255',
             'timezone' => 'required|string|max:50',
             'nama_hrd' => 'nullable|string',
             'theme_color_1' => 'nullable|string|max:20',
+            'theme_color_2' => 'nullable|string|max:20',
             'mobile_theme_scheme' => 'nullable|string|max:20',
             'session_time' => 'nullable|integer|min:1',
             'absen_istirahat' => 'nullable',
@@ -59,7 +60,6 @@ class GeneralsettingController extends Controller
         $request->validate($rules);
 
         try {
-            //dd($request->denda);
             DB::beginTransaction();
             $setting = Pengaturanumum::findOrFail($id);
 
@@ -81,14 +81,14 @@ class GeneralsettingController extends Controller
                 'multi_lokasi' => $request->has('multi_lokasi') ? true : false,
                 'batas_jam_absen' => $request->batas_jam_absen,
                 'batas_jam_absen_pulang' => $request->batas_jam_absen_pulang,
-                'cloud_id' => $request->cloud_id,
-                'api_key' => $request->api_key,
-                'domain_email' => $request->domain_email,
-                'domain_wa_gateway' => $request->domain_wa_gateway,
-                'wa_api_key' => $request->wa_api_key,
-                'provider_wa' => $request->provider_wa,
-                'tujuan_notifikasi_wa' => $request->tujuan_notifikasi_wa,
-                'id_group_wa' => $request->id_group_wa,
+                'cloud_id' => $request->cloud_id ?? $setting->cloud_id ?? '',
+                'api_key' => $request->api_key ?? $setting->api_key ?? '',
+                'domain_email' => $request->domain_email ?? $setting->domain_email ?? 'gmail.com',
+                'domain_wa_gateway' => $request->domain_wa_gateway ?? $setting->domain_wa_gateway ?? '',
+                'wa_api_key' => $request->wa_api_key ?? $setting->wa_api_key ?? '',
+                'provider_wa' => $request->provider_wa ?? $setting->provider_wa ?? 'ig',
+                'tujuan_notifikasi_wa' => $request->tujuan_notifikasi_wa ?? $setting->tujuan_notifikasi_wa ?? '0',
+                'id_group_wa' => $request->id_group_wa ?? $setting->id_group_wa ?? '',
                 'notifikasi_wa' => $request->has('notifikasi_wa') ? true : false,
                 'batasi_hari_izin' => $request->has('batasi_hari_izin') ? true : false,
                 'jml_hari_izin_max' => $request->jml_hari_izin_max,
@@ -174,6 +174,8 @@ class GeneralsettingController extends Controller
                 ]);
             }
             KaryawanMenuSetting::clearCache();
+            \Illuminate\Support\Facades\Cache::forget('global_general_setting');
+            \Illuminate\Support\Facades\Cache::forget('app_expiration_setting');
             
             DB::commit();
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan. Perubahan timezone telah diterapkan.'));

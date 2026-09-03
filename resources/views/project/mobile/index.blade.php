@@ -2,8 +2,8 @@
 @section('title', 'Project Board')
 
 @section('header_left')
-    <a href="{{ route('shortcut.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all">
-        <ion-icon name="chevron-back-outline" class="text-lg"></ion-icon>
+    <a href="{{ route('dashboard.index') }}" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition-transform">
+        <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
 @endsection
 

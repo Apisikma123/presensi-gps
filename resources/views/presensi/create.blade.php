@@ -309,184 +309,425 @@
             background-color: rgba(244, 67, 54, 0.8);
         }
 
-        /* Modern Presensi Content Wrapper */
+        /* Modern Minimalist Presensi Wrapper — DESIGN.md (No Outer Card Nesting) */
         .presensi-content-modern {
-            background: linear-gradient(135deg, #e0f7fa 0%, #fff 100%);
-            border-radius: 18px;
-            box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
-            /* padding: 15px 10px 15px 10px; */
-            /* Padding dikurangi agar lebih kompak dan button lebih dekat ke bottomnav */
-            margin: 10px 0;
-            margin-bottom: 10px;
-            /* Margin bottom dikurangi agar button hampir menyentuh bottomnav */
-        }
-
-        .presensi-content-modern,
-        .presensi-content-modern * {
-            font-family: 'Poppins', sans-serif !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 6px auto 14px auto;
+            max-width: 440px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .camera-section {
-            padding: 2px;
+            padding: 0;
+            margin-bottom: 10px;
             position: relative;
-        }
-
-        .info-section {
-            background: transparent;
-            border-radius: 12px;
-            padding: 8px 10px;
-            /* Padding dikurangi agar lebih kompak */
-            backdrop-filter: blur(6px);
-            color: #222;
-            font-size: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .info-section p {
-            margin: 0;
-            font-size: 15px;
-        }
-
-        .location-section {
-            margin-bottom: 12px;
-        }
-
-        .map-section {
-            border-radius: 12px;
+            width: 100%;
+            border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
-            margin-bottom: 14px;
+            background: #0f172a;
         }
 
-        .action-section {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .action-section .scan-button {
-            flex: 1;
-            font-size: 18px;
-            border-radius: 24px;
-            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-
-        .action-section .scan-button:active {
-            transform: scale(0.97);
-            box-shadow: 0 1px 4px rgba(44, 62, 80, 0.12);
-        }
-
-        /* Tambahan style jadwal kerja modern */
-        .jadwalkerja-row {
-            background: linear-gradient(90deg, var(--color-nav) 0%, var(--color-nav-active) 100%);
-            border-radius: 16px;
-            box-shadow: 0 4px 18px rgba(44, 62, 80, 0.13);
-            margin-bottom: 6px;
-            padding: 8px 0 4px 0;
-            display: flex;
-            justify-content: space-between;
-            border: none;
+        /* Minimalist Viewfinder */
+        .webcam-capture {
+            width: 100% !important;
+            height: 270px !important;
+            min-height: 240px;
+            max-height: 320px;
+            margin: 0;
+            padding: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #0f172a;
             position: relative;
-        }
-
-        .jadwalkerja-col:not(:last-child) {
-            border-right: 1.5px solid rgba(255, 255, 255, 0.22);
-        }
-
-        .jadwalkerja-col {
-            flex: 1;
-            padding: 0 2px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 0;
         }
 
-        .jadwalkerja-col-shift {
-            flex: 1.4 !important;
+        .webcam-capture video,
+        .webcam-capture canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+            border-radius: 18px !important;
+            display: block;
         }
 
-
-        .jadwalkerja-icon {
-            font-size: 32px;
-            color: #FFD600;
-            margin-bottom: 2px;
-        }
-
-
-        .jadwalkerja-label {
-            font-size: 13px;
-            color: #fff;
-            margin-bottom: 2px;
-            opacity: 0.9;
-        }
-
-
-        .jadwalkerja-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            letter-spacing: 1px;
-            white-space: nowrap;
-        }
-
-
-        /* Modern absolute tanggal & jam di kamera */
+        /* Frosted Glass Telemetry Badges */
         .abs-tanggal-modern {
             position: absolute;
-            top: 12px;
-            left: 30px;
-            background: rgba(255, 255, 255, 0.75);
-            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
-            border-radius: 10px;
-            padding: 4px 8px;
-            font-size: 14px;
+            top: 10px;
+            right: 10px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11px;
             font-weight: 600;
-            color: #222;
-            z-index: 10;
-            backdrop-filter: blur(4px);
+            color: #ffffff;
+            z-index: 25;
+            letter-spacing: 0.3px;
         }
 
         .abs-jam-modern {
             position: absolute;
-            top: 12px;
-            right: 30px;
-            background: rgba(255, 255, 255, 0.75);
-            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
-            border-radius: 10px;
-            padding: 4px 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #222;
-            z-index: 10;
-            letter-spacing: 1px;
-            backdrop-filter: blur(4px);
+            bottom: 10px;
+            left: 10px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffffff;
+            z-index: 25;
+            font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+            letter-spacing: 0.5px;
         }
 
-        /* Style absolute untuk maps agar menempel di bawah kamera dan di atas listcabang */
+        /* Mini Radar GPS Map (Picture-In-Picture Bottom-Right) */
         .map-absolute-section {
             position: absolute;
-            bottom: 60px;
-            width: 92%;
-            /* Setelah kamera */
-            z-index: 15;
-            width: 100%;
-            padding: 0 0 10px 0;
-            display: flex;
-            justify-content: center;
+            bottom: 10px;
+            right: 10px;
+            z-index: 25;
+            width: 100px;
+            height: 70px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+            background: #e2e8f0;
         }
 
         .map-absolute-section #map {
-            height: 120px;
-            width: 80%;
-            margin: 0 auto;
-            opacity: 0.45;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            width: 100% !important;
+            height: 100% !important;
+            opacity: 1 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        /* Minimalist Shift Info Card (Flexbox, Zero Negative Margins) */
+        .shift-info-card {
+            background: #1E4D3E; /* Espresso Emerald */
+            border-radius: 14px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(30, 77, 62, 0.12);
+        }
+
+        .shift-info-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .shift-info-col:not(:last-child) {
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            padding-right: 4px;
+        }
+
+        .shift-info-col:not(:first-child) {
+            padding-left: 4px;
+        }
+
+        .shift-info-col.col-shift-name {
+            flex: 1.35;
+        }
+
+        .shift-info-lbl {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .shift-info-lbl ion-icon {
+            font-size: 12px;
+        }
+
+        .shift-info-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+            white-space: nowrap;
+        }
+
+        .shift-info-val.shift-title {
+            font-family: 'Inter', 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+        }
+
+        /* Dynamic Shift Status Bar */
+        .shift-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 10px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 6px;
+            text-align: center;
+            line-height: 1.3;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .shift-status-bar.status-early {
+            background: rgba(217, 119, 6, 0.08);
+            color: #D97706;
+            border: 1px solid rgba(217, 119, 6, 0.18);
+        }
+
+        .shift-status-bar.status-ontime {
+            background: rgba(5, 150, 105, 0.08);
+            color: #059669;
+            border: 1px solid rgba(5, 150, 105, 0.18);
+        }
+
+        .shift-status-bar.status-late {
+            background: rgba(217, 119, 6, 0.12);
+            color: #B45309;
+            border: 1px solid rgba(217, 119, 6, 0.25);
+        }
+
+        .shift-status-bar.status-closed {
+            background: rgba(220, 38, 38, 0.08);
+            color: #DC2626;
+            border: 1px solid rgba(220, 38, 38, 0.18);
+        }
+
+        /* Action Buttons — Minimalist & Tactile */
+        .action-section {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .action-section .scan-button {
+            flex: 1;
+            height: 48px !important;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+        }
+
+        .action-section .scan-button:active:not(:disabled) {
+            transform: scale(0.97) translateY(1px);
+        }
+
+        #absenmasuk {
+            background: #1E4D3E;
+            color: #ffffff;
+            box-shadow: 0 3px 12px rgba(30, 77, 62, 0.2);
+        }
+
+        #absenmasuk:disabled {
+            background: #cbd5e1 !important;
+            color: #64748b !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        #absenpulang {
+            background: #ffffff;
+            color: #1E4D3E;
+            border: 1.5px solid #1E4D3E !important;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+        }
+
+        #absenpulang:disabled {
+            background: #f8fafc !important;
+            color: #94a3b8 !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Minimalist Pure White Card: Attendance Selesai */
+        .presensi-selesai-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 20px;
+            padding: 28px 16px;
+            box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
+            text-align: center;
+            margin: 10px auto;
+            max-width: 440px;
+            box-sizing: border-box;
+        }
+
+        .selesai-badge {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(5, 150, 105, 0.08);
+            border: 1px solid rgba(5, 150, 105, 0.15);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .selesai-badge ion-icon {
+            font-size: 34px;
+            color: #059669;
+        }
+
+        .selesai-title {
+            font-family: 'Outfit', 'Geist', 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0F172A;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+        }
+
+        .selesai-subtitle {
+            font-size: 13px;
+            color: #64748B;
+            margin: 0 0 4px 0;
+            line-height: 1.5;
+        }
+
+        /* Seamless flat stats row (no card inside card) */
+        .selesai-rekap-box {
+            background: transparent;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+            padding: 16px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 18px 0 16px;
+            gap: 4px;
+        }
+
+        .selesai-rekap-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .selesai-rekap-divider {
+            width: 1px;
+            height: 28px;
+            background: rgba(15, 23, 42, 0.08);
+        }
+
+        .selesai-rekap-lbl {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748B;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .selesai-rekap-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0F172A;
+        }
+
+        .selesai-rekap-val.font-mono {
+            font-family: 'JetBrains Mono', 'Geist Mono', monospace;
+            font-size: 15px;
+            color: #1E4D3E;
+        }
+
+        /* Minimalist verified inline indicator (no card box) */
+        .selesai-verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            color: #059669;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 0;
+            border-radius: 0;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .btn-selesai-dashboard {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            height: 48px;
+            background: #1E4D3E;
+            color: #ffffff !important;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(30, 77, 62, 0.2);
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+        }
+
+        .btn-selesai-dashboard:active {
+            transform: scale(0.98);
         }
 
         /* Responsive untuk berbagai resolusi layar */
@@ -611,99 +852,190 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <div id="content-section">
-        <!-- SKELETON LOADER -->
-        <div id="skeleton-loader" class="presensi-content-modern" style="background: transparent; box-shadow: none;">
-            <!-- Camera Skeleton -->
-            <div class="skeleton skeleton-camera"></div>
-            
-            <!-- Info Skeleton -->
-            <div class="info-section" style="background: white; margin-bottom: 15px;">
-                <div class="skeleton-row">
-                    <div class="skeleton skeleton-col"></div>
-                    <div class="skeleton skeleton-col"></div>
-                    <div class="skeleton skeleton-col"></div>
+        @php
+            $sudah_selesai = ($presensi && !empty($presensi->jam_in) && !empty($presensi->jam_out));
+        @endphp
+
+        @if (!$sudah_selesai)
+            <!-- SKELETON LOADER -->
+            <div id="skeleton-loader" class="presensi-content-modern" style="background: transparent; box-shadow: none;">
+                <!-- Camera Skeleton -->
+                <div class="skeleton skeleton-camera"></div>
+                
+                <!-- Info Skeleton -->
+                <div class="info-section" style="background: white; margin-bottom: 15px;">
+                    <div class="skeleton-row">
+                        <div class="skeleton skeleton-col"></div>
+                        <div class="skeleton skeleton-col"></div>
+                        <div class="skeleton skeleton-col"></div>
+                    </div>
+                </div>
+
+                <!-- Button Skeleton -->
+                <div class="action-section">
+                    <div class="skeleton skeleton-btn"></div>
+                    <div class="skeleton skeleton-btn"></div>
                 </div>
             </div>
+        @endif
 
-            <!-- Button Skeleton -->
-            <div class="action-section">
-                <div class="skeleton skeleton-btn"></div>
-                <div class="skeleton skeleton-btn"></div>
-            </div>
-        </div>
+        <div id="real-content" class="presensi-content-modern {{ $sudah_selesai ? '' : 'content-hide' }}">
+            @if ($sudah_selesai)
+                {{-- TAMPILAN PUTIH MINIMALIST: SUDAH SELESAI BEKERJA HARI INI --}}
+                <div class="presensi-selesai-card">
+                    <div class="selesai-badge">
+                        <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+                    </div>
+                    <h2 class="selesai-title">Anda Telah Selesai Bekerja Hari Ini</h2>
+                    <p class="selesai-subtitle">Presensi masuk dan pulang Anda telah tercatat lengkap.</p>
+                    
+                    <div class="selesai-rekap-box">
+                        <div class="selesai-rekap-col">
+                            <span class="selesai-rekap-lbl"><ion-icon name="calendar-outline"></ion-icon> Shift</span>
+                            <span class="selesai-rekap-val">{{ $jam_kerja->nama_jam_kerja }}</span>
+                        </div>
+                        <div class="selesai-rekap-divider"></div>
+                        <div class="selesai-rekap-col">
+                            <span class="selesai-rekap-lbl"><ion-icon name="log-in-outline"></ion-icon> Masuk</span>
+                            <span class="selesai-rekap-val font-mono">{{ date('H:i', strtotime($presensi->jam_in)) }}</span>
+                        </div>
+                        <div class="selesai-rekap-divider"></div>
+                        <div class="selesai-rekap-col">
+                            <span class="selesai-rekap-lbl"><ion-icon name="log-out-outline"></ion-icon> Pulang</span>
+                            <span class="selesai-rekap-val font-mono">{{ date('H:i', strtotime($presensi->jam_out)) }}</span>
+                        </div>
+                    </div>
 
-        <div id="real-content" class="presensi-content-modern content-hide">
-            <div class="camera-section" style="position:relative;">
-                <div class="row" style="margin-top: 0;">
-                    <div class="col" id="facedetection" style="position:relative;">
-                        <!-- GPS Permission Button / Status -->
-                        <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm" style="position: absolute; top: 12px; left: 12px; z-index: 999999; pointer-events: auto; cursor: pointer; border-radius: 20px; font-weight: 600; font-size: 11px; padding: 6px 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 6px; border: none; background: #f39c12; color: white;">
-                            <ion-icon name="location-outline" style="font-size: 16px;"></ion-icon>
-                            <span>Izinkan Lokasi GPS</span>
-                        </button>
-                        <!-- Absolute Tanggal & Jam -->
-                        <div class="abs-tanggal-modern">{{ DateToIndo(date('Y-m-d')) }}</div>
-                        <div class="abs-jam-modern"><span id="jam"></span></div>
-                        <div class="webcam-capture"></div>
-                        <!-- MAPS ABSOLUTE -->
-                        <div class="map-absolute-section">
-                            <div id="map">
-                                <div id="map-loading">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="sr-only">Loading...</span>
+                    <div class="selesai-verified-badge">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        <span>Kehadiran Terverifikasi</span>
+                    </div>
+
+                    <a href="/dashboard" class="btn-selesai-dashboard">
+                        <ion-icon name="home-outline"></ion-icon>
+                        <span>Kembali ke Dashboard</span>
+                    </a>
+                </div>
+            @else
+                <div id="active-presensi-wrapper">
+                    <div class="camera-section">
+                        <div id="facedetection" style="position:relative;">
+                            <!-- GPS Permission Button / Status -->
+                            <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm" style="position: absolute; top: 10px; left: 10px; z-index: 30; pointer-events: auto; cursor: pointer; border-radius: 20px; font-weight: 600; font-size: 11px; padding: 4px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 5px; border: none; background: #f39c12; color: white;">
+                                <ion-icon name="location-outline" style="font-size: 14px;"></ion-icon>
+                                <span>Izinkan GPS</span>
+                            </button>
+                            <!-- Absolute Tanggal & Jam -->
+                            <div class="abs-tanggal-modern">{{ DateToIndo(date('Y-m-d')) }}</div>
+                            <div class="abs-jam-modern"><span id="jam"></span></div>
+                            <div class="webcam-capture"></div>
+                            
+                            <!-- Mini Radar GPS Map (Corner Picture-In-Picture) -->
+                            <div class="map-absolute-section">
+                                <div id="map">
+                                    <div id="map-loading">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <span class="sr-only">Loading...</span>
+                                        </div>
                                     </div>
-                                    <div class="mt-2">Memuat peta...</div>
                                 </div>
+                            </div>
+
+                            @if ($general_setting->multi_lokasi)
+                                <div id="listcabang">
+                                    <div class="select-wrapper">
+                                        <select name="cabang" id="cabang" class="form-control">
+                                            @foreach ($cabang as $item)
+                                                <option {{ $item->kode_cabang == $karyawan->kode_cabang ? 'selected' : '' }}
+                                                    value="{{ $item->lokasi_cabang }}">
+                                                    {{ $item->nama_cabang }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Minimalist Shift Info Card -->
+                    <div class="shift-info-card">
+                        <div class="shift-info-col col-shift-name">
+                            <span class="shift-info-lbl">
+                                <ion-icon name="calendar-outline"></ion-icon> Shift
+                            </span>
+                            <span class="shift-info-val shift-title" title="{{ $jam_kerja->nama_jam_kerja }}">{{ $jam_kerja->nama_jam_kerja }}</span>
+                        </div>
+                        <div class="shift-info-col">
+                            <span class="shift-info-lbl">
+                                <ion-icon name="log-in-outline"></ion-icon> Masuk
+                            </span>
+                            <span class="shift-info-val">{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }}</span>
+                        </div>
+                        <div class="shift-info-col">
+                            <span class="shift-info-lbl">
+                                <ion-icon name="log-out-outline"></ion-icon> Pulang
+                            </span>
+                            <span class="shift-info-val">{{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Shift Status Bar -->
+                    <div id="shift-status-bar" class="shift-status-bar status-early" style="display:none;">
+                        <ion-icon name="time-outline" style="font-size: 15px; flex-shrink: 0;"></ion-icon>
+                        <span id="shift-status-text">Menghitung jadwal shift...</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-section" id="presensi-action-buttons">
+                        <button class="scan-button" id="absenmasuk" statuspresensi="masuk">
+                            <ion-icon name="finger-print-outline" style="font-size: 20px"></ion-icon>
+                            <span>Masuk</span>
+                        </button>
+                        <button class="scan-button" id="absenpulang" statuspresensi="pulang">
+                            <ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon>
+                            <span>Pulang</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Template Container Dynamic Completed (Hidden until Pulang completes) -->
+                <div id="dynamic-selesai-card" style="display:none;">
+                    <div class="presensi-selesai-card">
+                        <div class="selesai-badge">
+                            <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+                        </div>
+                        <h2 class="selesai-title">Anda Telah Selesai Bekerja Hari Ini</h2>
+                        <p class="selesai-subtitle">Presensi masuk dan pulang Anda telah tercatat lengkap.</p>
+                        
+                        <div class="selesai-rekap-box">
+                            <div class="selesai-rekap-col">
+                                <span class="selesai-rekap-lbl"><ion-icon name="calendar-outline"></ion-icon> Shift</span>
+                                <span class="selesai-rekap-val">{{ $jam_kerja->nama_jam_kerja }}</span>
+                            </div>
+                            <div class="selesai-rekap-divider"></div>
+                            <div class="selesai-rekap-col">
+                                <span class="selesai-rekap-lbl"><ion-icon name="log-in-outline"></ion-icon> Masuk</span>
+                                <span class="selesai-rekap-val font-mono" id="rekap-jam-in">{{ ($presensi && $presensi->jam_in) ? date('H:i', strtotime($presensi->jam_in)) : '-' }}</span>
+                            </div>
+                            <div class="selesai-rekap-divider"></div>
+                            <div class="selesai-rekap-col">
+                                <span class="selesai-rekap-lbl"><ion-icon name="log-out-outline"></ion-icon> Pulang</span>
+                                <span class="selesai-rekap-val font-mono" id="rekap-jam-out">-</span>
                             </div>
                         </div>
-                        @if ($general_setting->multi_lokasi)
-                            <div id="listcabang">
-                                <div class="select-wrapper">
-                                    <select name="cabang" id="cabang" class="form-control">
-                                        @foreach ($cabang as $item)
-                                            <option {{ $item->kode_cabang == $karyawan->kode_cabang ? 'selected' : '' }}
-                                                value="{{ $item->lokasi_cabang }}">
-                                                {{ $item->nama_cabang }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        @endif
-                        <!-- Info jam digital dipindah ke info-section -->
-                    </div>
-                </div>
-            </div>
-            <div class="info-section">
-                <div class="row jadwalkerja-row">
-                    <div class="col text-center jadwalkerja-col jadwalkerja-col-shift">
 
-                        <ion-icon name="person-outline" class="jadwalkerja-icon"></ion-icon>
-                        <div class="jadwalkerja-label">Shift</div>
-                        <div class="jadwalkerja-value">{{ $jam_kerja->nama_jam_kerja }}</div>
-                    </div>
-                    <div class="col text-center jadwalkerja-col">
-                        <ion-icon name="log-in-outline" class="jadwalkerja-icon"></ion-icon>
-                        <div class="jadwalkerja-label">Jam Masuk</div>
-                        <div class="jadwalkerja-value">{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }}</div>
-                    </div>
-                    <div class="col text-center jadwalkerja-col">
-                        <ion-icon name="log-out-outline" class="jadwalkerja-icon"></ion-icon>
-                        <div class="jadwalkerja-label">Jam Pulang</div>
-                        <div class="jadwalkerja-value">{{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</div>
+                        <div class="selesai-verified-badge">
+                            <ion-icon name="shield-checkmark-outline"></ion-icon>
+                            <span>Kehadiran Terverifikasi</span>
+                        </div>
+
+                        <a href="/dashboard" class="btn-selesai-dashboard">
+                            <ion-icon name="home-outline"></ion-icon>
+                            <span>Kembali ke Dashboard</span>
+                        </a>
                     </div>
                 </div>
-            </div>
-            <!-- <div class="map-section"> ... </div> -->
-            <div class="action-section">
-                <button class="btn btn-success bg-primary scan-button" id="absenmasuk" statuspresensi="masuk">
-                    <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon>
-                    <span style="font-size:14px">Masuk</span>
-                </button>
-                <button class="btn btn-danger scan-button" id="absenpulang" statuspresensi="pulang">
-                    <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon>
-                    <span style="font-size:14px">Pulang</span>
-                </button>
-            </div>
+            @endif
         </div>
 
     <audio id="notifikasi_radius">
@@ -914,6 +1246,145 @@
             let faceRecognitionDetected = 0; // Inisialisasi variabel face recognition detected
             // Mengambil nilai face recognition dari variabel $general_setting->face_recognition
             let faceRecognition = "{{ $general_setting->face_recognition }}";
+
+            // ===== DYNAMIC SHIFT TIME-GATING =====
+            const shiftConfig = {
+                jamMasuk: "{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }}",
+                jamPulang: "{{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}",
+                batasi: {{ $general_setting->batasi_absen ?? 0 }},
+                batasMasukMenit: {{ ($general_setting->batas_jam_absen ?? 60) * 60 }}, // in seconds
+                batasPulangMenit: {{ ($general_setting->batas_jam_absen_pulang ?? 60) * 60 }}, // in seconds
+                sudahMasuk: {{ ($presensi && $presensi->jam_in) ? 'true' : 'false' }},
+                sudahPulang: {{ ($presensi && $presensi->jam_out) ? 'true' : 'false' }},
+                lintasHari: {{ $jam_kerja->lintashari ?? 0 }}
+            };
+
+            function parseTimeToday(timeStr) {
+                const [h, m] = timeStr.split(':').map(Number);
+                const d = new Date();
+                d.setHours(h, m, 0, 0);
+                return d;
+            }
+
+            function updateShiftStatus() {
+                const now = new Date();
+                const bar = document.getElementById('shift-status-bar');
+                const text = document.getElementById('shift-status-text');
+                const btnMasuk = document.getElementById('absenmasuk');
+                const btnPulang = document.getElementById('absenpulang');
+                if (!bar || !text || !btnMasuk || !btnPulang) return;
+
+                bar.style.display = 'flex';
+
+                const jamMasuk = parseTimeToday(shiftConfig.jamMasuk);
+                const jamPulang = parseTimeToday(shiftConfig.jamPulang);
+                const batasMulaiMasuk = new Date(jamMasuk.getTime() - shiftConfig.batasMasukMenit * 1000);
+                const batasAkhirMasuk = new Date(jamMasuk.getTime() + shiftConfig.batasMasukMenit * 1000);
+                const batasMulaiPulang = new Date(jamPulang.getTime() - shiftConfig.batasPulangMenit * 1000);
+
+                // Handle lintas hari
+                if (shiftConfig.lintasHari && jamPulang <= jamMasuk) {
+                    jamPulang.setDate(jamPulang.getDate() + 1);
+                    batasMulaiPulang.setDate(batasMulaiPulang.getDate() + 1);
+                }
+
+                // Reset classes
+                bar.className = 'shift-status-bar';
+
+                // 1. Kondisi: Sudah Absen Masuk DAN Sudah Absen Pulang
+                if (shiftConfig.sudahMasuk && shiftConfig.sudahPulang) {
+                    bar.classList.add('status-closed');
+                    text.innerHTML = '<ion-icon name="checkmark-done-circle-outline"></ion-icon><span>Anda telah selesai bekerja hari ini</span>';
+                    btnMasuk.disabled = true;
+                    btnPulang.disabled = true;
+
+                    // Switch ke card putih "Anda telah selesai bekerja hari ini"
+                    const activeWrapper = document.getElementById('active-presensi-wrapper');
+                    const dynamicCard = document.getElementById('dynamic-selesai-card');
+                    if (activeWrapper && dynamicCard) {
+                        activeWrapper.style.display = 'none';
+                        dynamicCard.style.display = 'block';
+                    }
+                    return;
+                }
+
+                // 2. Kondisi: Sudah Absen Masuk, Belum Absen Pulang
+                if (shiftConfig.sudahMasuk) {
+                    btnMasuk.disabled = true;
+                    btnMasuk.innerHTML = '<ion-icon name="checkmark-circle-outline" style="font-size:18px"></ion-icon><span>Sudah Masuk</span>';
+
+                    // Waktu paling awal boleh absen pulang:
+                    // Jika batasi_absen aktif dan ada batasPulangMenit > 0, gunakan batasMulaiPulang
+                    // Jika tidak, gunakan jamPulang (tidak boleh pulang sebelum jam kerja selesai!)
+                    const earliestPulang = (shiftConfig.batasi && shiftConfig.batasPulangMenit > 0) ? batasMulaiPulang : jamPulang;
+
+                    if (now < earliestPulang) {
+                        const diffMs = earliestPulang - now;
+                        const diffM = Math.ceil(diffMs / 60000);
+                        const h = Math.floor(diffM / 60);
+                        const m = diffM % 60;
+                        const sisaStr = (h > 0 ? h + ' jam ' : '') + m + ' menit';
+                        bar.classList.add('status-early');
+                        text.innerHTML = '<span>Belum waktunya pulang (Buka pkl ' + shiftConfig.jamPulang + ' &bull; ' + sisaStr + ' lagi)</span>';
+                        btnPulang.disabled = true;
+                    } else {
+                        bar.classList.add('status-ontime');
+                        text.innerHTML = '<span>Waktu shift selesai. Silakan presensi pulang</span>';
+                        btnPulang.disabled = false;
+                    }
+                    return;
+                }
+
+                // 3. Kondisi: Belum Absen Masuk
+                btnPulang.disabled = true; // Tidak bisa pulang jika belum masuk
+
+                if (shiftConfig.batasi) {
+                    if (now < batasMulaiMasuk) {
+                        const diffMs = batasMulaiMasuk - now;
+                        const diffM = Math.ceil(diffMs / 60000);
+                        const h = Math.floor(diffM / 60);
+                        const m = diffM % 60;
+                        bar.classList.add('status-early');
+                        text.innerHTML = '<span>Absen masuk dibuka dalam ' + (h > 0 ? h + ' jam ' : '') + m + ' menit</span>';
+                        btnMasuk.disabled = true;
+                    } else if (now > batasAkhirMasuk) {
+                        bar.classList.add('status-closed');
+                        text.innerHTML = '<span>Waktu absen masuk sudah ditutup</span>';
+                        btnMasuk.disabled = true;
+                    } else if (now > jamMasuk) {
+                        const diffMs = now - jamMasuk;
+                        const diffM = Math.floor(diffMs / 60000);
+                        const h = Math.floor(diffM / 60);
+                        const m = diffM % 60;
+                        const waktuStr = (h > 0 ? h + ' jam ' : '') + (m > 0 || h === 0 ? m + ' menit' : '');
+                        bar.classList.add('status-late');
+                        text.innerHTML = '<span>Anda terlambat ' + waktuStr.trim() + '</span>';
+                        btnMasuk.disabled = false;
+                    } else {
+                        bar.classList.add('status-ontime');
+                        text.innerHTML = '<span>Silakan presensi masuk &bull; Tepat waktu</span>';
+                        btnMasuk.disabled = false;
+                    }
+                } else {
+                    if (now > jamMasuk) {
+                        const diffMs = now - jamMasuk;
+                        const diffM = Math.floor(diffMs / 60000);
+                        const h = Math.floor(diffM / 60);
+                        const m = diffM % 60;
+                        const waktuStr = (h > 0 ? h + ' jam ' : '') + (m > 0 || h === 0 ? m + ' menit' : '');
+                        bar.classList.add('status-late');
+                        text.innerHTML = '<span>Anda terlambat ' + waktuStr.trim() + '</span>';
+                    } else {
+                        bar.classList.add('status-ontime');
+                        text.innerHTML = '<span>Silakan presensi masuk</span>';
+                    }
+                    btnMasuk.disabled = false;
+                }
+            }
+
+            // Jalankan segera dan update setiap 10 detik
+            updateShiftStatus();
+            setInterval(updateShiftStatus, 10000);
 
             // --- Tambahkan deteksi device mobile di awal script ---
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1196,16 +1667,18 @@
                 },
                 
                 showLoading(id, message) {
-                    this.removeLoading(id);
                     const el = document.getElementById('facedetection');
                     if(!el) return;
+
+                    // Hapus SEMUA loading overlay yang ada agar tidak bertumpuk/double
+                    el.querySelectorAll('.loading-overlay').forEach(item => item.remove());
 
                     const loader = document.createElement('div');
                     loader.id = id;
                     loader.className = 'loading-overlay';
                     loader.innerHTML = `
-                        <div class="spinner-border text-light" role="status"></div>
-                        <div class="mt-2 text-light">${message}</div>
+                        <div class="spinner-border text-light" role="status" style="width: 2.2rem; height: 2.2rem;"></div>
+                        <div class="mt-2 text-light" style="font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${message}</div>
                     `;
                     loader.style.position = 'absolute';
                     loader.style.top = '50%';
@@ -1213,13 +1686,20 @@
                     loader.style.transform = 'translate(-50%, -50%)';
                     loader.style.zIndex = '1000';
                     loader.style.textAlign = 'center';
+                    loader.style.pointerEvents = 'none';
                     
                     el.appendChild(loader);
                 },
 
                 removeLoading(id) {
-                    const el = document.getElementById(id);
-                    if (el) el.remove();
+                    if (id) {
+                        const el = document.getElementById(id);
+                        if (el) el.remove();
+                    }
+                    const container = document.getElementById('facedetection');
+                    if (container && !id) {
+                        container.querySelectorAll('.loading-overlay').forEach(item => item.remove());
+                    }
                 },
 
                 showError(message, isFatal = false) {
@@ -1339,6 +1819,10 @@
             const Camera = {
                 init() {
                     return new Promise((resolve, reject) => {
+                        if (!document.querySelector('.webcam-capture')) {
+                            console.log('No .webcam-capture element in DOM, skipping Camera.init');
+                            return resolve(null);
+                        }
                         Webcam.set({
                             height: 480,
                             width: 640,
@@ -1410,19 +1894,26 @@
                     UI.showLoading('model-loading', 'Memuat model wajah...');
                     
                     try {
-                        // FORCE TINY FACE DETECTOR ON ALL DEVICES FOR PERFORMANCE
                         const modelPath = FaceConfig.modelsUrl;
-                        await Promise.all([
-                            faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
-                            faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
-                            faceapi.nets.faceRecognitionNet.loadFromUri(modelPath)
-                        ]);
+                        if (window.FaceModelCache && typeof window.FaceModelCache.loadModelWithCache === 'function') {
+                            await Promise.all([
+                                window.FaceModelCache.loadModelWithCache(faceapi.nets.tinyFaceDetector, modelPath),
+                                window.FaceModelCache.loadModelWithCache(faceapi.nets.faceLandmark68Net, modelPath),
+                                window.FaceModelCache.loadModelWithCache(faceapi.nets.faceRecognitionNet, modelPath)
+                            ]);
+                        } else {
+                            await Promise.all([
+                                faceapi.nets.tinyFaceDetector.loadFromUri(modelPath),
+                                faceapi.nets.faceLandmark68Net.loadFromUri(modelPath),
+                                faceapi.nets.faceRecognitionNet.loadFromUri(modelPath)
+                            ]);
+                        }
                         this.modelsLoaded = true;
                         UI.removeLoading('model-loading');
                         console.log('Models loaded');
                     } catch (e) {
                         console.error('Model load failed', e);
-                        UI.showError('Gagal memuat model wajah.');
+                        UI.removeLoading('model-loading');
                         throw e;
                     }
                 },
@@ -1857,64 +2348,81 @@
             const App = {
                 async init() {
                     console.log('Initializing Modern App Logic...');
+
+                    // Fast-path: jika sudah selesai bekerja atau tidak ada webcam, langsung tampilkan
+                    if ((shiftConfig.sudahMasuk && shiftConfig.sudahPulang) || !document.querySelector('.webcam-capture')) {
+                        $("#skeleton-loader").remove();
+                        $("#real-content").removeClass("content-hide").show();
+                        return;
+                    }
+
+                    // Fallback timer: maksimal 2 detik skeleton loader wajib hilang
+                    const fallbackTimer = setTimeout(() => {
+                        console.warn('App.init fallback: auto-revealing UI');
+                        $("#skeleton-loader").remove();
+                        $("#real-content").removeClass("content-hide").show();
+                    }, 2000);
                     
                     try {
                         const video = await Camera.init();
+                        clearTimeout(fallbackTimer);
                         console.log('Camera initialized, revealing UI...');
                         
                         // Reveal UI as soon as camera is ready
-                        // We use a small timeout to ensure the DOM has settled
-                        setTimeout(() => {
-                            $("#skeleton-loader").fadeOut(200, function() {
-                                $(this).remove();
-                                $("#real-content").removeClass("content-hide").hide().fadeIn(200, async function() {
-                                    console.log('UI Revealed, starting functional modules...');
-                                    
-                                    // 1. Start Face Recognition if enabled
-                                    if (FaceConfig.isEnabled == 1) {
-                                        UI.disableButtons(); 
-                                        // Run asynchronously so it doesn't block map loading
-                                        (async () => {
-                                            try {
-                                                await FaceService.loadModels();
-                                                await FaceService.loadDescriptors();
-                                                FaceService.startDetection(video);
-                                            } catch (faceErr) {
-                                                console.error('Face Recognition Init Failed', faceErr);
-                                                UI.showError('Sistem deteksi wajah gagal dimuat. Anda tetap bisa melakukan presensi.');
-                                                UI.enableButtons(); // Fallback
-                                            }
-                                        })();
-                                    } else {
-                                        console.log('Face Recognition is disabled, enabling buttons.');
-                                        UI.enableButtons();
-                                    }
-                                    
-                                    // 2. Start Map & Geolocation - use pre-fetched GPS position
-                                    if (geoPositionPromise) {
-                                        console.log('[GPS] Using pre-fetched geolocation for map...');
-                                        geoPositionPromise.then(result => {
-                                            if (result.success) {
-                                                successCallback(result.position);
-                                            } else {
-                                                errorCallback(result.error);
-                                            }
-                                        });
-                                    } else if (navigator.geolocation) {
-                                        // Fallback: if promise wasn't created, request normally
-                                        console.log('[GPS] Fallback: requesting geolocation now...');
-                                        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
-                                    }
-                                    
-                                    if(map) {
-                                        console.log('Invalidating map size for correct rendering');
-                                        map.invalidateSize();
-                                    }
-                                });
+                        $("#skeleton-loader").fadeOut(150, function() {
+                            $(this).remove();
+                            $("#real-content").removeClass("content-hide").hide().fadeIn(150, async function() {
+                                console.log('UI Revealed, starting functional modules...');
+                                
+                                // 1. Start Face Recognition if enabled
+                                if (FaceConfig.isEnabled == 1 && video) {
+                                    UI.disableButtons(); 
+                                    (async () => {
+                                        try {
+                                            await Promise.race([
+                                                (async () => {
+                                                    await FaceService.loadModels();
+                                                    await FaceService.loadDescriptors();
+                                                })(),
+                                                new Promise((_, reject) => setTimeout(() => reject(new Error('Waktu muat model wajah habis (timeout)')), 25000))
+                                            ]);
+                                            FaceService.startDetection(video);
+                                        } catch (faceErr) {
+                                            console.warn('Face Recognition Init Failed or Timed Out:', faceErr);
+                                            UI.removeLoading();
+                                            UI.showError('Sistem deteksi wajah tidak dapat dimuat. Anda tetap bisa melakukan presensi.');
+                                            UI.enableButtons();
+                                        }
+                                    })();
+                                } else {
+                                    console.log('Face Recognition is disabled, enabling buttons.');
+                                    UI.enableButtons();
+                                }
+                                
+                                // 2. Start Map & Geolocation - use pre-fetched GPS position
+                                if (geoPositionPromise) {
+                                    console.log('[GPS] Using pre-fetched geolocation for map...');
+                                    geoPositionPromise.then(result => {
+                                        if (result.success) {
+                                            successCallback(result.position);
+                                        } else {
+                                            errorCallback(result.error);
+                                        }
+                                    });
+                                } else if (navigator.geolocation) {
+                                    console.log('[GPS] Fallback: requesting geolocation now...');
+                                    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+                                }
+                                
+                                if(map) {
+                                    console.log('Invalidating map size for correct rendering');
+                                    map.invalidateSize();
+                                }
                             });
-                        }, 100);
+                        });
 
                     } catch (e) {
+                        clearTimeout(fallbackTimer);
                         console.error('App Init Error', e);
                         // Emergency reveal if initialization fails
                         $("#skeleton-loader").remove();
@@ -3070,35 +3578,72 @@
                         return false;
                     }
                 }
+                   // === PENGECEKAN JADWAL MASUK SEBELUM FOTO ===
+                if (shiftConfig.sudahMasuk) {
+                    speakVoice("Anda sudah melakukan presensi masuk hari ini.");
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sudah Absen Masuk',
+                        text: 'Anda sudah melakukan presensi masuk hari ini.',
+                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonText: 'Tutup'
+                    });
+                    return false;
+                }
+
+                if (shiftConfig.batasi) {
+                    const nowCheck = new Date();
+                    const jm = parseTimeToday(shiftConfig.jamMasuk);
+                    const bMasuk = new Date(jm.getTime() - shiftConfig.batasMasukMenit * 1000);
+                    const aMasuk = new Date(jm.getTime() + shiftConfig.batasMasukMenit * 1000);
+                    if (nowCheck < bMasuk) {
+                        speakVoice("Maaf, belum waktunya untuk presensi masuk.");
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Belum Waktunya Masuk',
+                            text: 'Maaf, waktu absen masuk belum dibuka.',
+                            confirmButtonColor: '#1E4D3E',
+                            confirmButtonText: 'Mengerti'
+                        });
+                        return false;
+                    }
+                    if (nowCheck > aMasuk) {
+                        speakVoice("Maaf, waktu absen masuk sudah ditutup.");
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Waktu Absen Habis',
+                            text: 'Maaf, waktu absen masuk sudah ditutup.',
+                            confirmButtonColor: '#DC2626',
+                            confirmButtonText: 'Tutup'
+                        });
+                        return false;
+                    }
+                }
 
                 // alert(lokasi);
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenmasuk").html(
-                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:16px">Loading...</span>'
-
+                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:14px">Memproses...</span>'
                 );
                 let status = '1';
                 Webcam.snap(function(uri) {
                     image = uri;
                 });
 
-                // alert(faceRecognitionDetected);
-                // return false;
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
                     swal.fire({
                         icon: 'error',
                         title: 'Wajah Tidak Terdeteksi',
                         text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
                         didClose: function() {
-                            $("#absenmasuk").prop('disabled', false);
-                            $("#absenpulang").prop('disabled', false);
                             $("#absenmasuk").html(
-                                '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Masuk</span>'
+                                '<ion-icon name="finger-print-outline" style="font-size: 20px"></ion-icon><span>Masuk</span>'
                             );
                             $("#absenpulang").html(
-                                '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Pulang</span>'
-                            )
+                                '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
+                            );
+                            updateShiftStatus();
                         }
                     })
                     return false;
@@ -3125,13 +3670,14 @@
                             cache: false,
                             success: function(data) {
                                 if (data.status == true) {
-                                    notifikasi_absenmasuk.play();
+                                    if (data.suara) speakVoice(data.suara);
+                                    shiftConfig.sudahMasuk = true;
                                     swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil',
+                                        icon: data.is_terlambat ? 'warning' : 'success',
+                                        title: data.is_terlambat ? 'Terlambat' : 'Tepat Waktu',
                                         text: data.message,
                                         showConfirmButton: false,
-                                        timer: 4000
+                                        timer: 4500
                                     }).then(function() {
                                         window.location.href = '/dashboard';
                                     });
@@ -3139,32 +3685,20 @@
                             },
                             error: function(xhr) {
                                 const resp = xhr.responseJSON || {};
-                                if (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) {
-                                    speakVoice("Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.");
-                                } else if (resp.notifikasi == "notifikasi_radius") {
-                                    if (notifikasi_radius) notifikasi_radius.play();
-                                } else if (resp.notifikasi == "notifikasi_mulaiabsen") {
-                                    if (notifikasi_mulaiabsen) notifikasi_mulaiabsen.play();
-                                } else if (resp.notifikasi == "notifikasi_akhirabsen") {
-                                    if (notifikasi_akhirabsen) notifikasi_akhirabsen.play();
-                                } else if (resp.notifikasi == "notifikasi_sudahabsen") {
-                                    if (notifikasi_sudahabsen) notifikasi_sudahabsen.play();
-                                }
+                                if (resp.suara) speakVoice(resp.suara);
                                 swal.fire({
                                     icon: 'error',
                                     title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
                                     text: resp.message || 'Terjadi kesalahan sistem.',
                                     didClose: function() {
-                                        $("#absenmasuk").prop('disabled', false);
-                                        $("#absenpulang").prop('disabled', false);
                                         $("#absenmasuk").html(
-                                            '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Masuk</span>'
+                                            '<ion-icon name="finger-print-outline" style="font-size: 20px"></ion-icon><span>Masuk</span>'
                                         );
                                         $("#absenpulang").html(
-                                            '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Pulang</span>'
-                                        )
+                                            '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
+                                        );
+                                        updateShiftStatus();
                                     }
-
                                 });
                             }
                         });
@@ -3220,12 +3754,60 @@
                     }
                 }
 
+                // === STRICT: CEK APAKAH SUDAH ABSEN MASUK ===
+                if (!shiftConfig.sudahMasuk) {
+                    speakVoice("Anda belum melakukan presensi masuk hari ini.");
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Belum Absen Masuk',
+                        text: 'Anda harus melakukan presensi masuk terlebih dahulu sebelum presensi pulang.',
+                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonText: 'Mengerti'
+                    });
+                    return false;
+                }
+
+                // === STRICT: CEK APAKAH SUDAH SELESAI PULANG ===
+                if (shiftConfig.sudahPulang) {
+                    speakVoice("Anda telah selesai bekerja hari ini.");
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Presensi Selesai',
+                        text: 'Anda telah selesai bekerja hari ini.',
+                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonText: 'Tutup'
+                    });
+                    return false;
+                }
+
+                // === STRICT: CEK WAKTU PULANG (BELUM JAM PULANG GK BISA FOTO) ===
+                const now = new Date();
+                const jamMasuk = parseTimeToday(shiftConfig.jamMasuk);
+                const jamPulang = parseTimeToday(shiftConfig.jamPulang);
+                const batasMulaiPulang = new Date(jamPulang.getTime() - shiftConfig.batasPulangMenit * 1000);
+                if (shiftConfig.lintasHari && jamPulang <= jamMasuk) {
+                    jamPulang.setDate(jamPulang.getDate() + 1);
+                    batasMulaiPulang.setDate(batasMulaiPulang.getDate() + 1);
+                }
+                const earliestPulang = (shiftConfig.batasi && shiftConfig.batasPulangMenit > 0) ? batasMulaiPulang : jamPulang;
+
+                if (now < earliestPulang) {
+                    speakVoice("Maaf, belum waktunya untuk presensi pulang. Jam pulang shift Anda pukul " + shiftConfig.jamPulang + ".");
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Belum Waktunya Pulang',
+                        text: 'Maaf, belum saatnya untuk presensi pulang. Jam pulang shift Anda adalah pukul ' + shiftConfig.jamPulang + '.',
+                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonText: 'Mengerti'
+                    });
+                    return false; // JANGAN BISA FOTO! STOP SEBELUM WEBCAM.SNAP
+                }
+
                 // alert(lokasi);
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenpulang").html(
-                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:16px">Loading...</span>'
-
+                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:14px">Memproses...</span>'
                 );
                 let status = '2';
                 Webcam.snap(function(uri) {
@@ -3237,11 +3819,10 @@
                         title: 'Wajah Tidak Terdeteksi',
                         text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
                         didClose: function() {
-                            $("#absenmasuk").prop('disabled', false);
-                            $("#absenpulang").prop('disabled', false);
                             $("#absenpulang").html(
-                                '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Pulang</span>'
+                                '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
                             );
+                            updateShiftStatus();
                         }
                     })
                     return false;
@@ -3268,13 +3849,32 @@
                             cache: false,
                             success: function(data) {
                                 if (data.status == true) {
-                                    notifikasi_absenpulang.play();
+                                    if (data.suara) speakVoice(data.suara);
+                                    
+                                    // Set state selesai
+                                    shiftConfig.sudahPulang = true;
+
+                                    // Update timestamp pada dynamic card
+                                    const nowSuccess = new Date();
+                                    const h = String(nowSuccess.getHours()).padStart(2, '0');
+                                    const m = String(nowSuccess.getMinutes()).padStart(2, '0');
+                                    const elRekapOut = document.getElementById('rekap-jam-out');
+                                    if (elRekapOut) elRekapOut.textContent = h + ':' + m;
+
+                                    // Switch langsung ke card putih "Anda telah selesai bekerja hari ini"
+                                    const activeWrapper = document.getElementById('active-presensi-wrapper');
+                                    const dynamicCard = document.getElementById('dynamic-selesai-card');
+                                    if (activeWrapper && dynamicCard) {
+                                        activeWrapper.style.display = 'none';
+                                        dynamicCard.style.display = 'block';
+                                    }
+
                                     swal.fire({
                                         icon: 'success',
-                                        title: 'Berhasil',
+                                        title: 'Berhasil Pulang',
                                         text: data.message,
                                         showConfirmButton: false,
-                                        timer: 4000
+                                        timer: 4500
                                     }).then(function() {
                                         window.location.href = '/dashboard';
                                     });
@@ -3282,29 +3882,17 @@
                             },
                             error: function(xhr) {
                                 const resp = xhr.responseJSON || {};
-                                if (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) {
-                                    speakVoice("Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.");
-                                } else if (resp.notifikasi == "notifikasi_radius") {
-                                    if (notifikasi_radius) notifikasi_radius.play();
-                                } else if (resp.notifikasi == "notifikasi_mulaiabsen") {
-                                    if (notifikasi_mulaiabsen) notifikasi_mulaiabsen.play();
-                                } else if (resp.notifikasi == "notifikasi_akhirabsen") {
-                                    if (notifikasi_akhirabsen) notifikasi_akhirabsen.play();
-                                } else if (resp.notifikasi == "notifikasi_sudahabsen") {
-                                    if (notifikasi_sudahabsenpulang) notifikasi_sudahabsenpulang.play();
-                                }
+                                if (resp.suara) speakVoice(resp.suara);
                                 swal.fire({
                                     icon: 'error',
                                     title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
                                     text: resp.message || 'Terjadi kesalahan sistem.',
                                     didClose: function() {
-                                        $("#absenmasuk").prop('disabled', false);
-                                        $("#absenpulang").prop('disabled', false);
                                         $("#absenpulang").html(
-                                            '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Pulang</span>'
+                                            '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
                                         );
+                                        updateShiftStatus();
                                     }
-
                                 });
                             }
                         });

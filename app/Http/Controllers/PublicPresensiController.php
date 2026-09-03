@@ -217,21 +217,6 @@ class PublicPresensiController extends Controller
                     }
 
                     // Notifikasi WA (try-catch agar error WA tidak menggagalkan absen)
-                    if ($generalsetting->notifikasi_wa == 1) {
-                        try {
-                            $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Masuk pada " . $jam_presensi;
-                            if ($generalsetting->tujuan_notifikasi_wa == 0) {
-                                if ($karyawan->no_hp != "") {
-                                    dispatch(new SendWaMessage($karyawan->no_hp, $message));
-                                }
-                            } else {
-                                dispatch(new SendWaMessage($generalsetting->id_group_wa, $message));
-                            }
-                        } catch (\Exception $waEx) {
-                            Log::error('Gagal kirim WA (kiosk masuk)', ['nik' => $karyawan->nik, 'error' => $waEx->getMessage()]);
-                        }
-                    }
-
                     return response()->json(['status' => 'success', 'message' => 'Berhasil Absen Masuk', 'type' => 'masuk']);
                 } catch (\Exception $e) {
                     return response()->json(['status' => 'error', 'message' => $e->getMessage()], 200);
@@ -263,22 +248,6 @@ class PublicPresensiController extends Controller
                             'kode_jam_kerja' => $jam_kerja->kode_jam_kerja,
                             'status' => 'h'
                         ]);
-                    }
-
-                    // Notifikasi WA
-                    if ($generalsetting->notifikasi_wa == 1) {
-                        try {
-                            $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Pulang pada " . $jam_presensi . " Hati Hati di Jalan";
-                            if ($generalsetting->tujuan_notifikasi_wa == 0) {
-                                if ($karyawan->no_hp != "") {
-                                    dispatch(new SendWaMessage($karyawan->no_hp, $message));
-                                }
-                            } else {
-                                dispatch(new SendWaMessage($generalsetting->id_group_wa, $message));
-                            }
-                        } catch (\Exception $waEx) {
-                            Log::error('Gagal kirim WA (kiosk pulang)', ['nik' => $karyawan->nik, 'error' => $waEx->getMessage()]);
-                        }
                     }
 
                     return response()->json(['status' => 'success', 'message' => 'Berhasil Absen Pulang', 'type' => 'pulang']);

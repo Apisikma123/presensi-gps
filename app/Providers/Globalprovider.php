@@ -36,23 +36,36 @@ class Globalprovider extends ServiceProvider
             });
             View::share('general_setting', $settings);
 
-            // Modern theme variables (shared globally for modern layout)
-            $scheme = $settings->mobile_theme_scheme ?? 'green';
-            $themeColors = [
-                'green' => ['primary' => '#32745e', 'primary_light' => '#58907D', 'bg_body' => '#f0fdf9'],
-                'blue' => ['primary' => '#0d47a1', 'primary_light' => '#1976d2', 'bg_body' => '#eff6ff'],
-                'red' => ['primary' => '#b71c1c', 'primary_light' => '#d32f2f', 'bg_body' => '#fef2f2'],
-                'purple' => ['primary' => '#4a148c', 'primary_light' => '#7b1fa2', 'bg_body' => '#faf5ff'],
-                'orange' => ['primary' => '#e65100', 'primary_light' => '#f57c00', 'bg_body' => '#fff8f1'],
-                'rose' => ['primary' => '#ce8291', 'primary_light' => '#ef95a6', 'bg_body' => '#fff5f7'],
+            // Modern theme variables (calibrated from DESIGN.md Brew & Beam Enterprise)
+            $t = [
+                'primary' => '#1E4D3E',
+                'primary_light' => '#32745E',
+                'bg_body' => '#F8FAF8',
+                'surface' => '#FFFFFF',
+                'text_primary' => '#0F172A',
+                'text_secondary' => '#64748B',
+                'border' => 'rgba(15, 23, 42, 0.08)',
+                'amber' => '#D97706',
+                'crimson' => '#DC2626',
+                'matcha' => '#059669',
             ];
-            $t = $themeColors[$scheme] ?? $themeColors['green'];
             $isDark = false;
             View::share('t', $t);
             View::share('isDark', $isDark);
         } catch (\Exception $e) {
             View::share('general_setting', null);
-            View::share('t', ['primary' => '#32745e', 'primary_light' => '#58907D', 'bg_body' => '#f0fdf9']);
+            View::share('t', [
+                'primary' => '#1E4D3E',
+                'primary_light' => '#32745E',
+                'bg_body' => '#F8FAF8',
+                'surface' => '#FFFFFF',
+                'text_primary' => '#0F172A',
+                'text_secondary' => '#64748B',
+                'border' => 'rgba(15, 23, 42, 0.08)',
+                'amber' => '#D97706',
+                'crimson' => '#DC2626',
+                'matcha' => '#059669',
+            ]);
             View::share('isDark', false);
         }
 
@@ -66,7 +79,7 @@ class Globalprovider extends ServiceProvider
                 $user = $auth->user();
                 $cacheKey = 'user_global_notif_' . $user->id;
 
-                $shareddata = Cache::remember($cacheKey, 120, function () use ($user) {
+                $shareddata = Cache::remember($cacheKey, 300, function () use ($user) {
                     $isSuperAdmin = $user->isSuperAdmin();
                     $userCabangs = $isSuperAdmin ? [] : $user->getCabangCodes();
                     $userDepartemens = $isSuperAdmin ? [] : $user->getDepartemenCodes();
@@ -249,7 +262,7 @@ class Globalprovider extends ServiceProvider
                         }
                     }
 
-                    $data_izin = $data_izinabsen->unionAll($data_izinsakit)->unionAll($data_izincuti)->unionAll($data_izin_dinas)->get();
+                    $data_izin = $data_izinabsen->unionAll($data_izinsakit)->unionAll($data_izincuti)->unionAll($data_izin_dinas)->limit(10)->get();
 
                     $q_reimbursement_list = \App\Models\Reimbursement::where('reimbursement.status', 'P')
                         ->join('karyawan', 'reimbursement.nik', '=', 'karyawan.nik');
@@ -264,9 +277,12 @@ class Globalprovider extends ServiceProvider
                             $q_reimbursement_list->whereRaw('1 = 0');
                         }
                     }
-                    $data_reimbursement_pending = $q_reimbursement_list->select('reimbursement.*', 'karyawan.nama_karyawan')->get();
+                    $data_reimbursement_pending = $q_reimbursement_list->select('reimbursement.*', 'karyawan.nama_karyawan')->limit(10)->get();
 
                     $notifikasi_ajuan_absen = $notifikasi_izinabsen + $notifikasi_izincuti + $notifikasi_izinsakit + $notifikasi_izin_dinas + $notifikasi_ajuan_jadwal + $notifikasi_koreksi;
+
+                    $notifikasi_unread = $user->unreadNotifications()->where('type', '!=', 'App\Notifications\PengumumanNotification')->count();
+                    $notifications_list = $user->unreadNotifications()->where('type', '!=', 'App\Notifications\PengumumanNotification')->limit(10)->get();
 
                     return [
                         'notifikasi_izinabsen' => $notifikasi_izinabsen,
@@ -278,6 +294,8 @@ class Globalprovider extends ServiceProvider
                         'notifikasi_ajuan_jadwal' => $notifikasi_ajuan_jadwal,
                         'notifikasi_koreksi' => $notifikasi_koreksi,
                         'notifikasi_reimbursement' => $notifikasi_reimbursement,
+                        'notifikasi_unread' => $notifikasi_unread,
+                        'notifications_list' => $notifications_list,
                         'data_izin' => $data_izin,
                         'data_reimbursement_pending' => $data_reimbursement_pending,
                     ];

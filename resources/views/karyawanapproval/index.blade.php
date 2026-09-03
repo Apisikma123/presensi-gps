@@ -266,7 +266,7 @@
     <div id="header-section">
         <div class="appHeader bg-primary text-light">
             <div class="left">
-                <a href="{{ route('shortcut.index') }}" class="headerButton goBack">
+                <a href="{{ route('dashboard.index') }}" class="headerButton goBack">
                     <ion-icon name="chevron-back-outline"></ion-icon>
                 </a>
             </div>

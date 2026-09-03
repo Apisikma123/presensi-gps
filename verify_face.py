@@ -37,24 +37,20 @@ SFACE_URL = "https://github.com/opencv/opencv_zoo/raw/main/models/face_recogniti
 yunet_path = os.path.join(MODELS_DIR, 'yunet.onnx')
 sface_path = os.path.join(MODELS_DIR, 'sface.onnx')
 
-def download_file(url, path):
-    # If file exists but is too small (e.g. LFS pointer file), remove it and re-download
-    if os.path.exists(path) and os.path.getsize(path) < 10000:
+def ensure_model(url, path):
+    if not os.path.exists(path) or os.path.getsize(path) < 10000:
         try:
-            os.remove(path)
-        except Exception:
-            pass
-
-    if not os.path.exists(path):
-        try:
+            if os.path.exists(path):
+                os.remove(path)
             urllib.request.urlretrieve(url, path)
         except Exception as e:
             exit_with_json(False, f"Failed to download face model: {str(e)}")
 
-download_file(YUNET_URL, yunet_path)
-download_file(SFACE_URL, sface_path)
+# Ensure models exist (only downloads if missing or invalid)
+ensure_model(YUNET_URL, yunet_path)
+ensure_model(SFACE_URL, sface_path)
 
-# Initialize OpenCV face detector and recognizer using positional arguments
+# Initialize OpenCV face detector and recognizer
 try:
     detector = cv2.FaceDetectorYN.create(
         yunet_path,      # model
@@ -71,26 +67,45 @@ try:
 except Exception as e:
     exit_with_json(False, f"Failed to initialize face recognition: {str(e)}")
 
-def extract_feature(img_path):
-    img = cv2.imread(img_path)
+def extract_feature_from_image(img):
     if img is None:
         return None
     h, w, _ = img.shape
     
-    # Set input size for YuNet detector
-    detector.setInputSize((w, h))
-    _, faces = detector.detect(img)
+    # Optimize detection speed: resize if image is too large while preserving aspect ratio
+    max_dim = 640
+    scale = 1.0
+    if max(h, w) > max_dim:
+        scale = max_dim / float(max(h, w))
+        target_w = int(w * scale)
+        target_h = int(h * scale)
+        proc_img = cv2.resize(img, (target_w, target_h), interpolation=cv2.INTER_AREA)
+    else:
+        proc_img = img
+        target_w, target_h = w, h
+
+    detector.setInputSize((target_w, target_h))
+    _, faces = detector.detect(proc_img)
     
     if faces is None or len(faces) == 0:
         return None
     
-    # Align and crop the first detected face
+    first_face = faces[0].copy()
+    if scale != 1.0:
+        # Scale bounding box and landmarks back to original image coordinate space
+        first_face[0:14] = first_face[0:14] / scale
+    
+    # Align and crop the first detected face from original image
     try:
-        aligned_face = recognizer.alignCrop(img, faces[0])
+        aligned_face = recognizer.alignCrop(img, first_face)
         feature = recognizer.feature(aligned_face)
         return feature
     except Exception:
         return None
+
+def extract_feature(img_path):
+    img = cv2.imread(img_path)
+    return extract_feature_from_image(img)
 
 # Extract feature from uploaded selfie
 selfie_feature = extract_feature(selfie_path)
@@ -98,25 +113,63 @@ if selfie_feature is None:
     exit_with_json(False, "Wajah tidak terdeteksi pada foto selfie Anda.")
 
 # Scan registered folder and compare
+valid_extensions = ('.png', '.jpg', '.jpeg', '.webp')
 registered_files = [os.path.join(registered_dir, f) for f in os.listdir(registered_dir) 
-                    if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]
+                    if f.lower().endswith(valid_extensions)]
 
 if not registered_files:
     exit_with_json(False, "Tidak ada data foto wajah terdaftar di sistem.")
 
-best_score = -1.0
+# Feature vector cache path inside registered directory
+CACHE_FILE = os.path.join(registered_dir, '.embeddings_cache.json')
 
-# Cosine similarity threshold for SFace (typically >= 0.363 is considered a match)
+def get_registered_features():
+    # Get latest modification time of registered images
+    latest_mtime = max(os.path.getmtime(f) for f in registered_files)
+    
+    # Try reading from cache
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, 'r') as f:
+                cache_data = json.load(f)
+            if cache_data.get('mtime') == latest_mtime and 'features' in cache_data:
+                features = [np.array(vec, dtype=np.float32) for vec in cache_data['features']]
+                if features:
+                    return features
+        except Exception:
+            pass
+
+    # Recompute and cache features
+    features = []
+    serializable_features = []
+    for reg_file in registered_files:
+        reg_feat = extract_feature(reg_file)
+        if reg_feat is not None:
+            features.append(reg_feat)
+            serializable_features.append(reg_feat.tolist())
+    
+    if serializable_features:
+        try:
+            with open(CACHE_FILE, 'w') as f:
+                json.dump({
+                    'mtime': latest_mtime,
+                    'features': serializable_features
+                }, f)
+        except Exception:
+            pass
+            
+    return features
+
+registered_features = get_registered_features()
+if not registered_features:
+    exit_with_json(False, "Wajah tidak terdeteksi pada data foto wajah terdaftar.")
+
+best_score = -1.0
 COSINE_THRESHOLD = 0.363
 
-for reg_file in registered_files:
-    reg_feature = extract_feature(reg_file)
-    if reg_feature is None:
-        continue
-    
+for reg_feat in registered_features:
     try:
-        # Match using Cosine Similarity
-        score = recognizer.match(selfie_feature, reg_feature, cv2.FaceRecognizerSF_FR_COSINE)
+        score = recognizer.match(selfie_feature, reg_feat, cv2.FaceRecognizerSF_FR_COSINE)
         if score > best_score:
             best_score = score
     except Exception:

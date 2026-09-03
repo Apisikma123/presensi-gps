@@ -19,9 +19,10 @@ class DepartemenController extends Controller
             $query->whereIn('kode_dept', $userDepartemens);
         }
         if (!empty($request->nama_dept)) {
-            $query->where('nama_dept', 'like', '%' . $request->nama_dept . '%');
+            $query->where('nama_dept', 'like', '%' . $request->nama_dept . '%')
+                  ->orWhere('kode_dept', 'like', '%' . $request->nama_dept . '%');
         }
-        $data['departemen'] = $query->orderBy('kode_dept')->get();
+        $data['departemen'] = $query->orderBy('kode_dept')->paginate(10)->withQueryString();
         return view('datamaster.departemen.index', $data);
     }
 

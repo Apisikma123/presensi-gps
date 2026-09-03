@@ -9,19 +9,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>@yield('title')</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.0/air-datepicker.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
 
     {{-- Template CSS --}}
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/template/css/styleform.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/css/toastr.min.css') }}" />
+
+    {{-- Tailwind & App CSS --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 
     <style>
@@ -53,6 +54,23 @@
             z-index: 50;
         }
 
+        /* Standardized DESIGN.md 12px Squircle Header Buttons */
+        header .left a, header .right a {
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 12px !important;
+            background: rgba(255, 255, 255, 0.14) !important;
+            color: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        header .left a:active, header .right a:active {
+            transform: scale(0.92) !important;
+            background: rgba(255, 255, 255, 0.25) !important;
+        }
+
         /* Override template resets that conflict */
         @keyframes shimmer {
             0% { background-position: -400px 0; }
@@ -81,6 +99,34 @@
         /* Global skeleton styles */
         .skeleton-avatar { width: 45px; height: 45px; border-radius: 12px; }
         .skeleton-text { height: 12px; border-radius: 4px; }
+
+        /* =========================================================
+           GLOBAL MINIMALIST DESIGN SYSTEM (DESIGN.md & minimalist-ui)
+           ========================================================= */
+        .card, .presensi-card {
+            border: 1px solid rgba(15, 23, 42, 0.08) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+            background: #ffffff !important;
+        }
+        .card:hover, .presensi-card:hover {
+            border-color: rgba(30, 77, 62, 0.35) !important;
+        }
+
+        .form-label-group {
+            position: relative;
+            margin-bottom: 12px;
+            background: #ffffff !important;
+            border: 1px solid rgba(15, 23, 42, 0.12) !important;
+            border-radius: 14px !important;
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+        }
+        .form-label-group:focus-within {
+            border-color: #1E4D3E !important;
+            box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.1) !important;
+        }
 
         .air-datepicker { font-family: 'Inter', sans-serif !important; border-radius: 16px !important; border: none !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
         .air-datepicker-cell.-selected- { background: {{ $t['primary'] }} !important; }
@@ -202,7 +248,7 @@
     {{-- Core JS dependencies from old layout --}}
     <script src="{{ asset('assets/template/js/lib/popper.min.js') }}"></script>
     <script src="{{ asset('assets/template/js/lib/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/template/js/base.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('assets/template/js/base.js') }}?v=2.0"></script>
     <script src="{{ asset('assets/vendor/libs/toastr/toastr.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js" defer></script>

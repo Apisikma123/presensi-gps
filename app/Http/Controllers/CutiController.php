@@ -11,7 +11,12 @@ class CutiController extends Controller
 {
     public function index(Request $request)
     {
-        $data['cuti'] = Cuti::orderBy('kode_cuti')->get();
+        $query = Cuti::query();
+        if (!empty($request->nama_cuti)) {
+            $query->where('jenis_cuti', 'like', '%' . $request->nama_cuti . '%')
+                  ->orWhere('kode_cuti', 'like', '%' . $request->nama_cuti . '%');
+        }
+        $data['cuti'] = $query->orderBy('kode_cuti')->paginate(10)->withQueryString();
         return view('datamaster.cuti.index', $data);
     }
 

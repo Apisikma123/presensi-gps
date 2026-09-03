@@ -148,6 +148,19 @@ class ProjectMobileController extends Controller
      */
     public function storeComment(Request $request, $id)
     {
+        try {
+            $idDec = Crypt::decrypt($id);
+            $nik = $this->getNik();
+
+            $task = ProjectTask::findOrFail($idDec);
+            $isMember = DB::table('project_members')->where('project_id', $task->project_id)->where('nik', $nik)->exists();
+            if (!$isMember) {
+                return Redirect::back()->with(messageError('Anda tidak memiliki akses ke project ini.'));
+            }
+        } catch (\Exception $e) {
+            return Redirect::back()->with(messageError('Akses ditolak atau data tidak valid.'));
+        }
+
         return app(ProjectTaskController::class)->storeComment($request, $id);
     }
 

@@ -60,23 +60,26 @@
             </div>
         </form>
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="background-color: var(--theme-color-1) !important; color: white !important; min-height: 50px;">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-layout-grid me-2 fs-5"></i>
-                    <h6 class="card-title mb-0 text-white">Data Slip Gaji Bulanan</h6>
+        <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+            <div class="card-header d-flex justify-content-between align-items-center py-3 px-4" style="background-color: #FFFFFF !important; border-bottom: 1px solid #F1F5F9 !important;">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                        style="width: 34px; height: 34px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                        <i class="ti ti-file-invoice fs-5"></i>
+                    </div>
+                    <h6 class="card-title mb-0 fw-bold text-dark" style="font-size: 13.5px; color: #0F172A !important;">Data Slip Gaji Bulanan</h6>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
+                        <thead>
                             <tr>
-                                <th class="text-white py-3">KODE</th>
-                                <th class="text-white py-3">BULAN</th>
-                                <th class="text-white py-3">TAHUN</th>
-                                <th class="text-white py-3 text-center">STATUS</th>
-                                <th class="text-white py-3 text-center" style="width: 100px;">#</th>
+                                <th class="py-3">KODE</th>
+                                <th class="py-3">BULAN</th>
+                                <th class="py-3">TAHUN</th>
+                                <th class="py-3 text-center">STATUS</th>
+                                <th class="py-3 text-center" style="width: 100px;">#</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -157,25 +160,28 @@
             </div>
         </form>
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="background-color: var(--theme-color-1) !important; color: white !important; min-height: 50px;">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-layout-grid me-2 fs-5"></i>
-                    <h6 class="card-title mb-0 text-white">Data Slip Gaji Harian</h6>
+        <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+            <div class="card-header d-flex justify-content-between align-items-center py-3 px-4" style="background-color: #FFFFFF !important; border-bottom: 1px solid #F1F5F9 !important;">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                        style="width: 34px; height: 34px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                        <i class="ti ti-clock-dollar fs-5"></i>
+                    </div>
+                    <h6 class="card-title mb-0 fw-bold text-dark" style="font-size: 13.5px; color: #0F172A !important;">Data Slip Gaji Harian</h6>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
+                        <thead class="table-light">
                             <tr>
-                                <th class="text-white py-3">KODE</th>
-                                <th class="text-white py-3">TGL SLIP</th>
-                                <th class="text-white py-3">DARI</th>
-                                <th class="text-white py-3">SAMPAI</th>
-                                <th class="text-white py-3 text-center">KARYAWAN</th>
-                                <th class="text-white py-3 text-center">STATUS</th>
-                                <th class="text-white py-3 text-center" style="width: 100px;">#</th>
+                                <th class="py-3">KODE</th>
+                                <th class="py-3">TGL SLIP</th>
+                                <th class="py-3">DARI</th>
+                                <th class="py-3">SAMPAI</th>
+                                <th class="py-3 text-center">KARYAWAN</th>
+                                <th class="py-3 text-center">STATUS</th>
+                                <th class="py-3 text-center" style="width: 100px;">#</th>
                             </tr>
                         </thead>
                         <tbody>

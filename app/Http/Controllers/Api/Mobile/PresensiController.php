@@ -71,12 +71,12 @@ class PresensiController extends Controller
         }
 
         try {
-            $generalsetting = Pengaturanumum::where('id', 1)->first();
+            $generalsetting = Pengaturanumum::getSetting();
             $status_lock_location = $karyawan->lock_location;
             $lokasi = $request->input('lokasi');
             $kode_jam_kerja = $request->input('kode_jam_kerja');
 
-            $cabang = Cabang::where('kode_cabang', $karyawan->kode_cabang)->first();
+            $cabang = Cabang::getByCode($karyawan->kode_cabang);
             if (!$cabang) {
                 return response()->json([
                     'success' => false,
@@ -93,17 +93,18 @@ class PresensiController extends Controller
             $tanggal_kemarin = $carbon_now->copy()->subDay()->format('Y-m-d');
             $tanggal_besok = $carbon_now->copy()->addDay()->format('Y-m-d');
 
-            // Check yesterday's attendance for Lintas Hari
+            // Cek Presensi Kemarin untuk lintas hari
             $presensi_kemarin = Presensi::where('nik', $karyawan->nik)
                 ->join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
                 ->where('presensi.nik', $karyawan->nik)
-                ->where('presensi.tanggal', $tanggal_kemarin)->first();
+                ->where('presensi.tanggal', $tanggal_kemarin)
+                ->first();
 
             $batas_presensi_lintashari = ($presensi_kemarin && $presensi_kemarin->batas_presensi_pulang)
                 ? $presensi_kemarin->batas_presensi_pulang
-                : $generalsetting->batas_presensi_lintashari;
+                : ($generalsetting->batas_presensi_lintashari ?? '08:00');
 
-            $jam_kerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first();
+            $jam_kerja = Jamkerja::getByCode($kode_jam_kerja);
             if (!$jam_kerja) {
                 return response()->json([
                     'success' => false,
@@ -111,7 +112,7 @@ class PresensiController extends Controller
                 ], 404);
             }
 
-            // Determine check-in target date
+            // Penentuan tanggal presensi
             $tanggal_presensi = $tanggal_sekarang;
             $jam_kerja_pulang = $jam_kerja->jam_pulang;
             $tanggal_pulang = $jam_kerja->lintashari == 1 ? $tanggal_besok : $tanggal_sekarang;
@@ -144,60 +145,12 @@ class PresensiController extends Controller
                 ], 400);
             }
 
-            $in_out = $status == 1 ? "in" : "out";
-            $folderPath = "public/uploads/absensi/";
-            if (!Storage::exists($folderPath)) {
-                Storage::makeDirectory($folderPath, 0775, true);
-            }
-
-            $jam_presensi = $tanggal_sekarang . " " . $carbon_now->format('H:i:s');
-            $fileName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out . ".png";
-
-            // Save uploaded selfie
-            $imageFile = $request->file('image');
-            Storage::put($folderPath . $fileName, file_get_contents($imageFile));
-
-            // Face Recognition verification (if enabled)
-            if (isset($generalsetting->face_recognition) && $generalsetting->face_recognition == 1) {
-                $nama_folder_wajah = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
-                $folderWajahPath = "public/uploads/facerecognition/" . $nama_folder_wajah;
-                
-                if (Storage::exists($folderWajahPath) && count(Storage::files($folderWajahPath)) > 0) {
-                    $selfieFullPath = Storage::path($folderPath . $fileName);
-                    $registeredDirFullPath = Storage::path($folderWajahPath);
-                    
-                    $pythonPath = '/usr/bin/python3';
-                    $scriptPath = base_path('verify_face.py');
-                    
-                    $command = $pythonPath . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($selfieFullPath) . " " . escapeshellarg($registeredDirFullPath) . " 2>&1";
-                    
-                    $output = shell_exec($command);
-                    $result = json_decode($output, true);
-                    
-                    if (!$result || !isset($result['matched']) || !$result['matched']) {
-                        // Delete the uploaded selfie
-                        Storage::delete($folderPath . $fileName);
-                        
-                        $failMsg = isset($result['message']) ? $result['message'] : 'Verifikasi wajah gagal. Wajah Anda tidak cocok dengan data terdaftar.';
-                        return response()->json([
-                            'success' => false,
-                            'message' => $failMsg
-                        ], 400);
-                    }
-                }
-            }
-
-            $presensi_hariini = Presensi::where('nik', $karyawan->nik)
-                ->where('tanggal', $tanggal_presensi)
-                ->first();
-
             // Limits checking parameters
             $batas_jam_absen = $generalsetting->batas_jam_absen * 60;
             $batas_jam_absen_pulang = $generalsetting->batas_jam_absen_pulang * 60;
 
             $jam_masuk_string = $tanggal_presensi . " " . $jam_kerja->jam_masuk;
             $jam_masuk_carbon = Carbon::parse($jam_masuk_string, $timezone_cabang);
-
             $jam_mulai_masuk_carbon = $jam_masuk_carbon->copy()->subMinutes($batas_jam_absen);
             $jam_akhir_masuk_carbon = $jam_masuk_carbon->copy()->addMinutes($batas_jam_absen);
 
@@ -205,8 +158,13 @@ class PresensiController extends Controller
             $jam_pulang_carbon = Carbon::parse($jam_pulang_string, $timezone_cabang);
             $jam_mulai_pulang_carbon = $jam_pulang_carbon->copy()->subMinutes($batas_jam_absen_pulang);
 
+            // === FAST PRE-CHECK (Zero I/O, Zero Python overhead on duplicate/invalid attempts) ===
+            $presensi_hariini = Presensi::where('nik', $karyawan->nik)
+                ->where('tanggal', $tanggal_presensi)
+                ->first();
+
             if ($status == 1) {
-                // Check-In
+                // Check-In Pre-Check
                 if ($presensi_hariini && $presensi_hariini->jam_in != null) {
                     return response()->json([
                         'success' => false,
@@ -227,39 +185,8 @@ class PresensiController extends Controller
                         'message' => 'Maaf, batas waktu absen masuk sudah habis'
                     ], 400);
                 }
-
-                if ($presensi_hariini != null) {
-                    Presensi::where('id', $presensi_hariini->id)->update([
-                        'jam_in' => $jam_presensi,
-                        'lokasi_in' => $lokasi,
-                        'foto_in' => $fileName
-                    ]);
-                } else {
-                    Presensi::create([
-                        'nik' => $karyawan->nik,
-                        'tanggal' => $tanggal_presensi,
-                        'jam_in' => $jam_presensi,
-                        'jam_out' => null,
-                        'lokasi_in' => $lokasi,
-                        'lokasi_out' => null,
-                        'foto_in' => $fileName,
-                        'foto_out' => null,
-                        'kode_jam_kerja' => $kode_jam_kerja,
-                        'status' => 'h'
-                    ]);
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Berhasil absen masuk',
-                    'data' => [
-                        'jam_in' => $carbon_now->format('H:i'),
-                        'foto_in' => asset('storage/uploads/absensi/' . $fileName)
-                    ]
-                ]);
-
             } else {
-                // Check-Out
+                // Check-Out Pre-Check
                 if ($presensi_hariini && $presensi_hariini->jam_out != null) {
                     return response()->json([
                         'success' => false,
@@ -273,28 +200,117 @@ class PresensiController extends Controller
                         'message' => 'Maaf, belum waktunya absen pulang. Dimulai pukul ' . $jam_mulai_pulang_carbon->format('H:i')
                     ], 400);
                 }
+            }
 
-                if ($presensi_hariini != null) {
-                    Presensi::where('id', $presensi_hariini->id)->update([
-                        'jam_out' => $jam_presensi,
-                        'lokasi_out' => $lokasi,
-                        'foto_out' => $fileName
-                    ]);
-                } else {
-                    Presensi::create([
-                        'nik' => $karyawan->nik,
-                        'tanggal' => $tanggal_presensi,
-                        'jam_in' => null,
-                        'jam_out' => $jam_presensi,
-                        'lokasi_in' => null,
-                        'lokasi_out' => $lokasi,
-                        'foto_in' => null,
-                        'foto_out' => $fileName,
-                        'kode_jam_kerja' => $kode_jam_kerja,
-                        'status' => 'h'
-                    ]);
+            $in_out = $status == 1 ? "in" : "out";
+            $jam_presensi = $tanggal_sekarang . " " . $carbon_now->format('H:i:s');
+            $formatName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out;
+
+            // Save uploaded selfie with WebP optimization & downscaling
+            $imageInput = $request->hasFile('image') ? $request->file('image') : $request->input('image');
+            $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80, 800);
+
+            // Face Recognition verification (if enabled)
+            if (isset($generalsetting->face_recognition) && $generalsetting->face_recognition == 1) {
+                $nama_folder_wajah = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
+                $folderWajahPath = "public/uploads/facerecognition/" . $nama_folder_wajah;
+                
+                if (Storage::exists($folderWajahPath) && count(Storage::files($folderWajahPath)) > 0) {
+                    $selfieFullPath = Storage::path("public/uploads/absensi/" . $fileName);
+                    $registeredDirFullPath = Storage::path($folderWajahPath);
+                    
+                    $pythonPath = PHP_OS_FAMILY === 'Windows' ? 'python' : (file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3');
+                    $scriptPath = base_path('verify_face.py');
+                    
+                    $command = escapeshellcmd($pythonPath) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($selfieFullPath) . " " . escapeshellarg($registeredDirFullPath) . " 2>&1";
+                    
+                    $output = shell_exec($command);
+                    $result = json_decode($output, true);
+                    
+                    if (!$result || !isset($result['matched']) || !$result['matched']) {
+                        Storage::delete("public/uploads/absensi/" . $fileName);
+                        
+                        $failMsg = isset($result['message']) ? $result['message'] : 'Verifikasi wajah gagal. Wajah Anda tidak cocok dengan data terdaftar.';
+                        return response()->json([
+                            'success' => false,
+                            'message' => $failMsg
+                        ], 400);
+                    }
                 }
+            }
 
+            // === ATOMIC PERSISTENCE WITH ROW-LEVEL LOCK ===
+            \Illuminate\Support\Facades\DB::transaction(function () use ($karyawan, $tanggal_presensi, $jam_presensi, $lokasi, $fileName, $kode_jam_kerja, $status, &$presensi_hariini) {
+                $locked = Presensi::where('nik', $karyawan->nik)
+                    ->where('tanggal', $tanggal_presensi)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($status == 1) {
+                    if ($locked && $locked->jam_in != null) {
+                        throw new \Exception('Anda sudah absen masuk hari ini');
+                    }
+
+                    if ($locked != null) {
+                        $locked->update([
+                            'jam_in' => $jam_presensi,
+                            'lokasi_in' => $lokasi,
+                            'foto_in' => $fileName
+                        ]);
+                        $presensi_hariini = $locked;
+                    } else {
+                        $presensi_hariini = Presensi::create([
+                            'nik' => $karyawan->nik,
+                            'tanggal' => $tanggal_presensi,
+                            'jam_in' => $jam_presensi,
+                            'jam_out' => null,
+                            'lokasi_in' => $lokasi,
+                            'lokasi_out' => null,
+                            'foto_in' => $fileName,
+                            'foto_out' => null,
+                            'kode_jam_kerja' => $kode_jam_kerja,
+                            'status' => 'h'
+                        ]);
+                    }
+                } else {
+                    if ($locked && $locked->jam_out != null) {
+                        throw new \Exception('Anda sudah absen pulang hari ini');
+                    }
+
+                    if ($locked != null) {
+                        $locked->update([
+                            'jam_out' => $jam_presensi,
+                            'lokasi_out' => $lokasi,
+                            'foto_out' => $fileName
+                        ]);
+                        $presensi_hariini = $locked;
+                    } else {
+                        $presensi_hariini = Presensi::create([
+                            'nik' => $karyawan->nik,
+                            'tanggal' => $tanggal_presensi,
+                            'jam_in' => null,
+                            'jam_out' => $jam_presensi,
+                            'lokasi_in' => null,
+                            'lokasi_out' => $lokasi,
+                            'foto_in' => null,
+                            'foto_out' => $fileName,
+                            'kode_jam_kerja' => $kode_jam_kerja,
+                            'status' => 'h'
+                        ]);
+                    }
+                }
+            });
+
+            if ($status == 1) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Berhasil absen masuk',
+                    'data' => [
+                        'jam_in' => $carbon_now->format('H:i'),
+                        'foto_in' => asset('storage/uploads/absensi/' . $fileName)
+                    ]
+                ]);
+            } else {
                 return response()->json([
                     'success' => true,
                     'message' => 'Berhasil absen pulang',

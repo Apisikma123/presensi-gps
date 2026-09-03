@@ -478,61 +478,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Integrasi -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">Pengaturan Integrasi Mesin Fingerprint</h6>
-                    </div>
-                    <div class="card-body">
-                        <x-input-with-icon-label label="Cloud Id" name="cloud_id" icon="ti ti-cloud" :value="$setting->cloud_id ?? ''" />
-                        <x-input-with-icon-label label="API Key" name="api_key" icon="ti ti-key" :value="$setting->api_key ?? ''" />
-                    </div>
-                </div>
-                <!-- WA -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">Whatsapp Gateway</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group mb-3">
-                            <label for="provider_wa" style="font-weight: 600" class="form-label">Provider WA</label>
-                            <select class="form-select" name="provider_wa" id="provider_wa">
-                                <option value="ig" @selected(($setting->provider_wa ?? 'ig') == 'ig')>Internal Gateway</option>
-                                <option value="fe" @selected(($setting->provider_wa ?? 'ig') == 'fe')>Fonnte</option>
-                            </select>
-                        </div>
-                        <label for="" style="font-weight: 600" class="form-label">Notifikasi WA</label>
-                        <div class="checkbox-wrapper-55 mb-2">
-                            <label class="rocker rocker-small">
-                                <input type="checkbox" name="notifikasi_wa" @checked($setting->notifikasi_wa ?? false)>
-                                <span class="switch-left">Yes</span>
-                                <span class="switch-right">No</span>
-                            </label>
-                        </div>
-                        <label for="" style="font-weight: 600" class="form-label">Tujuan Notifikasi WA</label>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="tujuan_notifikasi_wa" id="tujuan_grup" value="1"
-                                @checked(($setting->tujuan_notifikasi_wa ?? 0) == 1)>
-                            <label class="form-check-label" for="tujuan_grup">
-                                Kirim ke Grup
-                            </label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="tujuan_notifikasi_wa" id="tujuan_karyawan" value="0"
-                                @checked(($setting->tujuan_notifikasi_wa ?? 0) == 0)>
-                            <label class="form-check-label" for="tujuan_karyawan">
-                                Kirim ke Karyawan
-                            </label>
-                        </div>
-                        <div id="group_wa_input" style="display: none;">
-                            <x-input-with-icon-label label="ID Group WA" name="id_group_wa" icon="ti ti-users" :value="$setting->id_group_wa ?? ''" />
-                        </div>
-                        <x-input-with-icon-label label="Domain WA Gateway (contoh: https://wa.company.com)" name="domain_wa_gateway"
-                            icon="ti ti-message" :value="$setting->domain_wa_gateway ?? ''" />
-                        <x-input-with-icon-label label="WA API Key" name="wa_api_key" icon="ti ti-brand-whatsapp" :value="$setting->wa_api_key ?? ''" />
-                    </div>
-                </div>
-
                 <!-- PWA -->
                 <div class="card mb-3">
                     <div class="card-header">
@@ -653,24 +598,6 @@
 
         $('.flatpickr-date').flatpickr({
             dateFormat: 'Y-m-d',
-        });
-
-        // Toggle Group WA Input
-        function toggleGroupInput() {
-            const tujuanGrup = $('#tujuan_grup').is(':checked');
-            if (tujuanGrup) {
-                $('#group_wa_input').show();
-            } else {
-                $('#group_wa_input').hide();
-            }
-        }
-
-        // Initialize on page load
-        toggleGroupInput();
-
-        // Toggle on radio button change
-        $('input[name="tujuan_notifikasi_wa"]').change(function() {
-            toggleGroupInput();
         });
 
         // Toggle Global Jadwal Kerja Container

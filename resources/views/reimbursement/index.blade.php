@@ -31,13 +31,6 @@
                     </a>
                 @endcan
             </div>
-            <div>
-                @can('approvallayer.index')
-                    <a href="{{ route('approvallayer.index', ['feature' => 'REIMBURSEMENT']) }}" class="btn btn-info">
-                        <i class="ti ti-settings me-1"></i> Konfigurasi Approval
-                    </a>
-                @endcan
-            </div>
         </div>
     </div>
 </div>

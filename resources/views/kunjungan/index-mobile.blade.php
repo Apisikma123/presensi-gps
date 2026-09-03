@@ -635,7 +635,16 @@
                 monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
                 today: 'Hari ini', clear: 'Hapus', dateFormat: 'yyyy-MM-dd', timeFormat: 'HH:mm', firstDay: 1
             };
-            const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: ['today', 'clear'], position: 'bottom center' };
+            const btnToday = {
+                content: 'Hari ini',
+                className: 'air-datepicker-button-today',
+                onClick: (dp) => {
+                    const today = new Date();
+                    dp.selectDate(today);
+                    dp.setViewDate(today);
+                }
+            };
+            const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: [btnToday, 'clear'], position: 'bottom center' };
             new AirDatepicker('#tanggal_awal', dpOpt);
             new AirDatepicker('#tanggal_akhir', dpOpt);
 

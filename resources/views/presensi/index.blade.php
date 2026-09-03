@@ -109,32 +109,38 @@
 
 <div class="row">
     <div class="col-12">
-        <!-- Filter Header Bar -->
-        <div class="card shadow-none border mb-3" style="border-radius: 12px; border-color: #e2e8f0;">
-            <div class="card-body p-3">
+        <!-- Filter Header Bar (Minimalist & Aligned) -->
+        <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 10px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);">
+            <div class="card-body p-2.5">
                 <form action="{{ route('presensi.index') }}" method="GET">
                     <div class="row g-2 align-items-center">
                         <div class="col-lg-3 col-md-6 col-12">
                             <x-input-with-icon label="" value="{{ Request('tanggal') }}" name="tanggal" icon="ti ti-calendar"
-                                datepicker="flatpickr-date" placeholder="Pilih Tanggal..." />
+                                datepicker="flatpickr-date" placeholder="Pilih Tanggal..." hideLabel="true" />
                         </div>
                         <div class="col-lg-3 col-md-6 col-12">
                             <div class="form-group mb-0">
                                 <x-select label="" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
                                     selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch"
-                                    placeholder="Semua Outlet / Cabang" />
+                                    placeholder="Semua Outlet / Cabang" hideLabel="true" />
                             </div>
                         </div>
                         <div class="col-lg-4 col-md-8 col-12">
                             <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
-                                placeholder="Cari nama barista, kasir, staff..." />
+                                placeholder="Cari nama barista, kasir, staff..." hideLabel="true" />
                         </div>
-                        <div class="col-lg-2 col-md-4 col-12">
-                            <button class="btn w-100 text-white fw-semibold d-flex align-items-center justify-content-center gap-1" 
-                                style="background-color: #32745e; border-radius: 8px; height: 38px;">
-                                <i class="ti ti-filter"></i>
-                                <span>Filter Data</span>
+                        <div class="col-lg-2 col-md-4 col-12 d-flex align-items-center gap-1.5">
+                            <button type="submit" class="btn text-white d-inline-flex align-items-center justify-content-center shadow-sm" 
+                                title="Cari Data"
+                                style="background-color: var(--theme-color-1, #1E4D3E); border: 1px solid #11382C; border-radius: 8px; height: 38px; width: 38px; min-width: 38px; padding: 0; transition: all 0.2s ease;">
+                                <i class="ti ti-search" style="font-size: 16px;"></i>
                             </button>
+                            @if (Request('tanggal') || Request('kode_cabang') || Request('nama_karyawan'))
+                                <a href="{{ route('presensi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center p-0 flex-shrink-0" 
+                                    style="height: 38px; width: 38px; min-width: 38px; border-radius: 8px;" title="Reset Filter">
+                                    <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </form>
@@ -351,11 +357,6 @@
                                             </form>
                                             @endif
                                         @endif
-                                        
-                                        <a href="#" class="btn-action-icon text-primary btngetDatamesin" pin="{{ $d->pin }}"
-                                            tanggal="{{ $tanggal_presensi }}" title="Log Mesin">
-                                            <i class="ti ti-device-desktop"></i>
-                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -442,10 +443,6 @@
                                 tanggal="{{ $tanggal_presensi }}" style="font-size: 11.5px;">
                                 <i class="ti ti-edit me-1"></i> Koreksi
                             </a>
-                            <a href="#" class="btn btn-sm btn-outline-primary btngetDatamesin py-1 px-2.5 rounded-2" pin="{{ $d->pin }}"
-                                tanggal="{{ $tanggal_presensi }}" style="font-size: 11.5px;">
-                                <i class="ti ti-device-desktop me-1"></i> Log
-                            </a>
                         </div>
                     </div>
                 @empty
@@ -456,15 +453,27 @@
                 @endforelse
             </div>
 
-            <!-- Professional Pagination Footer -->
-            <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-2" style="background: #fafbfc; border-color: #e2e8f0 !important;">
-                <div class="text-muted" style="font-size: 12.5px;">
+            <!-- Professional Pagination Footer with Slider -->
+            <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-3" style="background: #FFFFFF; border-color: #e2e8f0 !important;">
+                <div class="text-muted" style="font-size: 12px;">
                     @if ($karyawan->total() > 0)
                         Menampilkan <span class="fw-bold text-dark font-mono">{{ $karyawan->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $karyawan->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $karyawan->total() }}</span> total karyawan
                     @else
                         Menampilkan 0 data
                     @endif
                 </div>
+
+                @if ($karyawan->lastPage() > 1)
+                    <div class="page-slider-container">
+                        <small class="text-muted fw-semibold" style="font-size: 11.5px;">Slide Halaman:</small>
+                        <input type="range" class="page-slider-range" id="pageSlider"
+                            min="1" max="{{ $karyawan->lastPage() }}" value="{{ $karyawan->currentPage() }}"
+                            oninput="document.getElementById('sliderBadge').innerText = this.value"
+                            onchange="navigatePage(this.value)">
+                        <span class="badge bg-primary font-mono" id="sliderBadge">{{ $karyawan->currentPage() }}</span>
+                    </div>
+                @endif
+
                 <div class="d-flex align-items-center">
                     {{ $karyawan->links('pagination::bootstrap-5') }}
                 </div>
@@ -476,6 +485,12 @@
 @endsection
 @push('myscript')
 <script>
+    function navigatePage(pageNum) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', pageNum);
+        window.location.href = url.toString();
+    }
+
     $(function() {
         $(document).on('click', '.koreksiPresensi', function() {
             let nik = $(this).attr('nik');

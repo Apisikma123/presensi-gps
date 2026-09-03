@@ -10,42 +10,57 @@
 
 @push('mystyle')
     <style>
-        body {
-            background: #e6fcf5 !important;
+        .form-container {
+            padding: 12px 6px;
         }
 
-        .form-container {
-            padding: 10px 5px;
+        .profile-card-surface {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+            padding: 20px 16px;
         }
 
         .form-label-group {
             position: relative;
-            margin-bottom: 12px;
-            background: transparent !important;
-            border: 1px solid #32745e;
-            border-radius: 12px;
+            margin-bottom: 14px;
+            background: #F8FAF8 !important;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-radius: 14px;
             overflow: hidden;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .form-label-group:focus-within {
+            border-color: #1E4D3E !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.08) !important;
         }
 
         .form-label-group .input-icon {
             position: absolute;
             left: 14px;
-            top: 11px;
-            font-size: 20px;
-            color: #32745e;
+            top: 13px;
+            font-size: 18px;
+            color: #94a3b8;
             z-index: 10;
             pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .form-label-group:focus-within .input-icon {
+            color: #1E4D3E;
         }
 
         .form-label-group input,
         .form-label-group textarea {
             width: 100% !important;
-            height: 44px;
+            height: 48px;
             padding: 18px 14px 2px 42px !important;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            color: #2a6350;
+            color: #0f172a;
             background: transparent !important;
             border: none !important;
             outline: none !important;
@@ -54,20 +69,19 @@
         }
 
         .form-label-group textarea {
-            height: 80px !important;
+            height: 84px !important;
             padding-top: 22px !important;
             resize: none;
         }
 
         .form-label-group label {
             position: absolute;
-            top: 11px;
+            top: 13px;
             left: 42px;
-            font-size: 14px;
-            color: #32745e;
-            opacity: 0.8;
+            font-size: 13px;
+            color: #64748b;
             pointer-events: none;
-            transition: all 0.2s ease-in-out;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             margin-bottom: 0;
             z-index: 5;
         }
@@ -76,28 +90,32 @@
         .form-label-group input:not(:placeholder-shown) ~ label,
         .form-label-group textarea:focus ~ label,
         .form-label-group textarea:not(:placeholder-shown) ~ label {
-            top: 2px;
+            top: 4px;
             left: 42px;
             font-size: 10px;
-            font-weight: 600;
-            color: #32745e;
+            font-weight: 700;
+            color: #1E4D3E;
         }
 
         /* Foto Profil */
         .profile-photo-wrapper {
             display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 22px;
+            position: relative;
         }
 
         .profile-photo-box {
             position: relative;
-            width: 110px;
-            height: 110px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             padding: 3px;
-            background: linear-gradient(135deg, #32745e, #53c69c);
-            box-shadow: 0 8px 20px rgba(50, 116, 94, 0.2);
+            background: #ffffff;
+            border: 2px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+            cursor: pointer;
         }
 
         .profile-photo-box img,
@@ -106,7 +124,6 @@
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #e6fcf5;
         }
 
         .profile-photo-box .photo-placeholder {
@@ -114,75 +131,43 @@
             background-position: center;
         }
 
-        /* Dashed Box File Upload */
-        .custom-file-upload {
-            border: 2px dashed #32745e;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
-            background: rgba(50, 116, 94, 0.05);
+        .profile-photo-edit-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #1E4D3E;
+            color: #ffffff;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 90px;
-        }
-
-        .custom-file-upload:active {
-            background: rgba(50, 116, 94, 0.1);
-            transform: scale(0.98);
-        }
-
-        .custom-file-upload input[type="file"] {
-            display: none;
-        }
-
-        .custom-file-upload ion-icon {
-            font-size: 32px;
-            color: #32745e;
-            margin-bottom: 5px;
-        }
-
-        .custom-file-upload span {
-            font-size: 14px;
-            font-weight: 600;
-            color: #32745e;
-        }
-
-        .file-name {
-            font-size: 11px;
-            color: #2a6350;
-            margin-top: 4px;
-            font-weight: 500;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
 
         .btn-submit-modern {
             width: 100%;
-            height: 48px;
-            background: #32745e;
+            height: 50px;
+            background: #1E4D3E;
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 14px;
+            font-size: 14px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            transition: all 0.3s;
+            gap: 8px;
+            margin-top: 8px;
+            box-shadow: 0 2px 6px rgba(30, 77, 62, 0.15);
+            transition: all 0.15s ease;
         }
 
         .btn-submit-modern:active {
-            transform: scale(0.97);
-            background: #2a6350;
+            transform: scale(0.98);
+            background: #16382E;
         }
     </style>
 @endpush
@@ -193,16 +178,28 @@
             @csrf
             @method('PUT')
 
-            {{-- Profile Photo --}}
+            {{-- Profile Photo & Header --}}
             <div class="profile-photo-wrapper">
-                <div class="profile-photo-box">
+                <div class="profile-photo-box" onclick="document.getElementById('foto').click()">
                     @if (!empty($karyawan->foto) && Storage::disk('public')->exists('/karyawan/' . $karyawan->foto))
                         <div class="photo-placeholder" style="background-image: url({{ getfotoKaryawan($karyawan->foto) }});"></div>
                     @else
                         <img src="{{ asset('assets/img/avatars/No_Image_Available.jpg') }}" alt="Profile Photo">
                     @endif
+                    <div class="profile-photo-edit-badge">
+                        <ion-icon name="camera" style="font-size:14px;"></ion-icon>
+                    </div>
                 </div>
+                <h4 class="text-[14px] font-bold text-slate-800 mt-2 mb-0.5 text-center">
+                    {{ $karyawan->nama_karyawan ?? $user->name }}
+                </h4>
+                <span class="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200/80 shadow-xs">
+                    NIK: {{ $karyawan->nik ?? '-' }}
+                </span>
             </div>
+
+            {{-- Hidden Input Foto --}}
+            <input type="file" name="foto" id="foto" accept=".jpg, .jpeg, .png, .webp" style="display: none;">
 
             {{-- Nama Lengkap --}}
             <div class="form-label-group">
@@ -247,35 +244,27 @@
             </div>
 
             {{-- Push Notification Setting Toggle --}}
-            <div class="flex items-center justify-between p-3 mb-3 border rounded-xl" style="border-color: #32745e; background: rgba(50, 116, 94, 0.02);">
+            <div class="flex items-center justify-between p-3.5 mb-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white" style="background: #32745e;">
-                        <ion-icon name="notifications-outline" class="text-xl"></ion-icon>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#1E4D3E]/10 text-[#1E4D3E]">
+                        <ion-icon name="notifications-outline" class="text-lg"></ion-icon>
                     </div>
                     <div>
-                        <div class="text-sm font-semibold text-gray-800" style="color: #2a6350;">Notifikasi Push PWA</div>
-                        <small class="text-xs text-gray-500" id="push-status-text">Memeriksa status...</small>
+                        <div class="text-[13px] font-bold text-slate-800">Notifikasi Push PWA</div>
+                        <small class="text-[11px] text-slate-500 font-mono" id="push-status-text">Memeriksa status...</small>
                     </div>
                 </div>
                 <div class="position-relative" style="z-index: 10;">
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="push-notification-toggle" class="sr-only peer" disabled>
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#32745e]"></div>
+                        <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1E4D3E]"></div>
                     </label>
                 </div>
             </div>
 
-            {{-- Upload Foto --}}
-            <div class="custom-file-upload" onclick="document.getElementById('foto').click()">
-                <input type="file" name="foto" id="foto" accept=".jpg, .jpeg, .png">
-                <ion-icon name="camera-outline"></ion-icon>
-                <span>Ganti Foto Profil</span>
-                <div id="fileName" class="file-name"></div>
-            </div>
-
             {{-- Submit Button --}}
             <button type="submit" class="btn-submit-modern" id="btnSimpan">
-                <ion-icon name="save-outline"></ion-icon>
+                <ion-icon name="save-outline" style="font-size:18px;"></ion-icon>
                 <span>Update Profile</span>
             </button>
         </form>
@@ -284,14 +273,22 @@
 
 @push('myscript')
     <script>
-        // File Upload Handling
+        // Instant Avatar Preview on Photo Select
         document.getElementById('foto').addEventListener('change', function() {
             let file = this.files[0];
-            const fileNameDisplay = document.getElementById('fileName');
             if (file) {
-                fileNameDisplay.textContent = file.name;
-            } else {
-                fileNameDisplay.textContent = '';
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let box = document.querySelector('.profile-photo-box');
+                    let placeholder = box.querySelector('.photo-placeholder');
+                    let img = box.querySelector('img');
+                    if (placeholder) {
+                        placeholder.style.backgroundImage = 'url(' + e.target.result + ')';
+                    } else if (img) {
+                        img.src = e.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
             }
         });
 

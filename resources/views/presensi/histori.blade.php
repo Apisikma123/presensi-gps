@@ -13,45 +13,40 @@
 
     {{-- ===== FILTER ===== --}}
     <form method="GET" action="{{ route('presensi.histori') }}" id="formHistori">
-        <div class="mt-1 mb-2 rounded-xl overflow-hidden border"
-             style="background: #fff; border-color: #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+        <div class="mt-1 mb-3 rounded-2xl overflow-hidden border border-slate-200/80 bg-white"
+             style="box-shadow: 0 1px 3px rgba(15,23,42,0.04);">
             {{-- Filter Header --}}
-            <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid #f1f5f9;">
-
-                <div class="w-6 h-6 rounded flex items-center justify-center" style="background: {{ $t['primary'] }}15;">
-                    <ion-icon name="calendar-outline" class="text-[12px]" style="color: {{ $t['primary'] }};"></ion-icon>
+            <div class="flex items-center gap-2 px-3.5 py-2.5 bg-slate-50/60 border-b border-slate-100">
+                <div class="w-6 h-6 rounded-md flex items-center justify-center bg-[#1E4D3E]/10 text-[#1E4D3E]">
+                    <ion-icon name="calendar-outline" class="text-[13px]"></ion-icon>
                 </div>
-                <span class="text-[12px] font-semibold" style="color: #475569;">Pilih Rentang Tanggal</span>
-
+                <span class="text-[12px] font-bold text-slate-700">Pilih Rentang Tanggal</span>
             </div>
             {{-- Filter Inputs --}}
-            <div class="px-3 py-2.5">
-                <div class="flex items-center gap-2">
+            <div class="p-3">
+                <div class="flex items-center gap-2" style="display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important;">
                     {{-- Dari --}}
-                    <div class="flex-1">
+                    <div class="flex-1 relative" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="dari" id="dari" 
-                            class="w-full rounded-lg py-1.5 px-3 text-[12px] font-medium text-center focus:outline-none transition-all"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;"
+                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#1E4D3E] focus:border-[#1E4D3E] transition-all bg-[#F8FAF8] border border-slate-200/80 text-slate-700"
+                            style="width: 100% !important; height: 38px !important; box-sizing: border-box !important;"
                             placeholder="Dari" value="{{ Request('dari') }}" autocomplete="off" required readonly>
-
                     </div>
-                    <div class="flex-shrink-0 w-4 flex items-center justify-center">
-                        <div class="w-3 h-[1px]" style="background: #cbd5e1;"></div>
-
+                    <div class="flex-shrink-0 text-slate-300 flex items-center justify-center" style="flex-shrink: 0 !important; width: 16px !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+                        <ion-icon name="arrow-forward-outline" class="text-xs"></ion-icon>
                     </div>
                     {{-- Sampai --}}
-                    <div class="flex-1">
+                    <div class="flex-1 relative" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="sampai" id="sampai" 
-                            class="w-full rounded-lg py-1.5 px-3 text-[12px] font-medium text-center focus:outline-none transition-all"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;"
+                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#1E4D3E] focus:border-[#1E4D3E] transition-all bg-[#F8FAF8] border border-slate-200/80 text-slate-700"
+                            style="width: 100% !important; height: 38px !important; box-sizing: border-box !important;"
                             placeholder="Sampai" value="{{ Request('sampai') }}" autocomplete="off" required readonly>
-
                     </div>
                     {{-- Button --}}
                     <button type="submit" id="btnCari"
-                        class="flex-shrink-0 w-9 h-8 rounded-lg text-white flex items-center justify-center active:scale-90 transition-transform"
-                        style="background: {{ $t['primary'] }};">
-                        <ion-icon name="search-outline" class="text-base"></ion-icon>
+                        class="flex-shrink-0 w-10 h-[38px] rounded-xl text-white flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                        style="background: #1E4D3E !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important; height: 38px !important; flex: 0 0 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important;">
+                        <ion-icon name="search-outline" class="text-base" style="font-size: 18px !important;"></ion-icon>
                     </button>
                 </div>
             </div>
@@ -80,7 +75,7 @@
         </div>
 
         {{-- Data synced with dashboard --}}
-        <div id="data-container" style="display:none;" class="space-y-2">
+        <div id="data-container" style="display:none;" class="space-y-2.5">
             @foreach ($datapresensi as $index => $d)
                 @php
                     $namahari = [
@@ -93,17 +88,6 @@
                     $tgl = date('d', strtotime($d->tanggal));
                     $bulan_indo = getNamabulan((int)date('m', strtotime($d->tanggal)));
                     $tahun = date('Y', strtotime($d->tanggal));
-
-                    $statusStyles = [
-                        'h' => ['label' => 'Hadir', 'color' => $t['primary'], 'rgb' => '50, 116, 94'],
-
-                        'i' => ['label' => 'Izin',  'color' => '#1e90ff', 'rgb' => '30, 144, 255'],
-                        's' => ['label' => 'Sakit', 'color' => '#ff6384', 'rgb' => '255, 99, 132'],
-                        'c' => ['label' => 'Cuti',  'color' => '#ff9f40', 'rgb' => '255, 159, 64'],
-                        'a' => ['label' => 'Alpha', 'color' => '#e74c3c', 'rgb' => '231, 76, 60'],
-                    ];
-                    $st = $statusStyles[$d->status] ?? $statusStyles['a'];
-                    $bgColor = "rgba({$st['rgb']}, 0.1)";
 
                     $is_late = false;
                     $denda_display = 0;
@@ -124,7 +108,7 @@
                     }
                 @endphp
 
-                <div class="fade-up card press mb-1 overflow-hidden cursor-pointer presensi-card"
+                <div class="fade-up press overflow-hidden cursor-pointer presensi-card bg-white rounded-xl border border-slate-200/80 p-3 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:shadow-sm transition-all duration-150 active:scale-[0.99]"
                      data-tanggal="{{ DateToIndo($d->tanggal) }}"
                      data-jam-in="{{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '-' }}"
                      data-jam-out="{{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '-' }}"
@@ -134,62 +118,86 @@
                      data-jam-kerja="{{ $d->nama_jam_kerja }}"
                      data-keterangan="{{ $d->status == 'h' ? 'Hadir' : ($d->status == 'i' ? 'Izin: ' . $d->keterangan_izin : ($d->status == 's' ? 'Sakit: ' . $d->keterangan_izin_sakit : ($d->status == 'c' ? 'Cuti: ' . $d->keterangan_izin_cuti : 'Alpha'))) }}"
                      data-nama-mesin="{{ $d->nama_mesin }}"
-                     style="border: 1px solid {{ $t['primary'] }}; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); background: #fff; animation-delay: {{ $index * 0.04 }}s;">
+                     style="animation-delay: {{ $index * 0.04 }}s;">
 
-                    <div class="card-body p-1 flex items-center gap-2">
+                    <div class="flex items-center gap-3">
                         {{-- Date Badge --}}
-                        <div class="flex-shrink-0 w-[45px] h-[45px] flex flex-col items-center justify-center rounded-[12px]"
-                             style="background: {{ $bgColor }}; color: {{ $st['color'] }};">
-                            <span class="text-[10px] font-bold leading-none">{{ $day_short }}</span>
-                            <span class="text-[16px] font-extrabold leading-tight mt-0.5">{{ $tgl }}</span>
+                        <div class="shrink-0 w-11 h-11 flex flex-col items-center justify-center rounded-lg bg-slate-50 border border-slate-100 text-center">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">{{ $day_short }}</span>
+                            <span class="text-[16px] font-extrabold text-slate-800 font-mono leading-none mt-1">{{ $tgl }}</span>
                         </div>
 
                         {{-- Info --}}
-                        <div class="flex-1 min-w-0 pr-1">
-                            <div class="flex items-center justify-between mb-0.5">
-                                <h3 class="text-[14px] font-semibold truncate" style="color: #333;">
-
+                        <div class="flex-1 min-w-0">
+                            {{-- Row 1: Tanggal & Shift --}}
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <h3 class="text-[13px] font-bold text-slate-800 truncate m-0 leading-tight">
                                     {{ DateToIndo($d->tanggal) }}
                                 </h3>
-                                <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border"
-                                      style="background: #f8f9fa; color: #666; border-color: #eee;">
-
+                                <span class="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
                                     {{ $d->nama_jam_kerja }}
                                 </span>
                             </div>
 
                             @if ($d->status == 'h')
-                                <div class="flex items-center justify-between mb-0.5">
-                                    <div class="flex items-center gap-1.5 text-[12px] font-medium" style="color: #555;">
-
-                                        <span>{{ $d->jam_in ? date('H:i', strtotime($d->jam_in)) : '__:__' }}</span>
-                                        <span style="color: #ccc;">-</span>
-                                        <span>{{ $d->jam_out ? date('H:i', strtotime($d->jam_out)) : '__:__' }}</span>
+                                {{-- Row 2: Jam & Status Badges --}}
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    {{-- Jam In & Out --}}
+                                    <div class="flex items-center gap-1.5 text-[12px] font-mono font-semibold text-slate-700">
+                                        <ion-icon name="time-outline" class="text-[13px] text-slate-400"></ion-icon>
+                                        <span>{{ $d->jam_in ? date('H:i', strtotime($d->jam_in)) : '--:--' }}</span>
+                                        <span class="text-slate-300 font-sans font-normal">—</span>
+                                        <span>{{ $d->jam_out ? date('H:i', strtotime($d->jam_out)) : '--:--' }}</span>
                                     </div>
-                                    @if ($is_late)
-                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white">TELAT</span>
-                                    @else
-                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">TEPAT WAKTU</span>
-                                    @endif
-                                </div>
-                                <div class="flex flex-wrap gap-1">
-                                    @if ($denda_display > 0)
-                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white">
-                                            Denda Rp. {{ number_format($denda_display) }}
-                                        </span>
-                                    @endif
-                                    @if ($pulangcepat > 0)
-                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500 text-white">PULANG CEPAT</span>
-                                    @endif
+
+                                    {{-- Badge Cluster --}}
+                                    <div class="flex items-center gap-1 flex-wrap">
+                                        @if ($is_late)
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                TELAT
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                TEPAT WAKTU
+                                            </span>
+                                        @endif
+
+                                        @if ($pulangcepat > 0)
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                PULANG CEPAT
+                                            </span>
+                                        @endif
+
+                                        @if ($denda_display > 0)
+                                            <span class="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
+                                                Rp {{ number_format($denda_display) }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                             @elseif ($d->status == 'i')
-                                <p class="text-[12px] leading-tight" style="color: #1e90ff;">Izin: {{ $d->keterangan_izin }}</p>
+                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                                    <span class="truncate">Izin: {{ $d->keterangan_izin }}</span>
+                                </div>
                             @elseif ($d->status == 's')
-                                <p class="text-[12px] leading-tight" style="color: #ff6384;">Sakit: {{ $d->keterangan_izin_sakit }}</p>
+                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <span class="truncate">Sakit: {{ $d->keterangan_izin_sakit }}</span>
+                                </div>
                             @elseif ($d->status == 'c')
-                                <p class="text-[12px] leading-tight" style="color: #ff9f40;">Cuti: {{ $d->keterangan_izin_cuti }}</p>
+                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    <span class="truncate">Cuti: {{ $d->keterangan_izin_cuti }}</span>
+                                </div>
                             @else
-                                <p class="text-[12px] leading-tight" style="color: #e74c3c;">Alpha: Tanpa Keterangan</p>
+                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 w-fit">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                    <span>Alpha: Tanpa Keterangan</span>
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -290,7 +298,16 @@
             monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
             today: 'Hari ini', clear: 'Hapus', dateFormat: 'yyyy-MM-dd', timeFormat: 'HH:mm', firstDay: 1
         };
-        const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: ['today', 'clear'], position: 'bottom center' };
+        const btnToday = {
+            content: 'Hari ini',
+            className: 'air-datepicker-button-today',
+            onClick: (dp) => {
+                const today = new Date();
+                dp.selectDate(today);
+                dp.setViewDate(today);
+            }
+        };
+        const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: [btnToday, 'clear'], position: 'bottom center' };
         new AirDatepicker('#dari', dpOpt);
         new AirDatepicker('#sampai', dpOpt);
 

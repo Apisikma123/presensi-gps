@@ -63,7 +63,8 @@ class ApprovalService
         $rule = $this->getLayer($feature, $currentLevel, $kodeDept, $kodeJabatan, $kodeCabang);
 
         if (!$rule) {
-            return false;
+            // Default MVP: If no multi-tier rule is configured, allow direct approval without errors
+            return true;
         }
 
         // Direct role match

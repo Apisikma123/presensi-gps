@@ -26,13 +26,50 @@ class FacerecognitionpresensiController extends Controller
 {
     public function index()
     {
-        $karyawan = Karyawan::where('status_aktif_karyawan', '1')
-            ->orderBy('nama_karyawan', 'asc')
-            ->get();
-        $total_biometric = Facerecognition::count();
-        $total_karyawan = Karyawan::where('status_aktif_karyawan', '1')->count();
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
 
-        return view('facerecognition-presensi.index', compact('karyawan', 'total_biometric', 'total_karyawan'));
+        $query = Karyawan::query()
+            ->select('karyawan.nik', 'karyawan.nama_karyawan', 'karyawan.foto', 'karyawan.kode_cabang', 'karyawan.kode_dept', 'karyawan.status_aktif_karyawan', 'cabang.nama_cabang', 'departemen.nama_dept')
+            ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+            ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+            ->where('karyawan.status_aktif_karyawan', '1');
+
+        if ($user && !$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs)) {
+                $query->whereIn('karyawan.kode_cabang', $userCabangs);
+            }
+            if (!empty($userDepartemens)) {
+                $query->whereIn('karyawan.kode_dept', $userDepartemens);
+            }
+        }
+
+        $karyawan = $query->orderBy('karyawan.nama_karyawan', 'asc')->get();
+
+        // Get face count per NIK in single query
+        $faceCounts = Facerecognition::select('nik', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->groupBy('nik')
+            ->pluck('total', 'nik');
+
+        foreach ($karyawan as $k) {
+            $k->face_count = $faceCounts[$k->nik] ?? 0;
+            $k->has_face = $k->face_count > 0;
+        }
+
+        $total_karyawan = $karyawan->count();
+        $total_terdaftar_wajah = $karyawan->where('has_face', true)->count();
+        $total_belum_daftar = $total_karyawan - $total_terdaftar_wajah;
+        $total_biometric = Facerecognition::count();
+
+        return view('facerecognition-presensi.index', compact(
+            'karyawan', 
+            'total_biometric', 
+            'total_karyawan',
+            'total_terdaftar_wajah',
+            'total_belum_daftar'
+        ));
     }
 
     public function scan($nik)

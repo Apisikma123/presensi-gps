@@ -1,50 +1,28 @@
- <!-- build:js assets/vendor/js/core.js -->
-
+ <!-- Core JS -->
  <script src="{{ asset('/assets/vendor/libs/jquery/jquery.js') }}"></script>
  <script src="{{ asset('/assets/vendor/libs/popper/popper.js') }}"></script>
  <script src="{{ asset('/assets/vendor/js/bootstrap.js') }}"></script>
  <script src="{{ asset('/assets/vendor/libs/node-waves/node-waves.js') }}"></script>
  <script src="{{ asset('/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
  <script src="{{ asset('/assets/vendor/libs/hammer/hammer.js') }}"></script>
- <script src="{{ asset('/assets/vendor/libs/i18n/i18n.js') }}"></script>
- <script src="{{ asset('/assets/vendor/libs/typeahead-js/typeahead.js') }}"></script>
  <script src="{{ asset('/assets/vendor/js/menu.js') }}"></script>
  <script src="{{ asset('assets/vendor/js/jquery.maskMoney.js') }}"></script>
  <script src="{{ asset('assets/vendor/js/easy-number-separator.js') }}"></script>
 
- <!-- endbuild -->
-
- <!-- Vendors JS -->
- <!-- Vendors JS -->
-<!-- Non-jQuery dependencies - can use defer -->
-<script src="{{ asset('assets/vendor/libs/moment/moment.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/pickr/pickr.js') }}" defer></script>
-<script src="{{ asset('assets/external/js/polyfill.js') }}" defer></script>
-<script src="{{ asset('assets/vendor/js/feather.min.js') }}" defer></script>
-<script src="{{ asset('assets/external/js/leaflet.js') }}" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin="" defer></script>
-<script src="{{ asset('assets/external/js/leaflet-routing-machine.js') }}" defer></script>
-<script src="{{ asset('assets/external/js/ionicons.js') }}" defer></script>
-
-<!-- jQuery-dependent scripts - must load after jQuery -->
+ <!-- Essential Vendors JS -->
+ <script src="{{ asset('assets/vendor/js/feather.min.js') }}" defer></script>
+ <script src="{{ asset('assets/external/js/leaflet.js') }}" defer></script>
  <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js') }}"></script>
- <script src="{{ asset('assets/vendor/libs/bootstrap-datepicker/bootstrap-datepicker.js') }}"></script>
- <script src="{{ asset('assets/vendor/libs/bootstrap-daterangepicker/bootstrap-daterangepicker.js') }}"></script>
- <script src="{{ asset('assets/vendor/libs/jquery-timepicker/jquery-timepicker.js') }}"></script>
- <script src="{{ asset('/assets/vendor/libs/@form-validation/umd/bundle/popular.min.js') }}"></script>
- <script src="{{ asset('/assets/vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js') }}"></script>
- <script src="{{ asset('/assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js') }}"></script>
- <script src="{{ asset('/assets/vendor/libs/@form-validation/umd/plugin-start-end-date/index.min.js') }}"></script>
  <script src="{{ asset('assets/vendor/js/toastr.min.js') }}"></script>
  <script src="{{ asset('assets/external/js/sweetalert2@11.js') }}"></script>
  <script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
  <script src="{{ asset('assets/js/jquery.mask.min.js') }}"></script>
  <script src="{{ asset('assets/vendor/js/freeze-table.js') }}"></script>
- <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
  <script src="{{ asset('assets/js/ui-popover.js') }}"></script>
+
  <script>
      $(function() {
          $(".flatpickr-date").flatpickr();
-
      });
  </script>
  <!-- Main JS -->
@@ -159,8 +137,26 @@
      });
  </script>
 
+ <script>
+    // Global auto-containment: Wrap any tables lacking .table-responsive so they scroll cleanly on mobile
+    function initGlobalResponsiveTables() {
+        document.querySelectorAll('table:not(.flatpickr-calendar table)').forEach(function(tbl) {
+            if (!tbl.closest('.table-responsive')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'table-responsive w-100 max-w-full';
+                tbl.parentNode.insertBefore(wrapper, tbl);
+                wrapper.appendChild(tbl);
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initGlobalResponsiveTables);
+    } else {
+        initGlobalResponsiveTables();
+    }
+    document.addEventListener('spa:page-loaded', initGlobalResponsiveTables);
+</script>
+
  <script src="{{ asset('/assets/js/main.js') }}"></script>
-
-
 
  @stack('myscript')

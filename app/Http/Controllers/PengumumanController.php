@@ -56,7 +56,7 @@ class PengumumanController extends Controller
         $request->validate([
             'judul' => 'required|string|max:255',
             'isi' => 'required',
-            'lampiran' => 'nullable|file|max:10240', // Max 10MB
+            'lampiran' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp|max:10240', // Max 10MB safe formats
         ]);
 
         try {

@@ -22,8 +22,6 @@ use App\Http\Controllers\JamkerjaController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\KoreksiController;
 use App\Http\Controllers\KpiEmployeeController;
-use App\Http\Controllers\KpiIndicatorController;
-use App\Http\Controllers\MesinFingerprintController;
 use App\Http\Controllers\PinjamanController;
 
 use App\Http\Controllers\KpiPeriodController;
@@ -45,14 +43,14 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\PresensiistirahatController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RoleController;
+
 use App\Http\Controllers\SlipgajiController;
 use App\Http\Controllers\SlipgajiHarianController;
 use App\Http\Controllers\ShortcutController;
 use App\Http\Controllers\KaryawanApprovalController;
+use App\Http\Controllers\KpiIndicatorController;
 use App\Http\Controllers\TunjanganController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\WagatewayController;
 use App\Http\Controllers\FacerecognitionpresensiController;
 use App\Http\Controllers\IconGeneratorController;
 use App\Http\Controllers\BersihkanfotoController;
@@ -62,7 +60,6 @@ use App\Http\Controllers\AktivitasKaryawanController;
 use App\Http\Controllers\ResetDataController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\Admin\UpdateManagementController;
-use App\Http\Controllers\LogmesinController;
 use App\Http\Controllers\StatuskawinController;
 use App\Http\Controllers\StatuskaryawanController;
 use App\Http\Controllers\KategoriResignController;
@@ -87,23 +84,7 @@ Route::middleware('guest')->group(function () {
     )->name('loginuser');
 });
 
-// Face Recognition Presensi Routes (Public Kiosk - Rate Limited)
-Route::middleware('throttle:60,1')->controller(FacerecognitionpresensiController::class)->group(function () {
-    Route::get('/facerecognition-presensi', 'index')->name('facerecognition-presensi.index');
-    Route::get('/facerecognition-presensi/scan/{nik}', 'scan')->name('facerecognition-presensi.scan');
-    Route::get('/facerecognition-presensi/scanall', 'scanAny')->name('facerecognition-presensi.scan_any');
-    Route::get('/facerecognition-presensi/scan-any', 'scanAny');
-    Route::post('/facerecognition-presensi/store', 'store')->name('facerecognition-presensi.store');
-    Route::get('/facerecognition-presensi/generate/{nik}', 'getKaryawan')->name('facerecognition-presensi.generate');
-    Route::get('/facerecognition/getallwajah', 'getAllWajah')->name('facerecognition.getallwajah');
-});
 
-// Public Kiosk Attendance Routes (RFID + Camera - Rate Limited)
-Route::middleware('throttle:60,1')->controller(App\Http\Controllers\PublicPresensiController::class)->group(function () {
-    Route::get('/public/presensi', 'index')->name('public.presensi.index');
-    Route::post('/public/presensi/check-rfid', 'checkRfid')->name('public.presensi.check-rfid');
-    Route::post('/public/presensi/store', 'store')->name('public.presensi.store');
-});
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
@@ -129,7 +110,6 @@ Route::middleware('auth')->group(function () {
     Route::controller(DashboardController::class)->group(
         function () {
             Route::get('/dashboard', 'index')->name('dashboard.index');
-            Route::post('/dashboard/kirim-ucapan-birthday', 'kirimUcapanBirthday')->name('dashboard.kirim.ucapan.birthday');
             Route::post('/dashboard/get-karyawan-presensi', 'getKaryawanPresensi')->name('dashboard.get.karyawan.presensi');
         }
     );
@@ -168,18 +148,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/karyawan-approval/reimbursement/{no_reimbursement}/cancelapprove', 'cancelApproveReimbursement')->name('karyawan-approval.reimbursement.cancelapprove');
         }
     );
-    Route::middleware('role:super admin')->controller(RoleController::class)->group(
-        function () {
-            Route::get('/roles', 'index')->name('roles.index');
-            Route::get('/roles/create', 'create')->name('roles.create');
-            Route::post('/roles', 'store')->name('roles.store');
-            Route::get('/roles/{id}/edit', 'edit')->name('roles.edit');
-            Route::put('/roles/{id}/update', 'update')->name('roles.update');
-            Route::delete('/roles/{id}/delete', 'destroy')->name('roles.delete');
-            Route::get('/roles/{id}/createrolepermission', 'createrolepermission')->name('roles.createrolepermission');
-            Route::post('/roles/{id}/storerolepermission', 'storerolepermission')->name('roles.storerolepermission');
-        }
-    );
+
 
 
     Route::middleware('role:super admin')->controller(Permission_groupController::class)->group(
@@ -396,16 +365,7 @@ Route::middleware('auth')->group(function () {
         }
     );
 
-    Route::controller(MesinFingerprintController::class)->group(
-        function () {
-            Route::get('/mesin-fingerprint', 'index')->name('mesin-fingerprint.index');
-            Route::get('/mesin-fingerprint/create', 'create')->name('mesin-fingerprint.create');
-            Route::post('/mesin-fingerprint', 'store')->name('mesin-fingerprint.store');
-            Route::post('/mesin-fingerprint/edit', 'edit')->name('mesin-fingerprint.edit');
-            Route::put('/mesin-fingerprint/{id}', 'update')->name('mesin-fingerprint.update');
-            Route::delete('/mesin-fingerprint/{id}', 'destroy')->name('mesin-fingerprint.delete');
-        }
-    );
+
 
     Route::controller(GajipokokController::class)->group(
         function () {
@@ -598,10 +558,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/presensi/update', 'update')->name('presensi.update')->can('presensi.edit');
             Route::delete('/presensi/{id}/delete', 'destroy')->name('presensi.delete')->can('presensi.delete');
             Route::get('/presensi/{id}/{status}/show', 'show')->name('presensi.show');
-            Route::post('/presensi/edit', 'edit')->name('presensi.edit')->can('presensi.edit');
-
-            Route::post('/presensi/getdatamesin', 'getdatamesin')->name('presensi.getdatamesin');
-            Route::post('/presensi/{pin}/{status_scan}/updatefrommachine', 'updatefrommachine')->name('presensi.updatefrommachine');
         }
     );
 
@@ -777,7 +733,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // PWA Icon Generator Routes
-    Route::controller(IconGeneratorController::class)->group(
+    Route::middleware('role:super admin')->controller(IconGeneratorController::class)->group(
         function () {
             Route::post('/generate-pwa-icons', 'generate')->name('pwa.generate-icons');
             Route::get('/preview-pwa-icons', 'preview')->name('pwa.preview-icons');
@@ -830,20 +786,7 @@ Route::middleware('auth')->group(function () {
         }
     );
 
-    Route::middleware('role:super admin')->controller(WagatewayController::class)->group(
-        function () {
-            Route::get('/wagateway', 'index')->name('wagateway.index');
-            Route::get('/wagateway/messages', 'messages')->name('wagateway.messages');
-            Route::post('/wagateway/add-device', 'addDevice')->name('wagateway.add-device');
-            Route::post('/wagateway/toggle-device-status/{id}', 'toggleDeviceStatus')->name('wagateway.toggle-device-status');
-            Route::post('/wagateway/generate-qr', 'generateQR')->name('wagateway.generate-qr');
-            Route::post('/wagateway/check-device-status', 'checkDeviceStatus')->name('wagateway.check-device-status');
-            Route::post('/wagateway/test-send-message', 'testSendMessage')->name('wagateway.test-send-message');
-            Route::post('/wagateway/disconnect-device', 'disconnectDevice')->name('wagateway.disconnect-device');
-            Route::post('/wagateway/fetch-groups', 'fetchGroups')->name('wagateway.fetch-groups');
-            Route::delete('/wagateway/delete-device/{id}', 'deleteDevice')->name('wagateway.delete-device');
-        }
-    );
+
 
     // PPh 21 Routes
     Route::controller(Pph21Controller::class)->group(function () {
@@ -895,13 +838,6 @@ Route::middleware('auth')->group(function () {
             Route::get('/push-subscription', 'index')->name('push-subscription.index');
             Route::delete('/push-subscription/{id}', 'deleteAdmin')->name('push-subscription.deleteAdmin');
             Route::post('/push-subscription/{id}/test', 'sendTestNotification')->name('push-subscription.test');
-        }
-    );
-
-    // Log Mesin Routes
-    Route::middleware('role:super admin')->controller(LogmesinController::class)->group(
-        function () {
-            Route::get('/logmesin', 'index')->name('logmesin.index')->can('logmesin.index');
         }
     );
 
@@ -989,9 +925,13 @@ Route::middleware('auth')->group(function () {
     Route::controller(App\Http\Controllers\PengumumanController::class)->group(
         function () {
             Route::get('/pengumuman', 'index')->name('pengumuman.index');
+            Route::get('/pengumuman/{id}/show', 'show')->name('pengumuman.show');
+        }
+    );
+    Route::middleware('role:super admin')->controller(App\Http\Controllers\PengumumanController::class)->group(
+        function () {
             Route::get('/pengumuman/create', 'create')->name('pengumuman.create');
             Route::post('/pengumuman', 'store')->name('pengumuman.store');
-            Route::get('/pengumuman/{id}/show', 'show')->name('pengumuman.show');
             Route::delete('/pengumuman/{id}', 'delete')->name('pengumuman.delete');
         }
     );
@@ -1167,12 +1107,5 @@ Route::group(['middleware' => ['auth']], function () { // Removed userAkses:admi
 //     return response()->file(storage_path('app/public/' . $path));
 // })->where('path', '.*');
 
-// Endpoint khusus untuk menangani mesin fingerprint ADMS / X100C tanpa prefix /api
-// X100C: Timezone hardcoded +8 (China), dikompensasi dari server
-Route::any('/iclock/cdata', [\App\Http\Controllers\Api\AdmsController::class, 'receiveZktecoStandard']);
-
-// Endpoint untuk mesin ZKTeco baru (X904, dll) yang timezone-nya normal
-Route::any('/iclock/zkteco', [\App\Http\Controllers\Api\AdmsController::class, 'receiveZktecoStandard']);
-
-
+// require auth routes
 require __DIR__ . '/auth.php';

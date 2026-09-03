@@ -454,7 +454,7 @@ class ProjectTaskController extends Controller
     public function storeAttachment(Request $request, $id)
     {
         $request->validate([
-            'file' => 'required|file|max:10240', // Max 10MB
+            'file' => 'required|file|mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,txt,csv|max:10240', // Max 10MB
         ]);
 
         try {

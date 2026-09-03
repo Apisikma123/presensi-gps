@@ -169,6 +169,17 @@
         </div>
 
         @if($wajahList->count() > 0)
+            <div class="action-buttons" style="margin-bottom: 20px;">
+                <form id="formRekamUlang" action="{{ route('facerecognition.karyawan.destroyAll') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    @method('POST')
+                    <button type="button" class="btn-action btn-rekam" onclick="confirmRekamUlang()" style="width: 100%;">
+                        <ion-icon name="camera-outline"></ion-icon>
+                        Mulai Perekaman Ulang
+                    </button>
+                </form>
+            </div>
+
             <div class="wajah-grid">
                 @foreach($wajahList as $index => $wajah)
                     <div class="wajah-item">
@@ -191,17 +202,6 @@
                         </div>
                     </div>
                 @endforeach
-            </div>
-
-            <div class="action-buttons">
-                <form id="formRekamUlang" action="{{ route('facerecognition.karyawan.destroyAll') }}" method="POST" style="margin: 0;">
-                    @csrf
-                    @method('POST')
-                    <button type="button" class="btn-action btn-rekam" onclick="confirmRekamUlang()" style="width: 100%;">
-                        <ion-icon name="camera-outline"></ion-icon>
-                        Mulai Perekaman Ulang
-                    </button>
-                </form>
             </div>
         @else
             <div class="empty-state">

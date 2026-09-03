@@ -202,75 +202,77 @@ class KaryawanApprovalController extends Controller
      */
     public static function getPendingCount($userId)
     {
-        $userkaryawan = Userkaryawan::where('id_user', $userId)->first();
-        if (!$userkaryawan || !$userkaryawan->approval_admin_id) {
-            return 0;
-        }
-
-        $admin = User::find($userkaryawan->approval_admin_id);
-        if (!$admin) return 0;
-
-        $adminRole = $admin->getRoleNames()->first();
-        $layers = ApprovalLayer::where('role_name', $adminRole)->get();
-
-        // Get admin's cabang & departemen access
-        $adminDeptCodes = $admin->getDepartemenCodes();
-        $adminCabangCodes = $admin->getCabangCodes();
-
-        $count = 0;
-        foreach ($layers as $l) {
-            if ($l->feature === 'IZIN') {
-                $q1 = Izinabsen::where('presensi_izinabsen.status', 0)->where('presensi_izinabsen.approval_step', $l->level)
-                    ->join('karyawan', 'presensi_izinabsen.nik', '=', 'karyawan.nik');
-                $q2 = Izinsakit::where('presensi_izinsakit.status', 0)->where('presensi_izinsakit.approval_step', $l->level)
-                    ->join('karyawan', 'presensi_izinsakit.nik', '=', 'karyawan.nik');
-                $q3 = Izincuti::where('presensi_izincuti.status', 0)->where('presensi_izincuti.approval_step', $l->level)
-                    ->join('karyawan', 'presensi_izincuti.nik', '=', 'karyawan.nik');
-                $q4 = Izindinas::where('presensi_izindinas.status', 0)->where('presensi_izindinas.approval_step', $l->level)
-                    ->join('karyawan', 'presensi_izindinas.nik', '=', 'karyawan.nik');
-
-                if ($l->kode_dept) {
-                    $q1->where('karyawan.kode_dept', $l->kode_dept);
-                    $q2->where('karyawan.kode_dept', $l->kode_dept);
-                    $q3->where('karyawan.kode_dept', $l->kode_dept);
-                    $q4->where('karyawan.kode_dept', $l->kode_dept);
-                }
-
-                // Filter by admin's access rights
-                if (!empty($adminDeptCodes)) {
-                    $q1->whereIn('karyawan.kode_dept', $adminDeptCodes);
-                    $q2->whereIn('karyawan.kode_dept', $adminDeptCodes);
-                    $q3->whereIn('karyawan.kode_dept', $adminDeptCodes);
-                    $q4->whereIn('karyawan.kode_dept', $adminDeptCodes);
-                }
-                if (!empty($adminCabangCodes)) {
-                    $q1->whereIn('karyawan.kode_cabang', $adminCabangCodes);
-                    $q2->whereIn('karyawan.kode_cabang', $adminCabangCodes);
-                    $q3->whereIn('karyawan.kode_cabang', $adminCabangCodes);
-                    $q4->whereIn('karyawan.kode_cabang', $adminCabangCodes);
-                }
-
-                $count += $q1->count() + $q2->count() + $q3->count() + $q4->count();
+        return \Illuminate\Support\Facades\Cache::remember('pending_approval_count_' . $userId, 120, function () use ($userId) {
+            $userkaryawan = Userkaryawan::where('id_user', $userId)->first();
+            if (!$userkaryawan || !$userkaryawan->approval_admin_id) {
+                return 0;
             }
 
-            if ($l->feature === 'REIMBURSEMENT') {
-                $q5 = Reimbursement::where('reimbursement.status', 'P')->where('reimbursement.approval_step', $l->level)
-                    ->join('karyawan', 'reimbursement.nik', '=', 'karyawan.nik');
+            $admin = User::find($userkaryawan->approval_admin_id);
+            if (!$admin) return 0;
 
-                if ($l->kode_dept) {
-                    $q5->where('karyawan.kode_dept', $l->kode_dept);
+            $adminRole = $admin->getRoleNames()->first();
+            $layers = ApprovalLayer::where('role_name', $adminRole)->get();
+
+            // Get admin's cabang & departemen access
+            $adminDeptCodes = $admin->getDepartemenCodes();
+            $adminCabangCodes = $admin->getCabangCodes();
+
+            $count = 0;
+            foreach ($layers as $l) {
+                if ($l->feature === 'IZIN') {
+                    $q1 = Izinabsen::where('presensi_izinabsen.status', 0)->where('presensi_izinabsen.approval_step', $l->level)
+                        ->join('karyawan', 'presensi_izinabsen.nik', '=', 'karyawan.nik');
+                    $q2 = Izinsakit::where('presensi_izinsakit.status', 0)->where('presensi_izinsakit.approval_step', $l->level)
+                        ->join('karyawan', 'presensi_izinsakit.nik', '=', 'karyawan.nik');
+                    $q3 = Izincuti::where('presensi_izincuti.status', 0)->where('presensi_izincuti.approval_step', $l->level)
+                        ->join('karyawan', 'presensi_izincuti.nik', '=', 'karyawan.nik');
+                    $q4 = Izindinas::where('presensi_izindinas.status', 0)->where('presensi_izindinas.approval_step', $l->level)
+                        ->join('karyawan', 'presensi_izindinas.nik', '=', 'karyawan.nik');
+
+                    if ($l->kode_dept) {
+                        $q1->where('karyawan.kode_dept', $l->kode_dept);
+                        $q2->where('karyawan.kode_dept', $l->kode_dept);
+                        $q3->where('karyawan.kode_dept', $l->kode_dept);
+                        $q4->where('karyawan.kode_dept', $l->kode_dept);
+                    }
+
+                    // Filter by admin's access rights
+                    if (!empty($adminDeptCodes)) {
+                        $q1->whereIn('karyawan.kode_dept', $adminDeptCodes);
+                        $q2->whereIn('karyawan.kode_dept', $adminDeptCodes);
+                        $q3->whereIn('karyawan.kode_dept', $adminDeptCodes);
+                        $q4->whereIn('karyawan.kode_dept', $adminDeptCodes);
+                    }
+                    if (!empty($adminCabangCodes)) {
+                        $q1->whereIn('karyawan.kode_cabang', $adminCabangCodes);
+                        $q2->whereIn('karyawan.kode_cabang', $adminCabangCodes);
+                        $q3->whereIn('karyawan.kode_cabang', $adminCabangCodes);
+                        $q4->whereIn('karyawan.kode_cabang', $adminCabangCodes);
+                    }
+
+                    $count += $q1->count() + $q2->count() + $q3->count() + $q4->count();
                 }
-                if (!empty($adminDeptCodes)) {
-                    $q5->whereIn('karyawan.kode_dept', $adminDeptCodes);
+
+                if ($l->feature === 'REIMBURSEMENT') {
+                    $q5 = Reimbursement::where('reimbursement.status', 'P')->where('reimbursement.approval_step', $l->level)
+                        ->join('karyawan', 'reimbursement.nik', '=', 'karyawan.nik');
+
+                    if ($l->kode_dept) {
+                        $q5->where('karyawan.kode_dept', $l->kode_dept);
+                    }
+                    if (!empty($adminDeptCodes)) {
+                        $q5->whereIn('karyawan.kode_dept', $adminDeptCodes);
+                    }
+                    if (!empty($adminCabangCodes)) {
+                        $q5->whereIn('karyawan.kode_cabang', $adminCabangCodes);
+                    }
+                    $count += $q5->count();
                 }
-                if (!empty($adminCabangCodes)) {
-                    $q5->whereIn('karyawan.kode_cabang', $adminCabangCodes);
-                }
-                $count += $q5->count();
             }
-        }
 
-        return $count;
+            return $count;
+        });
     }
 
     /**

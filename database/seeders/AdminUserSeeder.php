@@ -21,21 +21,6 @@ class AdminUserSeeder extends Seeder
         Role::firstOrCreate(['name' => 'admin']);
         Role::firstOrCreate(['name' => 'karyawan']);
 
-        // Create or update user adamadifa
-        $user = User::updateOrCreate(
-            ['username' => 'adamadifa'],
-            [
-                'name' => 'adamadifa',
-                'email' => 'adamadifa@gmail.com', // Default email
-                'password' => Hash::make('adamadifa#311766'),
-            ]
-        );
-
-        // Assign role
-        if (!$user->hasRole('super admin')) {
-            $user->assignRole($role);
-        }
-
         // Default Coffee Shop Branches
         Cabang::firstOrCreate(
             ['kode_cabang' => 'CS1'],
@@ -106,9 +91,6 @@ class AdminUserSeeder extends Seeder
         // Sync all branches and departments as standard for super admin
         $allCabangs = Cabang::pluck('kode_cabang')->toArray();
         $allDepartemens = Departemen::pluck('kode_dept')->toArray();
-        
-        $user->cabangs()->sync($allCabangs);
-        $user->departemens()->sync($allDepartemens);
 
         // ==========================================
         // 1. SUPER ADMIN ACCOUNT (admin / admin123)

@@ -21,3 +21,10 @@ yarn-error.log
 __MACOSX/
 *.zip
 .temp-files/
+cookie*.txt
+cookies.txt
+test*.php
+*.log
+__pycache__/
+*.pyc
+vite.config.js.timestamp*

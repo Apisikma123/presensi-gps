@@ -52,8 +52,10 @@
                                     </select>
                                 </div>
                                 <div class="col-lg-2 col-sm-12">
-                                    <button class="btn btn-primary w-100" type="submit">
-                                        <i class="ti ti-filter me-1"></i> Filter
+                                    <button class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center gap-1.5 shadow-sm" type="submit"
+                                        style="height: 38px; border-radius: 8px; font-weight: 600; background-color: var(--theme-color-1, #1E4D3E); border: 1px solid #163C30;">
+                                        <i class="ti ti-filter" style="font-size: 14.5px; margin-top: 0.5px;"></i>
+                                        <span>Filter</span>
                                     </button>
                                 </div>
                             </div>

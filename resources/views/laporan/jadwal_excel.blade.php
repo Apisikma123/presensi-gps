@@ -70,7 +70,7 @@
                             'nik' => $d->nik,
                             'tanggal' => $tanggal_loop,
                         ];
-                        $ceklibur = ceklibur($datalibur, $search);
+                        $ceklibur = isset($datalibur_indexed) ? ($datalibur_indexed[$d->nik . '|' . $tanggal_loop] ?? ($datalibur_by_tanggal[$tanggal_loop] ?? [])) : ceklibur($datalibur, $search);
                         $nama_hari = getHari($tanggal_loop);
                         
                         $jadwal_info = null;

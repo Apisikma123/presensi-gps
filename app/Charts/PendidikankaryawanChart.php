@@ -64,7 +64,8 @@ class PendidikankaryawanChart
             // ->setTitle('Distribusi Pendidikan Karyawan')
             // ->setSubtitle('Berdasarkan Tingkat Pendidikan')
             ->addData('Jumlah Karyawan', array_map('intval', $data))
-            ->setHeight(328)
+            ->setColors(['#32745E'])
+            ->setHeight(260)
             ->setXAxis($labels);
     }
 }
