@@ -4,18 +4,23 @@
      <div class="app-brand demo px-3" style="height: 76px !important;">
          <a href="{{ route('dashboard.index') }}" class="app-brand-link d-flex align-items-center text-decoration-none">
              <span class="app-brand-logo rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                 style="background: rgba(255, 255, 255, 0.12); width: 40px; height: 40px !important; overflow: hidden; border: 1px solid rgba(255,255,255,0.18);">
-                 @if (!empty($general_setting->logo) && Storage::disk('public')->exists('logo/' . $general_setting->logo))
-                     <img src="{{ asset('storage/logo/' . $general_setting->logo) }}" alt="Logo" class="w-100 h-100"
-                         style="object-fit: cover;">
-                 @else
-                     <img src="{{ asset('assets/login/images/logoweb-1.png') }}" alt="Logo" class="w-100 h-100"
-                         style="object-fit: cover;">
-                 @endif
-             </span>
+                style="background: rgba(255, 255, 255, 0.12); width: 40px; height: 40px !important; overflow: hidden; border: 1px solid rgba(255,255,255,0.18);">
+                @if (!empty($app_logo_url))
+                    <img src="{{ $app_logo_url }}" alt="Logo" class="w-100 h-100"
+                        style="object-fit: contain; padding: 2px;"
+                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                    <div class="w-100 h-100 align-items-center justify-content-center text-white" style="display: none; background: rgba(255,255,255,0.15);">
+                        <i class="ti ti-fingerprint" style="font-size: 22px;"></i>
+                    </div>
+                @else
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white" style="background: rgba(255,255,255,0.15);">
+                        <i class="ti ti-fingerprint" style="font-size: 22px;"></i>
+                    </div>
+                @endif
+            </span>
              <div class="d-flex flex-column ms-3">
                  <span class="fw-bold text-white lh-1" style="font-size: 15px; letter-spacing: -0.01em;">
-                     {{ $general_setting->nama_aplikasi ?? 'HR Presence' }}
+                     {{ $general_setting->nama_aplikasi ?? 'Presensi GPS' }}
                  </span>
                  <span class="text-white-50 mt-1" style="font-size: 11px; letter-spacing: 0.02em;">
                      Smart Attendance System
@@ -31,7 +36,7 @@
      @php
          $authUser = auth()->user();
          $fullName = $authUser->name ?? 'Pengguna';
-         $userName = explode(' ', $fullName)[0]; // Ambil nama depan saja
+         $userName = explode(' ', $fullName)[0];
          $userEmail = $authUser->email ?? '-';
          $userRoleText = $authUser->getRoleNames()->first() ?? 'User';
 
@@ -80,7 +85,10 @@
       <div class="menu-inner-shadow"></div>
 
      <ul class="menu-inner py-1">
-         <!-- Dashboard -->
+         <!-- 1. UTAMA -->
+         <li class="menu-header small text-uppercase px-3 py-2 text-white-50" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
+             <span>UTAMA</span>
+         </li>
          <li class="menu-item {{ request()->is(['dashboard', 'dashboard/*']) ? 'active' : '' }}">
              <a href="{{ route('dashboard.index') }}" class="menu-link">
                  <i class="menu-icon tf-icons ti ti-home"></i>
@@ -88,18 +96,42 @@
              </a>
          </li>
 
-         <!-- Data Master (Karyawan, Outlet, Departemen, Jabatan, Cuti) -->
-         @if (auth()->user()->hasAnyPermission(['karyawan.index', 'departemen.index', 'cabang.index', 'cuti.index', 'jabatan.index']))
-             <li class="menu-item {{ request()->is(['karyawan', 'karyawan/*', 'departemen', 'departemen/*', 'cabang', 'cabang/*', 'cuti', 'cuti/*', 'jabatan', 'jabatan/*']) ? 'open' : '' }}">
+         <!-- 2. KARYAWAN -->
+         @if (auth()->user()->hasAnyPermission(['karyawan.index', 'departemen.index', 'cabang.index', 'cuti.index', 'jabatan.index', 'jamkerja.index']))
+             <li class="menu-header small text-uppercase px-3 py-2 text-white-50 mt-2" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
+                 <span>KARYAWAN</span>
+             </li>
+             <li class="menu-item {{ request()->is(['karyawan', 'karyawan/*', 'departemen', 'departemen/*', 'cabang', 'cabang/*', 'cuti', 'cuti/*', 'jabatan', 'jabatan/*', 'jamkerja', 'jamkerja/*']) ? 'open' : '' }}">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
                      <i class="menu-icon tf-icons ti ti-users"></i>
-                     <div>Manajemen Karyawan</div>
+                     <div>Data Karyawan</div>
                  </a>
                  <ul class="menu-sub">
                      @can('karyawan.index')
                          <li class="menu-item {{ request()->is(['karyawan', 'karyawan/*']) ? 'active' : '' }}">
                              <a href="{{ route('karyawan.index') }}" class="menu-link">
-                                 <div>Data Karyawan & Wajah</div>
+                                 <div>Karyawan & Wajah</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('jamkerja.index')
+                         <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*']) ? 'active' : '' }}">
+                             <a href="{{ route('jamkerja.index') }}" class="menu-link">
+                                 <div>Shift Kerja (Pagi & Siang)</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('cabang.index')
+                         <li class="menu-item {{ request()->is(['cabang', 'cabang/*']) ? 'active' : '' }}">
+                             <a href="{{ route('cabang.index') }}" class="menu-link">
+                                 <div>Outlet / Cabang</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('departemen.index')
+                         <li class="menu-item {{ request()->is(['departemen', 'departemen/*']) ? 'active' : '' }}">
+                             <a href="{{ route('departemen.index') }}" class="menu-link">
+                                 <div>Departemen</div>
                              </a>
                          </li>
                      @endcan
@@ -107,20 +139,6 @@
                          <li class="menu-item {{ request()->is(['jabatan', 'jabatan/*']) ? 'active' : '' }}">
                              <a href="{{ route('jabatan.index') }}" class="menu-link">
                                  <div>Jabatan / Posisi</div>
-                             </a>
-                         </li>
-                     @endcan
-                     @can('departemen.index')
-                         <li class="menu-item {{ request()->is(['departemen', 'departemen/*']) ? 'active' : '' }}">
-                             <a href="{{ route('departemen.index') }}" class="menu-link">
-                                 <div>Divisi / Departemen</div>
-                             </a>
-                         </li>
-                     @endcan
-                     @can('cabang.index')
-                         <li class="menu-item {{ request()->is(['cabang', 'cabang/*']) ? 'active' : '' }}">
-                             <a href="{{ route('cabang.index') }}" class="menu-link">
-                                 <div>Cabang / Outlet Coffee</div>
                              </a>
                          </li>
                      @endcan
@@ -135,45 +153,15 @@
              </li>
          @endif
 
-         <!-- Manajemen Shift & Jadwal Operasional (Coffee Shop Roster) -->
-        @if (auth()->user()->hasAnyPermission(['jamkerja.index', 'jamkerjabydept.index', 'ajuanjadwal.index']))
-            <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*', 'jamkerjabydept', 'jamkerjabydept/*', 'ajuanjadwal', 'ajuanjadwal/*']) ? 'open' : '' }}">
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons ti ti-clock-play"></i>
-                    <div>Manajemen Shift</div>
-                </a>
-                <ul class="menu-sub">
-                    @can('jamkerja.index')
-                        <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*']) ? 'active' : '' }}">
-                            <a href="{{ route('jamkerja.index') }}" class="menu-link">
-                                <div>Master Shift Kerja</div>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('jamkerjabydept.index')
-                        <li class="menu-item {{ request()->is(['jamkerjabydept', 'jamkerjabydept/*']) ? 'active' : '' }}">
-                            <a href="{{ route('jamkerjabydept.index') }}" class="menu-link">
-                                <div>Jadwal Shift Departemen</div>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('ajuanjadwal.index')
-                        <li class="menu-item {{ request()->is(['ajuanjadwal', 'ajuanjadwal/*']) ? 'active' : '' }}">
-                            <a href="{{ route('ajuanjadwal.index') }}" class="menu-link">
-                                <div>Pengajuan Tukar Shift</div>
-                            </a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-        @endif
-
-        <!-- Presensi & GPS (Monitoring, Tracking) -->
-         @if (auth()->user()->hasAnyPermission(['presensi.index', 'trackingpresensi.index']))
-             <li class="menu-item {{ request()->is(['presensi', 'presensi/*', 'trackingpresensi', 'trackingpresensi/*']) ? 'open' : '' }}">
+         <!-- 3. ABSENSI -->
+         @if (auth()->user()->hasAnyPermission(['presensi.index', 'trackingpresensi.index', 'dispensasi.index']))
+             <li class="menu-header small text-uppercase px-3 py-2 text-white-50 mt-2" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
+                 <span>ABSENSI</span>
+             </li>
+             <li class="menu-item {{ request()->is(['presensi', 'presensi/*', 'trackingpresensi', 'trackingpresensi/*', 'dispensasi', 'dispensasi/*']) ? 'open' : '' }}">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
                      <i class="menu-icon tf-icons ti ti-map-pin-check"></i>
-                     <div>Presensi & GPS</div>
+                     <div>Kehadiran & Absensi</div>
                  </a>
                  <ul class="menu-sub">
                      @can('presensi.index')
@@ -190,25 +178,42 @@
                              </a>
                          </li>
                      @endcan
+                     <li class="menu-item {{ request()->is(['dispensasi', 'dispensasi/*']) ? 'active' : '' }}">
+                         <a href="{{ route('dispensasi.index') }}" class="menu-link">
+                             <div>Dispensasi Terlambat</div>
+                         </a>
+                     </li>
                  </ul>
              </li>
          @endif
 
-         <!-- Pengajuan & Persetujuan Izin (Absen, Sakit + Gambar Bukti, Cuti) -->
+         <!-- 4. PENGAJUAN -->
          @if (auth()->user()->hasAnyPermission(['izinabsen.index', 'izinsakit.index', 'izincuti.index']))
+             <li class="menu-header small text-uppercase px-3 py-2 text-white-50 mt-2" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
+                 <span>PENGAJUAN</span>
+             </li>
              <li class="menu-item {{ request()->is(['izinabsen', 'izinabsen/*', 'izinsakit', 'izinsakit/*', 'izincuti', 'izincuti/*']) ? 'active' : '' }}">
                  <a href="{{ route('izinabsen.index') }}" class="menu-link">
                      <i class="menu-icon tf-icons ti ti-calendar-event"></i>
                      <div>Persetujuan Izin</div>
-                     @if (!empty($notifikasi_ajuan_absen))
-                         <div class="badge bg-danger rounded-pill ms-auto">{{ $notifikasi_ajuan_absen }}</div>
+                     @php
+                         $badge_izin = 0;
+                         if (auth()->user()->can('izinabsen.index')) $badge_izin += ($notifikasi_izinabsen ?? 0);
+                         if (auth()->user()->can('izinsakit.index')) $badge_izin += ($notifikasi_izinsakit ?? 0);
+                         if (auth()->user()->can('izincuti.index')) $badge_izin += ($notifikasi_izincuti ?? 0);
+                     @endphp
+                     @if ($badge_izin > 0)
+                         <div class="badge bg-danger rounded-pill ms-auto" style="font-size: 11px; padding: 2px 7px;">{{ $badge_izin }}</div>
                      @endif
                  </a>
              </li>
          @endif
 
-         <!-- Rekap & Laporan Absensi (Excel) -->
+         <!-- 5. LAPORAN -->
          @if (auth()->user()->hasAnyPermission(['laporan.presensi', 'laporan.cuti']))
+             <li class="menu-header small text-uppercase px-3 py-2 text-white-50 mt-2" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
+                 <span>LAPORAN</span>
+             </li>
              <li class="menu-item {{ request()->is(['laporan', 'laporan/*']) ? 'open' : '' }} ">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
                      <i class="menu-icon tf-icons ti ti-file-analytics"></i>
@@ -233,41 +238,45 @@
              </li>
          @endif
 
-        <!-- Konfigurasi Outlet -->
-        @if (auth()->user()->hasAnyPermission(['generalsetting.index', 'harilibur.index']))
-            <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*', 'harilibur', 'harilibur/*']) ? 'open' : '' }}">
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon tf-icons ti ti-settings"></i>
-                    <div>Pengaturan Outlet</div>
-                </a>
-                <ul class="menu-sub">
-                    @can('generalsetting.index')
-                        <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*']) ? 'active' : '' }}">
-                            <a href="{{ route('generalsetting.index') }}" class="menu-link">
-                                <div>Pengaturan Umum & GPS</div>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('harilibur.index')
-                        <li class="menu-item {{ request()->is(['harilibur', 'harilibur/*']) ? 'active' : '' }}">
-                            <a href="{{ route('harilibur.index') }}" class="menu-link">
-                                <div>Hari Libur Outlet</div>
-                            </a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-        @endif
+         <!-- 6. PENGATURAN SISTEM (Super Admin) -->
+         @if (auth()->user()->hasRole('super admin'))
+             <li class="menu-header small text-uppercase px-3 py-2 text-white-50 mt-2" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
+                 <span>PENGATURAN</span>
+             </li>
+             <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*', 'users', 'users/*']) ? 'open' : '' }}">
+                 <a href="javascript:void(0);" class="menu-link menu-toggle">
+                     <i class="menu-icon tf-icons ti ti-settings"></i>
+                     <div>Pengaturan Sistem</div>
+                 </a>
+                 <ul class="menu-sub">
+                     @if (auth()->user()->hasRole('super admin') && auth()->user()->can('generalsetting.index'))
+                         <li class="menu-item {{ request()->is(['generalsetting', 'generalsetting/*']) ? 'active' : '' }}">
+                             <a href="{{ route('generalsetting.index') }}" class="menu-link">
+                                 <div>Pengaturan Umum & GPS</div>
+                             </a>
+                         </li>
+                     @endif
+                     @if (auth()->user()->hasRole('super admin'))
+                         <li class="menu-item {{ request()->is(['users', 'users/*']) ? 'active' : '' }}">
+                             <a href="{{ route('users.index') }}" class="menu-link">
+                                 <div>Manajemen Akun User</div>
+                             </a>
+                         </li>
+                     @endif
+                 </ul>
+             </li>
+         @endif
 
-         <li class="menu-item mt-3">
+         <li class="menu-item mt-3 pt-2 border-top" style="border-color: rgba(255, 255, 255, 0.1) !important;">
              <form method="POST" action="{{ route('logout') }}" id="formSidebarLogout">
                  @csrf
                  <a href="#" onclick="event.preventDefault(); document.getElementById('formSidebarLogout').submit();" class="menu-link text-danger">
                      <i class="menu-icon tf-icons ti ti-logout"></i>
-                     <div>Keluar / Log Out</div>
+                     <div class="fw-semibold">Keluar / Log Out</div>
                  </a>
              </form>
          </li>
      </ul>
  </aside>
  <!-- / Menu -->
+

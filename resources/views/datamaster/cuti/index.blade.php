@@ -6,20 +6,15 @@
     <span>Jenis Cuti</span>
 @endsection
 
-<!-- Top Header Toolbar -->
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+<!-- Page Header -->
+<div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div>
-        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-            <span>Jenis & Alokasi Cuti Karyawan</span>
-            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
-                {{ $cuti->total() }} Total
-            </span>
-        </h5>
-        <small class="text-muted" style="font-size: 12px;">Manajemen kuota hak cuti tahunan, cuti menikah, melahirkan, dan izin khusus karyawan.</small>
+        <h4 class="page-title mb-1">Jenis & Alokasi Cuti Karyawan</h4>
+        <p class="page-subtitle text-muted mb-0">Manajemen kuota hak cuti tahunan, cuti menikah, melahirkan, dan izin khusus karyawan.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
         @can('cuti.create')
-            <a href="#" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate" style="height: 36px; border-radius: 8px;">
+            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate">
                 <i class="ti ti-plus"></i>
                 <span>Tambah Cuti</span>
             </a>
@@ -27,26 +22,29 @@
     </div>
 </div>
 
-<!-- Search & Filter Bar (Seamless Minimalist Flex Layout) -->
-<div class="card mb-3 card-filter-bar">
-    <div class="card-body p-2.5">
+<!-- Search & Filter Bar -->
+<div class="card admin-filter-toolbar mb-3">
+    <div class="card-body p-3">
         <form action="{{ route('cuti.index') }}" method="GET">
-            <div class="d-flex align-items-center gap-2">
-                <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+                <div class="flex-grow-1" style="min-width: 240px;">
                     <x-input-with-icon label="" value="{{ Request('nama_cuti') }}" name="nama_cuti"
                         icon="ti ti-search" placeholder="Cari nama atau kode jenis cuti..." hideLabel="true" />
                 </div>
-                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 px-3 flex-shrink-0"
-                    style="height: 36px; border-radius: 8px; font-size: 12.5px; font-weight: 600; min-width: 90px;">
-                    <i class="ti ti-search"></i>
-                    <span>Cari</span>
-                </button>
-                @if (Request('nama_cuti'))
-                    <a href="{{ route('cuti.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center p-0 flex-shrink-0"
-                        style="height: 36px; width: 36px; min-width: 36px; border-radius: 8px;" title="Reset Filter">
-                        <i class="ti ti-refresh" style="font-size: 14px;"></i>
-                    </a>
-                @endif
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5"
+                        style="height: 38px; min-width: 90px;">
+                        <i class="ti ti-search"></i>
+                        <span>Cari</span>
+                    </button>
+                    @if (Request('nama_cuti'))
+                        <a href="{{ route('cuti.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1"
+                            style="height: 38px; padding: 0 12px;" title="Reset Filter">
+                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                            <span>Reset</span>
+                        </a>
+                    @endif
+                </div>
             </div>
         </form>
     </div>
@@ -125,36 +123,10 @@
     </div>
 </div>
 
-<!-- Pagination Footer with Slide Controls -->
+<!-- Pagination Footer -->
 <div class="card" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF;">
     <div class="card-body py-2.5 px-3">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <!-- Counter info -->
-            <div class="text-muted" style="font-size: 12px;">
-                @if ($cuti->total() > 0)
-                    Menampilkan <span class="fw-bold text-dark font-mono">{{ $cuti->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $cuti->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $cuti->total() }}</span> total cuti
-                @else
-                    Menampilkan 0 data
-                @endif
-            </div>
-
-            <!-- Interactive Page Slider (Slide Selector) -->
-            @if ($cuti->lastPage() > 1)
-                <div class="page-slider-container">
-                    <small class="text-muted fw-semibold" style="font-size: 11.5px;">Slide Halaman:</small>
-                    <input type="range" class="page-slider-range" id="pageSlider"
-                        min="1" max="{{ $cuti->lastPage() }}" value="{{ $cuti->currentPage() }}"
-                        oninput="document.getElementById('sliderBadge').innerText = this.value"
-                        onchange="navigatePage(this.value)">
-                    <span class="badge bg-primary font-mono" id="sliderBadge">{{ $cuti->currentPage() }}</span>
-                </div>
-            @endif
-
-            <!-- Standard Pagination Links -->
-            <div class="d-flex align-items-center">
-                {{ $cuti->links('pagination::bootstrap-5') }}
-            </div>
-        </div>
+        {{ $cuti->links('pagination::bootstrap-5') }}
     </div>
 </div>
 
@@ -164,12 +136,6 @@
 
 @push('myscript')
 <script>
-    function navigatePage(pageNum) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', pageNum);
-        window.location.href = url.toString();
-    }
-
     $(function() {
         function loading() {
             $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">

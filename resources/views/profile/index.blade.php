@@ -181,7 +181,7 @@
             {{-- Profile Photo & Header --}}
             <div class="profile-photo-wrapper">
                 <div class="profile-photo-box" onclick="document.getElementById('foto').click()">
-                    @if (!empty($karyawan->foto) && Storage::disk('public')->exists('/karyawan/' . $karyawan->foto))
+                    @if (!empty($karyawan->foto))
                         <div class="photo-placeholder" style="background-image: url({{ getfotoKaryawan($karyawan->foto) }});"></div>
                     @else
                         <img src="{{ asset('assets/img/avatars/No_Image_Available.jpg') }}" alt="Profile Photo">
@@ -243,24 +243,7 @@
                 <label for="email">Email</label>
             </div>
 
-            {{-- Push Notification Setting Toggle --}}
-            <div class="flex items-center justify-between p-3.5 mb-4 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#1E4D3E]/10 text-[#1E4D3E]">
-                        <ion-icon name="notifications-outline" class="text-lg"></ion-icon>
-                    </div>
-                    <div>
-                        <div class="text-[13px] font-bold text-slate-800">Notifikasi Push PWA</div>
-                        <small class="text-[11px] text-slate-500 font-mono" id="push-status-text">Memeriksa status...</small>
-                    </div>
-                </div>
-                <div class="position-relative" style="z-index: 10;">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="push-notification-toggle" class="sr-only peer" disabled>
-                        <div class="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1E4D3E]"></div>
-                    </label>
-                </div>
-            </div>
+
 
             {{-- Submit Button --}}
             <button type="submit" class="btn-submit-modern" id="btnSimpan">
@@ -312,168 +295,7 @@
                 btn.innerHTML = `<ion-icon name="sync-outline" class="animate-spin"></ion-icon><span>Menyimpan...</span>`;
             });
 
-            // PWA Push Notification Toggle Logic
-            const toggle = $('#push-notification-toggle');
-            const statusText = $('#push-status-text');
 
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-                statusText.text('Tidak didukung di browser ini.');
-                toggle.prop('disabled', true);
-                return;
-            }
-
-            navigator.serviceWorker.ready.then(function(registration) {
-                return registration.pushManager.getSubscription().then(function(subscription) {
-                    toggle.prop('disabled', false);
-
-                    if (Notification.permission === 'denied') {
-                        statusText.text('Izin notifikasi diblokir.');
-                        toggle.prop('checked', false);
-                        return;
-                    }
-
-                    if (subscription) {
-                        statusText.text('Aktif di perangkat ini.');
-                        toggle.prop('checked', true);
-                    } else {
-                        statusText.text('Tidak aktif. Klik untuk mengaktifkan.');
-                        toggle.prop('checked', false);
-                    }
-                });
-            }).catch(function(err) {
-                console.error('SW ready error:', err);
-                statusText.text('Gagal memuat status.');
-            });
-
-            toggle.on('change', function() {
-                const isChecked = $(this).is(':checked');
-                toggle.prop('disabled', true);
-
-                if (isChecked) {
-                    if (Notification.permission === 'denied') {
-                        toggle.prop('checked', false);
-                        toggle.prop('disabled', false);
-                        Swal.fire({
-                            title: 'Izin Diblokir',
-                            text: 'Izin notifikasi diblokir di browser Anda. Harap aktifkan Notifikasi melalui pengaturan browser atau ikon gembok di sebelah alamat web.',
-                            icon: 'warning'
-                        });
-                        return;
-                    }
-
-                    navigator.serviceWorker.ready.then(function(registration) {
-                        return Notification.requestPermission().then(function(permission) {
-                            if (permission !== 'granted') {
-                                throw new Error('Izin notifikasi ditolak oleh user.');
-                            }
-
-                            const VAPID_PUBLIC_KEY = "{{ config('webpush.vapid.public_key') }}";
-                            if (!VAPID_PUBLIC_KEY) {
-                                throw new Error('VAPID_PUBLIC_KEY belum didefinisikan.');
-                            }
-
-                            const subscribeOptions = {
-                                userVisibleOnly: true,
-                                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                            };
-
-                            return registration.pushManager.subscribe(subscribeOptions);
-                        });
-                    })
-                    .then(function(pushSubscription) {
-                        return fetch("{{ route('push.store') }}", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                            },
-                            body: JSON.stringify(pushSubscription)
-                        });
-                    })
-                    .then(function(response) {
-                        if (!response.ok) {
-                            throw new Error('HTTP ' + response.status + ': Server error');
-                        }
-                        return response.json();
-                    })
-                    .then(function(data) {
-                        toggle.prop('disabled', false);
-                        if (data && data.success) {
-                            statusText.text('Aktif di perangkat ini.');
-                            Swal.fire({
-                                title: 'Berhasil!',
-                                text: 'Notifikasi push berhasil diaktifkan.',
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                        } else {
-                            throw new Error('Gagal menyimpan subscription ke server.');
-                        }
-                    })
-                    .catch(function(error) {
-                        console.error('Subscription error:', error);
-                        toggle.prop('checked', false);
-                        toggle.prop('disabled', false);
-                        statusText.text('Tidak aktif. Klik untuk mengaktifkan.');
-                        Swal.fire({
-                            title: 'Gagal!',
-                            text: 'Gagal mengaktifkan notifikasi push. Error: ' + error.message,
-                            icon: 'error'
-                        });
-                    });
-
-                } else {
-                    navigator.serviceWorker.ready.then(function(registration) {
-                        return registration.pushManager.getSubscription();
-                    })
-                    .then(function(subscription) {
-                        if (subscription) {
-                            const endpoint = subscription.endpoint;
-                            return subscription.unsubscribe().then(function() {
-                                return fetch("{{ route('push.destroy') }}", {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                                    },
-                                    body: JSON.stringify({ endpoint: endpoint })
-                                });
-                            });
-                        }
-                    })
-                    .then(function(response) {
-                        if (response) {
-                            if (!response.ok) {
-                                throw new Error('HTTP ' + response.status + ': Server error');
-                            }
-                            return response.json();
-                        }
-                    })
-                    .then(function(data) {
-                        toggle.prop('disabled', false);
-                        statusText.text('Tidak aktif. Klik untuk mengaktifkan.');
-                        Swal.fire({
-                            title: 'Dinonaktifkan!',
-                            text: 'Notifikasi push telah dinonaktifkan.',
-                            icon: 'info',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error('Unsubscribe error:', error);
-                        toggle.prop('checked', true);
-                        toggle.prop('disabled', false);
-                        statusText.text('Aktif di perangkat ini.');
-                        Swal.fire({
-                            title: 'Gagal!',
-                            text: 'Gagal menonaktifkan notifikasi push. Error: ' + error.message,
-                            icon: 'error'
-                        });
-                    });
-                }
-            });
         });
     </script>
 @endpush

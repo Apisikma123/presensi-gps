@@ -4382,25 +4382,13 @@ textarea,
 }
 
 .custom-file-upload label.file-uploaded {
-    background-size: cover;
+    background-size: contain;
+    background-repeat: no-repeat;
     background-position: center;
 }
 
 .custom-file-upload label.file-uploaded:before {
-    content: "";
-    width: 38px;
-    height: 38px;
-    background: #34c759;
-    border-radius: 100%;
-    display: flex;
-    background-image: url("data:image/svg+xml,%0A%3Csvg width='23px' height='20px' viewBox='0 0 23 20' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg id='Page-1' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline id='Path' stroke='%23FFFFFF' stroke-width='2.4' points='21.2 2 7.76 18 2 12'%3E%3C/polyline%3E%3C/g%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center center;
-    position: absolute;
-    left: 50%;
-    top: calc(50% + -22px);
-    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
-    transform: translate(-50%, -50%);
+    display: none !important;
 }
 
 .custom-file-upload label.file-uploaded label {
@@ -4413,8 +4401,8 @@ textarea,
     top: auto;
     transform: translate(0, 0);
     font-size: 11px;
-    color: #4f5050;
-    background-color: #e1e1e1;
+    color: #334155;
+    background-color: rgba(241, 245, 249, 0.9);
 }
 
 .verify-input {

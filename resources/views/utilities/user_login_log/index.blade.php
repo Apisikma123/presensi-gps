@@ -64,23 +64,23 @@
 <div class="row">
     <div class="col-lg-12 col-md-12 col-sm-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="background-color: var(--theme-color-1) !important; color: white !important; min-height: 50px;">
+            <div class="card-header d-flex justify-content-between align-items-center py-2" style="min-height: 50px;">
                 <div class="d-flex align-items-center">
                     <i class="ti ti-login me-2 fs-5"></i>
-                    <h6 class="card-title mb-0 text-white">Data Log Login</h6>
+                    <h6 class="card-title mb-0">Data Log Login</h6>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
+                        <thead>
                             <tr>
-                                <th class="text-white py-3" width="50">NO.</th>
-                                <th class="text-white py-3">PENGGUNA</th>
-                                <th class="text-white py-3 border-start">INFO AKUN</th>
-                                <th class="text-white py-3 border-start">IP ADDRESS</th>
-                                <th class="text-white py-3 border-start">DEVICE / AGENT</th>
-                                <th class="text-white py-3 border-start">WAKTU LOGIN</th>
+                                <th class="py-3" width="50">NO.</th>
+                                <th class="py-3">PENGGUNA</th>
+                                <th class="py-3 border-start">INFO AKUN</th>
+                                <th class="py-3 border-start">IP ADDRESS</th>
+                                <th class="py-3 border-start">DEVICE / AGENT</th>
+                                <th class="py-3 border-start">WAKTU LOGIN</th>
                             </tr>
                         </thead>
                         <tbody>

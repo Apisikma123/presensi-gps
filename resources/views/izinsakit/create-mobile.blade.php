@@ -83,61 +83,140 @@
             color: {{ $t['primary'] }};
         }
 
-        /* Custom File Upload (Dashed Box) matching Izin Absen style */
-        .custom-file-upload {
-            border: 1.5px dashed {{ $t['primary'] }};
-            border-radius: 12px;
-            padding: 20px;
+        /* Modern Mobile File Upload (DESIGN.md Compliant) */
+        .mobile-upload-box {
+            border: 1.5px dashed rgba(30, 77, 62, 0.28);
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 16px;
             text-align: center;
             cursor: pointer;
             margin-bottom: 12px;
-            transition: all 0.3s ease;
-            background: {{ $t['primary'] }}10;
-            position: relative;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height:90px !important;
-        }
-        
-        .custom-file-upload:hover {
-            background: {{ $t['primary'] }}20;
-            border-color: {{ $t['primary'] }};
-        }
-        
-        .custom-file-upload input[type="file"] {
-            display: none;
-        }
-        
-        .custom-file-upload label {
-            cursor: pointer;
-            display: block;
-            color: {{ $t['primary'] }};
-            margin: 0;
-            width: 100%;
-        }
-        
-        .custom-file-upload ion-icon {
-            font-size: 38px;
-            margin-bottom: 8px;
-            color: {{ $t['primary'] }};
+            gap: 4px;
+            min-height: 100px;
         }
 
-        .custom-file-upload span {
-            font-size: 15px;
-            font-weight: 600;
-            opacity: 0.9;
+        .mobile-upload-box:active {
+            transform: scale(0.99);
+            background: rgba(30, 77, 62, 0.04);
+            border-color: {{ $t['primary'] ?? '#1E4D3E' }};
         }
-        
-        .file-name {
-            font-size: 12px;
-            color: {{ $t['primary'] }};
-            margin-top: 8px;
-            font-weight: 500;
-            max-width: 100%;
+
+        .mobile-upload-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(30, 77, 62, 0.08);
+            color: {{ $t['primary'] ?? '#1E4D3E' }};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .mobile-upload-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .mobile-upload-hint {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Preview Card - Separate Thumbnail and Meta (Zero Overlap) */
+        .mobile-preview-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .mobile-preview-thumb {
+            width: 72px;
+            height: 72px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: #f8fafc;
+            flex-shrink: 0;
+            display: block;
+        }
+
+        .mobile-preview-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mobile-preview-name {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: block;
+        }
+
+        .mobile-preview-size {
+            font-size: 11px;
+            color: #64748b;
+            display: block;
+            margin-top: 1px;
+        }
+
+        .mobile-preview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #059669;
+            background: #d1fae5;
+            padding: 2px 7px;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+
+        .mobile-preview-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .btn-change-photo {
+            font-size: 11px;
+            font-weight: 600;
+            color: {{ $t['primary'] ?? '#1E4D3E' }};
+            background: rgba(30, 77, 62, 0.08);
+            border: none;
+            border-radius: 8px;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+
+        .btn-delete-photo {
+            font-size: 11px;
+            font-weight: 600;
+            color: #dc2626;
+            background: #fee2e2;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 10px;
+            cursor: pointer;
         }
 
         .btn-submit-modern {
@@ -188,14 +267,33 @@
                 <label for="jml_hari">Jumlah Hari</label>
             </div>
 
-            <div class="custom-file-upload" id="fileUploadBox">
-                <input type="file" name="sid" id="sid" accept="image/*">
-                <label for="sid">
+            {{-- Hidden File Input --}}
+            <input type="file" name="sid" id="sid" accept="image/jpeg,image/png,image/webp" style="display: none;">
+
+            {{-- State 1: Modern Empty Dropzone --}}
+            <div class="mobile-upload-box" id="mobileUploadDropzone">
+                <div class="mobile-upload-icon">
                     <ion-icon name="cloud-upload-outline"></ion-icon>
-                    <br>
-                    <span>Upload Surat Dokter (SID)</span>
-                    <div id="fileName" class="file-name"></div>
-                </label>
+                </div>
+                <div class="mobile-upload-title">Upload Surat Dokter (SID)</div>
+                <div class="mobile-upload-hint">Ketuk untuk memilih foto dokumen (Maks. 2MB)</div>
+            </div>
+
+            {{-- State 2: Modern Preview Card (Separate Image and Meta, Zero Overlapping) --}}
+            <div class="mobile-preview-card" id="mobilePreviewCard" style="display: none;">
+                <img src="" id="mobilePreviewThumb" alt="Preview SID" class="mobile-preview-thumb">
+                <div class="mobile-preview-info">
+                    <span class="mobile-preview-name" id="mobilePreviewName">-</span>
+                    <span class="mobile-preview-size" id="mobilePreviewSize">-</span>
+                    <span class="mobile-preview-badge">
+                        <ion-icon name="checkmark-circle-outline"></ion-icon>
+                        Dokumen Siap Dikirim
+                    </span>
+                    <div class="mobile-preview-actions">
+                        <button type="button" class="btn-change-photo" id="btnChangePhoto">Ganti Foto</button>
+                        <button type="button" class="btn-delete-photo" id="btnDeletePhoto">Hapus</button>
+                    </div>
+                </div>
             </div>
 
             <div class="form-label-group">
@@ -277,17 +375,72 @@
                 }
             });
 
-            // File Upload Handling
+            // Modern Mobile File Upload Handling
             const fileInput = document.getElementById('sid');
-            fileInput.addEventListener('change', function() {
-                let file = this.files[0];
-                const fileNameDiv = document.getElementById('fileName');
-                if (file) {
-                    fileNameDiv.textContent = '📄 ' + file.name;
-                } else {
-                    fileNameDiv.textContent = '';
+            const dropzone = document.getElementById('mobileUploadDropzone');
+            const previewCard = document.getElementById('mobilePreviewCard');
+            const previewThumb = document.getElementById('mobilePreviewThumb');
+            const previewName = document.getElementById('mobilePreviewName');
+            const previewSize = document.getElementById('mobilePreviewSize');
+            const btnChange = document.getElementById('btnChangePhoto');
+            const btnDelete = document.getElementById('btnDeletePhoto');
+
+            function formatBytes(bytes) {
+                if (!bytes) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            }
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', function() {
+                    fileInput.click();
+                });
+
+                if (btnChange) {
+                    btnChange.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        fileInput.click();
+                    });
                 }
-            });
+
+                if (btnDelete) {
+                    btnDelete.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        fileInput.value = '';
+                        previewThumb.src = '';
+                        previewCard.style.display = 'none';
+                        dropzone.style.display = 'flex';
+                    });
+                }
+
+                fileInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (!file) return;
+
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire({
+                            title: "Ukuran Terlalu Besar",
+                            text: "Ukuran foto maksimal adalah 2MB! (" + formatBytes(file.size) + ")",
+                            icon: "warning"
+                        });
+                        this.value = '';
+                        return;
+                    }
+
+                    previewName.textContent = file.name;
+                    previewSize.textContent = formatBytes(file.size);
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewThumb.src = e.target.result;
+                        dropzone.style.display = 'none';
+                        previewCard.style.display = 'flex';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
 
             const form = document.getElementById('formIzin');
             form.addEventListener('submit', function(e) {
@@ -295,7 +448,7 @@
                 let sampai = document.getElementById('sampai').value;
                 let jml_hari = document.getElementById('jml_hari').value;
                 let keterangan = document.getElementById('keterangan').value;
-                let sid = document.getElementById('sid').value;
+                let hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
 
                 if (!dari || !sampai) {
                     e.preventDefault();
@@ -315,7 +468,7 @@
                     return;
                 }
 
-                if (!sid) {
+                if (!hasFile) {
                     e.preventDefault();
                     Swal.fire({ title: "Oops!", text: 'Surat Dokter Harus Diupload !', icon: "warning" });
                     return;

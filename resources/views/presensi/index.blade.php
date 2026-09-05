@@ -5,6 +5,9 @@
 @section('navigasi')
     <span>Monitoring Presensi</span>
 @endsection
+@push('mystyle')
+<link rel="stylesheet" href="{{ asset('assets/vendor/css/leaflet.css') }}" />
+@endpush
 <style>
     /* Minimalist Editorial Table & Card System */
     .coffee-table-container {
@@ -107,38 +110,48 @@
     }
 </style>
 
+<!-- Page Header -->
+<div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="page-title mb-1">Monitoring Presensi</h4>
+        <p class="page-subtitle text-muted mb-0">Pantau kehadiran harian karyawan, ketepatan waktu, dan foto presensi secara langsung.</p>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
-        <!-- Filter Header Bar (Minimalist & Aligned) -->
-        <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 10px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);">
-            <div class="card-body p-2.5">
+        <!-- Filter Toolbar -->
+        <div class="card admin-filter-toolbar mb-3">
+            <div class="card-body p-3">
                 <form action="{{ route('presensi.index') }}" method="GET">
                     <div class="row g-2 align-items-center">
-                        <div class="col-lg-3 col-md-6 col-12">
+                        <div class="col-lg-3 col-md-4 col-12">
+                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Tanggal Presensi</label>
                             <x-input-with-icon label="" value="{{ Request('tanggal') }}" name="tanggal" icon="ti ti-calendar"
                                 datepicker="flatpickr-date" placeholder="Pilih Tanggal..." hideLabel="true" />
                         </div>
-                        <div class="col-lg-3 col-md-6 col-12">
+                        <div class="col-lg-3 col-md-4 col-12">
+                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Outlet / Cabang</label>
                             <div class="form-group mb-0">
                                 <x-select label="" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
                                     selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch"
                                     placeholder="Semua Outlet / Cabang" hideLabel="true" />
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-8 col-12">
+                        <div class="col-lg-3 col-md-4 col-12">
+                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Cari Karyawan</label>
                             <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
-                                placeholder="Cari nama barista, kasir, staff..." hideLabel="true" />
+                                placeholder="Nama karyawan, barista..." hideLabel="true" />
                         </div>
-                        <div class="col-lg-2 col-md-4 col-12 d-flex align-items-center gap-1.5">
-                            <button type="submit" class="btn text-white d-inline-flex align-items-center justify-content-center shadow-sm" 
-                                title="Cari Data"
-                                style="background-color: var(--theme-color-1, #1E4D3E); border: 1px solid #11382C; border-radius: 8px; height: 38px; width: 38px; min-width: 38px; padding: 0; transition: all 0.2s ease;">
-                                <i class="ti ti-search" style="font-size: 16px;"></i>
+                        <div class="col-lg-3 col-md-12 col-12 d-flex align-items-end gap-2 pt-lg-4">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1" style="height: 38px;">
+                                <i class="ti ti-search" style="font-size: 15px;"></i>
+                                <span>Cari Data</span>
                             </button>
                             @if (Request('tanggal') || Request('kode_cabang') || Request('nama_karyawan'))
-                                <a href="{{ route('presensi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center p-0 flex-shrink-0" 
-                                    style="height: 38px; width: 38px; min-width: 38px; border-radius: 8px;" title="Reset Filter">
+                                <a href="{{ route('presensi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" style="height: 38px; padding: 0 12px;" title="Reset Filter">
                                     <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                                    <span>Reset</span>
                                 </a>
                             @endif
                         </div>
@@ -181,23 +194,7 @@
                                     $d->lintashari,
                                 );
 
-                                if ($d->denda !== null) {
-                                    $denda = $d->denda;
-                                    $potongan_jam_terlambat = ($terlambat != null && $terlambat['desimal_terlambat'] >= 1) ? $terlambat['desimal_terlambat'] : 0;
-                                } else {
-                                    if ($terlambat != null) {
-                                        if ($terlambat['desimal_terlambat'] < 1) {
-                                            $potongan_jam_terlambat = 0;
-                                            $denda = hitungdenda($denda_list, $terlambat['menitterlambat']);
-                                        } else {
-                                            $potongan_jam_terlambat = $terlambat['desimal_terlambat'];
-                                            $denda = 0;
-                                        }
-                                    } else {
-                                        $potongan_jam_terlambat = 0;
-                                        $denda = 0;
-                                    }
-                                }
+
 
                                 $words = explode(' ', $d->nama_karyawan);
                                 $initials = '';
@@ -214,10 +211,11 @@
                                 <!-- Karyawan -->
                                 <td>
                                     <div class="d-flex align-items-center gap-2.5">
-                                        @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                        @if (!empty($d->foto))
                                             <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
                                                 class="rounded-circle shadow-none flex-shrink-0"
-                                                style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #e2e8f0;">
+                                                style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #e2e8f0;"
+                                                onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
                                         @else
                                             <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
                                                 style="width: 38px; height: 38px; background: rgba(50, 116, 94, 0.1); color: #32745e; font-size: 12.5px; border: 1px solid rgba(50, 116, 94, 0.2);">
@@ -304,7 +302,11 @@
                                 <!-- Status Kehadiran -->
                                 <td class="text-center">
                                     @if ($d->status == 'h')
-                                        @if ($terlambat != null && $terlambat['menitterlambat'] > 0)
+                                        @if (!empty($d->is_dispensasi))
+                                            <span class="pill-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;">
+                                                <i class="ti ti-clock-check"></i> Dispensasi
+                                            </span>
+                                        @elseif ($terlambat != null && $terlambat['menitterlambat'] > 0)
                                             <span class="pill-badge pill-terlambat">
                                                 <i class="ti ti-clock-exclamation"></i> Terlambat
                                             </span>
@@ -327,7 +329,7 @@
                                         </span>
                                     @elseif($d->status == 'a')
                                         <span class="pill-badge pill-alpa">
-                                            <i class="ti ti-x"></i> Alpa
+                                            <i class="ti ti-x"></i> Tidak Hadir
                                         </span>
                                     @else
                                         <span class="pill-badge pill-belum">
@@ -392,9 +394,10 @@
                     <div class="mobile-staff-card">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center gap-2">
-                                @if (!empty($d->foto) && Storage::disk('public')->exists('/karyawan/' . $d->foto))
+                                @if (!empty($d->foto))
                                     <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
-                                        class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                                        class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;"
+                                        onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
                                 @else
                                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
                                         style="width: 36px; height: 36px; background: rgba(50, 116, 94, 0.1); color: #32745e; font-size: 12px;">
@@ -408,7 +411,13 @@
                             </div>
                             <div>
                                 @if ($d->status == 'h')
-                                    <span class="pill-badge pill-hadir" style="font-size: 10.5px;">Hadir</span>
+                                    @if (!empty($d->is_dispensasi))
+                                        <span class="pill-badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-size: 10.5px;">Dispensasi</span>
+                                    @elseif ($terlambat != null && $terlambat['menitterlambat'] > 0)
+                                        <span class="pill-badge pill-terlambat" style="font-size: 10.5px;">Telat</span>
+                                    @else
+                                        <span class="pill-badge pill-hadir" style="font-size: 10.5px;">Hadir</span>
+                                    @endif
                                 @elseif($d->status == 'i')
                                     <span class="pill-badge pill-izin" style="font-size: 10.5px;">Izin</span>
                                 @elseif($d->status == 's')
@@ -416,7 +425,7 @@
                                 @elseif($d->status == 'c')
                                     <span class="pill-badge pill-cuti" style="font-size: 10.5px;">Cuti</span>
                                 @elseif($d->status == 'a')
-                                    <span class="pill-badge pill-alpa" style="font-size: 10.5px;">Alpa</span>
+                                    <span class="pill-badge pill-alpa" style="font-size: 10.5px;">Tidak Hadir</span>
                                 @else
                                     <span class="pill-badge pill-belum" style="font-size: 10.5px;">Belum</span>
                                 @endif
@@ -453,30 +462,9 @@
                 @endforelse
             </div>
 
-            <!-- Professional Pagination Footer with Slider -->
-            <div class="p-3 border-top d-flex flex-column flex-md-row align-items-center justify-content-between gap-3" style="background: #FFFFFF; border-color: #e2e8f0 !important;">
-                <div class="text-muted" style="font-size: 12px;">
-                    @if ($karyawan->total() > 0)
-                        Menampilkan <span class="fw-bold text-dark font-mono">{{ $karyawan->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $karyawan->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $karyawan->total() }}</span> total karyawan
-                    @else
-                        Menampilkan 0 data
-                    @endif
-                </div>
-
-                @if ($karyawan->lastPage() > 1)
-                    <div class="page-slider-container">
-                        <small class="text-muted fw-semibold" style="font-size: 11.5px;">Slide Halaman:</small>
-                        <input type="range" class="page-slider-range" id="pageSlider"
-                            min="1" max="{{ $karyawan->lastPage() }}" value="{{ $karyawan->currentPage() }}"
-                            oninput="document.getElementById('sliderBadge').innerText = this.value"
-                            onchange="navigatePage(this.value)">
-                        <span class="badge bg-primary font-mono" id="sliderBadge">{{ $karyawan->currentPage() }}</span>
-                    </div>
-                @endif
-
-                <div class="d-flex align-items-center">
-                    {{ $karyawan->links('pagination::bootstrap-5') }}
-                </div>
+            <!-- Pagination Footer -->
+            <div class="p-3 border-top" style="background: #FFFFFF; border-color: #e2e8f0 !important;">
+                {{ $karyawan->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>
@@ -484,13 +472,8 @@
 <x-modal-form id="modal" size="modal-xl" show="loadmodal" title="" />
 @endsection
 @push('myscript')
+<script src="{{ asset('assets/external/js/leaflet.js') }}" defer></script>
 <script>
-    function navigatePage(pageNum) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', pageNum);
-        window.location.href = url.toString();
-    }
-
     $(function() {
         $(document).on('click', '.koreksiPresensi', function() {
             let nik = $(this).attr('nik');

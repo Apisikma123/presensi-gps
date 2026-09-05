@@ -1065,8 +1065,8 @@
 @endsection
 @push('myscript')
     <!-- Face Recognition dengan Caching -->
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <script src="{{ asset('assets/external/js/face-model-cache.js') }}"></script>
+    <script src="{{ asset('assets/vendor/face-api.min.js') }}"></script>
+    <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ file_exists(public_path('assets/external/js/face-model-cache.js')) ? filemtime(public_path('assets/external/js/face-model-cache.js')) : time() }}"></script>
     <!-- html2canvas untuk capture map sebagai watermark -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <!-- Anti-Fake GPS & Mock Location Detector -->
@@ -1814,70 +1814,103 @@
             };
 
             /**
-             * Camera Controller Module
+             * Camera Controller Module - Native WebRTC with progressive fallback
              */
             const Camera = {
-                init() {
-                    return new Promise((resolve, reject) => {
-                        if (!document.querySelector('.webcam-capture')) {
-                            console.log('No .webcam-capture element in DOM, skipping Camera.init');
-                            return resolve(null);
-                        }
-                        Webcam.set({
-                            height: 480,
-                            width: 640,
-                            image_format: 'jpeg',
-                            jpeg_quality: 95, // Standardized to 95% for all devices
-                            fps: isMobile ? 15 : 30,
-                            constraints: {
+                async init() {
+                    const container = document.querySelector('.webcam-capture');
+                    if (!container) {
+                        console.log('No .webcam-capture element in DOM, skipping Camera.init');
+                        return null;
+                    }
+
+                    // 1. Release lingering streams from previous navigation/session
+                    if (typeof Webcam !== 'undefined' && Webcam.reset) {
+                        try { Webcam.reset(); } catch (e) {}
+                    }
+                    if (container._stream) {
+                        try { container._stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+                        container._stream = null;
+                    }
+                    container.innerHTML = '';
+
+                    // 2. Insecure context check (browsers block getUserMedia over non-localhost HTTP)
+                    if (window.isSecureContext === false && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                        throw new Error('Akses kamera diblokir browser: Memerlukan HTTPS atau localhost.');
+                    }
+
+                    // 3. Helper to attach native stream to video element
+                    const attachNativeStream = (stream) => {
+                        container._stream = stream;
+                        let video = document.createElement('video');
+                        video.setAttribute('autoplay', 'autoplay');
+                        video.setAttribute('playsinline', 'playsinline');
+                        video.setAttribute('muted', 'muted');
+                        video.muted = true;
+                        video.style.width = '100%';
+                        video.style.height = '100%';
+                        video.style.objectFit = 'cover';
+                        container.appendChild(video);
+
+                        video.srcObject = stream;
+                        video.play().catch(() => {});
+                        cameraPermissionGranted = true;
+                        UI.els.video = video;
+
+                        // Guarantee Webcam.snap compatibility for presensi capture
+                        window.Webcam = window.Webcam || {};
+                        window.Webcam.snap = function(cb) {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth || 640;
+                            canvas.height = video.videoHeight || 480;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            cb(canvas.toDataURL('image/jpeg', 0.95));
+                        };
+
+                        return new Promise((resolve) => {
+                            if (video.readyState >= 2) {
+                                resolve(video);
+                            } else {
+                                video.onloadedmetadata = () => resolve(video);
+                                setTimeout(() => resolve(video), 1200);
+                            }
+                        });
+                    };
+
+                    // 4. Progressive getUserMedia (Front camera -> Any camera fallback)
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        try {
+                            const stream = await navigator.mediaDevices.getUserMedia({
                                 video: {
-                                    width: { ideal: 640 }, // Standardized to 640 for all
-                                    height: { ideal: 480 }, // Standardized to 480 for all
-                                    facingMode: "user",
-                                    frameRate: { ideal: isMobile ? 15 : 30 }
-                                }
-                            }
-                        });
+                                    facingMode: 'user',
+                                    width: { ideal: 640 },
+                                    height: { ideal: 480 }
+                                },
+                                audio: false
+                            }).catch(() => {
+                                return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                            });
 
-                        Webcam.attach('.webcam-capture');
-
-                        Webcam.on('load', () => {
-                            console.log('Camera loaded');
-                            cameraPermissionGranted = true;
-                            
-                            // === FIX: Retry mechanism for video element ===
-                            let retryCount = 0;
-                            const maxRetries = 30; // 30 retries x 200ms = 6s total tolerance
-                            
-                            const findVideo = () => {
-                                const video = document.querySelector('.webcam-capture video');
-                                if(video) {
-                                    console.log(`Video element found after ${retryCount} retries`);
-                                    UI.els.video = video;
-                                    resolve(video);
-                                } else if (retryCount < maxRetries) {
-                                    retryCount++;
-                                    console.log(`Retrying to find video element... (${retryCount}/${maxRetries})`);
-                                    setTimeout(findVideo, 200); // Wait 200ms and retry
-                                } else {
-                                    reject(new Error('Video element not found after retries'));
-                                }
-                            };
-                            
-                            // Start finding video element
-                            setTimeout(findVideo, 100); // Initial slight delay
-                        });
-
-                        Webcam.on('error', (err) => {
-                            console.error('Camera error', err);
-                            const errName = (err?.name || '').toLowerCase();
-                            if (errName.includes('notallowed') || errName.includes('permission')) {
+                            return await attachNativeStream(stream);
+                        } catch (err) {
+                            console.error('Camera getUserMedia error:', err);
+                            const name = (err?.name || '').toLowerCase();
+                            if (name.includes('notallowed') || name.includes('permission')) {
                                 cameraPermissionDenied = true;
-                                UI.showError('Izin kamera ditolak. Mohon izinkan akses kamera.', true);
+                                throw new Error('Izin kamera ditolak. Silakan izinkan akses kamera di browser Anda.');
                             }
-                            reject(err);
-                        });
-                    });
+                            if (name.includes('notfound') || name.includes('devicesnotfound')) {
+                                throw new Error('Kamera tidak ditemukan pada perangkat Anda.');
+                            }
+                            if (name.includes('notreadable') || name.includes('trackstart')) {
+                                throw new Error('Kamera sedang digunakan aplikasi lain. Tutup aplikasi tersebut dan coba lagi.');
+                            }
+                            throw new Error('Gagal mengakses kamera: ' + (err.message || name));
+                        }
+                    }
+
+                    throw new Error('Browser Anda tidak mendukung akses kamera.');
                 }
             };
 
@@ -1958,7 +1991,7 @@
 
                         if (cached && cached.wajahSig === serverWajahSig && cached.descriptors && cached.descriptors.length > 0) {
                             console.log('[Presensi] Using verified fast cached descriptors');
-                            descriptions = cached.descriptors;
+                            descriptions = cached.descriptors.map(d => d instanceof Float32Array ? d : new Float32Array(Object.values(d)));
                         } else {
                             console.log('[Presensi] Face data changed or cache invalid, generating fresh descriptors from server...');
                             if (window.FaceModelCache && window.FaceModelCache.clearDescriptors) {
@@ -2349,91 +2382,106 @@
                 async init() {
                     console.log('Initializing Modern App Logic...');
 
+                    const revealUI = () => {
+                        const skel = document.getElementById('skeleton-loader');
+                        if (skel) skel.remove();
+                        const real = document.getElementById('real-content');
+                        if (real) {
+                            real.classList.remove('content-hide');
+                            real.style.display = 'block';
+                        }
+                    };
+
                     // Fast-path: jika sudah selesai bekerja atau tidak ada webcam, langsung tampilkan
                     if ((shiftConfig.sudahMasuk && shiftConfig.sudahPulang) || !document.querySelector('.webcam-capture')) {
-                        $("#skeleton-loader").remove();
-                        $("#real-content").removeClass("content-hide").show();
+                        revealUI();
                         return;
                     }
 
-                    // Fallback timer: maksimal 2 detik skeleton loader wajib hilang
+                    // Fallback timer: auto-reveal UI jika kamera memakan waktu izin
                     const fallbackTimer = setTimeout(() => {
                         console.warn('App.init fallback: auto-revealing UI');
-                        $("#skeleton-loader").remove();
-                        $("#real-content").removeClass("content-hide").show();
-                    }, 2000);
-                    
+                        revealUI();
+                    }, 3500);
+
+                    // 1. Pre-start Face Recognition models & descriptors in PARALLEL with camera immediately!
+                    let faceInitPromise = null;
+                    if (FaceConfig.isEnabled == 1) {
+                        UI.disableButtons();
+                        faceInitPromise = (async () => {
+                            await FaceService.loadModels();
+                            await FaceService.loadDescriptors();
+                        })();
+                    }
+
+                    // 2. Start Map & Geolocation in parallel immediately
+                    if (geoPositionPromise) {
+                        console.log('[GPS] Using pre-fetched geolocation for map...');
+                        geoPositionPromise.then(result => {
+                            if (result.success) {
+                                successCallback(result.position);
+                            } else {
+                                errorCallback(result.error);
+                            }
+                        });
+                    } else if (navigator.geolocation) {
+                        console.log('[GPS] Fallback: requesting geolocation now...');
+                        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+                    }
+
                     try {
                         const video = await Camera.init();
                         clearTimeout(fallbackTimer);
                         console.log('Camera initialized, revealing UI...');
                         
-                        // Reveal UI as soon as camera is ready
-                        $("#skeleton-loader").fadeOut(150, function() {
-                            $(this).remove();
-                            $("#real-content").removeClass("content-hide").hide().fadeIn(150, async function() {
-                                console.log('UI Revealed, starting functional modules...');
-                                
-                                // 1. Start Face Recognition if enabled
-                                if (FaceConfig.isEnabled == 1 && video) {
-                                    UI.disableButtons(); 
-                                    (async () => {
-                                        try {
-                                            await Promise.race([
-                                                (async () => {
-                                                    await FaceService.loadModels();
-                                                    await FaceService.loadDescriptors();
-                                                })(),
-                                                new Promise((_, reject) => setTimeout(() => reject(new Error('Waktu muat model wajah habis (timeout)')), 25000))
-                                            ]);
-                                            FaceService.startDetection(video);
-                                        } catch (faceErr) {
-                                            console.warn('Face Recognition Init Failed or Timed Out:', faceErr);
-                                            UI.removeLoading();
-                                            UI.showError('Sistem deteksi wajah tidak dapat dimuat. Anda tetap bisa melakukan presensi.');
-                                            UI.enableButtons();
-                                        }
-                                    })();
-                                } else {
-                                    console.log('Face Recognition is disabled, enabling buttons.');
+                        revealUI();
+
+                        if (map) {
+                            setTimeout(() => map.invalidateSize(), 300);
+                        }
+
+                        // 3. Start Face Detection once models and camera stream are both ready
+                        if (FaceConfig.isEnabled == 1 && faceInitPromise) {
+                            (async () => {
+                                try {
+                                    await Promise.race([
+                                        faceInitPromise,
+                                        new Promise((_, reject) => setTimeout(() => reject(new Error('Waktu muat model wajah habis (timeout)')), 30000))
+                                    ]);
+                                    if (video) {
+                                        FaceService.startDetection(video);
+                                    }
+                                } catch (faceErr) {
+                                    console.warn('Face Recognition Init Failed or Timed Out:', faceErr);
+                                    UI.removeLoading();
+                                    UI.showError('Sistem deteksi wajah tidak dapat dimuat. Anda tetap bisa melakukan presensi.');
                                     UI.enableButtons();
                                 }
-                                
-                                // 2. Start Map & Geolocation - use pre-fetched GPS position
-                                if (geoPositionPromise) {
-                                    console.log('[GPS] Using pre-fetched geolocation for map...');
-                                    geoPositionPromise.then(result => {
-                                        if (result.success) {
-                                            successCallback(result.position);
-                                        } else {
-                                            errorCallback(result.error);
-                                        }
-                                    });
-                                } else if (navigator.geolocation) {
-                                    console.log('[GPS] Fallback: requesting geolocation now...');
-                                    navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
-                                }
-                                
-                                if(map) {
-                                    console.log('Invalidating map size for correct rendering');
-                                    map.invalidateSize();
-                                }
-                            });
-                        });
+                            })();
+                        } else {
+                            console.log('Face Recognition is disabled, enabling buttons.');
+                            UI.enableButtons();
+                        }
 
                     } catch (e) {
                         clearTimeout(fallbackTimer);
                         console.error('App Init Error', e);
-                        // Emergency reveal if initialization fails
-                        $("#skeleton-loader").remove();
-                        $("#real-content").removeClass("content-hide");
-                        UI.showError('Gagal memuat kamera. Silakan refresh halaman.');
+                        revealUI();
+                        UI.showError(e?.message || 'Gagal memuat kamera. Silakan periksa izin browser atau refresh halaman.');
                     }
                 }
             };
 
             // Start App
             App.init();
+
+            // Release camera tracks when leaving the page
+            window.addEventListener('beforeunload', () => {
+                const container = document.querySelector('.webcam-capture');
+                if (container && container._stream) {
+                    try { container._stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+                }
+            });
 
             // [REFRACTOR] LEGACY CODE DISABLED
             // This block is replaced by App.init() above
@@ -3676,10 +3724,14 @@
                                         icon: data.is_terlambat ? 'warning' : 'success',
                                         title: data.is_terlambat ? 'Terlambat' : 'Tepat Waktu',
                                         text: data.message,
-                                        showConfirmButton: false,
-                                        timer: 4500
-                                    }).then(function() {
-                                        window.location.href = '/dashboard';
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Kembali ke Dashboard',
+                                        confirmButtonColor: '#3085d6',
+                                        allowOutsideClick: false
+                                    }).then(function(result) {
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/dashboard';
+                                        }
                                     });
                                 }
                             },
@@ -3873,10 +3925,14 @@
                                         icon: 'success',
                                         title: 'Berhasil Pulang',
                                         text: data.message,
-                                        showConfirmButton: false,
-                                        timer: 4500
-                                    }).then(function() {
-                                        window.location.href = '/dashboard';
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Kembali ke Dashboard',
+                                        confirmButtonColor: '#3085d6',
+                                        allowOutsideClick: false
+                                    }).then(function(result) {
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/dashboard';
+                                        }
                                     });
                                 }
                             },

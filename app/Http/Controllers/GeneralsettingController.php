@@ -51,6 +51,7 @@ class GeneralsettingController extends Controller
             'potongan_istirahat' => 'nullable',
             'show_rate_slip' => 'nullable',
             'sistem_hari_kerja' => 'required|in:5,6',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
 
         if (auth()->user()->hasRole('master admin')) {
@@ -84,12 +85,6 @@ class GeneralsettingController extends Controller
                 'cloud_id' => $request->cloud_id ?? $setting->cloud_id ?? '',
                 'api_key' => $request->api_key ?? $setting->api_key ?? '',
                 'domain_email' => $request->domain_email ?? $setting->domain_email ?? 'gmail.com',
-                'domain_wa_gateway' => $request->domain_wa_gateway ?? $setting->domain_wa_gateway ?? '',
-                'wa_api_key' => $request->wa_api_key ?? $setting->wa_api_key ?? '',
-                'provider_wa' => $request->provider_wa ?? $setting->provider_wa ?? 'ig',
-                'tujuan_notifikasi_wa' => $request->tujuan_notifikasi_wa ?? $setting->tujuan_notifikasi_wa ?? '0',
-                'id_group_wa' => $request->id_group_wa ?? $setting->id_group_wa ?? '',
-                'notifikasi_wa' => $request->has('notifikasi_wa') ? true : false,
                 'batasi_hari_izin' => $request->has('batasi_hari_izin') ? true : false,
                 'jml_hari_izin_max' => $request->jml_hari_izin_max,
                 'batas_presensi_lintashari' => $request->batas_presensi_lintashari,
@@ -110,7 +105,11 @@ class GeneralsettingController extends Controller
 
             if ($request->hasFile('logo')) {
                 $logo = $request->file('logo');
-                $logoName = time() . '.' . $logo->getClientOriginalExtension();
+                $ext = strtolower($logo->getClientOriginalExtension());
+                if (!in_array($ext, ['jpeg', 'png', 'jpg', 'webp'])) {
+                    throw new \Exception('Format file logo tidak valid.');
+                }
+                $logoName = time() . '_' . uniqid() . '.' . $ext;
                 
                 $destinationPath = 'public/logo';
                 if (!Storage::exists($destinationPath)) {

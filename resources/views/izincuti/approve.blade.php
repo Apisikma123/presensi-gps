@@ -1,4 +1,4 @@
-<form action="{{ isset($isDelegation) && $isDelegation ? route('karyawan-approval.izincuti.storeapprove', Crypt::encrypt($izincuti->kode_izin_cuti)) : route('izincuti.storeapprove', Crypt::encrypt($izincuti->kode_izin_cuti)) }}" method="POST" id="formApproveizincuti">
+<form action="{{ route('izincuti.storeapprove', Crypt::encrypt($izincuti->kode_izin_cuti)) }}" method="POST" id="formApproveizincuti">
     @csrf
     <div class="row">
         <div class="col">
@@ -55,10 +55,14 @@
     </div>
     <div class="row">
         <div class="col">
-            <button class="btn btn-primary w-100" name="approve" type="submit" value="approve"><i class="ti ti-thumb-up me-1"></i> Approve </button>
+            <button class="btn w-100 text-white fw-bold shadow-sm" name="approve" type="submit" value="approve" style="background-color: #1E4D3E; border: 1px solid #163C30; border-radius: 10px; height: 42px;">
+                <i class="ti ti-thumb-up me-1"></i> Approve
+            </button>
         </div>
         <div class="col">
-            <button class="btn btn-danger w-100" name="tolak" type="submit" value="tolak"><i class="ti ti-thumb-down me-1"></i> Tolak </button>
+            <button class="btn w-100 text-white fw-bold shadow-sm" name="tolak" type="submit" value="tolak" style="background-color: #DC2626; border: 1px solid #B91C1C; border-radius: 10px; height: 42px;">
+                <i class="ti ti-thumb-down me-1"></i> Tolak
+            </button>
         </div>
     </div>
 

@@ -4,8 +4,12 @@
     <x-input-with-icon label="Kode Cuti" name="kode_cuti" icon="ti ti-barcode" value="{{ $cuti->kode_cuti }}" readonly />
     <x-input-with-icon label="Jenis Cuti" name="jenis_cuti" icon="ti ti-file-description" value="{{ $cuti->jenis_cuti }}" maxlength="50" placeholder="Contoh: Tahunan (Maksimal 50 karakter)" required />
     <x-input-with-icon label="Jumlah Hari" name="jumlah_hari" icon="ti ti-calendar" value="{{ $cuti->jumlah_hari }}" type="number" placeholder="Contoh: 12 (Minimal 1, Maksimal 365 hari)" min="1" max="365" required />
-    <div class="form-group mb-3">
-        <button type="submit" class="btn btn-primary w-100"><i class="ti ti-send"></i>Submit</button>
+    <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4">
+            <i class="ti ti-device-floppy"></i>
+            <span>Simpan Perubahan</span>
+        </button>
     </div>
 </form>
 <script src="{{ asset('/assets/vendor/libs/@form-validation/umd/bundle/popular.min.js') }}"></script>

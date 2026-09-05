@@ -14,21 +14,12 @@
 <!-- Toastr - jQuery dependent -->
 <script src="{{ asset('assets/vendor/libs/toastr/toastr.js') }}"></script>
 
-<!-- Non-critical scripts - menggunakan defer untuk non-blocking -->
-<!-- AmCharts - hanya digunakan di beberapa halaman -->
-<script src="https://cdn.amcharts.com/lib/4/core.js" defer></script>
-<script src="https://cdn.amcharts.com/lib/4/charts.js" defer></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js" defer></script>
-<!-- Webcam - hanya digunakan di halaman tertentu -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js" defer></script>
+<!-- Webcam.js lokal -->
+<script src="{{ asset('assets/external/js/webcam.min.js') }}"></script>
 <!-- SweetAlert2 - jQuery dependent tapi bisa defer karena tidak critical -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js" defer></script>
-<!-- Materialize - hanya digunakan di beberapa halaman -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js" defer></script>
 <!-- MaskMoney - jQuery dependent -->
 <script src="{{ asset('assets/template/js/maskMoney.js') }}" defer></script>
-<!-- Rolldate - date picker -->
-<script src="https://cdn.jsdelivr.net/npm/rolldate@3.1.3/dist/rolldate.min.js" defer></script>
 {{-- <script src="{{ asset('assets/vendor/face-api.min.js') }}"></script> --}}
 <style>
     .toast-bottom-full-width {
@@ -79,21 +70,20 @@
     </script>
 @endif
 
-@if ($errors->any())
+@if (isset($errors) && $errors->any())
     @php
         $err = '';
     @endphp
     @foreach ($errors->all() as $error)
         @php
-            $err .= $error;
+            $err .= $error . ' ';
         @endphp
     @endforeach
     <script>
         toastr.options.showEasing = 'swing';
         toastr.options.hideEasing = 'linear';
         toastr.options.progressBar = true;
-        // toastr.options.positionClass = 'toast-top-center';
-        toastr.error("Gagal", "{{ $err }}", {
+        toastr.error("Gagal", "{{ addslashes(trim($err)) }}", {
             timeOut: 3000
         });
     </script>
@@ -143,148 +133,6 @@
         //     adjustZoom(); // Panggil lagi saat ukuran layar berubah
         // });
     });
-</script>
-
-<!-- ===================================
-     PAGE LOADING / PRELOADER SCRIPT
-     =================================== -->
-<script>
-    // Preloader utility functions
-    const PreloaderManager = {
-        overlay: null,
-        timeout: null,
-        minDuration: 300, // Minimum show time in ms
-        autoHideDelay: 10000, // Auto hide after 10 seconds
-        isInitialPageLoad: true, // Track if this is initial page load
-
-        init() {
-            this.overlay = document.getElementById('preloaderOverlay');
-            if (!this.overlay) return;
-
-            // Show preloader on initial page load (for ALL pages)
-            // Check if page took time to load (network delay detected)
-            if (window.performance && window.performance.timing) {
-                var navigationStart = window.performance.timing.navigationStart;
-                var currentTime = Date.now();
-                var pageLoadTime = currentTime - navigationStart;
-
-                // If page load time > 100ms, show preloader briefly
-                // This gives visual feedback that page was loading
-                if (pageLoadTime > 100) {
-                    this.show();
-                    this.isInitialPageLoad = true;
-                }
-            }
-
-            // Show preloader on link clicks (for navigation)
-            document.addEventListener('click', (e) => {
-                const link = e.target.closest('a[href]:not([data-no-preloader])');
-                if (link && !link.hasAttribute('data-no-preloader')) {
-                    const href = link.getAttribute('href');
-                    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-                    
-                    try {
-                        const url = new URL(href, window.location.origin);
-                        // Tampilkan preloader jika url menuju internal origin yang sama dan tidak _blank
-                        if (url.origin === window.location.origin && link.target !== '_blank') {
-                            this.show();
-                        }
-                    } catch (err) {
-                        // Fallback jika new URL gagal
-                        if (!href.startsWith('http') && link.target !== '_blank') {
-                            this.show();
-                        }
-                    }
-                }
-            });
-
-            // Show preloader on form submission
-            document.addEventListener('submit', (e) => {
-                const form = e.target;
-                if (!form.hasAttribute('data-no-preloader')) {
-                    this.show();
-                }
-            });
-
-            // Auto-hide preloader when page is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => this.scheduleHide());
-            } else {
-                this.scheduleHide();
-            }
-
-            // Hide preloader on window load
-            window.addEventListener('load', () => this.scheduleHide());
-
-            // FIX: Handle BFCache (Back-Forward Cache)
-            // This ensures preloader is hidden when user navigates using back/forward buttons
-            window.addEventListener('pageshow', (event) => {
-                if (event.persisted) {
-                    console.log('Page restored from BFCache, hiding preloader');
-                    this.hide();
-                }
-            });
-        },
-
-        show() {
-            if (!this.overlay) return;
-
-            this.overlay.classList.add('active');
-
-            // Clear any existing timeout
-            if (this.timeout) {
-                clearTimeout(this.timeout);
-            }
-
-            // Auto-hide after max duration
-            this.timeout = setTimeout(() => {
-                this.hide();
-            }, this.autoHideDelay);
-        },
-
-        hide() {
-            if (!this.overlay) return;
-
-            this.overlay.classList.remove('active');
-
-            // Clear timeout
-            if (this.timeout) {
-                clearTimeout(this.timeout);
-                this.timeout = null;
-            }
-        },
-
-        scheduleHide() {
-            // Ensure minimum display time
-            if (this.timeout) {
-                clearTimeout(this.timeout);
-            }
-
-            this.timeout = setTimeout(() => {
-                this.hide();
-            }, this.minDuration);
-        }
-    };
-
-    // Initialize preloader manager
-    document.addEventListener('DOMContentLoaded', () => {
-        PreloaderManager.init();
-    });
-
-    // Expose globally for manual control if needed
-    window.Preloader = {
-        show: () => PreloaderManager.show(),
-        hide: () => PreloaderManager.hide()
-    };
-
-    // Example: Show preloader on AJAX requests
-    if (typeof jQuery !== 'undefined') {
-        jQuery(document).ajaxStart(function() {
-            PreloaderManager.show();
-        }).ajaxStop(function() {
-            PreloaderManager.scheduleHide();
-        });
-    }
 </script>
 
 @stack('myscript')

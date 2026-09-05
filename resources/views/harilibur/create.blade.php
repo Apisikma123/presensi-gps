@@ -2,8 +2,26 @@
     @csrf
     <x-input-with-icon icon="ti ti-calendar" label="Tanggal" name="tanggal" datepicker="flatpickr-date" />
     @if ($user->hasRole(['super admin', 'admin pusat']) || !$cabang->isEmpty())
-        <x-select label="Cabang" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang" select2="select2Kodecabang"
-            upperCase="true" />
+        <div class="form-group mb-3">
+            <label for="kode_cabang" class="form-label" style="font-weight: 600;">Cabang</label>
+            <select name="kode_cabang" id="kode_cabang" class="form-select select2Kodecabang">
+                <option value="">Pilih Cabang</option>
+                <option value="ALL" style="font-weight: 700; color: #1E4D3E;">⭐ SEMUA CABANG (LIBUR NASIONAL / BERSAMA)</option>
+                @foreach ($cabang as $c)
+                    <option value="{{ $c->kode_cabang }}">{{ strtoupper($c->nama_cabang) }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="form-check mb-3 p-2 rounded-2" style="background: rgba(30, 77, 62, 0.05); border: 1px solid rgba(30, 77, 62, 0.12);">
+            <input class="form-check-input ms-1 me-2" type="checkbox" name="auto_assign_karyawan" id="auto_assign_karyawan" value="1" checked>
+            <label class="form-check-label text-dark fw-bold" for="auto_assign_karyawan" style="font-size: 13px;">
+                Otomatis daftarkan seluruh karyawan aktif
+            </label>
+            <div class="form-text text-muted ms-1" style="font-size: 11px;">
+                Karyawan langsung terdaftar otomatis ke hari libur ini tanpa perlu checklist satu per satu di menu "Atur Karyawan".
+            </div>
+        </div>
     @endif
     <x-textarea label="Keterangan" name="keterangan" />
     <div class="form-group mb-3">

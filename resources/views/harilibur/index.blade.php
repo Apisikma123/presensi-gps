@@ -73,23 +73,23 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="background-color: var(--theme-color-1) !important; color: white !important; min-height: 50px;">
+            <div class="card-header d-flex justify-content-between align-items-center py-2" style="min-height: 50px;">
                 <div class="d-flex align-items-center">
                     <i class="ti ti-calendar me-2 fs-5"></i>
-                    <h6 class="card-title mb-0 text-white">Data Hari Libur</h6>
+                    <h6 class="card-title mb-0">Data Hari Libur</h6>
                 </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
+                        <thead>
                             <tr>
-                                <th class="text-white py-3" style="width: 60px;">NO.</th>
-                                <th class="text-white py-3">KODE</th>
-                                <th class="text-white py-3">TANGGAL</th>
-                                <th class="text-white py-3">CABANG</th>
-                                <th class="text-white py-3" style="width: 30%">KETERANGAN</th>
-                                <th class="text-white py-3 text-center" style="width: 120px;">#</th>
+                                <th class="py-3" style="width: 60px;">NO.</th>
+                                <th class="py-3">KODE</th>
+                                <th class="py-3">TANGGAL</th>
+                                <th class="py-3">CABANG</th>
+                                <th class="py-3" style="width: 30%">KETERANGAN</th>
+                                <th class="py-3 text-center" style="width: 120px;">#</th>
                             </tr>
                         </thead>
                         <tbody>

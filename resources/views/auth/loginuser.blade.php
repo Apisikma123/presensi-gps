@@ -92,11 +92,7 @@
                     <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                         @csrf
                         <div class="logo">
-                            @if (!empty($general_setting->logo) && Storage::disk('public')->exists('logo/' . $general_setting->logo))
-                                <img src="{{ asset('storage/logo/' . $general_setting->logo) }}" alt="Company Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 20px; background: #fff; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
-                            @else
-                                <img src="{{ asset('assets/login/images/logoweb-1.png') }}" alt="easyclass" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 20px; background: #fff; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
-                            @endif
+                            <img src="{{ $app_logo_url ?? asset('assets/login/images/logoweb-1.png') }}" alt="Company Logo" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; margin-bottom: 20px; background: #fff; padding: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onerror="this.onerror=null;this.src='{{ asset('assets/login/images/logoweb-1.png') }}';" />
                             <h4>{{ $general_setting->nama_aplikasi ?? 'GAWE V3' }}</h4>
                         </div>
 

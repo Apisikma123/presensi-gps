@@ -18,9 +18,21 @@ class Jamkerja extends Model
     {
         static::saved(function ($model) {
             Cache::forget('jam_kerja_code_' . $model->kode_jam_kerja);
+            Cache::forget('master_shifts_all');
         });
         static::deleted(function ($model) {
             Cache::forget('jam_kerja_code_' . $model->kode_jam_kerja);
+            Cache::forget('master_shifts_all');
+        });
+    }
+
+    /**
+     * Get all master shifts cached
+     */
+    public static function getAllShifts()
+    {
+        return Cache::remember('master_shifts_all', 3600, function () {
+            return static::orderBy('jam_masuk', 'asc')->get();
         });
     }
 

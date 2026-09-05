@@ -1,12 +1,12 @@
 <div class="table-responsive">
     <table class="table table-hover mb-0">
-        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
+        <thead>
             <tr>
-                <th class="text-white py-3" style="width: 60px;">NO.</th>
-                <th class="text-white py-3">TANGGAL</th>
-                <th class="text-white py-3">NAMA PELATIHAN</th>
-                <th class="text-white py-3">PENYELENGGARA</th>
-                <th class="text-white py-3 text-center" style="width: 120px;">#</th>
+                <th class="py-3" style="width: 60px;">NO.</th>
+                <th class="py-3">TANGGAL</th>
+                <th class="py-3">NAMA PELATIHAN</th>
+                <th class="py-3">PENYELENGGARA</th>
+                <th class="py-3 text-center" style="width: 120px;">#</th>
             </tr>
         </thead>
         <tbody>

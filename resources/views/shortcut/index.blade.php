@@ -34,130 +34,86 @@
 
 @section('content')
     <div class="px-1 pt-2 pb-24">
-        
         <div id="shortcut-list">
             
-            {{-- Personal / Dokumen --}}
-            @if(isset($karyawan) && $karyawan->status_karyawan == 'K' && \App\Models\KaryawanMenuSetting::isActive('kontrak'))
-                <div class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 mb-2">
-                    Dokumen & Profil
-                </div>
-                
-                <div class="menu-group divide-y divide-slate-100/90">
-                    <a href="{{ route('kontrak.index') }}" class="menu-row">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
-                                <ion-icon name="document-attach-outline" class="text-xl"></ion-icon>
-                            </div>
-                            <div class="flex flex-col min-w-0">
-                                <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Dokumen Kontrak</h3>
-                                <span class="text-[11px] text-slate-500 truncate">Masa berlaku & detail perjanjian</span>
-                            </div>
+            {{-- Presensi & Operasional --}}
+            <div class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 mb-2">
+                Presensi & Pengajuan
+            </div>
+
+            <div class="menu-group divide-y divide-slate-100/90">
+                <a href="{{ route('facerecognition.karyawan.create') }}" class="menu-row">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 text-[#1E4D3E] border border-emerald-100">
+                            <ion-icon name="scan-outline" class="text-xl"></ion-icon>
                         </div>
-                        <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
-                    </a>
-                </div>
-            @endif
-            
-            {{-- Absensi & Operasional --}}
-            @if(\App\Models\KaryawanMenuSetting::isActive('wajah') || \App\Models\KaryawanMenuSetting::isActive('absen_istirahat') || \App\Models\KaryawanMenuSetting::isActive('lembur'))
-                <div class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 mb-2">
-                    Presensi & Operasional
-                </div>
+                        <div class="flex flex-col min-w-0">
+                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Pendaftaran Face ID</h3>
+                            <span class="text-[11px] text-slate-500 truncate">Perekaman data wajah biometrik</span>
+                        </div>
+                    </div>
+                    <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
+                </a>
 
-                <div class="menu-group divide-y divide-slate-100/90">
-                    @if(\App\Models\KaryawanMenuSetting::isActive('wajah'))
-                        <a href="{{ route('facerecognition.karyawan.create') }}" class="menu-row">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 text-[#1E4D3E] border border-emerald-100">
-                                    <ion-icon name="scan-outline" class="text-xl"></ion-icon>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Pendaftaran Face ID</h3>
-                                    <span class="text-[11px] text-slate-500 truncate">Perekaman data wajah biometrik</span>
-                                </div>
-                            </div>
-                            <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
-                        </a>
-                    @endif
+                <a href="{{ route('pengajuanizin.index') }}" class="menu-row">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+                            <ion-icon name="calendar-outline" class="text-xl"></ion-icon>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Pengajuan Izin, Sakit & Cuti</h3>
+                            <span class="text-[11px] text-slate-500 truncate">Formulir permohonan izin dan cuti</span>
+                        </div>
+                    </div>
+                    <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
+                </a>
 
-                    @if(\App\Models\KaryawanMenuSetting::isActive('absen_istirahat'))
-                        <a href="{{ route('presensiistirahat.create') }}" class="menu-row">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-orange-50 text-orange-600 border border-orange-100">
-                                    <ion-icon name="cafe-outline" class="text-xl"></ion-icon>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Absen Istirahat</h3>
-                                    <span class="text-[11px] text-slate-500 truncate">Pencatatan jeda istirahat shift</span>
-                                </div>
-                            </div>
-                            <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
-                        </a>
-                    @endif
+                <a href="{{ route('dispensasi.index') }}" class="menu-row">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+                            <ion-icon name="time-outline" class="text-xl"></ion-icon>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Dispensasi Keterlambatan</h3>
+                            <span class="text-[11px] text-slate-500 truncate">Permohonan dispensasi jam kehadiran</span>
+                        </div>
+                    </div>
+                    <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
+                </a>
 
-                    @if(\App\Models\KaryawanMenuSetting::isActive('lembur'))
-                        <a href="{{ route('lembur.index') }}" class="menu-row">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
-                                    <ion-icon name="time-outline" class="text-xl"></ion-icon>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Lembur Harian</h3>
-                                    <span class="text-[11px] text-slate-500 truncate">Pengajuan & riwayat jam lembur</span>
-                                </div>
-                            </div>
-                            <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
-                        </a>
-                    @endif
-                </div>
-            @endif
+                <a href="{{ route('presensi.histori') }}" class="menu-row">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                            <ion-icon name="finger-print-outline" class="text-xl"></ion-icon>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Riwayat Kehadiran</h3>
+                            <span class="text-[11px] text-slate-500 truncate">Histori absensi masuk & pulang</span>
+                        </div>
+                    </div>
+                    <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
+                </a>
+            </div>
 
-            {{-- Persetujuan & Informasi --}}
-            @if((isset($hasApprovalAccess) && $hasApprovalAccess && \App\Models\KaryawanMenuSetting::isActive('hak_approval')) || \App\Models\KaryawanMenuSetting::isActive('pengumuman'))
-                <div class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 mb-2">
-                    Persetujuan & Informasi
-                </div>
+            {{-- Profil & Akun --}}
+            <div class="text-[11px] font-bold text-slate-400 tracking-wider uppercase px-1 mb-2">
+                Profil & Akun
+            </div>
 
-                <div class="menu-group divide-y divide-slate-100/90">
-                    @if(isset($hasApprovalAccess) && $hasApprovalAccess && \App\Models\KaryawanMenuSetting::isActive('hak_approval'))
-                        <a href="{{ route('karyawan-approval.index') }}" class="menu-row">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-teal-50 text-teal-700 border border-teal-100">
-                                    <ion-icon name="checkmark-done-circle-outline" class="text-xl"></ion-icon>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Hak Approval</h3>
-                                    <span class="text-[11px] text-slate-500 truncate">Persetujuan permohonan tim</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0 ml-2">
-                                @if(isset($pendingApprovalCount) && $pendingApprovalCount > 0)
-                                    <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-[10px] font-bold font-mono">
-                                        {{ $pendingApprovalCount }}
-                                    </span>
-                                @endif
-                                <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base"></ion-icon>
-                            </div>
-                        </a>
-                    @endif
-
-                    @if(\App\Models\KaryawanMenuSetting::isActive('pengumuman'))
-                        <a href="{{ route('pengumuman.index') }}" class="menu-row">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
-                                    <ion-icon name="megaphone-outline" class="text-xl"></ion-icon>
-                                </div>
-                                <div class="flex flex-col min-w-0">
-                                    <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Pengumuman</h3>
-                                    <span class="text-[11px] text-slate-500 truncate">Pusat informasi outlet & cafe</span>
-                                </div>
-                            </div>
-                            <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
-                        </a>
-                    @endif
-                </div>
-            @endif
+            <div class="menu-group divide-y divide-slate-100/90">
+                <a href="{{ route('profile.index') }}" class="menu-row">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 border border-slate-200">
+                            <ion-icon name="person-outline" class="text-xl"></ion-icon>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Profil Karyawan</h3>
+                            <span class="text-[11px] text-slate-500 truncate">Data akun dan informasi pribadi</span>
+                        </div>
+                    </div>
+                    <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>
+                </a>
+            </div>
 
         </div>
     </div>

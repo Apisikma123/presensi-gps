@@ -394,19 +394,18 @@ class IzinsakitController extends Controller
                     if ($jamkerja == null) {
                         $error .= 'Jam Kerja pada Tanggal ' . $dari . ' Belum Di Set! <br>';
                     } else {
-                        // dd($request->all());
-                        // dd(isset($request->approve));
-                        $presensi = Presensi::create([
-                            'nik' => $nik,
-                            'tanggal' => $dari,
-                            'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
-                            'status' => 's',
-                        ]);
+                        $presensi = Presensi::updateOrCreate(
+                            ['nik' => $nik, 'tanggal' => $dari],
+                            [
+                                'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
+                                'status' => 's',
+                            ]
+                        );
 
-                        Approveizinsakit::create([
-                            'id_presensi' => $presensi->id,
-                            'kode_izin_sakit' => $kode_izin_sakit,
-                        ]);
+                        Approveizinsakit::updateOrCreate(
+                            ['kode_izin_sakit' => $kode_izin_sakit, 'id_presensi' => $presensi->id],
+                            ['id_presensi' => $presensi->id, 'kode_izin_sakit' => $kode_izin_sakit]
+                        );
                     }
 
 
@@ -573,6 +572,26 @@ class IzinsakitController extends Controller
     public function update(Request $request, $kode_izin_sakit)
     {
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);
+        $izinsakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)
+            ->join('karyawan', 'presensi_izinsakit.nik', '=', 'karyawan.nik')
+            ->first();
+
+        if (!$izinsakit) {
+            abort(404, 'Data izin sakit tidak ditemukan.');
+        }
+
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs) && !in_array($izinsakit->kode_cabang, $userCabangs)) {
+                abort(403, 'Anda tidak memiliki akses ke cabang izin sakit ini.');
+            }
+            if (!empty($userDepartemens) && !in_array($izinsakit->kode_dept, $userDepartemens)) {
+                abort(403, 'Anda tidak memiliki akses ke departemen izin sakit ini.');
+            }
+        }
 
         $request->validate([
             'nik' => 'required',
@@ -583,7 +602,6 @@ class IzinsakitController extends Controller
         ]);
         DB::beginTransaction();
         try {
-            $izinsakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->first();
             $data_sid = [];
             if ($request->hasfile('sid')) {
                 if (!empty($izinsakit->doc_sid)) {

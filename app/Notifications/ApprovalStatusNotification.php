@@ -52,14 +52,8 @@ class ApprovalStatusNotification extends Notification implements ShouldQueue
                 return 'Izin Sakit';
             case \App\Models\Izincuti::class:
                 return 'Izin Cuti';
-            case \App\Models\Izindinas::class:
-                return 'Izin Dinas';
-            case \App\Models\Reimbursement::class:
-                return 'Reimbursement';
-            case \App\Models\Lembur::class:
-                return 'Lembur';
-            case \App\Models\Koreksi::class:
-                return 'Koreksi Absen';
+            case \App\Models\PresensiDispensasi::class:
+                return 'Dispensasi';
             default:
                 $classParts = explode('\\', $type);
                 return end($classParts);

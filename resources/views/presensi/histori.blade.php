@@ -55,8 +55,8 @@
 
     {{-- ===== HISTORY LIST ===== --}}
     <div id="showhistori">
-        {{-- Skeleton synced with dashboard --}}
-        <div id="skeleton-container" class="space-y-2">
+        {{-- Skeleton for search/filter submission --}}
+        <div id="skeleton-container" style="display:none;" class="space-y-2">
             @for ($i = 0; $i < 5; $i++)
                 <div class="rounded-[10px] p-1 border shadow-sm" style="background: #fff; border-color: #f1f5f9;">
 
@@ -74,8 +74,8 @@
             @endfor
         </div>
 
-        {{-- Data synced with dashboard --}}
-        <div id="data-container" style="display:none;" class="space-y-2.5">
+        {{-- Data container --}}
+        <div id="data-container" class="space-y-2.5">
             @foreach ($datapresensi as $index => $d)
                 @php
                     $namahari = [
@@ -90,7 +90,8 @@
                     $tahun = date('Y', strtotime($d->tanggal));
 
                     $is_late = false;
-                    $denda_display = 0;
+                    $jam_telat = 0;
+                    $menit_telat = 0;
                     $pulangcepat = 0;
 
                     if ($d->status == 'h') {
@@ -100,15 +101,16 @@
 
                         if ($is_late && $d->jam_in) {
                             $terlambat_selisih = $jam_in_ts - $jam_masuk_ts;
-                            $menit_telat = floor(($terlambat_selisih % 3600) / 60);
-                            $denda_display = !empty($d->denda) ? $d->denda : hitungdenda($denda_list, $menit_telat);
+                            $jam_telat = floor($terlambat_selisih / 3600);
+                            $sisa = $terlambat_selisih % 3600;
+                            $menit_telat = floor($sisa / 60);
                         }
 
                         $pulangcepat = hitungpulangcepat($d->tanggal, $d->jam_out, $d->jam_pulang, $d->istirahat, $d->jam_awal_istirahat, $d->jam_akhir_istirahat, $d->lintashari);
                     }
                 @endphp
 
-                <div class="fade-up press overflow-hidden cursor-pointer presensi-card bg-white rounded-xl border border-slate-200/80 p-3 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:shadow-sm transition-all duration-150 active:scale-[0.99]"
+                <div class="press overflow-hidden cursor-pointer presensi-card bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-sm hover:border-slate-300 transition-all duration-150 active:scale-[0.99]"
                      data-tanggal="{{ DateToIndo($d->tanggal) }}"
                      data-jam-in="{{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '-' }}"
                      data-jam-out="{{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '-' }}"
@@ -117,24 +119,23 @@
                      data-status="{{ $d->status }}"
                      data-jam-kerja="{{ $d->nama_jam_kerja }}"
                      data-keterangan="{{ $d->status == 'h' ? 'Hadir' : ($d->status == 'i' ? 'Izin: ' . $d->keterangan_izin : ($d->status == 's' ? 'Sakit: ' . $d->keterangan_izin_sakit : ($d->status == 'c' ? 'Cuti: ' . $d->keterangan_izin_cuti : 'Alpha'))) }}"
-                     data-nama-mesin="{{ $d->nama_mesin }}"
-                     style="animation-delay: {{ $index * 0.04 }}s;">
+                     data-nama-mesin="{{ $d->nama_mesin }}">
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3.5">
                         {{-- Date Badge --}}
-                        <div class="shrink-0 w-11 h-11 flex flex-col items-center justify-center rounded-lg bg-slate-50 border border-slate-100 text-center">
-                            <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none">{{ $day_short }}</span>
-                            <span class="text-[16px] font-extrabold text-slate-800 font-mono leading-none mt-1">{{ $tgl }}</span>
+                        <div class="shrink-0 w-12 h-12 flex flex-col items-center justify-center rounded-xl bg-white border border-slate-200 text-center">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none">{{ $day_short }}</span>
+                            <span class="text-[16px] font-bold text-slate-800 font-mono leading-none mt-1">{{ $tgl }}</span>
                         </div>
 
                         {{-- Info --}}
                         <div class="flex-1 min-w-0">
                             {{-- Row 1: Tanggal & Shift --}}
-                            <div class="flex items-center justify-between gap-2 mb-1">
-                                <h3 class="text-[13px] font-bold text-slate-800 truncate m-0 leading-tight">
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <h3 class="text-[13.5px] font-bold text-slate-800 truncate m-0 leading-tight">
                                     {{ DateToIndo($d->tanggal) }}
                                 </h3>
-                                <span class="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
+                                <span class="text-[10.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
                                     {{ $d->nama_jam_kerja }}
                                 </span>
                             </div>
@@ -143,7 +144,7 @@
                                 {{-- Row 2: Jam & Status Badges --}}
                                 <div class="flex items-center justify-between gap-2 flex-wrap">
                                     {{-- Jam In & Out --}}
-                                    <div class="flex items-center gap-1.5 text-[12px] font-mono font-semibold text-slate-700">
+                                    <div class="flex items-center gap-1.5 text-[12px] font-mono font-medium text-slate-700">
                                         <ion-icon name="time-outline" class="text-[13px] text-slate-400"></ion-icon>
                                         <span>{{ $d->jam_in ? date('H:i', strtotime($d->jam_in)) : '--:--' }}</span>
                                         <span class="text-slate-300 font-sans font-normal">—</span>
@@ -151,52 +152,83 @@
                                     </div>
 
                                     {{-- Badge Cluster --}}
-                                    <div class="flex items-center gap-1 flex-wrap">
-                                        @if ($is_late)
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        @if (!empty($d->is_dispensasi))
+                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#e0f2fe] text-[#0284c7] border border-[#bae6fd]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#0284c7]"></span>
+                                                DISPENSASI
+                                            </span>
+                                        @elseif ($is_late)
+                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
                                                 TELAT
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>
                                                 TEPAT WAKTU
                                             </span>
                                         @endif
 
                                         @if ($pulangcepat > 0)
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
                                                 PULANG CEPAT
-                                            </span>
-                                        @endif
-
-                                        @if ($denda_display > 0)
-                                            <span class="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 font-mono">
-                                                Rp {{ number_format($denda_display) }}
                                             </span>
                                         @endif
                                     </div>
                                 </div>
                             @elseif ($d->status == 'i')
-                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
-                                    <span class="truncate">Izin: {{ $d->keterangan_izin }}</span>
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <div class="flex items-center gap-1.5 text-[12px] font-medium text-slate-600 truncate">
+                                        <ion-icon name="document-text-outline" class="text-[13px] text-slate-400 shrink-0"></ion-icon>
+                                        <span class="truncate">{{ !empty($d->keterangan_izin) ? $d->keterangan_izin : 'Izin Absen' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 flex-wrap">
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#0284c7]"></span>
+                                            IZIN
+                                        </span>
+                                    </div>
                                 </div>
                             @elseif ($d->status == 's')
-                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                    <span class="truncate">Sakit: {{ $d->keterangan_izin_sakit }}</span>
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <div class="flex items-center gap-1.5 text-[12px] font-medium text-slate-600 truncate">
+                                        <ion-icon name="medkit-outline" class="text-[13px] text-slate-400 shrink-0"></ion-icon>
+                                        <span class="truncate">{{ !empty($d->keterangan_izin_sakit) ? $d->keterangan_izin_sakit : 'Izin Sakit' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 flex-wrap">
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#be123c] border border-[#fecdd3]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
+                                            SAKIT
+                                        </span>
+                                    </div>
                                 </div>
                             @elseif ($d->status == 'c')
-                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    <span class="truncate">Cuti: {{ $d->keterangan_izin_cuti }}</span>
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <div class="flex items-center gap-1.5 text-[12px] font-medium text-slate-600 truncate">
+                                        <ion-icon name="calendar-outline" class="text-[13px] text-slate-400 shrink-0"></ion-icon>
+                                        <span class="truncate">{{ !empty($d->keterangan_izin_cuti) ? $d->keterangan_izin_cuti : 'Cuti' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 flex-wrap">
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+                                            CUTI
+                                        </span>
+                                    </div>
                                 </div>
                             @else
-                                <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 w-fit">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                    <span>Alpha: Tanpa Keterangan</span>
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <div class="flex items-center gap-1.5 text-[12px] font-medium text-slate-600 truncate">
+                                        <ion-icon name="close-circle-outline" class="text-[13px] text-slate-400 shrink-0"></ion-icon>
+                                        <span class="truncate">Tanpa Keterangan</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 flex-wrap">
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f8fafc] text-[#475569] border border-[#e2e8f0]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#64748b]"></span>
+                                            ALPHA
+                                        </span>
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -290,85 +322,87 @@
 @push('myscript')
     <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.0/air-datepicker.min.js"></script>
     <script>
-        const localeIndo = {
-            days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
-            daysShort: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-            daysMin: ['Mg', 'Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb'],
-            months: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
-            monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-            today: 'Hari ini', clear: 'Hapus', dateFormat: 'yyyy-MM-dd', timeFormat: 'HH:mm', firstDay: 1
-        };
-        const btnToday = {
-            content: 'Hari ini',
-            className: 'air-datepicker-button-today',
-            onClick: (dp) => {
-                const today = new Date();
-                dp.selectDate(today);
-                dp.setViewDate(today);
-            }
-        };
-        const dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: [btnToday, 'clear'], position: 'bottom center' };
-        new AirDatepicker('#dari', dpOpt);
-        new AirDatepicker('#sampai', dpOpt);
-
-        function showSkeleton() { $('#data-container').hide(); $('#skeleton-container').show(); }
-        function hideSkeleton() { $('#skeleton-container').fadeOut(200, function() { $('#data-container').fadeIn(300); }); }
-        $('#formHistori').on('submit', function() { showSkeleton(); });
-        $(document).ready(function() { setTimeout(hideSkeleton, 400); });
-        $(window).on('load', function() { setTimeout(hideSkeleton, 250); });
-
-        // Presensi Detail Modal Handler
-        $(".presensi-card").click(function() {
-            const data = $(this).data();
-            
-            $("#modalTanggal").text(data.tanggal);
-            $("#modalJamIn").text(data.jamIn);
-            $("#modalJamOut").text(data.jamOut);
-            $("#modalKeterangan").text(data.keterangan);
-            
-            // Machine Info
-            if (data.namaMesin) {
-                $("#modalNamaMesin").text(data.namaMesin);
-                $("#modalMesinSection").show();
-            } else {
-                $("#modalMesinSection").hide();
-            }
-
-            // Status Badge
-            const statusMap = {
-                'h': { text: 'Hadir', color: 'bg-emerald-500' },
-                'i': { text: 'Izin', color: 'bg-blue-500' },
-                's': { text: 'Sakit', color: 'bg-rose-500' },
-                'c': { text: 'Cuti', color: 'bg-orange-500' },
-                'a': { text: 'Alpha', color: 'bg-slate-500' }
+        (function() {
+            var localeIndo = {
+                days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+                daysShort: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                daysMin: ['Mg', 'Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb'],
+                months: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+                monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                today: 'Hari ini', clear: 'Hapus', dateFormat: 'yyyy-MM-dd', timeFormat: 'HH:mm', firstDay: 1
             };
-            
-            const status = statusMap[data.status] || { text: 'Alpha', color: 'bg-slate-500' };
-            $("#modalStatus").text(status.text).removeClass().addClass('px-3 py-1 rounded-full text-xs font-bold text-white ' + status.color);
+            var btnToday = {
+                content: 'Hari ini',
+                className: 'air-datepicker-button-today',
+                onClick: function(dp) {
+                    var today = new Date();
+                    dp.selectDate(today);
+                    dp.setViewDate(today);
+                }
+            };
+            var dpOpt = { locale: localeIndo, autoClose: true, isMobile: true, buttons: [btnToday, 'clear'], position: 'bottom center' };
+            try {
+                new AirDatepicker('#dari', dpOpt);
+                new AirDatepicker('#sampai', dpOpt);
+            } catch(e) {}
 
-            // Photo In
-            if (data.fotoIn) {
-                $("#modalImgIn").attr('src', data.fotoIn).show();
-                $("#modalNoImgIn").hide();
-            } else {
-                $("#modalImgIn").hide();
-                $("#modalNoImgIn").show();
-            }
+            function showSkeleton() { $('#data-container').hide(); $('#skeleton-container').show(); }
+            function hideSkeleton() { $('#skeleton-container').hide(); $('#data-container').show(); }
+            $('#formHistori').off('submit').on('submit', function() { showSkeleton(); });
 
-            // Photo Out
-            if (data.fotoOut) {
-                $("#modalImgOut").attr('src', data.fotoOut).show();
-                $("#modalNoImgOut").hide();
-            } else {
-                $("#modalImgOut").hide();
-                $("#modalNoImgOut").show();
-            }
+            // Presensi Detail Modal Handler (Delegated to document for SPA stability)
+            $(document).off('click.presensi', '.presensi-card').on('click.presensi', '.presensi-card', function() {
+                var data = $(this).data();
+                
+                $("#modalTanggal").text(data.tanggal);
+                $("#modalJamIn").text(data.jamIn);
+                $("#modalJamOut").text(data.jamOut);
+                $("#modalKeterangan").text(data.keterangan);
+                
+                // Machine Info
+                if (data.namaMesin) {
+                    $("#modalNamaMesin").text(data.namaMesin);
+                    $("#modalMesinSection").show();
+                } else {
+                    $("#modalMesinSection").hide();
+                }
 
-            $("#detailPresensiModal").fadeIn(300);
-        });
+                // Status Badge
+                var statusMap = {
+                    'h': { text: 'Hadir', color: 'bg-emerald-500' },
+                    'i': { text: 'Izin', color: 'bg-blue-500' },
+                    's': { text: 'Sakit', color: 'bg-rose-500' },
+                    'c': { text: 'Cuti', color: 'bg-orange-500' },
+                    'a': { text: 'Alpha', color: 'bg-slate-500' }
+                };
+                
+                var status = statusMap[data.status] || { text: 'Alpha', color: 'bg-slate-500' };
+                $("#modalStatus").text(status.text).removeClass().addClass('px-3 py-1 rounded-full text-xs font-bold text-white ' + status.color);
 
-        $(".modal-close").click(function() {
-            $("#detailPresensiModal").fadeOut(200);
-        });
+                // Photo In
+                if (data.fotoIn) {
+                    $("#modalImgIn").attr('src', data.fotoIn).show();
+                    $("#modalNoImgIn").hide();
+                } else {
+                    $("#modalImgIn").hide();
+                    $("#modalNoImgIn").show();
+                }
+
+                // Photo Out
+                if (data.fotoOut) {
+                    $("#modalImgOut").attr('src', data.fotoOut).show();
+                    $("#modalNoImgOut").hide();
+                } else {
+                    $("#modalImgOut").hide();
+                    $("#modalNoImgOut").show();
+                }
+
+                $("#detailPresensiModal").fadeIn(300);
+            });
+
+            $(document).off('click.presensiclose', '.modal-close').on('click.presensiclose', '.modal-close', function() {
+                $("#detailPresensiModal").fadeOut(200);
+            });
+        })();
     </script>
 @endpush

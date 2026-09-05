@@ -8,18 +8,13 @@ use App\Models\Facerecognition;
 use App\Models\Jabatan;
 use App\Models\Jamkerja;
 use App\Models\Karyawan;
-use App\Models\MutasiKaryawan;
-use App\Models\Pengaturanumum;
-use App\Models\Setjamkerjabydate;
-use App\Models\Setjamkerjabyday;
-use App\Models\Statuskawin;
-use App\Models\Statuskaryawan;
 use App\Models\User;
-use Carbon\Carbon;
 use App\Models\Userkaryawan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
@@ -36,41 +31,21 @@ class KaryawanController extends Controller
         $user = auth()->user();
 
         $query = Karyawan::query();
-        $latest_gaji = DB::table('karyawan_gaji_pokok as g1')
-            ->join(DB::raw('(SELECT nik, MAX(kode_gaji) as max_kode FROM karyawan_gaji_pokok GROUP BY nik) as g2'), function ($join) {
-                $join->on('g1.nik', '=', 'g2.nik')
-                     ->on('g1.kode_gaji', '=', 'g2.max_kode');
-            })
-            ->select('g1.nik', 'g1.jenis_upah');
-
-        $query->select('karyawan.*', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'cabang.nama_cabang', 'id_user', 'gaji.jenis_upah');
-        $query->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept');
-        $query->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan');
-        $query->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang');
-        $query->leftJoin('users_karyawan', 'karyawan.nik', '=', 'users_karyawan.nik');
-        $query->leftJoinSub($latest_gaji, 'gaji', function ($join) {
-            $join->on('karyawan.nik', '=', 'gaji.nik');
-        });
 
         // Filter berdasarkan akses cabang dan departemen jika bukan super admin
         if (!$user->isSuperAdmin()) {
-            // Ambil kode cabang dan departemen yang diakses user
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
 
-            // Filter berdasarkan cabang yang diakses
             if (!empty($userCabangs)) {
                 $query->whereIn('karyawan.kode_cabang', $userCabangs);
             } else {
-                // Jika tidak ada akses cabang, tidak tampilkan data
                 $query->whereRaw('1 = 0');
             }
 
-            // Filter berdasarkan departemen yang diakses
             if (!empty($userDepartemens)) {
                 $query->whereIn('karyawan.kode_dept', $userDepartemens);
             } else {
-                // Jika tidak ada akses departemen, tidak tampilkan data
                 $query->whereRaw('1 = 0');
             }
         }
@@ -78,52 +53,93 @@ class KaryawanController extends Controller
         if (!empty($request->kode_cabang)) {
             $query->where('karyawan.kode_cabang', $request->kode_cabang);
         }
-
         if (!empty($request->kode_dept)) {
             $query->where('karyawan.kode_dept', $request->kode_dept);
-        }
-        if (!empty($request->kode_group)) {
-            $query->where('karyawan.kode_group', $request->kode_group);
         }
         if (!empty($request->kode_jabatan)) {
             $query->where('karyawan.kode_jabatan', $request->kode_jabatan);
         }
-
+        if (!empty($request->kode_jam_kerja)) {
+            $query->where('karyawan.kode_jam_kerja', $request->kode_jam_kerja);
+        }
         if (!empty($request->nama_karyawan)) {
             $query->where('nama_karyawan', 'like', '%' . $request->nama_karyawan . '%');
         }
+
         $sortBy = $request->get('sort_by', 'nama_karyawan');
         if ($sortBy === 'nik_show') {
             $query->orderBy('karyawan.nik_show', 'asc');
         } else {
             $query->orderBy('karyawan.nama_karyawan', 'asc');
         }
+
         $perPage = (int) $request->get('per_page', 10);
-        $karyawan = $query->paginate($perPage);
+        $karyawanPaginator = $query->paginate($perPage);
+
+        if ($karyawanPaginator->isNotEmpty()) {
+            $nikList = $karyawanPaginator->pluck('nik')->toArray();
+            $details = Karyawan::whereIn('karyawan.nik', $nikList)
+                ->select(
+                    'karyawan.nik',
+                    'karyawan.nik_show',
+                    'karyawan.nama_karyawan',
+                    'karyawan.foto',
+                    'karyawan.no_hp',
+                    'karyawan.email',
+                    'karyawan.alamat',
+                    'karyawan.jenis_kelamin',
+                    'karyawan.status_karyawan',
+                    'karyawan.status_aktif_karyawan',
+                    'karyawan.tanggal_masuk',
+                    'karyawan.tanggal_nonaktif',
+                    'karyawan.lock_location',
+                    'karyawan.lock_jam_kerja',
+                    'karyawan.kode_dept',
+                    'karyawan.kode_cabang',
+                    'karyawan.kode_jabatan',
+                    'karyawan.kode_jam_kerja',
+                    'departemen.nama_dept',
+                    'jabatan.nama_jabatan',
+                    'cabang.nama_cabang',
+                    'presensi_jamkerja.nama_jam_kerja',
+                    'users_karyawan.id_user'
+                )
+                ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+                ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+                ->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+                ->leftJoin('presensi_jamkerja', 'karyawan.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+                ->leftJoin('users_karyawan', 'karyawan.nik', '=', 'users_karyawan.nik')
+                ->get()
+                ->keyBy('nik');
+
+            $ordered = collect($nikList)->map(fn($nik) => $details->get($nik))->filter();
+            $karyawan = $karyawanPaginator->setCollection($ordered);
+        } else {
+            $karyawan = $karyawanPaginator;
+        }
+
         $karyawan->appends($request->all());
 
         $data['karyawan'] = $karyawan;
         $data['cabang'] = $user->getCabang();
         $data['departemen'] = $user->getDepartemen();
-        $data['jabatan'] = Jabatan::orderBy('nama_jabatan')->get();
+        $data['jabatan'] = Cache::remember('all_jabatan_list', 3600, fn() => Jabatan::select('kode_jabatan', 'nama_jabatan')->orderBy('nama_jabatan')->get());
+        $data['jamkerja'] = Cache::remember('all_jamkerja_list', 3600, fn() => Jamkerja::select('kode_jam_kerja', 'nama_jam_kerja')->orderBy('kode_jam_kerja')->get());
 
         return view('datamaster.karyawan.index', $data);
     }
-
 
     public function create()
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        $data['status_kawin'] = Statuskawin::orderBy('kode_status_kawin')->get();
         $data['cabang'] = $user->getCabang();
         $data['departemen'] = $user->getDepartemen();
         $data['jabatan'] = Jabatan::orderBy('kode_jabatan')->get();
-        $data['status_karyawan'] = Statuskaryawan::orderBy('kode_status_karyawan')->get();
+        $data['jamkerja'] = Jamkerja::orderBy('kode_jam_kerja')->get();
         return view('datamaster.karyawan.create', $data);
     }
-
 
     public function store(Request $request)
     {
@@ -131,36 +147,21 @@ class KaryawanController extends Controller
         $user = auth()->user();
 
         $request->validate([
-            // nik akan digenerate otomatis; user mengisi nik_show
-            'nik_show' => 'required',
-            'no_ktp' => 'required',
             'nama_karyawan' => 'required',
-            'tempat_lahir' => 'required',
-            'tanggal_lahir' => 'required',
-            'alamat' => 'required',
             'jenis_kelamin' => 'required',
-            'no_hp' => 'required',
-            'kode_status_kawin' => 'required',
-            'pendidikan_terakhir' => 'required',
             'kode_cabang' => 'required',
             'kode_dept' => 'required',
             'kode_jabatan' => 'required',
+            'kode_jam_kerja' => 'required',
             'tanggal_masuk' => 'required',
-            'status_karyawan' => 'required',
-            'npwp' => 'nullable',
-            'alamat_sesuai_ktp' => 'nullable',
-            'jurusan' => 'nullable',
-            'email' => 'nullable|email',
-            'kontak_darurat' => 'nullable',
-            'hubungan_kontak_darurat' => 'nullable',
-            'nama_bank' => 'nullable',
-            'no_rekening' => 'nullable',
-            'nama_rekening' => 'nullable',
-            'hitung_pph21' => 'nullable|boolean',
+            'nik_show' => 'nullable',
+            'no_hp' => 'nullable',
+            'alamat' => 'nullable',
+            'password' => 'nullable|min:3',
+            'rfid_uid' => 'nullable',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
 
-        // Validasi akses cabang dan departemen jika bukan super admin
         if (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
@@ -174,11 +175,11 @@ class KaryawanController extends Controller
             }
         }
 
+        DB::beginTransaction();
         try {
-            // Generate NIK format YYMM + 5 digit urut per bulan
             $tahun = date('y');
             $bulan = date('m');
-            $prefix = $tahun . $bulan; // e.g., 2510
+            $prefix = $tahun . $bulan;
 
             $last = Karyawan::where('nik', 'like', $prefix . '%')
                 ->orderBy('nik', 'desc')
@@ -190,6 +191,7 @@ class KaryawanController extends Controller
             }
             $nextNumber = $lastNumber + 1;
             $nikAuto = $prefix . str_pad((string)$nextNumber, 5, '0', STR_PAD_LEFT);
+
             $data_foto = [];
             if ($request->hasfile('foto')) {
                 $foto_name = \App\Helpers\ImageOptimizer::saveAsWebp(
@@ -199,50 +201,69 @@ class KaryawanController extends Controller
                     80,
                     800
                 );
-                $data_foto = [
-                    'foto' => $foto_name
-                ];
+                $data_foto = ['foto' => $foto_name];
             }
+
+            $plainPassword = $request->filled('password') ? $request->password : '12345';
+            $hashedPassword = Hash::make($plainPassword);
+            $nikShow = !empty($request->nik_show) ? $request->nik_show : $nikAuto;
+
             $data_karyawan = [
                 'nik' => $nikAuto,
-                'nik_show' => $request->nik_show,
-                'no_ktp' => $request->no_ktp,
+                'nik_show' => $nikShow,
                 'nama_karyawan' => $request->nama_karyawan,
-                'tempat_lahir' => $request->tempat_lahir,
-                'tanggal_lahir' => $request->tanggal_lahir,
                 'alamat' => $request->alamat,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'no_hp' => $request->no_hp,
-                'kode_status_kawin' => $request->kode_status_kawin,
-                'pendidikan_terakhir' => $request->pendidikan_terakhir,
                 'kode_cabang' => $request->kode_cabang,
                 'kode_dept' => $request->kode_dept,
                 'kode_jabatan' => $request->kode_jabatan,
+                'kode_jam_kerja' => $request->kode_jam_kerja ?: 'JK01',
                 'tanggal_masuk' => $request->tanggal_masuk,
-                'status_karyawan' => $request->status_karyawan,
-                'npwp' => $request->npwp,
-                'alamat_sesuai_ktp' => $request->alamat_sesuai_ktp,
-                'jurusan' => $request->jurusan,
-                'email' => $request->email,
-                'kontak_darurat' => $request->kontak_darurat,
-                'hubungan_kontak_darurat' => $request->hubungan_kontak_darurat,
-                'nama_bank' => $request->nama_bank,
-                'no_rekening' => $request->no_rekening,
-                'nama_rekening' => $request->nama_rekening,
-                'hitung_pph21' => $request->has('hitung_pph21') ? 1 : 0,
+                'status_aktif_karyawan' => '1',
                 'lock_location' => 1,
-                'status_aktif_karyawan' => 1,
+                'lock_jam_kerja' => 1,
                 'rfid_uid' => $request->rfid_uid,
-                'password' => Hash::make('12345')
+                'pin' => $request->pin
             ];
+
             $data = array_merge($data_karyawan, $data_foto);
-            Karyawan::create($data);
-            return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
+            $simpan = Karyawan::create($data);
+
+            if ($simpan) {
+                $userCreated = User::create([
+                    'name' => $request->nama_karyawan,
+                    'username' => $nikAuto,
+                    'email' => $request->email ?: ($nikAuto . '@gmail.com'),
+                    'password' => $hashedPassword,
+                ]);
+                $userCreated->assignRole('karyawan');
+                Userkaryawan::create([
+                    'id_user' => $userCreated->id,
+                    'nik' => $nikAuto
+                ]);
+            }
+
+            DB::commit();
+            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Disimpan'));
         } catch (\Exception $e) {
+            DB::rollBack();
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
+    /**
+     * Check if authenticated user is authorized to manage the given karyawan.
+     */
+    protected function authorizeKaryawanAccess($user, $karyawan): bool
+    {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+        $userCabangs = $user->getCabangCodes();
+        $userDepartemens = $user->getDepartemenCodes();
+        return in_array($karyawan->kode_cabang, $userCabangs) && in_array($karyawan->kode_dept, $userDepartemens);
+    }
 
     public function edit($nik)
     {
@@ -250,15 +271,22 @@ class KaryawanController extends Controller
         $user = auth()->user();
 
         $nik = Crypt::decrypt($nik);
-        $data['karyawan'] = Karyawan::where('nik', $nik)->first();
-        $data['status_kawin'] = Statuskawin::orderBy('kode_status_kawin')->get();
+        $karyawan = Karyawan::where('nik', $nik)->first();
+        if (!$karyawan) {
+            abort(404, 'Karyawan tidak ditemukan');
+        }
+
+        if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+            abort(403, 'Anda tidak memiliki akses ke data karyawan cabang ini.');
+        }
+
+        $data['karyawan'] = $karyawan;
         $data['cabang'] = $user->getCabang();
         $data['departemen'] = $user->getDepartemen();
         $data['jabatan'] = Jabatan::orderBy('kode_jabatan')->get();
-        $data['status_karyawan'] = Statuskaryawan::orderBy('kode_status_karyawan')->get();
+        $data['jamkerja'] = Jamkerja::orderBy('kode_jam_kerja')->get();
         return view('datamaster.karyawan.edit', $data);
     }
-
 
     public function update($nik, Request $request)
     {
@@ -266,38 +294,31 @@ class KaryawanController extends Controller
         $user = auth()->user();
 
         $nik = Crypt::decrypt($nik);
+        $karyawan = Karyawan::where('nik', $nik)->first();
+        if (!$karyawan) {
+            abort(404, 'Karyawan tidak ditemukan');
+        }
+
         $request->validate([
-            // nik tetap primary key dan tidak diedit; nik_show yang bisa diubah
-            'nik_show' => 'required',
-            'no_ktp' => 'required',
             'nama_karyawan' => 'required',
-            'tempat_lahir' => 'required',
-            'tanggal_lahir' => 'required',
-            'alamat' => 'required',
             'jenis_kelamin' => 'required',
-            'no_hp' => 'required',
-            'kode_status_kawin' => 'required',
-            'pendidikan_terakhir' => 'required',
             'kode_cabang' => 'required',
             'kode_dept' => 'required',
             'kode_jabatan' => 'required',
+            'kode_jam_kerja' => 'required',
             'tanggal_masuk' => 'required',
-            'status_karyawan' => 'required',
-            'npwp' => 'nullable',
-            'alamat_sesuai_ktp' => 'nullable',
-            'jurusan' => 'nullable',
-            'email' => 'nullable|email',
-            'kontak_darurat' => 'nullable',
-            'hubungan_kontak_darurat' => 'nullable',
-            'nama_bank' => 'nullable',
-            'no_rekening' => 'nullable',
-            'nama_rekening' => 'nullable',
-            'hitung_pph21' => 'nullable|boolean',
+            'nik_show' => 'nullable',
+            'no_hp' => 'nullable',
+            'alamat' => 'nullable',
+            'status_aktif_karyawan' => 'required',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
         ]);
 
-        // Validasi akses cabang dan departemen jika bukan super admin
         if (!$user->isSuperAdmin()) {
+            if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+                return Redirect::back()->with(messageError('Anda tidak memiliki akses ke data karyawan cabang ini'));
+            }
+
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
 
@@ -311,7 +332,6 @@ class KaryawanController extends Controller
         }
 
         try {
-            $karyawan = Karyawan::where('nik', $nik)->first();
             $data_foto = [];
             if ($request->hasfile('foto')) {
                 if (!empty($karyawan->foto) && Storage::disk('public')->exists('karyawan/' . $karyawan->foto)) {
@@ -325,84 +345,149 @@ class KaryawanController extends Controller
                     80,
                     800
                 );
-                $data_foto = [
-                    'foto' => $foto_name
-                ];
+                $data_foto = ['foto' => $foto_name];
             }
 
             $data_karyawan = [
-                // 'nik' tidak diubah di update
-                'nik_show' => $request->nik_show,
-                'no_ktp' => $request->no_ktp,
+                'nik_show' => $request->nik_show ?: $nik,
                 'nama_karyawan' => $request->nama_karyawan,
-                'tempat_lahir' => $request->tempat_lahir,
-                'tanggal_lahir' => $request->tanggal_lahir,
                 'alamat' => $request->alamat,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'no_hp' => $request->no_hp,
-                'kode_status_kawin' => $request->kode_status_kawin,
-                'pendidikan_terakhir' => $request->pendidikan_terakhir,
                 'kode_cabang' => $request->kode_cabang,
                 'kode_dept' => $request->kode_dept,
                 'kode_jabatan' => $request->kode_jabatan,
+                'kode_jam_kerja' => $request->kode_jam_kerja ?: 'JK01',
                 'tanggal_masuk' => $request->tanggal_masuk,
-                'status_karyawan' => $request->status_karyawan,
                 'status_aktif_karyawan' => $request->status_aktif_karyawan,
-                'npwp' => $request->npwp,
-                'alamat_sesuai_ktp' => $request->alamat_sesuai_ktp,
-                'jurusan' => $request->jurusan,
-                'email' => $request->email,
-                'kontak_darurat' => $request->kontak_darurat,
-                'hubungan_kontak_darurat' => $request->hubungan_kontak_darurat,
-                'nama_bank' => $request->nama_bank,
-                'no_rekening' => $request->no_rekening,
-                'nama_rekening' => $request->nama_rekening,
-                'hitung_pph21' => $request->has('hitung_pph21') ? 1 : 0,
                 'rfid_uid' => $request->rfid_uid,
                 'pin' => $request->pin
             ];
 
             $data = array_merge($data_karyawan, $data_foto);
-            $simpan = Karyawan::where('nik', $nik)->update($data);
-            if ($simpan) {
-                $user_karyawan = Userkaryawan::where('nik', $nik)->first();
-                if ($user_karyawan) {
-                    $userData = ['name' => $request->nama_karyawan];
-                    if ($request->filled('password')) {
-                        $userData['password'] = Hash::make($request->password);
-                    }
-                    User::where('id', $user_karyawan->id_user)->update($userData);
-                } else if ($request->filled('password')) {
-                    $newUser = User::create([
-                        'name' => $request->nama_karyawan,
-                        'username' => $nik,
-                        'email' => $request->email ?: ($nik . '@gmail.com'),
-                        'password' => Hash::make($request->password),
-                    ]);
-                    $newUser->assignRole('karyawan');
-                    Userkaryawan::create([
-                        'id_user' => $newUser->id,
-                        'nik' => $nik
-                    ]);
+            Karyawan::where('nik', $nik)->update($data);
+
+            $user_karyawan = Userkaryawan::where('nik', $nik)->first();
+            if ($user_karyawan) {
+                $userData = ['name' => $request->nama_karyawan];
+                if ($request->filled('password')) {
+                    $userData['password'] = Hash::make($request->password);
                 }
+                User::where('id', $user_karyawan->id_user)->update($userData);
+
+                if ($request->status_aktif_karyawan == 0) {
+                    \Illuminate\Support\Facades\Cache::forget('user_karyawan_valid_' . $user_karyawan->id_user);
+                    $targetUser = User::find($user_karyawan->id_user);
+                    if ($targetUser && method_exists($targetUser, 'tokens')) {
+                        $targetUser->tokens()->delete();
+                    }
+                }
+            } else if ($request->filled('password')) {
+                $newUser = User::create([
+                    'name' => $request->nama_karyawan,
+                    'username' => $nik,
+                    'email' => $nik . '@gmail.com',
+                    'password' => Hash::make($request->password),
+                ]);
+                $newUser->assignRole('karyawan');
+                Userkaryawan::create([
+                    'id_user' => $newUser->id,
+                    'nik' => $nik
+                ]);
             }
-            return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
+
+            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Disimpan'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
-
-    public function lockunlocklocation(Request $request, $nik)
+    public function show($nik)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $nik = Crypt::decrypt($nik);
+        $karyawan = Karyawan::where('nik', $nik)
+            ->select('karyawan.*', 'cabang.nama_cabang', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'presensi_jamkerja.nama_jam_kerja')
+            ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+            ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+            ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+            ->leftJoin('presensi_jamkerja', 'karyawan.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->first();
+
+        if (!$karyawan) {
+            abort(404, 'Karyawan tidak ditemukan');
+        }
+
+        if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+            abort(403, 'Anda tidak memiliki akses ke data karyawan cabang ini.');
+        }
+
+        $user_karyawan = Userkaryawan::where('nik', $nik)->first();
+        $targetUser = $user_karyawan ? User::where('id', $user_karyawan->id_user)->first() : null;
+        $karyawan_wajah = Facerecognition::where('nik', $nik)->get();
+
+        $data['karyawan'] = $karyawan;
+        $data['user'] = $targetUser;
+        $data['karyawan_wajah'] = $karyawan_wajah;
+        return view('datamaster.karyawan.show', $data);
+    }
+
+    public function destroy($nik)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         $nik = Crypt::decrypt($nik);
         try {
             $karyawan = Karyawan::where('nik', $nik)->first();
-            $lock_location = $karyawan->lock_location == '1' ? 0 : 1;
+            if (!$karyawan) {
+                return Redirect::back()->with(messageError('Karyawan tidak ditemukan'));
+            }
 
-            Karyawan::where('nik', $nik)->update([
-                'lock_location' => $lock_location
-            ]);
+            if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+                return Redirect::back()->with(messageError('Anda tidak memiliki akses untuk menghapus karyawan cabang ini'));
+            }
+
+            $user_karyawan = Userkaryawan::where('nik', $nik)->first();
+            if (!empty($user_karyawan)) {
+                User::where('id', $user_karyawan->id_user)->delete();
+                Userkaryawan::where('nik', $nik)->delete();
+            }
+
+            $nama_folder = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
+            $path_folder = 'public/uploads/facerecognition/' . $nama_folder;
+            Storage::deleteDirectory($path_folder);
+
+            $nama_file_foto = $karyawan->foto;
+            $path_foto = '/public/karyawan/' . $nama_file_foto;
+            Storage::delete($path_foto);
+            Karyawan::where('nik', $nik)->delete();
+            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Dihapus'));
+        } catch (\Exception $e) {
+            return Redirect::back()->with(messageError($e->getMessage()));
+        }
+    }
+
+    public function lockunlocklocation(Request $request, $nik)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $nik = Crypt::decrypt($nik);
+        try {
+            $karyawan = Karyawan::where('nik', $nik)->first();
+            if (!$karyawan) {
+                abort(404, 'Karyawan tidak ditemukan');
+            }
+
+            if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+                abort(403, 'Anda tidak memiliki akses ke karyawan cabang ini.');
+            }
+
+            $lock_location = $karyawan->lock_location == '1' ? 0 : 1;
+            Karyawan::where('nik', $nik)->update(['lock_location' => $lock_location]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -411,7 +496,6 @@ class KaryawanController extends Controller
                     'message' => $lock_location == 1 ? 'Lokasi GPS Karyawan Terkunci' : 'Lokasi GPS Karyawan Bebas'
                 ]);
             }
-
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -423,14 +507,22 @@ class KaryawanController extends Controller
 
     public function lockunlockjamkerja(Request $request, $nik)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         $nik = Crypt::decrypt($nik);
         try {
             $karyawan = Karyawan::where('nik', $nik)->first();
-            $lock_jam_kerja = $karyawan->lock_jam_kerja == '1' ? 0 : 1;
+            if (!$karyawan) {
+                abort(404, 'Karyawan tidak ditemukan');
+            }
 
-            Karyawan::where('nik', $nik)->update([
-                'lock_jam_kerja' => $lock_jam_kerja
-            ]);
+            if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+                abort(403, 'Anda tidak memiliki akses ke karyawan cabang ini.');
+            }
+
+            $lock_jam_kerja = $karyawan->lock_jam_kerja == '1' ? 0 : 1;
+            Karyawan::where('nik', $nik)->update(['lock_jam_kerja' => $lock_jam_kerja]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -439,7 +531,6 @@ class KaryawanController extends Controller
                     'message' => $lock_jam_kerja == 1 ? 'Shift Jam Kerja Terkunci' : 'Shift Jam Kerja Bebas'
                 ]);
             }
-
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
@@ -449,457 +540,138 @@ class KaryawanController extends Controller
         }
     }
 
-    public function show($nik)
+    public function getkaryawan(Request $request)
     {
-        $nik = Crypt::decrypt($nik);
-        $karyawan = Karyawan::where('nik', $nik)
-            ->select('karyawan.*', 'cabang.nama_cabang', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'status_kawin.status_kawin')
-            ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
-            ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
-            ->leftJoin('status_kawin', 'karyawan.kode_status_kawin', '=', 'status_kawin.kode_status_kawin')
-            ->first();
-        $user_karyawan = Userkaryawan::where('nik', $nik)->first();
-        $user = $user_karyawan ? User::where('id', $user_karyawan->id_user)->first() : null;
-        $karyawan_wajah = Facerecognition::where('nik', $nik)->get();
-        $mutasi = MutasiKaryawan::with(['cabangLama', 'cabangBaru', 'deptLama', 'deptBaru', 'jabatanLama', 'jabatanBaru'])
-            ->where('nik', $nik)
-            ->orderBy('tanggal_mutasi', 'desc')
-            ->get();
-            
-        $data['karyawan'] = $karyawan;
-        $data['user'] = $user;
-        $data['karyawan_wajah'] = $karyawan_wajah;
-        $data['mutasi'] = $mutasi;
-        return view('datamaster.karyawan.show', $data);
-    }
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $query = Karyawan::query()->select('nik', 'nik_show', 'nama_karyawan');
 
-
-    public function destroy($nik)
-    {
-        $nik = Crypt::decrypt($nik);
-        try {
-            $karyawan = Karyawan::where('nik', $nik)->first();
-            $user_karyawan = Userkaryawan::where('nik', $nik)->first();
-            if (!empty($user_karyawan)) {
-                User::where('id', $user_karyawan->id_user)->delete();
-                Userkaryawan::where('nik', $nik)->delete();
-            }
-            //$facerecognition = Facerecognition::where('nik', $nik)->get();
-            // foreach ($facerecognition as $fr) {
-            //     $nama_file = $facerecognition->wajah;
-            //     $nama_folder = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
-            //     $path = 'public/uploads/facerecognition/' . $nama_folder . "/" . $nama_file;
-            //     Storage::delete($path);
-            // }
-
-            $nama_folder = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
-            $path_folder = 'public/uploads/facerecognition/' . $nama_folder;
-            Storage::deleteDirectory($path_folder);
-
-
-            $nama_file_foto = $karyawan->foto;
-            $path_foto = '/public/karyawan/' . $nama_file_foto;
-            Storage::delete($path_foto);
-            Karyawan::where('nik', $nik)->delete();
-            return Redirect::back()->with(messageSuccess('Data Berhasil Dihapus'));
-        } catch (\Exception $e) {
-            return Redirect::back()->with(messageError($e->getMessage()));
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            $query->whereIn('kode_cabang', !empty($userCabangs) ? $userCabangs : ['INVALID']);
+            $query->whereIn('kode_dept', !empty($userDepartemens) ? $userDepartemens : ['INVALID']);
         }
-    }
 
-    public function setjamkerja($nik)
-    {
-        $nik = Crypt::decrypt($nik);
-        $data['karyawan'] = Karyawan::where('nik', $nik)
-            ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
-            ->first();
-        $data['list_bulan'] = config('global.list_bulan');
-        $data['start_year'] = config('global.start_year');
-        $data['jamkerja'] = Jamkerja::orderBy('kode_jam_kerja')->get();
-        $data['jamkerjabyday'] = Setjamkerjabyday::where('nik', $nik)->pluck('kode_jam_kerja', 'hari')->toArray();
-        // dd($data['jamkerjabyday']);
-        return view('datamaster.karyawan.setjamkerja', $data);
-    }
-
-    public function setcabang($nik)
-    {
-        $nik = Crypt::decrypt($nik);
-        $data['karyawan'] = Karyawan::where('nik', $nik)
-            ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
-            ->first();
-        // Exclude cabang utama dari pilihan
-        $data['cabang'] = Cabang::where('kode_cabang', '!=', $data['karyawan']->kode_cabang)->orderBy('kode_cabang')->get();
-        $data['kode_cabang_array'] = $data['karyawan']->kode_cabang_array ?? [];
-        return view('datamaster.karyawan.setcabang', $data);
-    }
-
-    public function storecabang(Request $request, $nik)
-    {
-        $nik = Crypt::decrypt($nik);
-        try {
-            // Ambil cabang utama karyawan
-            $karyawan = Karyawan::where('nik', $nik)->first();
-            $kode_cabang_utama = $karyawan->kode_cabang;
-
-            // Gabungkan cabang utama dengan cabang yang dipilih
-            $kode_cabang_array = $request->kode_cabang_array ?? [];
-            $kode_cabang_array[] = $kode_cabang_utama; // Tambahkan cabang utama
-            $kode_cabang_array = array_unique($kode_cabang_array); // Hapus duplikasi
-
-            Karyawan::where('nik', $nik)->update([
-                'kode_cabang_array' => $kode_cabang_array
-            ]);
-            return Redirect::back()->with(messageSuccess('Data Cabang Berhasil Disimpan'));
-        } catch (\Exception $e) {
-            return Redirect::back()->with(messageError($e->getMessage()));
+        if (!empty($request->kode_cabang)) {
+            $query->where('kode_cabang', $request->kode_cabang);
         }
-    }
-
-
-    public function storejamkerjabyday(Request $request, $nik)
-    {
-        $nik = Crypt::decrypt($nik);
-        $hari = $request->hari;
-        $kode_jam_kerja = $request->kode_jam_kerja;
-        DB::beginTransaction();
-        try {
-            Setjamkerjabyday::where('nik', $nik)->delete();
-            for ($i = 0; $i < count($hari); $i++) {
-                if (!empty($kode_jam_kerja[$i])) {
-                    Setjamkerjabyday::create([
-                        'nik' => $nik,
-                        'hari' => $hari[$i],
-                        'kode_jam_kerja' => $kode_jam_kerja[$i]
-                    ]);
-                }
-            }
-            DB::commit();
-            return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            dd($e);
-            return Redirect::back()->with(messageError($e->getMessage()));
+        if (!empty($request->kode_dept)) {
+            $query->where('kode_dept', $request->kode_dept);
         }
+        $karyawan = $query->orderBy('nama_karyawan')->get();
+        return response()->json($karyawan);
     }
 
-    public function storejamkerjabydate(Request $request)
+    public function getkaryawantable(Request $request)
     {
-        // Convert tanggal to proper format (YYYY-MM-DD) to avoid timezone issues
-        $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $query = Karyawan::query();
 
-        try {
-            $cek = Setjamkerjabydate::where('nik', $request->nik)->where('tanggal', $tanggal)->first();
-            if (!empty($cek)) {
-                // Update jika sudah ada
-                Setjamkerjabydate::where('nik', $request->nik)->where('tanggal', $tanggal)->update([
-                    'kode_jam_kerja' => $request->kode_jam_kerja
-                ]);
-                return response()->json(['success' => true, 'message' => 'Data Berhasil Diupdate']);
-            }
-
-            // Simpan baru
-            Setjamkerjabydate::create([
-                'nik' => $request->nik,
-                'tanggal' => $tanggal,
-                'kode_jam_kerja' => $request->kode_jam_kerja
-            ]);
-
-            return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            $query->whereIn('kode_cabang', !empty($userCabangs) ? $userCabangs : ['INVALID']);
+            $query->whereIn('kode_dept', !empty($userDepartemens) ? $userDepartemens : ['INVALID']);
         }
-    }
 
-    public function getjamkerjabydate(Request $request)
-    {
-        $nik = $request->nik;
-        $tanggal = $request->tanggal;
-        $bulan = $request->bulan;
-        $tahun = $request->tahun;
-
-        $jamkerjabydate = Setjamkerjabydate::where('nik', $nik)
-            ->join('presensi_jamkerja', 'presensi_jamkerja.kode_jam_kerja', '=', 'presensi_jamkerja_bydate.kode_jam_kerja')
-            ->whereRaw('MONTH(tanggal) = ' . $bulan . ' AND YEAR(tanggal) = ' . $tahun)
-            ->orderBy('tanggal', 'asc')
-            ->get();
-
-
-        return response()->json($jamkerjabydate);
-    }
-
-    public function deletejamkerjabydate(Request $request)
-    {
-        // Convert tanggal to proper format (YYYY-MM-DD) to avoid timezone issues
-        $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
-
-        try {
-            Setjamkerjabydate::where('nik', $request->nik)->where('tanggal', $tanggal)->delete();
-            return response()->json(['success' => true, 'message' => 'Data Berhasil Dihapus']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        if (!empty($request->kode_cabang)) {
+            $query->where('kode_cabang', $request->kode_cabang);
         }
+        if (!empty($request->kode_dept)) {
+            $query->where('kode_dept', $request->kode_dept);
+        }
+        if (!empty($request->q)) {
+            $q = $request->q;
+            $query->where(function ($sub) use ($q) {
+                $sub->where('nama_karyawan', 'like', "%{$q}%")
+                    ->orWhere('nik', 'like', "%{$q}%");
+            });
+        }
+        $data['karyawan'] = $query->orderBy('nama_karyawan')->get();
+        return view('datamaster.karyawan.getkaryawantable', $data);
     }
 
     public function createuser($nik)
     {
-        $generalsetting = Pengaturanumum::first();
+        /** @var \App\Models\User $userAuth */
+        $userAuth = auth()->user();
+
         $nik = Crypt::decrypt($nik);
         $karyawan = Karyawan::where('nik', $nik)->first();
-        DB::beginTransaction();
+        if (!$karyawan) {
+            return Redirect::back()->with(messageError('Karyawan tidak ditemukan'));
+        }
+
+        if (!$this->authorizeKaryawanAccess($userAuth, $karyawan)) {
+            return Redirect::back()->with(messageError('Anda tidak memiliki akses untuk membuat user karyawan cabang ini'));
+        }
+
         try {
-            //code...
             $user = User::create([
                 'name' => $karyawan->nama_karyawan,
                 'username' => $karyawan->nik,
-                'password' => Hash::make($karyawan->nik),
-                'email' => strtolower(removeTitik($karyawan->nik)) . '@' . $generalsetting->domain_email,
+                'email' => $karyawan->nik . '@gmail.com',
+                'password' => Hash::make('12345'),
             ]);
-
-            Userkaryawan::create([
-                'nik' => $nik,
-                'id_user' => $user->id
-            ]);
-
             $user->assignRole('karyawan');
-            DB::commit();
-            return Redirect::route('karyawan.index')->with(messageSuccess('User Berhasil Dibuat'));
+            Userkaryawan::create([
+                'id_user' => $user->id,
+                'nik' => $karyawan->nik
+            ]);
+            return Redirect::back()->with(messageSuccess('User Berhasil Dibuat (Password default: 12345)'));
         } catch (\Exception $e) {
-            DB::rollBack();
-            return Redirect::back()->with(messageError($e->getMessage()));
-        }
-    }
-
-    public function generateAllUser()
-    {
-        $generalsetting = Pengaturanumum::first();
-        // Get all active employees who don't have a user yet
-        // Since 'user' relation might not exist in Karyawan model, we use a left join check or explicit query
-        $karyawan = Karyawan::where('status_aktif_karyawan', 1)
-            ->leftJoin('users_karyawan', 'karyawan.nik', '=', 'users_karyawan.nik')
-            ->whereNull('users_karyawan.id_user')
-            ->select('karyawan.*')
-            ->get();
-
-        if ($karyawan->isEmpty()) {
-            return Redirect::back()->with(messageError('Tidak ada karyawan aktif yang belum memiliki user'));
-        }
-
-        DB::beginTransaction();
-        try {
-            $count = 0;
-            foreach ($karyawan as $k) {
-                // Check if user already exists (double check)
-                $existingUser = Userkaryawan::where('nik', $k->nik)->first();
-                if (!$existingUser) {
-                    $user = User::create([
-                        'name' => $k->nama_karyawan,
-                        'username' => $k->nik,
-                        'password' => Hash::make($k->nik),
-                        'email' => strtolower(removeTitik($k->nik)) . '@' . $generalsetting->domain_email,
-                    ]);
-
-                    Userkaryawan::create([
-                        'nik' => $k->nik,
-                        'id_user' => $user->id
-                    ]);
-
-                    $user->assignRole('karyawan');
-                    $count++;
-                }
-            }
-
-            DB::commit();
-            return Redirect::back()->with(messageSuccess($count . ' User Berhasil Dibuat'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return Redirect::back()->with(messageError($e->getMessage()));
-        }
-    }
-
-    public function deleteAllUser()
-    {
-        DB::beginTransaction();
-        try {
-            $users = User::role('karyawan')->get();
-            $count = $users->count();
-
-            foreach ($users as $user) {
-                Userkaryawan::where('id_user', $user->id)->delete();
-                $user->delete();
-            }
-
-            DB::commit();
-            return Redirect::back()->with(messageSuccess($count . ' User Berhasil Dihapus'));
-        } catch (\Exception $e) {
-            DB::rollBack();
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
     public function deleteuser($nik)
     {
+        /** @var \App\Models\User $userAuth */
+        $userAuth = auth()->user();
+
         $nik = Crypt::decrypt($nik);
         try {
+            $karyawan = Karyawan::where('nik', $nik)->first();
+            if ($karyawan && !$this->authorizeKaryawanAccess($userAuth, $karyawan)) {
+                return Redirect::back()->with(messageError('Anda tidak memiliki akses untuk menghapus user karyawan cabang ini'));
+            }
+
             $user_karyawan = Userkaryawan::where('nik', $nik)->first();
-            User::where('id', $user_karyawan->id_user)->delete();
-            Userkaryawan::where('nik', $nik)->delete();
+            if ($user_karyawan) {
+                User::where('id', $user_karyawan->id_user)->delete();
+                Userkaryawan::where('nik', $nik)->delete();
+            }
             return Redirect::back()->with(messageSuccess('User Berhasil Dihapus'));
         } catch (\Exception $e) {
-            return Redirect::back()->with(messageError('Data User gagal dihapus ' . $e->getMessage()));
-        }
-    }
-
-    public function import()
-    {
-        $status_kawin = Statuskawin::orderBy('kode_status_kawin')->get();
-        return view('datamaster.karyawan.import_modal', compact('status_kawin'));
-    }
-
-    public function download_template()
-    {
-        return Excel::download(new TemplateKaryawanExport, 'template_import_karyawan.xlsx');
-    }
-
-    public function import_proses(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
-        ]);
-
-        try {
-            $file = $request->file('file');
-            Excel::import(new KaryawanImport, $file);
-            return response()->json([
-                'success' => true,
-                'message' => 'Data berhasil diimport'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
     public function export(Request $request)
     {
-        return Excel::download(new KaryawanExport($request->all()), 'karyawan_export.xlsx');
+        return Excel::download(new KaryawanExport($request->all()), 'Data_Karyawan.xlsx');
     }
 
-
-    public function getkaryawan(Request $request)
+    public function download_template()
     {
-        $kode_cabang = $request->kode_cabang;
-        $kode_dept = $request->kode_dept;
-        $jenis_upah = $request->jenis_upah;
-        $tanggal = $request->tanggal;
-        $q = $request->q;
-
-        $query = Karyawan::query();
-
-        /** @var \App\Models\User $user */
-        $user = User::find(auth()->id());
-        if (!$user->isSuperAdmin()) {
-            $cabangCodes = $user->getCabangCodes();
-            $deptCodes   = $user->getDepartemenCodes();
-
-            if (!empty($kode_cabang)) {
-                if (in_array($kode_cabang, $cabangCodes)) {
-                    $query->where('karyawan.kode_cabang', $kode_cabang);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
-            } else {
-                if (!empty($cabangCodes)) {
-                    $query->whereIn('karyawan.kode_cabang', $cabangCodes);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
-            }
-
-            if (!empty($kode_dept)) {
-                if (in_array($kode_dept, $deptCodes)) {
-                    $query->where('karyawan.kode_dept', $kode_dept);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
-            } else {
-                if (!empty($deptCodes)) {
-                    $query->whereIn('karyawan.kode_dept', $deptCodes);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
-            }
-        } else {
-            if (!empty($kode_cabang)) {
-                $query->where('karyawan.kode_cabang', $kode_cabang);
-            }
-            if (!empty($kode_dept)) {
-                $query->where('karyawan.kode_dept', $kode_dept);
-            }
-        }
-
-        if (!empty($jenis_upah)) {
-            $tanggal_filter = $tanggal ?? date('Y-m-d');
-            $latest_gaji = DB::table('karyawan_gaji_pokok as gp1')
-                ->select('nik', 'jenis_upah')
-                ->where('tanggal_berlaku', function ($sub) use ($tanggal_filter) {
-                    $sub->selectRaw('MAX(tanggal_berlaku)')
-                        ->from('karyawan_gaji_pokok as gp2')
-                        ->whereColumn('gp2.nik', 'gp1.nik')
-                        ->where('gp2.tanggal_berlaku', '<=', $tanggal_filter);
-                });
-
-            $query->joinSub($latest_gaji, 'gaji', function ($join) {
-                $join->on('karyawan.nik', '=', 'gaji.nik');
-            })->where('gaji.jenis_upah', $jenis_upah);
-        }
-
-        if (!empty($q)) {
-            $query->where(function ($query) use ($q) {
-                $query->where('nama_karyawan', 'like', '%' . $q . '%')
-                    ->orWhere('karyawan.nik', 'like', '%' . $q . '%');
-            });
-        }
-
-        $karyawan = $query->orderBy('nama_karyawan')->get();
-        return response()->json($karyawan);
+        return Excel::download(new TemplateKaryawanExport, 'Template_Import_Karyawan.xlsx');
     }
 
-    public function idcard($nik)
+    public function import()
     {
-        $nik = Crypt::decrypt($nik);
-        $karyawan = Karyawan::where('nik', $nik)
-            ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
-            ->first();
-        $data['karyawan'] = $karyawan;
-        $generalsetting = Pengaturanumum::where('id', 1)->first();
-        $data['generalsetting'] = $generalsetting;
-        return view('datamaster.karyawan.idcard', $data);
+        return view('datamaster.karyawan.import');
     }
 
-    public function getkaryawantable(Request $request)
+    public function import_proses(Request $request)
     {
-        $q = $request->q;
-        $query = Karyawan::query()->with(['jabatan', 'cabang', 'departemen']);
-        
-        $user = auth()->user();
-        if (!$user->isSuperAdmin()) {
-            $query->whereIn('kode_cabang', $user->getCabangCodes());
-            $query->whereIn('kode_dept', $user->getDepartemenCodes());
+        $request->validate(['file' => 'required|mimes:csv,xls,xlsx']);
+        try {
+            Excel::import(new KaryawanImport, $request->file('file'));
+            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Diimport'));
+        } catch (\Exception $e) {
+            return Redirect::back()->with(messageError($e->getMessage()));
         }
-
-        if (!empty($q)) {
-            $query->where(function($query) use ($q) {
-                $query->where('nama_karyawan', 'like', '%' . $q . '%')
-                      ->orWhere('nik', 'like', '%' . $q . '%');
-            });
-        }
-        $karyawan = $query->orderBy('nama_karyawan')->limit(20)->get();
-        return view('datamaster.karyawan.getkaryawantable', compact('karyawan'));
     }
 }

@@ -11,8 +11,13 @@ class Presensi extends Model
     protected $table = 'presensi';
     protected $guarded = [];
 
-    public function mesinfingerprint()
+    public function karyawan()
     {
-        return $this->belongsTo(MesinFingerprint::class, 'id_mesin');
+        return $this->belongsTo(Karyawan::class, 'nik', 'nik');
+    }
+
+    public function jamkerja()
+    {
+        return $this->belongsTo(Jamkerja::class, 'kode_jam_kerja', 'kode_jam_kerja');
     }
 }

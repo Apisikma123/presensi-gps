@@ -59,7 +59,9 @@ class FacerecognitionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'files' => 'required|array',
-            'files.*' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+            'files.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'directions' => 'nullable|array',
+            'directions.*' => 'nullable|string|alpha_dash|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -103,7 +105,11 @@ class FacerecognitionController extends Controller
 
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $index => $file) {
-                    $direction = $request->input("directions.$index", 'front');
+                    $rawDirection = $request->input("directions.$index", 'front');
+                    $direction = preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$rawDirection);
+                    if (empty($direction)) {
+                        $direction = 'front';
+                    }
                     $fileName = $urutan . "_" . $direction . ".png";
                     
                     $file->storeAs($folderPath, $fileName);

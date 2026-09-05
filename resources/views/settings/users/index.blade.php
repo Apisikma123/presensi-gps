@@ -1,24 +1,20 @@
 @extends('layouts.app')
 @section('titlepage', 'Manajemen User & Akun')
 
-@section('content')
 @section('navigasi')
     <span>Manajemen Akun</span>
 @endsection
 
-<!-- Top Header Toolbar -->
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+@section('content')
+
+<!-- Page Header -->
+<div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div>
-        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-            <span>Manajemen Akun User</span>
-            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
-                {{ $users->total() }} Total
-            </span>
-        </h5>
-        <small class="text-muted" style="font-size: 12px;">Kelola akun login admin, manager cabang, serta otentikasi mobile karyawan.</small>
+        <h4 class="page-title mb-1">Manajemen Akun User</h4>
+        <p class="page-subtitle text-muted mb-0">Kelola akun login admin, manager cabang, serta otentikasi mobile karyawan.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <a href="#" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1.5" id="btncreateUser" style="height: 36px; border-radius: 8px;">
+        <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btncreateUser">
             <i class="ti ti-user-plus"></i>
             <span>Tambah User</span>
         </a>
@@ -223,36 +219,10 @@
     </div>
 </div>
 
-<!-- Pagination Footer with Slide Controls -->
+<!-- Pagination Footer -->
 <div class="card" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF;">
     <div class="card-body py-2.5 px-3">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <!-- Counter info -->
-            <div class="text-muted" style="font-size: 12px;">
-                @if ($users->total() > 0)
-                    Menampilkan <span class="fw-bold text-dark font-mono">{{ $users->firstItem() }}</span> - <span class="fw-bold text-dark font-mono">{{ $users->lastItem() }}</span> dari <span class="fw-bold text-dark font-mono">{{ $users->total() }}</span> total user
-                @else
-                    Menampilkan 0 data
-                @endif
-            </div>
-
-            <!-- Interactive Page Slider (Slide Selector) -->
-            @if ($users->lastPage() > 1)
-                <div class="page-slider-container">
-                    <small class="text-muted fw-semibold" style="font-size: 11.5px;">Slide Halaman:</small>
-                    <input type="range" class="page-slider-range" id="pageSlider"
-                        min="1" max="{{ $users->lastPage() }}" value="{{ $users->currentPage() }}"
-                        oninput="document.getElementById('sliderBadge').innerText = this.value"
-                        onchange="navigatePage(this.value)">
-                    <span class="badge bg-primary font-mono" id="sliderBadge">{{ $users->currentPage() }}</span>
-                </div>
-            @endif
-
-            <!-- Standard Pagination Links -->
-            <div class="d-flex align-items-center">
-                {{ $users->links('pagination::bootstrap-5') }}
-            </div>
-        </div>
+        {{ $users->links('pagination::bootstrap-5') }}
     </div>
 </div>
 
@@ -263,12 +233,6 @@
 
 @push('myscript')
 <script>
-    function navigatePage(pageNum) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', pageNum);
-        window.location.href = url.toString();
-    }
-
     $(function() {
         $("#btncreateUser").click(function(e) {
             e.preventDefault();

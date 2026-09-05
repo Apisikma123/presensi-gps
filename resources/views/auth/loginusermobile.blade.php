@@ -393,11 +393,7 @@
         <div class="blob-1"></div>
         
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; z-index: 20; position: relative;">
-            @if (!empty($general_setting->logo) && Storage::disk('public')->exists('logo/' . $general_setting->logo))
-                <img src="{{ asset('storage/logo/' . $general_setting->logo) }}" alt="Logo" style="width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); background: rgba(255,255,255,0.9); border-radius: 50%; padding: 8px;" />
-            @else
-                <img src="{{ asset('assets/login/images/logoweb-1.png') }}" alt="Logo" style="width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); background: rgba(255,255,255,0.9); border-radius: 50%; padding: 8px;" />
-            @endif
+            <img src="{{ $app_logo_url ?? asset('assets/login/images/logoweb-1.png') }}" alt="Logo" style="width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); background: rgba(255,255,255,0.9); border-radius: 50%; padding: 8px;" onerror="this.onerror=null;this.src='{{ asset('assets/login/images/logoweb-1.png') }}';" />
             <div style="color: #fff; font-size: 22px; font-weight: 800; letter-spacing: 1px;">{{ $general_setting->nama_aplikasi ?? 'GAWE V3' }}</div>
         </div>
         

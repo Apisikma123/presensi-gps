@@ -1,30 +1,9 @@
 (function () {
     const formcreateKaryawan = document.querySelector('#formcreateKaryawan');
-    // Form validation for Add new record
+    // Form validation for Add / Edit karyawan
     if (formcreateKaryawan) {
         const fv = FormValidation.formValidation(formcreateKaryawan, {
             fields: {
-                nik: {
-                    validators: {
-                        notEmpty: {
-                            message: 'NIK Harus Diisi'
-                        },
-                    }
-                },
-
-                no_ktp: {
-                    validators: {
-                        notEmpty: {
-                            message: 'No. KTP Harus Diisi'
-                        },
-                        stringLength: {
-                            max: 16,
-                            message: 'No. KTP Maksimal 16 Karakter'
-                        },
-                    },
-
-                },
-
                 nama_karyawan: {
                     validators: {
                         notEmpty: {
@@ -32,95 +11,34 @@
                         },
                     }
                 },
-
-                tempat_lahir: {
-                    validators: {
-                        notEmpty: {
-                            message: 'Tempat Lahir Harus Diisi'
-                        },
-                    }
-                },
-
-                tanggal_lahir: {
-                    validators: {
-                        notEmpty: {
-                            message: 'Tanggal Lahir Harus Diisi'
-                        },
-                    }
-                },
-
-                alamat: {
-                    validators: {
-                        notEmpty: {
-                            message: 'Alamat Harus Diisi'
-                        },
-                    }
-                },
                 jenis_kelamin: {
                     validators: {
                         notEmpty: {
-                            message: 'Jenis Kelamin Harus Diisi'
+                            message: 'Jenis Kelamin Harus Dipilih'
                         },
                     }
                 },
-
-                no_hp: {
-                    validators: {
-                        notEmpty: {
-                            message: 'No. HP Harus Diisi'
-                        },
-                        stringLength: {
-                            max: 16,
-                            message: 'No. HP Maksimal 16 Karakter'
-                        },
-                    },
-
-                },
-
-                kode_status_kawin: {
-                    validators: {
-                        notEmpty: {
-                            message: 'Status Kawin Harus Diisi'
-                        },
-                    }
-                },
-
-                pendidikan_terakhir: {
-                    validators: {
-                        notEmpty: {
-                            message: 'Pendidikan Terakhir Harus Diisi'
-                        },
-                    }
-                },
-
-
                 kode_cabang: {
                     validators: {
                         notEmpty: {
-                            message: 'Kantor Cabang Harus Diisi'
+                            message: 'Kantor Cabang Harus Dipilih'
                         },
                     }
                 },
-
                 kode_dept: {
                     validators: {
                         notEmpty: {
-                            message: 'Departemen Harus Diisi'
+                            message: 'Departemen Harus Dipilih'
                         },
                     }
                 },
-
-
-
                 kode_jabatan: {
                     validators: {
                         notEmpty: {
-                            message: 'Jabatan Harus Diisi'
+                            message: 'Jabatan Harus Dipilih'
                         },
                     }
                 },
-
-
                 tanggal_masuk: {
                     validators: {
                         notEmpty: {
@@ -131,12 +49,10 @@
                 status_karyawan: {
                     validators: {
                         notEmpty: {
-                            message: 'Status Karyawan Harus Diisi'
+                            message: 'Status Karyawan Harus Dipilih'
                         },
                     }
                 },
-
-
             },
             plugins: {
                 trigger: new FormValidation.plugins.Trigger(),
@@ -145,7 +61,6 @@
                     rowSelector: '.mb-3'
                 }),
                 submitButton: new FormValidation.plugins.SubmitButton(),
-
                 defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
                 autoFocus: new FormValidation.plugins.AutoFocus()
             },

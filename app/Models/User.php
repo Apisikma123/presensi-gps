@@ -60,6 +60,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Departemen::class, 'user_departemen_access', 'user_id', 'kode_dept', 'id', 'kode_dept');
     }
 
+    protected ?bool $isSuperAdminMemo = null;
+    protected ?array $cabangCodesMemo = null;
+    protected ?array $departemenCodesMemo = null;
+    protected $cabangMemo = null;
+    protected $departemenMemo = null;
+
     /**
      * Cek apakah user adalah super admin
      *
@@ -67,7 +73,10 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->roles->contains(function ($role) {
+        if ($this->isSuperAdminMemo !== null) {
+            return $this->isSuperAdminMemo;
+        }
+        return $this->isSuperAdminMemo = $this->roles->contains(function ($role) {
             return strtolower($role->name) === 'super admin';
         });
     }
@@ -80,16 +89,19 @@ class User extends Authenticatable
      */
     public function getCabang()
     {
+        if ($this->cabangMemo !== null) {
+            return $this->cabangMemo;
+        }
         if ($this->isSuperAdmin()) {
-            return Cabang::orderBy('kode_cabang')->get();
+            return $this->cabangMemo = Cabang::orderBy('kode_cabang')->get();
         }
 
         $userCabangs = $this->cabangs->pluck('kode_cabang')->toArray();
         if (!empty($userCabangs)) {
-            return Cabang::whereIn('kode_cabang', $userCabangs)->orderBy('kode_cabang')->get();
+            return $this->cabangMemo = Cabang::whereIn('kode_cabang', $userCabangs)->orderBy('kode_cabang')->get();
         }
 
-        return collect(); // Empty collection jika tidak ada akses
+        return $this->cabangMemo = collect(); // Empty collection jika tidak ada akses
     }
 
     /**
@@ -100,16 +112,19 @@ class User extends Authenticatable
      */
     public function getDepartemen()
     {
+        if ($this->departemenMemo !== null) {
+            return $this->departemenMemo;
+        }
         if ($this->isSuperAdmin()) {
-            return Departemen::orderBy('kode_dept')->get();
+            return $this->departemenMemo = Departemen::orderBy('kode_dept')->get();
         }
 
         $userDepartemens = $this->departemens->pluck('kode_dept')->toArray();
         if (!empty($userDepartemens)) {
-            return Departemen::whereIn('kode_dept', $userDepartemens)->orderBy('kode_dept')->get();
+            return $this->departemenMemo = Departemen::whereIn('kode_dept', $userDepartemens)->orderBy('kode_dept')->get();
         }
 
-        return collect(); // Empty collection jika tidak ada akses
+        return $this->departemenMemo = collect(); // Empty collection jika tidak ada akses
     }
 
     /**
@@ -119,11 +134,14 @@ class User extends Authenticatable
      */
     public function getCabangCodes(): array
     {
+        if ($this->cabangCodesMemo !== null) {
+            return $this->cabangCodesMemo;
+        }
         if ($this->isSuperAdmin()) {
-            return Cabang::pluck('kode_cabang')->toArray();
+            return $this->cabangCodesMemo = Cabang::pluck('kode_cabang')->toArray();
         }
 
-        return $this->cabangs->pluck('kode_cabang')->toArray();
+        return $this->cabangCodesMemo = $this->cabangs->pluck('kode_cabang')->toArray();
     }
 
     /**
@@ -133,11 +151,14 @@ class User extends Authenticatable
      */
     public function getDepartemenCodes(): array
     {
+        if ($this->departemenCodesMemo !== null) {
+            return $this->departemenCodesMemo;
+        }
         if ($this->isSuperAdmin()) {
-            return Departemen::pluck('kode_dept')->toArray();
+            return $this->departemenCodesMemo = Departemen::pluck('kode_dept')->toArray();
         }
 
-        return $this->departemens->pluck('kode_dept')->toArray();
+        return $this->departemenCodesMemo = $this->departemens->pluck('kode_dept')->toArray();
     }
 
     /**

@@ -75,12 +75,9 @@ class ApprovalNotificationService
             case \App\Models\Izinabsen::class:
             case \App\Models\Izinsakit::class:
             case \App\Models\Izincuti::class:
-            case \App\Models\Izindinas::class:
                 return 'IZIN';
-            case \App\Models\Reimbursement::class:
-                return 'REIMBURSEMENT';
-            case \App\Models\Koreksi::class:
-                return 'KOREKSI';
+            case \App\Models\PresensiDispensasi::class:
+                return 'DISPENSASI';
             default:
                 return null;
         }
@@ -96,12 +93,8 @@ class ApprovalNotificationService
                 return 'Izin Sakit';
             case \App\Models\Izincuti::class:
                 return 'Izin Cuti';
-            case \App\Models\Izindinas::class:
-                return 'Izin Dinas';
-            case \App\Models\Reimbursement::class:
-                return 'Reimbursement';
-            case \App\Models\Koreksi::class:
-                return 'Koreksi Absen';
+            case \App\Models\PresensiDispensasi::class:
+                return 'Dispensasi';
             default:
                 $classParts = explode('\\', $class);
                 return end($classParts);

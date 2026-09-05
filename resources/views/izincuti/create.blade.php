@@ -32,8 +32,12 @@
     <x-input-with-icon icon="ti ti-user" label="Nama Kepala Divisi" name="nama_kepala_divisi" />
     <x-textarea label="Alasan Cuti" name="keterangan" />
 
-    <div class="form-group mb-3">
-        <button class="btn btn-primary w-100" id="btnSimpan"><i class="ti ti-send me-1"></i>Submit</button>
+    <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4" id="btnSimpan">
+            <i class="ti ti-device-floppy"></i>
+            <span>Simpan Pengajuan Cuti</span>
+        </button>
     </div>
 </form>
 <div id="sisa_cuti_alert"></div>

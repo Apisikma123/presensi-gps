@@ -119,6 +119,64 @@ class IzincutiController extends Controller
         $data['karyawan'] = $karyawan;
 
         if ($user->hasRole('karyawan')) {
+            $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+            $nik = $userkaryawan?->nik ?? '';
+            $currentYear = date('Y');
+
+            $cutiTahunan = Cuti::where('kode_cuti', 'C01')->first();
+            $kuotaTahunan = $cutiTahunan->jumlah_hari ?? 12;
+
+            $cutiTahunanTerpakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
+                ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
+                ->where('presensi.nik', $nik)
+                ->where('presensi_izincuti.kode_cuti', 'C01')
+                ->whereRaw("YEAR(presensi.tanggal) = ?", [$currentYear])
+                ->count();
+
+            $cutiTahunanPending = (int) Izincuti::where('nik', $nik)
+                ->where('kode_cuti', 'C01')
+                ->where('status', '0')
+                ->whereRaw("YEAR(dari) = ?", [$currentYear])
+                ->sum(DB::raw('DATEDIFF(sampai, dari) + 1'));
+
+            $sisaCutiTahunan = max(0, $kuotaTahunan - $cutiTahunanTerpakai);
+
+            $data['sisa_cuti_info'] = [
+                'tahun' => $currentYear,
+                'kuota' => $kuotaTahunan,
+                'terpakai' => $cutiTahunanTerpakai,
+                'pending' => $cutiTahunanPending,
+                'sisa' => $sisaCutiTahunan,
+                'jenis_cuti_nama' => $cutiTahunan->jenis_cuti ?? 'Cuti Tahunan',
+                'kode_cuti' => 'C01'
+            ];
+
+            $breakdown = [];
+            foreach ($data['jenis_cuti'] as $jc) {
+                if ($jc->kode_cuti == 'C01') {
+                    $breakdown[$jc->kode_cuti] = [
+                        'nama' => $jc->jenis_cuti,
+                        'max' => $jc->jumlah_hari,
+                        'terpakai' => $cutiTahunanTerpakai,
+                        'sisa' => $sisaCutiTahunan,
+                    ];
+                } else {
+                    $used = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
+                        ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
+                        ->where('presensi.nik', $nik)
+                        ->where('presensi_izincuti.kode_cuti', $jc->kode_cuti)
+                        ->whereRaw("YEAR(presensi.tanggal) = ?", [$currentYear])
+                        ->count();
+                    $breakdown[$jc->kode_cuti] = [
+                        'nama' => $jc->jenis_cuti,
+                        'max' => $jc->jumlah_hari,
+                        'terpakai' => $used,
+                        'sisa' => max(0, $jc->jumlah_hari - $used),
+                    ];
+                }
+            }
+            $data['cuti_breakdown'] = $breakdown;
+
             return view('izincuti.create-mobile', $data);
         }
         return view('izincuti.create', $data);
@@ -192,11 +250,30 @@ class IzincutiController extends Controller
             $cuti = Cuti::where('kode_cuti', $request->kode_cuti)->first();
             $jml_hari_max = $cuti->jumlah_hari;
 
+            // Validasi Kuota Cuti Bulanan (monthly_leave_quota)
+            $generalsetting = Pengaturanumum::getSetting();
+            $monthlyQuota = $generalsetting->monthly_leave_quota ?? 3;
+            $bulanCuti = date('m', strtotime($request->dari));
+            $tahunCuti = date('Y', strtotime($request->dari));
+
+            $cutiDisetujuiBulanIni = Izincuti::where('nik', $nik)
+                ->where('status', 1)
+                ->whereYear('dari', $tahunCuti)
+                ->whereMonth('dari', $bulanCuti)
+                ->count();
+
+            if ($cutiDisetujuiBulanIni >= $monthlyQuota) {
+                return Redirect::back()->with(messageError(
+                    "Kuota cuti bulanan Anda untuk bulan " . date('F Y', strtotime($request->dari)) . 
+                    " sudah mencapai batas maksimal (" . $monthlyQuota . " kali per bulan)."
+                ));
+            }
+
             if ($request->kode_cuti == "C01") {
                 $tahun_cuti = date('Y', strtotime($request->dari));
                 $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
                     ->where('presensi.nik', $nik)
-                    ->whereRaw("YEAR(presensi.tanggal) = $tahun_cuti")
+                    ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun_cuti])
                     ->count();
                 $sisa_cuti = $jml_hari_max - $cek_cuti_dipakai;
 
@@ -222,6 +299,7 @@ class IzincutiController extends Controller
                 'status' => 0,
                 'approval_step' => 1,
                 'id_user' => $user->id,
+                'keterangan_hrd' => null,
             ];
 
             Izincuti::create($dataizincuti);
@@ -290,6 +368,27 @@ class IzincutiController extends Controller
     public function update(Request $request, $kode_izin_cuti)
     {
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
+        $izincuti = Izincuti::where('kode_izin_cuti', $kode_izin_cuti)
+            ->join('karyawan', 'presensi_izincuti.nik', '=', 'karyawan.nik')
+            ->first();
+
+        if (!$izincuti) {
+            abort(404, 'Data izin cuti tidak ditemukan.');
+        }
+
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs) && !in_array($izincuti->kode_cabang, $userCabangs)) {
+                abort(403, 'Anda tidak memiliki akses ke cabang izin cuti ini.');
+            }
+            if (!empty($userDepartemens) && !in_array($izincuti->kode_dept, $userDepartemens)) {
+                abort(403, 'Anda tidak memiliki akses ke departemen izin cuti ini.');
+            }
+        }
+
         $request->validate([
             'nik' => 'required',
             'dari' => 'required',
@@ -445,19 +544,18 @@ class IzincutiController extends Controller
                         if ($jamkerja == null) {
                             $error .= 'Jam Kerja pada Tanggal ' . $dari . ' Belum Di Set! <br>';
                         } else {
-                            // dd($request->all());
-                            // dd(isset($request->approve));
-                            $presensi = Presensi::create([
-                                'nik' => $nik,
-                                'tanggal' => $dari,
-                                'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
-                                'status' => 'c',
-                            ]);
-    
-                            Approveizincuti::create([
-                                'id_presensi' => $presensi->id,
-                                'kode_izin_cuti' => $kode_izin_cuti,
-                            ]);
+                            $presensi = Presensi::updateOrCreate(
+                                ['nik' => $nik, 'tanggal' => $dari],
+                                [
+                                    'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
+                                    'status' => 'c',
+                                ]
+                            );
+
+                            Approveizincuti::updateOrCreate(
+                                ['kode_izin_cuti' => $kode_izin_cuti, 'id_presensi' => $presensi->id],
+                                ['id_presensi' => $presensi->id, 'kode_izin_cuti' => $kode_izin_cuti]
+                            );
                         }
     
     
@@ -707,7 +805,7 @@ class IzincutiController extends Controller
         $tahun_cuti = date('Y', strtotime($izincuti->dari));
         $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
             ->where('presensi.nik', $izincuti->nik)
-            ->whereRaw("YEAR(presensi.tanggal) = $tahun_cuti")
+            ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun_cuti])
             ->count();
             
         $data['izincuti'] = $izincuti;
@@ -833,18 +931,28 @@ class IzincutiController extends Controller
         $tahun_cuti = date('Y', strtotime($tanggal));
         $kode_cuti = $request->kode_cuti;
         $cuti = Cuti::where('kode_cuti', $kode_cuti)->first();
-        $jml_hari_max = $cuti->jumlah_hari;
-        if ($cuti->kode_cuti == "C01") {
-            $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
-                ->where('presensi.nik', $nik)
-                ->whereRaw("YEAR(presensi.tanggal) = $tahun_cuti")
-                ->count();
-            $sisa_cuti = $jml_hari_max - $cek_cuti_dipakai;
-            $message = 'Sisa Cuti ' . $cuti->jenis_cuti . ' Anda Adalah ' . $sisa_cuti . ' Hari Lagi';
-        } else {
-            $sisa_cuti = $jml_hari_max;
-            $message = "Batas Maksimal Cuti " . $cuti->jenis_cuti . " Anda Adalah " . $jml_hari_max . " Hari";
+        if (!$cuti) {
+            return response()->json(['status' => false, 'message' => 'Data jenis cuti tidak ditemukan']);
         }
-        return response()->json(['status' => true, 'sisa_cuti' => $sisa_cuti, 'message' => $message]);
+        $jml_hari_max = $cuti->jumlah_hari;
+        $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
+            ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
+            ->where('presensi.nik', $nik)
+            ->where('presensi_izincuti.kode_cuti', $cuti->kode_cuti)
+            ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun_cuti])
+            ->count();
+        $sisa_cuti = max(0, $jml_hari_max - $cek_cuti_dipakai);
+        $terpakai = $cek_cuti_dipakai;
+        $message = ($cuti->kode_cuti == "C01")
+            ? 'Sisa Cuti ' . $cuti->jenis_cuti . ' Anda Adalah ' . $sisa_cuti . ' Hari Lagi'
+            : 'Batas Maksimal Cuti ' . $cuti->jenis_cuti . ' Anda Adalah ' . $jml_hari_max . ' Hari (Sisa: ' . $sisa_cuti . ' Hari)';
+        return response()->json([
+            'status' => true,
+            'sisa_cuti' => $sisa_cuti,
+            'kuota' => $jml_hari_max,
+            'terpakai' => $terpakai,
+            'nama_cuti' => $cuti->jenis_cuti,
+            'message' => $message
+        ]);
     }
 }

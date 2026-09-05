@@ -76,55 +76,7 @@ class Karyawan extends Model
 
 
 
-    public function getRekapkontrak($kategori, $userCabangs = null, $userDepartemens = null)
-    {
-        $bulanini = date("m");
-        $tahunini = date("Y");
-        $start_date_bulanini = $tahunini . "-" . $bulanini . "-01";
-        $end_date_bulanini = date("Y-m-t", strtotime($start_date_bulanini));
-        //Jika Bulan + 1 Lebih dari 12 Maka Bulan + 1 - 12 dan Tahun + 1 Jika Tidak Maka Bulan Depan = Bulan + 1
-        $bulandepan = date("m") + 1 > 12 ? (date("m") + 1) - 12 : date("m") + 1;
-        $tahunbulandepan = date("m") + 1 > 12 ? $tahunini + 1 : $tahunini;
-        $start_date_bulandepan = $tahunbulandepan . "-" . $bulandepan . "-01";
-        $end_date_bulandepan = date("Y-m-t", strtotime($start_date_bulandepan));
 
-        //Jika Bulan + 2 Lebih dari 12 Maka Bulan + 2 - 12 dan Tahun + 1 Jika Tidak Maka Bulan Depan = Bulan + 2
-        //Sampel Jika Bulan = Desember (12) Maka Dua bulan adalah Februari (2) (12+2-12);
-        $duabulan = date("m") + 2 > 12 ? (date("m") + 2) - 12 : date("m") + 2;
-        $tahunduabulan = date("m") + 2 > 12 ? $tahunini + 1 : $tahunini;
-        $start_date_duabulan = $tahunduabulan . "-" . $duabulan . "-01";
-        $end_date_duabulan = date("Y-m-t", strtotime($start_date_duabulan));
-        $query = Kontrak::query();
-        $query->select('kontrak.no_kontrak', 'kontrak.nik', 'kontrak.sampai', 'karyawan.nama_karyawan', 'nama_jabatan', 'karyawan.kode_dept', 'karyawan.kode_cabang', 'nama_cabang');
-        $query->join('karyawan', 'kontrak.nik', '=', 'karyawan.nik');
-        $query->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang');
-        $query->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan');
-        
-        // Filter berdasarkan akses cabang dan departemen jika diberikan
-        if (!empty($userCabangs) && is_array($userCabangs)) {
-            $query->whereIn('karyawan.kode_cabang', $userCabangs);
-        }
-        
-        if (!empty($userDepartemens) && is_array($userDepartemens)) {
-            $query->whereIn('karyawan.kode_dept', $userDepartemens);
-        }
-        
-        if ($kategori == 0) { // Lewat Jatuh Tempo
-            $query->where('sampai', '<', $start_date_bulanini);
-        } else if ($kategori == 1) { // Jatuh Tempo Bulan Ini
-            $query->whereBetween('sampai', [$start_date_bulanini, $end_date_bulanini]);
-        } else if ($kategori == 2) { // Jatuh Tempo Bulan Depan
-            $query->whereBetween('sampai', [$start_date_bulandepan, $end_date_bulandepan]);
-        } else if ($kategori == 3) { // Jatuh Tempo Dua Bulan
-            $query->whereBetween('sampai', [$start_date_duabulan, $end_date_duabulan]);
-        }
-        $query->where('status_aktif_karyawan', 1);
-        $query->where('status_karyawan', 'K');
-        $query->where('status_kontrak', 1);
-        $query->orderBy('kontrak.sampai');
-        $query->orderBy('karyawan.nama_karyawan');
-        return $query->get();
-    }
 
     // Relasi dengan GrupDetail
     // public function grupDetail()
@@ -151,5 +103,10 @@ class Karyawan extends Model
     public function cabang()
     {
         return $this->belongsTo(Cabang::class, 'kode_cabang', 'kode_cabang');
+    }
+
+    public function jamkerja()
+    {
+        return $this->belongsTo(Jamkerja::class, 'kode_jam_kerja', 'kode_jam_kerja');
     }
 }

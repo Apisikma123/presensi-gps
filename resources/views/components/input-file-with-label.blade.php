@@ -1,5 +1,2 @@
-@props(['name' => '', 'label' => '', 'value' => ''])
-<div class="form-group mb-3">
-    <label for="exampleFormControlInput1" style="font-weight: 600" class="form-label">{{ $label }}</label>
-    <input class="form-control" type="file" id="{{ $name }}" name="{{ $name }}">
-</div>
+@props(['name' => '', 'label' => '', 'value' => null, 'accept' => 'image/jpeg,image/png,image/webp,image/jpg', 'required' => false])
+<x-input-file :name="$name" :label="$label" :value="$value" :accept="$accept" :required="$required" {{ $attributes }} />

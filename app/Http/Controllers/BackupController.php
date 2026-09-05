@@ -45,7 +45,8 @@ class BackupController extends Controller
                 $dbHost = config('database.connections.mysql.host');
                 $dbPort = config('database.connections.mysql.port', 3306);
 
-                $command = "mysqldump --no-tablespaces --column-statistics=0 -h {$dbHost} -P {$dbPort} -u {$dbUser} -p{$dbPass} {$dbName} > '{$filePath}' 2>&1";
+                $passString = empty($dbPass) ? '' : '-p' . escapeshellarg($dbPass);
+                $command = "mysqldump --no-tablespaces --column-statistics=0 -h " . escapeshellarg($dbHost) . " -P " . escapeshellarg($dbPort) . " -u " . escapeshellarg($dbUser) . " {$passString} " . escapeshellarg($dbName) . " > " . escapeshellarg($filePath) . " 2>&1";
                 exec($command, $output, $returnVar);
 
                 if ($returnVar !== 0 || !File::exists($filePath) || File::size($filePath) === 0) {
@@ -133,8 +134,8 @@ class BackupController extends Controller
                 $dbHost = config('database.connections.mysql.host');
                 $dbPort = config('database.connections.mysql.port', 3306);
                 
-                $passString = empty($dbPass) ? '' : "-p{$dbPass}";
-                $command = "mysql -h {$dbHost} -P {$dbPort} -u {$dbUser} {$passString} {$dbName} < '{$path}' 2>&1";
+                $passString = empty($dbPass) ? '' : '-p' . escapeshellarg($dbPass);
+                $command = "mysql -h " . escapeshellarg($dbHost) . " -P " . escapeshellarg($dbPort) . " -u " . escapeshellarg($dbUser) . " {$passString} " . escapeshellarg($dbName) . " < " . escapeshellarg($path) . " 2>&1";
                 exec($command, $output, $returnVar);
 
                 if ($returnVar !== 0) {

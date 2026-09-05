@@ -60,6 +60,13 @@ class AuthController extends Controller
             ], 404);
         }
 
+        if ($karyawan->status_aktif_karyawan != '1') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun karyawan Anda sudah dinonaktifkan / tidak aktif'
+            ], 403);
+        }
+
         // Create Sanctum Token
         $token = $user->createToken('mobile-token')->plainTextToken;
 

@@ -2,11 +2,7 @@
 <div id="pwa-install-prompt" class="pwa-install-prompt" style="display: none;">
     <div class="pwa-install-content">
         <div class="pwa-install-icon">
-            @if (!empty($general_setting->logo) && Storage::disk('public')->exists('logo/' . $general_setting->logo))
-                <img src="{{ asset('storage/logo/' . $general_setting->logo) }}?v={{ Storage::disk('public')->exists('logo/' . $general_setting->logo) ? Storage::disk('public')->lastModified('logo/' . $general_setting->logo) : time() }}" alt="Logo" class="pwa-app-logo">
-            @else
-                <img src="{{ asset('assets/img/icons/pwa/icon-192x192.png') }}?v={{ file_exists(public_path('assets/img/icons/pwa/icon-192x192.png')) ? filemtime(public_path('assets/img/icons/pwa/icon-192x192.png')) : time() }}" alt="Logo" class="pwa-app-logo">
-            @endif
+            <img src="{{ $app_logo_url ?? asset('assets/img/icons/pwa/icon-192x192.png') }}" alt="Logo" class="pwa-app-logo" onerror="this.onerror=null;this.src='{{ asset('assets/img/icons/pwa/icon-192x192.png') }}';">
         </div>
         <div class="pwa-install-text">
             <h4>Install {{ $general_setting->nama_aplikasi ?? 'E-Presensi' }}</h4>

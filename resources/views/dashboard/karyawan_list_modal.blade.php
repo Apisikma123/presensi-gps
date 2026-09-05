@@ -7,18 +7,18 @@
 
 <div class="table-responsive">
     <table class="table table-hover mb-0">
-        <thead style="background-color: var(--theme-color-1) !important; color: white !important;">
+        <thead>
             <tr>
-                <th class="text-white py-3 text-center" style="width: 60px;">NO.</th>
-                <th class="text-white py-3 text-center" style="width: 80px;">FOTO</th>
-                <th class="text-white py-3" style="width: 120px;">NIK</th>
-                <th class="text-white py-3">NAMA KARYAWAN</th>
-                <th class="text-white py-3">JABATAN / DEPT / CABANG</th>
+                <th class="py-3 text-center" style="width: 60px;">NO.</th>
+                <th class="py-3 text-center" style="width: 80px;">FOTO</th>
+                <th class="py-3" style="width: 120px;">NIK</th>
+                <th class="py-3">NAMA KARYAWAN</th>
+                <th class="py-3">JABATAN / DEPT / CABANG</th>
                 @if($status == 'h')
-                    <th class="text-white py-3">JAM MASUK</th>
-                    <th class="text-white py-3">JAM PULANG</th>
+                    <th class="py-3">JAM MASUK</th>
+                    <th class="py-3">JAM PULANG</th>
                 @else
-                    <th class="text-white py-3">KETERANGAN</th>
+                    <th class="py-3">KETERANGAN</th>
                 @endif
             </tr>
         </thead>
@@ -27,10 +27,11 @@
                 <tr>
                     <td class="py-2 text-center">{{ $loop->iteration }}</td>
                     <td class="py-2 text-center">
-                        @if (!empty($k->foto) && Storage::disk('public')->exists('/karyawan/' . $k->foto))
+                        @if (!empty($k->foto))
                             <img src="{{ getfotoKaryawan($k->foto) }}" alt="Avatar"
                                 class="rounded-circle"
-                                style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #e9ecef;">
+                                style="width: 40px; height: 40px; object-fit: cover; border: 1px solid #e9ecef;"
+                                onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/No_Image_Available.jpg') }}';">
                         @else
                             <img src="{{ asset('assets/img/avatars/No_Image_Available.jpg') }}"
                                 alt="No Image" class="rounded-circle"

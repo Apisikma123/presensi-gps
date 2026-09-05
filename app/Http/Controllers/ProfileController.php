@@ -17,7 +17,7 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        $user = User::find(Auth::user()->id);
+        $user = Auth::user();
         $user_karyawan = Userkaryawan::where('id_user', $user->id)->first();
         $karyawan = $user_karyawan ? Karyawan::where('nik', $user_karyawan->nik)->first() : null;
         $data['karyawan'] = $karyawan;
@@ -27,7 +27,7 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        $user = User::find(Auth::user()->id);
+        $user = Auth::user();
         $user_karyawan = Userkaryawan::where('id_user', $user->id)->first();
         $karyawan = $user_karyawan ? Karyawan::where('nik', $user_karyawan->nik)->first() : null;
 
@@ -35,6 +35,10 @@ class ProfileController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'nama_karyawan' => 'required|string|max:255',
             'no_hp' => 'nullable|string|max:20',
+            'no_ktp' => 'nullable|string|max:30',
+            'alamat' => 'nullable|string|max:500',
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
         ]);
 
         try {
@@ -57,6 +61,7 @@ class ProfileController extends Controller
                     ];
                 }
 
+                // Strict whitelist: employee can only update basic personal info
                 $data_karyawan = [
                     'nama_karyawan' => $request->nama_karyawan,
                     'no_ktp' => $request->no_ktp,
@@ -67,11 +72,14 @@ class ProfileController extends Controller
                 Karyawan::where('nik', $karyawan->nik)->update($data);
             }
 
-            User::where('id', $user->id)->update([
-                'name' => $request->nama_karyawan,
-                'email' => $request->email,
-                'username' => $request->username,
-            ]);
+            $userData = ['name' => $request->nama_karyawan];
+            if ($request->filled('email')) {
+                $userData['email'] = $request->email;
+            }
+            if ($request->filled('username')) {
+                $userData['username'] = $request->username;
+            }
+            User::where('id', $user->id)->update($userData);
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));

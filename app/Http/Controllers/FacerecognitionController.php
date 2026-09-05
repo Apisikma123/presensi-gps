@@ -289,10 +289,21 @@ class FacerecognitionController extends Controller
     // Hapus semua wajah berdasarkan NIK
     public function destroyAll($nik)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         $nik = Crypt::decrypt($nik);
         $karyawan = Karyawan::where('nik', $nik)->first();
         if (!$karyawan) {
             return Redirect::back()->with(messageError('Karyawan tidak ditemukan'));
+        }
+
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!in_array($karyawan->kode_cabang, $userCabangs) || !in_array($karyawan->kode_dept, $userDepartemens)) {
+                abort(403, 'Anda tidak memiliki akses ke data wajah karyawan cabang ini.');
+            }
         }
         $folder = $karyawan->nik . '-' . getNamaDepan(strtolower($karyawan->nama_karyawan));
         $folderPath = 'uploads/facerecognition/' . $folder;

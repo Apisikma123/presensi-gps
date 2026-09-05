@@ -1,325 +1,264 @@
 /**
- * Face Recognition Model Caching Utility
- * Menggunakan IndexedDB untuk cache model face-api.js
- * 
- * Usage:
- * - Preload di dashboard: window.FaceModelCache.preloadFaceModels()
- * - Load di presensi: window.FaceModelCache.loadModelWithCache(net, path)
+ * Face Recognition Model & Descriptors Caching Utility (High Performance Engine)
+ * - Intercepts model fetches (/models/*) to serve binary weights directly from IndexedDB.
+ * - Caches neural network weights (7MB) once in IndexedDB; subsequent page loads resolve in < 10ms with zero network requests.
+ * - Caches employee face descriptors in IndexedDB for instant matcher recreation without re-running CNN on photos.
+ * - Avoids re-parsing models if faceapi nets are already loaded in memory.
+ * - Background preloading support for dashboard.
  */
-
 (function () {
     'use strict';
 
     const DB_NAME = 'FaceRecognitionCache';
-    const DB_VERSION = 2; // Increment untuk support descriptors
-    const STORE_NAME = 'models';
-    const DESCRIPTORS_STORE = 'descriptors';
-    const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 jam
+    const DB_VERSION = 3;
+    const STORE_MODELS = 'model_files';
+    const STORE_DESCRIPTORS = 'descriptors';
+    const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-    let db = null;
+    let dbPromise = null;
 
-    // Inisialisasi IndexedDB
-    function initDB() {
-        return new Promise((resolve, reject) => {
-            if (db) {
-                resolve(db);
-                return;
-            }
-
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => {
-                db = request.result;
-                resolve(db);
-            };
-
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                const oldVersion = event.oldVersion;
-
-                // Create models store (v1)
-                if (oldVersion < 1 || !db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME);
-                }
-
-                // Create descriptors store (v2)
-                if (oldVersion < 2 || !db.objectStoreNames.contains(DESCRIPTORS_STORE)) {
-                    db.createObjectStore(DESCRIPTORS_STORE);
-                }
-            };
-        });
-    }
-
-    // Simpan model ke IndexedDB (untuk tracking)
-    async function saveModelToCache(modelName, modelData) {
-        try {
-            const database = await initDB();
-            const transaction = database.transaction([STORE_NAME], 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
-
-            const cacheData = {
-                data: modelData,
-                timestamp: Date.now()
-            };
-
-            await store.put(cacheData, modelName);
-            console.log(`[FaceModelCache] Model ${modelName} cached successfully`);
-        } catch (error) {
-            console.warn(`[FaceModelCache] Failed to cache model ${modelName}:`, error);
+    function getDB() {
+        if (!dbPromise) {
+            dbPromise = new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_MODELS)) {
+                        db.createObjectStore(STORE_MODELS);
+                    }
+                    if (!db.objectStoreNames.contains(STORE_DESCRIPTORS)) {
+                        db.createObjectStore(STORE_DESCRIPTORS);
+                    }
+                };
+            });
         }
+        return dbPromise;
     }
 
-    // Load model dari IndexedDB (untuk tracking)
-    async function loadModelFromCache(modelName) {
+    // Get model file (ArrayBuffer or JSON) from IndexedDB
+    async function getCachedModelFile(key) {
         try {
-            const database = await initDB();
-            const transaction = database.transaction([STORE_NAME], 'readonly');
-            const store = transaction.objectStore(STORE_NAME);
-
-            return new Promise((resolve, reject) => {
-                const request = store.get(modelName);
-                request.onsuccess = () => {
-                    const result = request.result;
-                    if (result && (Date.now() - result.timestamp) < CACHE_EXPIRY) {
-                        console.log(`[FaceModelCache] Model ${modelName} found in cache`);
-                        resolve(result.data);
+            const db = await getDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE_MODELS], 'readonly');
+                const req = tx.objectStore(STORE_MODELS).get(key);
+                req.onsuccess = () => {
+                    const item = req.result;
+                    if (item && (Date.now() - item.timestamp) < CACHE_EXPIRY) {
+                        resolve(item);
                     } else {
                         resolve(null);
                     }
                 };
-                request.onerror = () => reject(request.error);
+                req.onerror = () => resolve(null);
             });
-        } catch (error) {
-            console.warn(`[FaceModelCache] Failed to load model ${modelName} from cache:`, error);
+        } catch (e) {
             return null;
         }
     }
 
-    // Load model dengan caching (menggunakan browser cache + IndexedDB tracking)
-    async function loadModelWithCache(net, modelPath) {
-        // Cek IndexedDB untuk tracking
-        const cached = await loadModelFromCache(modelPath);
-
-        if (cached) {
-            // Model sudah pernah di-load, browser cache akan handle
-            console.log(`[FaceModelCache] Loading ${modelPath} (browser cache should be used)`);
-        }
-
+    // Save model file to IndexedDB
+    async function saveModelFile(key, buffer, contentType) {
         try {
-            // Load dari URI (browser akan gunakan cache jika ada)
-            await net.loadFromUri(modelPath);
-
-            // Update cache timestamp
-            await saveModelToCache(modelPath, { loaded: true, lastLoad: Date.now() });
-
-            if (cached) {
-                console.log(`[FaceModelCache] Model ${modelPath} loaded from browser cache`);
-            } else {
-                console.log(`[FaceModelCache] Model ${modelPath} loaded from server and cached`);
-            }
-
-            return true;
-        } catch (error) {
-            console.error(`[FaceModelCache] Failed to load model ${modelPath}:`, error);
-            return false;
-        }
-    }
-
-    // Preload models di background (non-blocking)
-    async function preloadFaceModels() {
-        if (typeof faceapi === 'undefined') {
-            console.log('[FaceModelCache] Face-api.js not loaded yet, skipping preload');
-            return false;
-        }
-
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        console.log('[FaceModelCache] Starting background preload of face recognition models...');
-
-        try {
-            await Promise.all([
-                loadModelWithCache(faceapi.nets.tinyFaceDetector, '/models'),
-                loadModelWithCache(faceapi.nets.faceRecognitionNet, '/models'),
-                loadModelWithCache(faceapi.nets.faceLandmark68Net, '/models')
-            ]);
-
-            console.log('[FaceModelCache] Face recognition models preloaded successfully!');
-
-            // Simpan flag bahwa model sudah di-load
-            sessionStorage.setItem('faceModelsPreloaded', 'true');
-            sessionStorage.setItem('faceModelsPreloadTime', Date.now().toString());
-
-            return true;
-        } catch (error) {
-            console.warn('[FaceModelCache] Error preloading face models:', error);
-            return false;
-        }
-    }
-
-    // Simpan face descriptors ke IndexedDB
-    async function saveDescriptors(nik, descriptors, wajahFiles, wajahSig) {
-        try {
-            const database = await initDB();
-            const transaction = database.transaction([DESCRIPTORS_STORE], 'readwrite');
-            const store = transaction.objectStore(DESCRIPTORS_STORE);
-
-            const cacheData = {
-                descriptors: descriptors,
-                wajahFiles: wajahFiles,
-                wajahSig: wajahSig || (wajahFiles ? wajahFiles.join(',') + '_' + Date.now() : Date.now().toString()),
-                faceCount: wajahFiles ? wajahFiles.length : 0,
+            const db = await getDB();
+            const tx = db.transaction([STORE_MODELS], 'readwrite');
+            await tx.objectStore(STORE_MODELS).put({
+                buffer: buffer,
+                contentType: contentType || (key.endsWith('.json') ? 'application/json' : 'application/octet-stream'),
                 timestamp: Date.now()
-            };
-
-            await store.put(cacheData, nik);
-            console.log(`[FaceModelCache] Descriptors for ${nik} cached successfully`);
-        } catch (error) {
-            console.warn(`[FaceModelCache] Failed to cache descriptors for ${nik}:`, error);
+            }, key);
+        } catch (e) {
+            console.warn('[FaceModelCache] Failed to save to IndexedDB:', key, e);
         }
     }
 
-    // Load face descriptors dari IndexedDB
-    async function loadDescriptors(nik) {
-        try {
-            const database = await initDB();
-            const transaction = database.transaction([DESCRIPTORS_STORE], 'readonly');
-            const store = transaction.objectStore(DESCRIPTORS_STORE);
+    // Transparent Fetch Interceptor for /models/*
+    const originalFetch = window.fetch;
+    window.fetch = async function (input, init) {
+        let url = '';
+        if (typeof input === 'string') {
+            url = input;
+        } else if (input && input.url) {
+            url = input.url;
+        }
 
-            return new Promise((resolve, reject) => {
-                const request = store.get(nik);
-                request.onsuccess = () => {
-                    const result = request.result;
-                    if (result && (Date.now() - result.timestamp) < CACHE_EXPIRY) {
-                        console.log(`[FaceModelCache] Descriptors for ${nik} found in cache`);
-                        resolve(result);
-                    } else {
-                        resolve(null);
+        // Only intercept face-api model requests
+        if (url && (url.includes('/models/') || url.includes('model-shard') || url.includes('model-weights_manifest.json'))) {
+            let cleanKey = url.split('?')[0];
+            try {
+                cleanKey = (new URL(cleanKey, window.location.origin)).pathname;
+            } catch(e) {}
+            const cached = await getCachedModelFile(cleanKey);
+            if (cached && cached.buffer) {
+                // Instantly return from client-side IndexedDB!
+                return new Response(cached.buffer.slice(0), {
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {
+                        'Content-Type': cached.contentType,
+                        'X-Face-Cache': 'HIT-INDEXEDDB'
                     }
-                };
-                request.onerror = () => reject(request.error);
-            });
-        } catch (error) {
-            console.warn(`[FaceModelCache] Failed to load descriptors for ${nik} from cache:`, error);
-            return null;
-        }
-    }
-
-    // Preload face descriptors di background
-    async function preloadFaceDescriptors(nik, label) {
-        if (typeof faceapi === 'undefined') {
-            console.log('[FaceModelCache] Face-api.js not loaded yet, skipping descriptor preload');
-            return false;
-        }
-
-        // Cek apakah sudah ada di cache
-        const cached = await loadDescriptors(nik);
-        if (cached) {
-            console.log(`[FaceModelCache] Descriptors for ${nik} already cached`);
-            return true;
-        }
-
-        console.log(`[FaceModelCache] Starting background preload of face descriptors for ${nik}...`);
-
-        try {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const timestamp = new Date().getTime();
-
-            // Fetch data wajah
-            const response = await fetch(`/facerecognition/getwajah?t=${timestamp}`);
-            const data = await response.json();
-
-            if (!data || data.length === 0) {
-                console.warn(`[FaceModelCache] No face data found for ${nik}`);
-                return false;
+                });
             }
 
-            // Process semua foto secara parallel
-            const processPromises = data.slice(0, 5).map(async (faceData) => {
-                try {
-                    const randomBust = Math.random().toString(36).substring(7);
-                    const imagePath = `/storage/uploads/facerecognition/${label}/${faceData.wajah}?t=${timestamp}&r=${randomBust}&v=${Date.now()}`;
-
-                    const img = await faceapi.fetchImage(imagePath);
-                    if (!img) return null;
-
-                    let detections = await faceapi.detectSingleFace(
-                        img, new faceapi.TinyFaceDetectorOptions({
-                            inputSize: 160,
-                            scoreThreshold: 0.5
-                        })
-                    ).withFaceLandmarks().withFaceDescriptor();
-
-                    if (detections) {
-                        return {
-                            descriptor: detections.descriptor,
-                            wajahFile: faceData.wajah
-                        };
-                    }
-                } catch (err) {
-                    console.warn(`[FaceModelCache] Error processing ${faceData.wajah}:`, err);
+            // Not in cache, fetch from network and cache for next time
+            try {
+                const response = await originalFetch.apply(this, arguments);
+                if (response.ok) {
+                    const cloned = response.clone();
+                    cloned.arrayBuffer().then(buffer => {
+                        const contentType = response.headers.get('Content-Type') || (cleanKey.endsWith('.json') ? 'application/json' : 'application/octet-stream');
+                        saveModelFile(cleanKey, buffer, contentType);
+                    }).catch(() => {});
                 }
-                return null;
-            });
-
-            const results = await Promise.all(processPromises);
-            const validResults = results.filter(r => r !== null);
-
-            if (validResults.length > 0) {
-                const descriptors = validResults.map(r => r.descriptor);
-                const wajahFiles = validResults.map(r => r.wajahFile);
-                await saveDescriptors(nik, descriptors, wajahFiles);
-                console.log(`[FaceModelCache] Preloaded ${validResults.length} descriptors for ${nik}`);
-                return true;
+                return response;
+            } catch (err) {
+                throw err;
             }
-
-            return false;
-        } catch (error) {
-            console.warn(`[FaceModelCache] Error preloading descriptors for ${nik}:`, error);
-            return false;
         }
-    }
 
-    // Clear cache (untuk debugging/testing)
-    async function clearCache() {
-        try {
-            const database = await initDB();
-            const transaction = database.transaction([STORE_NAME, DESCRIPTORS_STORE], 'readwrite');
-            await transaction.objectStore(STORE_NAME).clear();
-            await transaction.objectStore(DESCRIPTORS_STORE).clear();
-            console.log('[FaceModelCache] Cache cleared');
-        } catch (error) {
-            console.error('[FaceModelCache] Failed to clear cache:', error);
-        }
-    }
-
-    // Clear descriptors untuk NIK tertentu (ketika wajah dihapus)
-    async function clearDescriptors(nik) {
-        try {
-            const database = await initDB();
-            const transaction = database.transaction([DESCRIPTORS_STORE], 'readwrite');
-            const store = transaction.objectStore(DESCRIPTORS_STORE);
-            await store.delete(nik);
-            console.log(`[FaceModelCache] Descriptors cleared for ${nik}`);
-            return true;
-        } catch (error) {
-            console.error(`[FaceModelCache] Failed to clear descriptors for ${nik}:`, error);
-            return false;
-        }
-    }
-
-    // Expose ke global scope
-    window.FaceModelCache = {
-        loadModelWithCache: loadModelWithCache,
-        preloadFaceModels: preloadFaceModels,
-        preloadFaceDescriptors: preloadFaceDescriptors,
-        loadDescriptors: loadDescriptors,
-        saveDescriptors: saveDescriptors,
-        initDB: initDB,
-        clearCache: clearCache,
-        clearDescriptors: clearDescriptors
+        return originalFetch.apply(this, arguments);
     };
 
-    console.log('[FaceModelCache] Utility loaded');
-})();
+    // Load model with Net in-memory check and fast fallback
+    async function loadModelWithCache(net, modelPath) {
+        if (!net) return false;
 
+        // In-memory check: if already loaded in this session, return instantly
+        if (net.isLoaded || (net.params && Object.keys(net.params).length > 0)) {
+            console.log(`[FaceModelCache] Model already initialized in memory: ${net._name || 'net'}`);
+            return true;
+        }
+
+        try {
+            await net.loadFromUri(modelPath);
+            return true;
+        } catch (error) {
+            console.error(`[FaceModelCache] Failed to load net from ${modelPath}:`, error);
+            throw error;
+        }
+    }
+
+    // Background preloader for dashboard / idle time
+    async function preloadFaceModels(modelBaseUrl = '/models') {
+        const files = [
+            'tiny_face_detector_model-weights_manifest.json',
+            'tiny_face_detector_model-shard1',
+            'face_landmark_68_model-weights_manifest.json',
+            'face_landmark_68_model-shard1',
+            'face_recognition_model-weights_manifest.json',
+            'face_recognition_model-shard1',
+            'face_recognition_model-shard2'
+        ];
+
+        console.log('[FaceModelCache] Starting background preload of model shards...');
+        for (const file of files) {
+            let url = `${modelBaseUrl}/${file}`;
+            try {
+                url = (new URL(url, window.location.origin)).pathname;
+            } catch(e) {}
+            const cached = await getCachedModelFile(url);
+            if (!cached) {
+                try {
+                    const res = await originalFetch(url);
+                    if (res.ok) {
+                        const buffer = await res.arrayBuffer();
+                        const contentType = res.headers.get('Content-Type') || (file.endsWith('.json') ? 'application/json' : 'application/octet-stream');
+                        await saveModelFile(url, buffer, contentType);
+                        console.log(`[FaceModelCache] Preloaded & cached: ${file}`);
+                    }
+                } catch (e) {
+                    console.warn(`[FaceModelCache] Failed to preload ${file}:`, e);
+                }
+            }
+        }
+        console.log('[FaceModelCache] Background model preload complete.');
+        sessionStorage.setItem('faceModelsPreloaded', 'true');
+        return true;
+    }
+
+    // Save Descriptors (Float32Array converted to plain arrays for structured clone)
+    async function saveDescriptors(nik, descriptors, wajahFiles, wajahSig) {
+        try {
+            const db = await getDB();
+            const tx = db.transaction([STORE_DESCRIPTORS], 'readwrite');
+            const plainDescriptors = descriptors.map(d => Array.from(d));
+            await tx.objectStore(STORE_DESCRIPTORS).put({
+                descriptors: plainDescriptors,
+                wajahFiles: wajahFiles || [],
+                wajahSig: wajahSig || (wajahFiles ? wajahFiles.join(',') : Date.now().toString()),
+                timestamp: Date.now()
+            }, nik);
+            console.log(`[FaceModelCache] Descriptors for ${nik} saved to cache`);
+        } catch (e) {
+            console.warn(`[FaceModelCache] Failed to save descriptors for ${nik}:`, e);
+        }
+    }
+
+    // Load Descriptors (Plain arrays converted back to Float32Array)
+    async function loadDescriptors(nik) {
+        try {
+            const db = await getDB();
+            return new Promise((resolve) => {
+                const tx = db.transaction([STORE_DESCRIPTORS], 'readonly');
+                const req = tx.objectStore(STORE_DESCRIPTORS).get(nik);
+                req.onsuccess = () => {
+                    const result = req.result;
+                    if (result && (Date.now() - result.timestamp) < CACHE_EXPIRY && Array.isArray(result.descriptors)) {
+                        const floatDescriptors = result.descriptors.map(arr => new Float32Array(arr));
+                        resolve({
+                            descriptors: floatDescriptors,
+                            wajahFiles: result.wajahFiles,
+                            wajahSig: result.wajahSig,
+                            timestamp: result.timestamp
+                        });
+                    } else {
+                        resolve(null);
+                    }
+                };
+                req.onerror = () => resolve(null);
+            });
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function clearDescriptors(nik) {
+        try {
+            const db = await getDB();
+            const tx = db.transaction([STORE_DESCRIPTORS], 'readwrite');
+            await tx.objectStore(STORE_DESCRIPTORS).delete(nik);
+            console.log(`[FaceModelCache] Descriptors cleared for ${nik}`);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function clearCache() {
+        try {
+            const db = await getDB();
+            const tx = db.transaction([STORE_MODELS, STORE_DESCRIPTORS], 'readwrite');
+            await tx.objectStore(STORE_MODELS).clear();
+            await tx.objectStore(STORE_DESCRIPTORS).clear();
+            console.log('[FaceModelCache] Entire face cache cleared');
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    window.FaceModelCache = {
+        loadModelWithCache,
+        preloadFaceModels,
+        loadDescriptors,
+        saveDescriptors,
+        clearDescriptors,
+        clearCache,
+        initDB: getDB
+    };
+
+    console.log('[FaceModelCache] High-performance model caching engine active');
+})();

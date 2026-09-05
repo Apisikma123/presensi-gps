@@ -87,6 +87,13 @@ class ProfileController extends Controller
             'password' => Hash::make($request->input('password'))
         ]);
 
+        if (method_exists($user, 'tokens')) {
+            $currentTokenId = $user->currentAccessToken()?->id;
+            if ($currentTokenId) {
+                $user->tokens()->where('id', '!=', $currentTokenId)->delete();
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Password berhasil diperbarui'

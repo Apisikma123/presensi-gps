@@ -399,17 +399,18 @@ class IzinabsenController extends Controller
                     if ($jamkerja == null) {
                         $error .= 'Jam Kerja pada Tanggal ' . $dari . ' Belum Di Set! <br>';
                     } else {
-                        $presensi = Presensi::create([
-                            'nik' => $nik,
-                            'tanggal' => $dari,
-                            'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
-                            'status' => 'i',
-                        ]);
+                        $presensi = Presensi::updateOrCreate(
+                            ['nik' => $nik, 'tanggal' => $dari],
+                            [
+                                'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
+                                'status' => 'i',
+                            ]
+                        );
 
-                        Approveizinabsen::create([
-                            'id_presensi' => $presensi->id,
-                            'kode_izin' => $kode_izin,
-                        ]);
+                        Approveizinabsen::updateOrCreate(
+                            ['kode_izin' => $kode_izin, 'id_presensi' => $presensi->id],
+                            ['id_presensi' => $presensi->id, 'kode_izin' => $kode_izin]
+                        );
                     }
 
 
@@ -600,6 +601,27 @@ class IzinabsenController extends Controller
     public function update(Request $request, $kode_izin)
     {
         $kode_izin = Crypt::decrypt($kode_izin);
+        $izinabsen = Izinabsen::where('kode_izin', $kode_izin)
+            ->join('karyawan', 'presensi_izinabsen.nik', '=', 'karyawan.nik')
+            ->first();
+
+        if (!$izinabsen) {
+            abort(404, 'Data izin tidak ditemukan.');
+        }
+
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs) && !in_array($izinabsen->kode_cabang, $userCabangs)) {
+                abort(403, 'Anda tidak memiliki akses ke cabang izin ini.');
+            }
+            if (!empty($userDepartemens) && !in_array($izinabsen->kode_dept, $userDepartemens)) {
+                abort(403, 'Anda tidak memiliki akses ke departemen izin ini.');
+            }
+        }
+
         $request->validate([
             'nik' => 'required',
             'dari' => 'required',

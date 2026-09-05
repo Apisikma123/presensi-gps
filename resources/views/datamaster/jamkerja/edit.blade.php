@@ -50,10 +50,12 @@
             <i class="ti ti-info-circle me-1"></i>Jika dikosongkan, sistem akan menggunakan batas dari General Setting.
         </small>
     </div>
-    <div class="row">
-        <div class="col">
-            <button type="submit" class="btn btn-primary w-100" id="btnSimpan"><i class="ti ti-send me-1"></i> Simpan</button>
-        </div>
+    <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4" id="btnSimpan">
+            <i class="ti ti-device-floppy"></i>
+            <span>Simpan Perubahan</span>
+        </button>
     </div>
 </form>
 <script src="{{ asset('assets/js/pages/jamkerja.js') }}"></script>

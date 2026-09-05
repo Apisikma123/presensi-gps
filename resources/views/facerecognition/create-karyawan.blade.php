@@ -7,6 +7,10 @@
             overflow: hidden;
         }
 
+        .appBottomMenu {
+            display: none !important;
+        }
+
         .camera-container {
             position: fixed;
             top: 0;

@@ -128,7 +128,9 @@
             box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.1) !important;
         }
 
-        .air-datepicker { font-family: 'Inter', sans-serif !important; border-radius: 16px !important; border: none !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
+        .air-datepicker-global-container { z-index: 100000 !important; }
+        .air-datepicker-overlay { z-index: 99999 !important; backdrop-filter: blur(2px) !important; -webkit-backdrop-filter: blur(2px) !important; }
+        .air-datepicker { z-index: 100001 !important; font-family: 'Inter', sans-serif !important; border-radius: 16px !important; border: none !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
         .air-datepicker-cell.-selected- { background: {{ $t['primary'] }} !important; }
         .air-datepicker-cell.-current- { color: {{ $t['primary'] }} !important; }
         .air-datepicker-button { color: {{ $t['primary'] }} !important; }
@@ -227,7 +229,7 @@
     @stack('mystyle')
 </head>
 <body>
-    <header>
+    <header style="padding-top: env(safe-area-inset-top); background: {{ $t['primary'] ?? '#1E4D3E' }} !important; position: fixed; top: 0; left: 0; right: 0; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" class="appHeader-modern">
         <div class="flex items-center justify-between px-4 h-14">
             <div class="left">
                 @yield('header_left')
@@ -239,7 +241,7 @@
         </div>
     </header>
 
-    <main class="pt-[calc(4rem+env(safe-area-inset-top))] pb-24 px-3 max-w-lg mx-auto">
+    <main id="appCapsule" class="pt-[calc(4rem+env(safe-area-inset-top))] pb-24 px-3 max-w-lg mx-auto">
         @yield('content')
     </main>
 
@@ -276,90 +278,17 @@
             toastr.warning("Warning", "{{ $message }}", { timeOut: 3000 });
         </script>
     @endif
-    @if ($errors->any())
+    @if (isset($errors) && $errors->any())
         @php $err = ''; @endphp
-        @foreach ($errors->all() as $error) @php $err .= $error; @endphp @endforeach
+        @foreach ($errors->all() as $error) @php $err .= $error . ' '; @endphp @endforeach
         <script>
             toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
             toastr.options.progressBar = true;
-            toastr.error("Gagal", "{{ $err }}", { timeOut: 3000 });
+            toastr.error("Gagal", "{{ addslashes(trim($err)) }}", { timeOut: 3000 });
         </script>
     @endif
 
-    @auth
-    <script>
-        function urlBase64ToUint8Array(base64String) {
-            var padding = '='.repeat((4 - base64String.length % 4) % 4);
-            var base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-            var rawData = window.atob(base64);
-            var outputArray = new Uint8Array(rawData.length);
-            for (var i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
-        }
 
-        function subscribeUserToPush() {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-                console.warn('Push notification tidak didukung di browser ini.');
-                return;
-            }
-
-            navigator.serviceWorker.ready.then(function(registration) {
-                const VAPID_PUBLIC_KEY = "{{ config('webpush.vapid.public_key') }}";
-                if (!VAPID_PUBLIC_KEY) {
-                    console.error('VAPID_PUBLIC_KEY belum didefinisikan.');
-                    return;
-                }
-
-                if (Notification.permission === 'denied') {
-                    console.warn('Izin notifikasi telah ditolak sebelumnya.');
-                    return;
-                }
-
-                return Notification.requestPermission().then(function(permission) {
-                    if (permission !== 'granted') {
-                        throw new Error('Izin notifikasi ditolak oleh user.');
-                    }
-
-                    const subscribeOptions = {
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                    };
-
-                    return registration.pushManager.subscribe(subscribeOptions);
-                });
-            })
-            .then(function(pushSubscription) {
-                if (!pushSubscription) return;
-
-                return fetch("{{ route('push.store') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify(pushSubscription)
-                });
-            })
-            .then(function(response) {
-                if (response) return response.json();
-            })
-            .then(function(data) {
-                if (data) {
-                    console.log('User berhasil terdaftar ke Push Notification:', data);
-                }
-            })
-            .catch(function(error) {
-                console.error('Gagal melakukan subscribe push notification:', error);
-            });
-        }
-
-        $(document).ready(function() {
-            subscribeUserToPush();
-        });
-    </script>
-    @endauth
 
     @stack('myscript')
 </body>

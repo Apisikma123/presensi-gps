@@ -2,8 +2,12 @@
     @csrf
     <x-input-with-icon label="Kode Jabatan" name="kode_jabatan" icon="ti ti-barcode" maxlength="3" placeholder="Contoh: J01 (Maksimal 3 karakter)" required />
     <x-input-with-icon label="Nama Jabatan" name="nama_jabatan" icon="ti ti-building" maxlength="30" placeholder="Contoh: Manager (Maksimal 30 karakter)" required />
-    <div class="form-group mb-3">
-        <button type="submit" class="btn btn-primary w-100" id="btnSimpan"><i class="ti ti-send me-1"></i> Submit</button>
+    <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4" id="btnSimpan">
+            <i class="ti ti-device-floppy"></i>
+            <span>Simpan Jabatan</span>
+        </button>
     </div>
 </form>
 <script>

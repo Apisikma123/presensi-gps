@@ -5,6 +5,14 @@
 @section('navigasi')
     <span>Laporan Presensi</span>
 @endsection
+<!-- Page Header -->
+<div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="page-title mb-1">Laporan & Rekapitulasi Presensi</h4>
+        <p class="page-subtitle text-muted mb-0">Cetak rekap kehadiran karyawan, keterlambatan, dan ekspor ke format Excel.</p>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-lg-6 col-sm-12 col-xs-12">
         <div class="card" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">

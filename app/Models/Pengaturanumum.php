@@ -18,10 +18,12 @@ class Pengaturanumum extends Model
         static::saved(function () {
             Cache::forget('pengaturan_umum_first');
             Cache::forget('global_general_setting');
+            Cache::forget('global_app_logo_relative_path');
         });
         static::deleted(function () {
             Cache::forget('pengaturan_umum_first');
             Cache::forget('global_general_setting');
+            Cache::forget('global_app_logo_relative_path');
         });
     }
 

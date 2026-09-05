@@ -45,10 +45,11 @@
         <small class="text-muted">Zona waktu untuk cabang ini</small>
     </div>
     
-    <div class="form-group">
-        <button class="btn btn-primary w-100" type="submit">
-            <ion-icon name="send-outline" class="me-1"></ion-icon>
-            Update
+    <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4" type="submit">
+            <i class="ti ti-device-floppy"></i>
+            <span>Simpan Perubahan</span>
         </button>
     </div>
 </form>

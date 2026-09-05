@@ -376,7 +376,7 @@ class UpdateService
 
             if ($this->hasUnzip()) {
                 // Use detected path
-                $command = "{$unzipPath} -o -q '{$zipPath}' -d '{$extractPath}' 2>&1";
+                $command = escapeshellcmd($unzipPath) . " -o -q " . escapeshellarg($zipPath) . " -d " . escapeshellarg($extractPath) . " 2>&1";
                 $output = [];
                 $returnVar = -1;
                 
@@ -447,9 +447,8 @@ class UpdateService
                 $dbUser = config('database.connections.mysql.username');
                 $dbPass = config('database.connections.mysql.password');
                 $dbHost = config('database.connections.mysql.host');
-                $dbPort = config('database.connections.mysql.port', 3306);
-                
-                $command = "mysqldump --no-tablespaces --column-statistics=0 -h {$dbHost} -P {$dbPort} -u {$dbUser} -p{$dbPass} {$dbName} > '{$backupFile}' 2>&1";
+                $passString = empty($dbPass) ? '' : '-p' . escapeshellarg($dbPass);
+                $command = "mysqldump --no-tablespaces --column-statistics=0 -h " . escapeshellarg($dbHost) . " -P " . escapeshellarg($dbPort) . " -u " . escapeshellarg($dbUser) . " {$passString} " . escapeshellarg($dbName) . " > " . escapeshellarg($backupFile) . " 2>&1";
                 
                 exec($command, $output, $returnVar);
 

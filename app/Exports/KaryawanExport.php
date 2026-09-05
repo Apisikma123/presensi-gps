@@ -14,7 +14,7 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
 {
     protected $filters;
 
-    public function __construct($filters)
+    public function __construct($filters = [])
     {
         $this->filters = $filters;
     }

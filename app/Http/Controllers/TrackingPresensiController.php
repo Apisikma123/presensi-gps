@@ -121,41 +121,50 @@ class TrackingPresensiController extends Controller
 
         // Parse koordinat dari field lokasi_in dan tambahkan offset untuk marker yang sama
         $coordinateCount = [];
-        $presensis->transform(function ($presensi) use (&$coordinateCount) {
+        $presensis = $presensis->filter(function ($presensi) use (&$coordinateCount) {
             $lokasi_in = $presensi->lokasi_in;
 
             // Parse koordinat dari format "lat,lng" atau "latitude,longitude"
-            if (strpos($lokasi_in, ',') !== false) {
-                $coords = explode(',', $lokasi_in);
-                if (count($coords) >= 2) {
-                    $lat = floatval(trim($coords[0]));
-                    $lng = floatval(trim($coords[1]));
-
-                    // Buat key untuk koordinat
-                    $coordKey = $lat . ',' . $lng;
-
-                    // Hitung berapa kali koordinat ini muncul
-                    if (!isset($coordinateCount[$coordKey])) {
-                        $coordinateCount[$coordKey] = 0;
-                    }
-                    $coordinateCount[$coordKey]++;
-
-                    // Tambahkan offset kecil untuk marker yang sama (maksimal 5 marker)
-                    $offset = ($coordinateCount[$coordKey] - 1) * 0.0001; // Offset sekitar 10 meter
-                    if ($coordinateCount[$coordKey] > 5) {
-                        $offset = (($coordinateCount[$coordKey] - 1) % 5) * 0.0001;
-                    }
-
-                    $presensi->latitude = $lat + $offset;
-                    $presensi->longitude = $lng + $offset;
-                    $presensi->original_latitude = $lat;
-                    $presensi->original_longitude = $lng;
-                    $presensi->marker_count = $coordinateCount[$coordKey];
-                }
+            if (empty($lokasi_in) || strpos($lokasi_in, ',') === false) {
+                return false;
             }
 
-            return $presensi;
-        });
+            $coords = explode(',', $lokasi_in);
+            if (count($coords) < 2) {
+                return false;
+            }
+
+            $lat = floatval(trim($coords[0]));
+            $lng = floatval(trim($coords[1]));
+
+            // Validasi koordinat valid (tidak 0,0)
+            if (abs($lat) < 0.00001 && abs($lng) < 0.00001) {
+                return false;
+            }
+
+            // Buat key untuk koordinat
+            $coordKey = $lat . ',' . $lng;
+
+            // Hitung berapa kali koordinat ini muncul
+            if (!isset($coordinateCount[$coordKey])) {
+                $coordinateCount[$coordKey] = 0;
+            }
+            $coordinateCount[$coordKey]++;
+
+            // Tambahkan offset kecil untuk marker yang sama (maksimal 5 marker)
+            $offset = ($coordinateCount[$coordKey] - 1) * 0.00008;
+            if ($coordinateCount[$coordKey] > 5) {
+                $offset = (($coordinateCount[$coordKey] - 1) % 5) * 0.00008;
+            }
+
+            $presensi->latitude = $lat + $offset;
+            $presensi->longitude = $lng + $offset;
+            $presensi->original_latitude = $lat;
+            $presensi->original_longitude = $lng;
+            $presensi->marker_count = $coordinateCount[$coordKey];
+
+            return true;
+        })->values();
 
         return $presensis;
     }

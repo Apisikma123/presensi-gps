@@ -1,10 +1,6 @@
 <?php
 
-use App\Models\Detailharilibur;
-use App\Models\Lembur;
-use App\Models\LemburAturan;
 use App\Models\Pengaturanumum;
-use App\Models\Tutuplaporan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redirect;
@@ -438,25 +434,7 @@ function hitungjamterlambat($jam_in, $jam_mulai)
 }
 
 
-function hitungdenda($denda_list, $terlambat)
-{
-    static $general_setting = null;
-    if ($general_setting === null) {
-        $general_setting = Pengaturanumum::where('id', 1)->first();
-    }
-    if ($general_setting->denda == 1) {
-        $denda_terlambat = 0;
-        foreach ($denda_list as $denda) {
-            if ($terlambat >= $denda['dari'] && $terlambat <= $denda['sampai']) {
-                $denda_terlambat = $denda['denda'];
-                break;
-            }
-        }
-    } else {
-        $denda_terlambat = 0;
-    }
-    return $denda_terlambat;
-}
+
 
 function hitungJumlahHari($tanggal_awal, $tanggal_akhir)
 {
@@ -623,102 +601,7 @@ function hitungJam($startDate, $endDate)
 }
 
 
-function getlembur($dari, $sampai)
-{
-    $no = 1;
-    $lembur = [];
-    $ceklembur = Lembur::select(
-        'nik',
-        'tanggal',
-        'lembur_mulai',
-        'lembur_selesai',
-        'lembur_in',
-        'lembur_out',
-    )
-        ->whereBetween('tanggal', [$dari, $sampai])
-        ->get();
 
-
-    foreach ($ceklembur as $d) {
-        $lembur[] = [
-            'nik' => $d->nik,
-            'tanggal' => $d->tanggal,
-            'lembur_mulai' => $d->lembur_mulai,
-            'lembur_selesai' => $d->lembur_selesai,
-            'lembur_in' => $d->lembur_in,
-            'lembur_out' => $d->lembur_out,
-        ];
-    }
-
-    return $lembur;
-}
-
-
-
-function ceklembur($array, $search_list)
-{
-
-    // Create the result array
-    $result = array();
-
-    // Iterate over each array element
-    foreach ($array as $key => $value) {
-
-        // Iterate over each search condition
-        foreach ($search_list as $k => $v) {
-
-            // If the array element does not meet
-            // the search condition then continue
-            // to the next element
-            if (!isset($value[$k]) || $value[$k] != $v) {
-
-                // Skip two loops
-                continue 2;
-            }
-        }
-
-        // Append array element's key to the
-        //result array
-        $result[] = $value;
-    }
-
-    // Return result
-    return $result;
-}
-
-function hitungjamlembur($jam1, $jam2)
-{
-    $j1 = strtotime($jam1);
-    $j2 = strtotime($jam2);
-
-    $diffterlambat = $j2 - $j1;
-
-    $jamterlambat = floor($diffterlambat / (60 * 60));
-    $menitterlambat = floor(($diffterlambat - ($jamterlambat * (60 * 60))) / 60);
-
-    $desimalterlambat = $jamterlambat + ROUND(($menitterlambat / 60), 2);
-
-    return $desimalterlambat;
-}
-
-function hitungLembur($datalembur)
-{
-    if (!empty($datalembur) && $datalembur[0]['lembur_in'] && $datalembur[0]['lembur_out']) {
-        $lembur_mulai = $datalembur[0]['lembur_mulai'];
-        $lembur_selesai = $datalembur[0]['lembur_selesai'];
-        $lembur_in = $datalembur[0]['lembur_in'];
-        $lembur_out = $datalembur[0]['lembur_out'];
-
-
-        $start_lembur = $lembur_in < $lembur_mulai ? $lembur_mulai  : $lembur_in;
-        $end_lembur = $lembur_out > $lembur_selesai ? $lembur_selesai : $lembur_out;
-
-        $jam_lembur = hitungjamlembur($start_lembur, $end_lembur);
-        return $jam_lembur;
-    } else {
-        return 0;
-    }
-}
 function hitungSisaHari($endDate)
 {
     $today = new DateTime(date('Y-m-d'));
@@ -781,89 +664,7 @@ function singkatString($string)
     return ucwords(strtolower($string));
 }
 
-/**
- * Check if a date is a holiday or off-day for a specific employee.
- * Logic uses 4-level schedule priority.
- */
-function isLiburKaryawan($nik, $tanggal)
-{
-    // 1. Cek Libur Nasional (Hari Libur Umum)
-    $ceklibur_nasional = DB::table('hari_libur_detail')
-        ->join('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
-        ->where('tanggal', $tanggal)
-        ->first();
 
-    if ($ceklibur_nasional) {
-        return true;
-    }
-
-    // 2. Cek Jadwal Karyawan (Prioritas 4 Level)
-    $hari_en = date('D', strtotime($tanggal)); // Day name in English (3 letters)
-    $hari = getnamaHari($hari_en); // Day name in Indonesian (e.g., Jumat)
-
-    // Level 1: presensi_jamkerja_bydate
-    $jk_bydate = DB::table('presensi_jamkerja_bydate')->where('nik', $nik)->where('tanggal', $tanggal)->first();
-    if ($jk_bydate) return false;
-
-    // Level 2: grup_jamkerja_bydate
-    $jk_grup = DB::table('grup_detail')
-        ->join('grup_jamkerja_bydate', 'grup_detail.kode_grup', '=', 'grup_jamkerja_bydate.kode_grup')
-        ->where('grup_detail.nik', $nik)
-        ->where('grup_jamkerja_bydate.tanggal', $tanggal)
-        ->first();
-    if ($jk_grup) return false;
-
-    // Level 3: presensi_jamkerja_byday
-    $jk_byday = DB::table('presensi_jamkerja_byday')->where('nik', $nik)->where('hari', $hari)->first();
-    if ($jk_byday) return false;
-
-    // Level 4: presensi_jamkerja_bydept_detail (Requires dept & cabang)
-    $karyawan = DB::table('karyawan')->where('nik', $nik)->select('kode_dept', 'kode_cabang')->first();
-    if ($karyawan) {
-        $jk_bydept = DB::table('presensi_jamkerja_bydept')
-            ->join('presensi_jamkerja_bydept_detail', 'presensi_jamkerja_bydept.kode_jk_dept', '=', 'presensi_jamkerja_bydept_detail.kode_jk_dept')
-            ->where('kode_dept', $karyawan->kode_dept)
-            ->where('kode_cabang', $karyawan->kode_cabang)
-            ->where('hari', $hari)
-            ->first();
-        if ($jk_bydept) return false;
-    }
-
-    // Jika tidak ada jadwal sama sekali, maka itu hari LIBUR (Off day)
-    return true;
-}
-
-/**
- * Calculate "Jam Netto" based on tiered multipliers from lembur_aturan.
- */
-function hitungJamNetto($jam_aktual, $tipe_hari)
-{
-    // Static cache: fetch rules only once per tipe_hari per request
-    static $rules_cache = [];
-    if (!isset($rules_cache[$tipe_hari])) {
-        $rules_cache[$tipe_hari] = LemburAturan::where('tipe_hari', $tipe_hari)
-            ->orderBy('jam_dari', 'asc')
-            ->get();
-    }
-    $rules = $rules_cache[$tipe_hari];
-
-    $jam_netto = 0;
-    $sisa_jam = $jam_aktual;
-
-    foreach ($rules as $rule) {
-        $start = $rule->jam_dari; // Direct use of 0-based start from DB
-        $end = $rule->jam_sampai ?: 999;
-        
-        // Calculate the portion of overtime that falls within this absolute tier [start, end]
-        $jam_di_tier_ini = max(0, min($jam_aktual, $end) - $start);
-        
-        if ($jam_di_tier_ini > 0) {
-            $jam_netto += ($jam_di_tier_ini * $rule->faktor);
-        }
-    }
-
-    return round($jam_netto, 2);
-}
 
 /**
  * Calculate excess break time deduction.
@@ -902,10 +703,4 @@ function hitungPotonganIstirahat($start_break, $end_break, $jam_awal_istirahat, 
 }
 
 
-/**
- * Get active special overtime rate for an employee.
- */
-function getLemburKhusus($nik)
-{
-    return \App\Models\LemburKaryawanKhusus::where('nik', $nik)->where('status', 1)->first();
-}
+

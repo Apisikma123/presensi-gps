@@ -15,36 +15,43 @@ class StatusKaryawanChart
         $this->chart = $chart;
     }
 
-    public function build($request = null): \ArielMejiaDev\LarapexCharts\PieChart
+    public function build($request = null, $existingRekap = null): \ArielMejiaDev\LarapexCharts\PieChart
     {
-        // Get all statuses from the new table
-        $statuses = DB::table('status_karyawan')->get();
-
-        $query = Karyawan::query()
-            ->select('status_karyawan', DB::raw('count(*) as total'))
-            ->groupBy('status_karyawan');
-
-        // Filter by user access/request
-        if (!empty($request->user_cabangs) && is_array($request->user_cabangs)) {
-            $query->whereIn('karyawan.kode_cabang', $request->user_cabangs);
-        } elseif (!empty($request->kode_cabang)) {
-            $query->where('karyawan.kode_cabang', $request->kode_cabang);
-        }
-
-        if (!empty($request->user_departemens) && is_array($request->user_departemens)) {
-            $query->whereIn('karyawan.kode_dept', $request->user_departemens);
-        } elseif (!empty($request->kode_dept)) {
-            $query->where('karyawan.kode_dept', $request->kode_dept);
-        }
-
-        $countsByStatus = $query->pluck('total', 'status_karyawan')->toArray();
-
         $labels = [];
         $data = [];
 
-        foreach ($statuses as $status) {
-            $labels[] = $status->nama_status_karyawan;
-            $data[] = (int) ($countsByStatus[$status->kode_status_karyawan] ?? 0);
+        if ($existingRekap !== null) {
+            foreach ($existingRekap as $item) {
+                $labels[] = $item->nama_status_karyawan;
+                $data[] = (int) $item->total;
+            }
+        } else {
+            // Get all statuses from the new table
+            $statuses = DB::table('status_karyawan')->get();
+
+            $query = Karyawan::query()
+                ->select('status_karyawan', DB::raw('count(*) as total'))
+                ->groupBy('status_karyawan');
+
+            // Filter by user access/request
+            if (!empty($request->user_cabangs) && is_array($request->user_cabangs)) {
+                $query->whereIn('karyawan.kode_cabang', $request->user_cabangs);
+            } elseif (!empty($request->kode_cabang)) {
+                $query->where('karyawan.kode_cabang', $request->kode_cabang);
+            }
+
+            if (!empty($request->user_departemens) && is_array($request->user_departemens)) {
+                $query->whereIn('karyawan.kode_dept', $request->user_departemens);
+            } elseif (!empty($request->kode_dept)) {
+                $query->where('karyawan.kode_dept', $request->kode_dept);
+            }
+
+            $countsByStatus = $query->pluck('total', 'status_karyawan')->toArray();
+
+            foreach ($statuses as $status) {
+                $labels[] = $status->nama_status_karyawan;
+                $data[] = (int) ($countsByStatus[$status->kode_status_karyawan] ?? 0);
+            }
         }
 
         return $this->chart->pieChart()

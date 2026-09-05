@@ -2,32 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AjuanJadwal;
 use App\Models\Cabang;
-use App\Models\Denda;
-use App\Models\Detailharilibur;
-use App\Models\Detailsetjamkerjabydept;
-use App\Models\Device;
 use App\Models\Facerecognition;
-use App\Models\GlobalJamkerja;
-use App\Models\GrupDetail;
-use App\Models\GrupJamkerjaBydate;
-use App\Models\Harilibur;
-use App\Models\Izindinas;
 use App\Models\Jamkerja;
 use App\Models\Karyawan;
 use App\Models\Pengaturanumum;
 use App\Models\Presensi;
-use App\Models\Setjamkerjabydate;
-use App\Models\Setjamkerjabyday;
-use App\Models\Setjamkerjabydept;
 use App\Models\User;
 use App\Models\Userkaryawan;
-use App\Jobs\SendWaMessage;
+use App\Services\AttendanceService;
 use Carbon\Carbon;
 use CURLFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
@@ -59,9 +47,7 @@ class PresensiController extends Controller
                 'foto_out',
                 'status',
                 'lintashari',
-                'total_jam',
-                'presensi.denda',
-                'presensi.status_potongan'
+                'total_jam'
             )
             ->where('presensi.tanggal', $tanggal);
 
@@ -93,9 +79,7 @@ class PresensiController extends Controller
             'foto_out',
             'lintashari',
             'karyawan.pin',
-            'total_jam',
-            'presensi.denda',
-            'presensi.status_potongan'
+            'total_jam'
         );
         $query->leftjoinSub($presensi, 'presensi', function ($join) {
             $join->on('karyawan.nik', '=', 'presensi.nik');
@@ -132,7 +116,6 @@ class PresensiController extends Controller
         $karyawan->appends(request()->all());
         $data['karyawan'] = $karyawan;
         $data['cabang'] = $user->getCabang();
-        $data['denda_list'] = Denda::all()->toArray();
         return view('presensi.index', $data);
     }
     public function create(Request $request)
@@ -211,79 +194,14 @@ class PresensiController extends Controller
 
 
         if ($kode_jam_kerja == null) {
-            // PRIORITAS UTAMA: Cek Ajuan Jadwal yang sudah disetujui
-            $ajuan_jadwal = AjuanJadwal::where('nik', $karyawan->nik)
-                ->where('tanggal', $hariini)
-                ->where('status', 'a') // Approved
-                ->first();
-
-            if ($ajuan_jadwal) {
-                $jamkerja = Jamkerja::where('kode_jam_kerja', $ajuan_jadwal->kode_jam_kerja_tujuan)->first();
-            } else {
-                // Jika tidak ada ajuan, cek prioritas berikutnya
-                
-                //Cek Jam Kerja By Date
-                $jamkerja = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                    ->where('nik', $karyawan->nik)
-                    ->where('tanggal', $hariini)
-                    ->first();
-
-                //Jika Tidak Memiliki Jam Kerja By Date
-                if ($jamkerja == null) {
-                    //Cek Jam Kerja Grup
-                    $cek_group = GrupDetail::where('nik', $karyawan->nik)->first();
-                    if ($cek_group) {
-                        $jamkerja = GrupJamkerjaBydate::where('kode_grup', $cek_group->kode_grup)
-                            ->where('tanggal', $hariini)
-                            ->join('presensi_jamkerja', 'grup_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->first();
-                    } else {
-                        $jamkerja = null;
-                    }
-
-                    if ($jamkerja == null) {
-                        //Cek Jam Kerja harian / Jam Kerja Khusus / Jam Kerja Per Orangannya
-                        $jamkerja = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('nik', $karyawan->nik)->where('hari', $namahari)->first();
-                    }
-
-
-                    // Jika Jam Kerja Harian Kosong
-                    if ($jamkerja == null) {
-                        $jamkerja = Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
-                            ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('kode_dept', $kode_dept)
-                            ->where('kode_cabang', $karyawan->kode_cabang)
-                            ->where('hari', $namahari)->first();
-                    }
-
-                    // Fallback: Cek Jadwal Kerja Global
-                    if ($jamkerja == null) {
-                        $gs = Pengaturanumum::getSetting();
-                        if ($gs && $gs->global_jamkerja_aktif) {
-                            $globalJk = GlobalJamkerja::where('hari', $namahari)->first();
-                            if ($globalJk && $globalJk->kode_jam_kerja) {
-                                $jamkerja = Jamkerja::where('kode_jam_kerja', $globalJk->kode_jam_kerja)->first();
-                            }
-                        }
-                    }
-                }
-            }
+            $kode_jk = $karyawan->kode_jam_kerja ?: 'JK01';
+            $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jk)->first();
         } else {
             $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first();
         }
 
-        // dd($jamkerja);
-        $ceklibur = Detailharilibur::join('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
-            ->where('nik', $karyawan->nik)
-            ->where('tanggal', $hariini)
-            ->first();
-        $data['harilibur'] = $ceklibur;
-
         if ($presensi != null && $presensi->status != 'h') {
             return view('presensi.notif_izin');
-        } else if ($ceklibur != null) {
-            return view('presensi.notif_libur', $data);
         } else if ($jamkerja == null) {
             return view('presensi.notif_jamkerja');
         }
@@ -303,399 +221,47 @@ class PresensiController extends Controller
         return view('presensi.create', $data);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AttendanceService $attendanceService)
     {
-        $generalsetting = Pengaturanumum::getSetting();
+        /** @var \App\Models\User $user */
         $user = auth()->user();
-        $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
-        $karyawan = Karyawan::where('nik', $userkaryawan->nik)->first();
-
-        $status_lock_location = $karyawan->lock_location;
-
-        $status = $request->status;
-        $lokasi = $request->lokasi;
-        $kode_jam_kerja = $request->kode_jam_kerja;
-
-        //Get Lokasi Kantor untuk mendapatkan timezone cabang
-        $cabang = Cabang::getByCode($karyawan->kode_cabang);
-        $lokasi_kantor = $request->lokasi_cabang ?? ($cabang ? $cabang->lokasi_cabang : null);
-
-        // Ambil timezone dari cabang (jika ada), jika tidak gunakan default sistem
-        $timezone_cabang = $cabang->timezone ?? $generalsetting->timezone ?? config('app.timezone');
-
-        // Konversi waktu presensi ke timezone cabang
-        // Waktu dari client biasanya dalam UTC atau timezone sistem, konversi ke timezone cabang
-        $carbon_now = Carbon::now($timezone_cabang);
-        $tanggal_sekarang = $carbon_now->format('Y-m-d');
-        $jam_sekarang = $carbon_now->format('H:i');
-        $tanggal_kemarin = $carbon_now->copy()->subDay()->format('Y-m-d');
-        $tanggal_besok = $carbon_now->copy()->addDay()->format('Y-m-d');
-
-        // Cek Presensi Kemarin
-        $presensi_kemarin = Presensi::where('nik', $karyawan->nik)
-            ->join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-            ->where('presensi.nik', $karyawan->nik)
-            ->where('presensi.tanggal', $tanggal_kemarin)->first();
-
-        // Tentukan Batas Lintas Hari
-        $batas_presensi_lintashari = ($presensi_kemarin && $presensi_kemarin->batas_presensi_pulang)
-            ? $presensi_kemarin->batas_presensi_pulang
-            : $generalsetting->batas_presensi_lintashari;
-
-        // Ambil Jam Kerja untuk presensi saat ini
-        $jam_kerja = Jamkerja::getByCode($kode_jam_kerja);
-
-        // --- PENENTUAN TANGGAL PRESENSI ---
-        // Secara default adalah hari ini
-        $tanggal_presensi = $tanggal_sekarang;
-        $jam_kerja_pulang = $jam_kerja->jam_pulang;
-        $tanggal_pulang = $jam_kerja->lintashari == 1 ? $tanggal_besok : $tanggal_sekarang;
-
-        // HANYA jika kemarin lintas hari DAN belum absen pulang DAN belum melewati batas jam, maka dianggap absen kemarin
-        if ($presensi_kemarin && $presensi_kemarin->lintashari == 1 && $presensi_kemarin->jam_out == null) {
-            if ($jam_sekarang < $batas_presensi_lintashari) {
-                $tanggal_presensi = $tanggal_kemarin;
-                $tanggal_pulang = $tanggal_sekarang;
-                $jam_kerja_pulang = $presensi_kemarin->jam_pulang;
-            }
-        }
-        // Get Lokasi User
-        $koordinat_user = explode(",", $lokasi);
-        $latitude_user = $koordinat_user[0];
-        $longitude_user = $koordinat_user[1];
-
-        $koordinat_kantor = explode(",", $lokasi_kantor);
-        $latitude_kantor = $koordinat_kantor[0];
-        $longitude_kantor = $koordinat_kantor[1];
-
-        $jarak = hitungjarak($latitude_kantor, $longitude_kantor, $latitude_user, $longitude_user);
-        $radius = round($jarak["meters"]);
-
-        $in_out = $status == 1 ? "in" : "out";
-        $image = $request->image;
-        $folderPath = "public/uploads/absensi/";
-        if (!Storage::exists($folderPath)) {
-            Storage::makeDirectory($folderPath, 0775, true);
-            $path = Storage::path($folderPath);
-            chmod($path, 0775);
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
-        $jam_presensi = $tanggal_sekarang . " " . $jam_sekarang;
-        $batas_jam_absen = $generalsetting->batas_jam_absen * 60;
-        $batas_jam_absen_pulang = $generalsetting->batas_jam_absen_pulang * 60;
+        $imageInput = $request->hasFile('image') ? $request->file('image') : $request->image;
+        $data = [
+            'status' => $request->status,
+            'lokasi' => $request->lokasi,
+            'kode_jam_kerja' => $request->kode_jam_kerja,
+            'lokasi_cabang' => $request->lokasi_cabang,
+            'image' => $imageInput,
+            'is_mock' => $request->is_mock,
+        ];
 
-        $formatName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out;
-        $imageInput = $request->hasFile('image') ? $request->file('image') : $image;
-
-        // Gunakan Carbon dengan timezone cabang untuk perhitungan jam
-        // Parse jam_masuk (bisa H:i atau H:i:s) dan gabungkan dengan tanggal
-        $jam_masuk_string = $tanggal_presensi . " " . $jam_kerja->jam_masuk;
-        $jam_masuk_carbon = Carbon::parse($jam_masuk_string, $timezone_cabang);
-        $jam_masuk = $jam_masuk_carbon->format('Y-m-d H:i');
-
-        //Jam Mulai Absen adalah X Menit Sebelum Jam Masuk (dalam timezone cabang)
-        $jam_mulai_masuk_carbon = $jam_masuk_carbon->copy()->subMinutes($batas_jam_absen);
-        $jam_mulai_masuk = $jam_mulai_masuk_carbon->format('Y-m-d H:i');
-
-        //Jam Akhir Absen adalah X Menit Setelah Jam Masuk (dalam timezone cabang)
-        $jam_akhir_masuk_carbon = $jam_masuk_carbon->copy()->addMinutes($batas_jam_absen);
-        $jam_akhir_masuk = $jam_akhir_masuk_carbon->format('Y-m-d H:i');
-
-        // Jika jam akhir masuk melewati tengah malam, sesuaikan tanggalnya
-        if ($jam_akhir_masuk_carbon->format('H:i') >= '00:00' && $jam_akhir_masuk_carbon->day != $jam_masuk_carbon->day) {
-            $jam_akhir_masuk = $jam_akhir_masuk_carbon->format('Y-m-d H:i');
+        if ($request->status == 1) {
+            $result = $attendanceService->clockIn($user, $data);
+        } else {
+            $result = $attendanceService->clockOut($user, $data);
         }
 
-        // Parse jam_pulang (bisa H:i atau H:i:s) dan gabungkan dengan tanggal
-        $jam_pulang_string = $tanggal_pulang . " " . $jam_kerja_pulang;
-        $jam_pulang_carbon = Carbon::parse($jam_pulang_string, $timezone_cabang);
-        $jam_pulang = $jam_pulang_carbon->format('Y-m-d H:i');
-        // dd($presensi_kemarin);
-
-        //Jam Mulai Absen Pulang adalah X Menit Sebelum Jam Pulang (dalam timezone cabang)
-        $jam_mulai_pulang_carbon = $jam_pulang_carbon->copy()->subMinutes($batas_jam_absen_pulang);
-        $jam_mulai_pulang = $jam_mulai_pulang_carbon->format('Y-m-d H:i');
-        //return $jam_mulai_pulang;
-
-        // Cek Izin Dinas
-        $izin_dinas = Izindinas::where('nik', $karyawan->nik)
-            ->where('status', 1)
-            ->where('dari', '<=', $tanggal_presensi)
-            ->where('sampai', '>=', $tanggal_presensi)
-            ->first();
-
-        // dd($izin_dinas);
-
-        if ($izin_dinas) {
-            $status_lock_location = 0;
-        }
-        //dd($jam_presensi . " " . $jam_mulai_pulang);
-        //Cek Radius
-        //dd($jam_presensi . " " . $jam_mulai_masuk);
-        $presensi_hariini = Presensi::where('nik', $karyawan->nik)
-            ->where('tanggal', $tanggal_presensi)
-            ->first();
-
-        // Konversi jam_presensi ke Carbon untuk perbandingan
-        // Gunakan parse() yang lebih fleksibel untuk menghindari error format
-        $jam_presensi_carbon = Carbon::parse($jam_presensi, $timezone_cabang);
-
-        // $jam_mulai_masuk, $jam_akhir_masuk, dan $jam_mulai_pulang sudah dalam format Y-m-d H:i dari Carbon
-        $jam_mulai_masuk_carbon = Carbon::parse($jam_mulai_masuk, $timezone_cabang);
-        $jam_akhir_masuk_carbon = Carbon::parse($jam_akhir_masuk, $timezone_cabang);
-        $jam_mulai_pulang_carbon = Carbon::parse($jam_mulai_pulang, $timezone_cabang);
-
-        //dd($presensi_hariini);
-
-        // === ANTI FAKE GPS CHECK ===
-        if ($request->has('is_mock') && $request->is_mock == '1') {
+        if (!$result['success']) {
             return response()->json([
                 'status' => false,
-                'message' => 'Terdeteksi menggunakan aplikasi Fake GPS / Mock Location. Silakan matikan Fake GPS dan gunakan sinyal GPS asli.',
-                'notifikasi' => 'notifikasi_fakegps'
-            ], 400);
+                'message' => $result['message'],
+                'notifikasi' => $result['notifikasi'] ?? null,
+                'suara' => $result['suara'] ?? null,
+            ], $result['code'] ?? 400);
         }
 
-        // Cek anomali kecepatan / perpindahan lokasi ekstrim dari presensi terakhir
-        $last_presensi_record = Presensi::where('nik', $karyawan->nik)
-            ->whereNotNull('lokasi_in')
-            ->whereNotNull('jam_in')
-            ->orderByDesc('id')
-            ->first();
-
-        if ($last_presensi_record && $last_presensi_record->lokasi_in && $last_presensi_record->jam_in) {
-            $last_coords = explode(',', $last_presensi_record->lokasi_in);
-            if (count($last_coords) == 2 && is_numeric($last_coords[0]) && is_numeric($last_coords[1])) {
-                $dist_m = hitungjarak(floatval($last_coords[0]), floatval($last_coords[1]), floatval($latitude_user), floatval($longitude_user))['meters'];
-                $dist_km = $dist_m / 1000;
-
-                try {
-                    $last_time = Carbon::parse($last_presensi_record->jam_in);
-                    $diff_minutes = abs($jam_presensi_carbon->diffInMinutes($last_time));
-                    $diff_hours = $diff_minutes / 60;
-
-                    // Jika berpindah > 100 km dengan kecepatan > 800 km/jam
-                    if ($diff_hours > 0.001 && $dist_km > 100) {
-                        $speed_kmh = $dist_km / $diff_hours;
-                        if ($speed_kmh > 800) {
-                            return response()->json([
-                                'status' => false,
-                                'message' => 'Terdeteksi anomali perpindahan lokasi ekstrem (' . round($dist_km) . ' km). Terindikasi Fake GPS.',
-                                'notifikasi' => 'notifikasi_fakegps'
-                            ], 400);
-                        }
-                    }
-                } catch (\Exception $e) {
-                    // Abaikan jika error parsing waktu
-                }
-            }
-        }
-
-        //dd($jam_presensi . " " . $jam_akhir_masuk);
-        if ($status_lock_location == 1 && $radius > $cabang->radius_cabang) {
-            return response()->json([
-                'status' => false, 
-                'message' => 'Anda Berada Di Luar Radius Kantor, Jarak Anda ' . formatAngka($radius) . ' Meters Dari Kantor', 
-                'notifikasi' => 'notifikasi_radius',
-                'suara' => 'Maaf, Anda berada di luar radius kantor!'
-            ], 400);
-        } else {
-            if ($status == 1) {
-                if ($presensi_hariini && $presensi_hariini->jam_in != null) {
-                    return response()->json([
-                        'status' => false, 
-                        'message' => 'Anda Sudah Absen Masuk Hari Ini', 
-                        'notifikasi' => 'notifikasi_sudahabsen',
-                        'suara' => 'Anda sudah melakukan presensi masuk hari ini.'
-                    ], 400);
-                } else if ($jam_presensi_carbon->lt($jam_mulai_masuk_carbon) && $generalsetting->batasi_absen == 1) {
-                    return response()->json([
-                        'status' => false, 
-                        'message' => 'Maaf Belum Waktunya Absen Masuk, Waktu Absen Dimulai Pukul ' . formatIndo3($jam_mulai_masuk), 
-                        'notifikasi' => 'notifikasi_mulaiabsen',
-                        'suara' => 'Maaf, belum waktunya untuk melakukan presensi masuk.'
-                    ], 400);
-                } else if ($jam_presensi_carbon->gt($jam_akhir_masuk_carbon) && $generalsetting->batasi_absen == 1) {
-                    return response()->json([
-                        'status' => false, 
-                        'message' => 'Maaf Waktu Absen Masuk Sudah Habis ', 
-                        'notifikasi' => 'notifikasi_akhirabsen',
-                        'suara' => 'Maaf, waktu absen masuk sudah habis.'
-                    ], 400);
-                } else {
-                    $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80);
-                    try {
-                        DB::transaction(function () use ($karyawan, $tanggal_presensi, $jam_presensi, $lokasi, $fileName, $kode_jam_kerja, &$presensi_hariini) {
-                            $locked = Presensi::where('nik', $karyawan->nik)
-                                ->where('tanggal', $tanggal_presensi)
-                                ->lockForUpdate()
-                                ->first();
-
-                            if ($locked != null) {
-                                $locked->update([
-                                    'jam_in' => $jam_presensi,
-                                    'lokasi_in' => $lokasi,
-                                    'foto_in' => $fileName
-                                ]);
-                                $presensi_hariini = $locked;
-                            } else {
-                                $presensi_hariini = Presensi::create([
-                                    'nik' => $karyawan->nik,
-                                    'tanggal' => $tanggal_presensi,
-                                    'jam_in' => $jam_presensi,
-                                    'jam_out' => null,
-                                    'lokasi_in' => $lokasi,
-                                    'lokasi_out' => null,
-                                    'foto_in' => $fileName,
-                                    'foto_out' => null,
-                                    'kode_jam_kerja' => $kode_jam_kerja,
-                                    'status' => 'h'
-                                ]);
-                            }
-                        });
-
-
-                        //Kirim Notifikasi Ke WA (dibungkus try-catch agar error WA tidak mempengaruhi response sukses)
-                        if ($generalsetting->notifikasi_wa == 1) {
-                            try {
-                                if ($generalsetting->tujuan_notifikasi_wa == 0) {
-                                    if ($karyawan->no_hp != "") {
-                                        $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Masuk pada " . $jam_presensi . "Hati Hati di Jalan";
-                                        $this->sendwa($karyawan->no_hp, $message);
-                                    }
-                                } else {
-                                    $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Masuk pada " . $jam_presensi . "Semangat Bekerja";
-                                    $this->sendwa($generalsetting->id_group_wa, $message);
-                                }
-                            } catch (\Exception $waException) {
-                                // Log error pengiriman WA tapi tidak mempengaruhi response sukses
-                                Log::error('Gagal mengirim notifikasi WA untuk absen masuk', [
-                                    'nik' => $karyawan->nik,
-                                    'nama' => $karyawan->nama_karyawan,
-                                    'error' => $waException->getMessage(),
-                                    'trace' => $waException->getTraceAsString()
-                                ]);
-                            }
-                        }
-
-                        $is_terlambat = false;
-                        $menit_terlambat = 0;
-                        if ($jam_presensi_carbon->gt($jam_masuk_carbon)) {
-                            $is_terlambat = true;
-                            $menit_terlambat = $jam_presensi_carbon->diffInMinutes($jam_masuk_carbon);
-                        }
-
-                        $pesan_sukses = $is_terlambat 
-                            ? 'Berhasil Absen Masuk. Anda Terlambat ' . $menit_terlambat . ' Menit.'
-                            : 'Berhasil Absen Masuk. Terima Kasih, Anda Tepat Waktu.';
-
-                        $suara_sukses = $is_terlambat 
-                            ? 'Presensi masuk berhasil. Anda terlambat ' . $menit_terlambat . ' menit.'
-                            : 'Terima kasih, presensi masuk berhasil. Anda hadir tepat waktu.';
-
-                        return response()->json([
-                            'status' => true, 
-                            'message' => $pesan_sukses, 
-                            'notifikasi' => 'notifikasi_absenmasuk',
-                            'is_terlambat' => $is_terlambat,
-                            'menit_terlambat' => $menit_terlambat,
-                            'suara' => $suara_sukses
-                        ], 200);
-                    } catch (\Exception $e) {
-                        return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
-                    }
-                }
-            } else {
-                if ($presensi_hariini && $presensi_hariini->jam_out != null) {
-                    return response()->json([
-                        'status' => false, 
-                        'message' => 'Anda Sudah Absen Pulang Hari Ini', 
-                        'notifikasi' => 'notifikasi_sudahabsen',
-                        'suara' => 'Anda sudah melakukan presensi pulang hari ini.'
-                    ], 400);
-                } else {
-                    // Waktu paling awal boleh absen pulang
-                    $waktu_boleh_pulang = ($generalsetting->batasi_absen == 1 && $batas_jam_absen_pulang > 0)
-                        ? $jam_mulai_pulang_carbon
-                        : $jam_pulang_carbon;
-
-                    if ($jam_presensi_carbon->lt($waktu_boleh_pulang)) {
-                        $jam_display = ($generalsetting->batasi_absen == 1 && $batas_jam_absen_pulang > 0)
-                            ? formatIndo3($jam_mulai_pulang)
-                            : date('H:i', strtotime($jam_kerja->jam_pulang));
-                        return response()->json([
-                            'status' => false, 
-                            'message' => 'Maaf belum waktunya absen pulang. Jam pulang shift Anda pukul ' . $jam_display, 
-                            'notifikasi' => 'notifikasi_mulaiabsen',
-                            'suara' => 'Maaf, belum waktunya untuk presensi pulang. Jam pulang shift Anda pukul ' . date('H:i', strtotime($jam_kerja->jam_pulang)) . '.'
-                        ], 400);
-                    }
-
-                    $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80);
-                    try {
-                        DB::transaction(function () use ($karyawan, $tanggal_presensi, $jam_presensi, $lokasi, $fileName, $kode_jam_kerja, &$presensi_hariini) {
-                            $locked = Presensi::where('nik', $karyawan->nik)
-                                ->where('tanggal', $tanggal_presensi)
-                                ->lockForUpdate()
-                                ->first();
-
-                            if ($locked != null) {
-                                $locked->update([
-                                    'jam_out' => $jam_presensi,
-                                    'lokasi_out' => $lokasi,
-                                    'foto_out' => $fileName
-                                ]);
-                                $presensi_hariini = $locked;
-                            } else {
-                                $presensi_hariini = Presensi::create([
-                                    'nik' => $karyawan->nik,
-                                    'tanggal' => $tanggal_presensi,
-                                    'jam_in' => null,
-                                    'jam_out' => $jam_presensi,
-                                    'lokasi_in' => null,
-                                    'lokasi_out' => $lokasi,
-                                    'foto_in' => null,
-                                    'foto_out' => $fileName,
-                                    'kode_jam_kerja' => $kode_jam_kerja,
-                                    'status' => 'h'
-                                ]);
-                            }
-                        });
-
-                        //Kirim Notifikasi Ke WA (dibungkus try-catch agar error WA tidak mempengaruhi response sukses)
-                        if ($generalsetting->notifikasi_wa == 1) {
-                            try {
-                                if ($generalsetting->tujuan_notifikasi_wa == 0) {
-                                    if ($karyawan->no_hp != "") {
-                                        $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Pulang pada " . $jam_presensi . "Hati Hati di Jalan";
-                                        $this->sendwa($karyawan->no_hp, $message);
-                                    }
-                                } else {
-                                    $message = "Terimakasih, Hari ini " . $karyawan->nama_karyawan . " absen Pulang pada " . $jam_presensi . "Hati Hati di Jalan";
-                                    $this->sendwa($generalsetting->id_group_wa, $message);
-                                }
-                            } catch (\Exception $waException) {
-                                // Log error pengiriman WA tapi tidak mempengaruhi response sukses
-                                Log::error('Gagal mengirim notifikasi WA untuk absen pulang', [
-                                    'nik' => $karyawan->nik,
-                                    'nama' => $karyawan->nama_karyawan,
-                                    'error' => $waException->getMessage(),
-                                    'trace' => $waException->getTraceAsString()
-                                ]);
-                            }
-                        }
-                        return response()->json([
-                            'status' => true, 
-                            'message' => 'Berhasil Absen Pulang. Hati-hati di jalan!', 
-                            'notifikasi' => 'notifikasi_absenpulang',
-                            'suara' => 'Terima kasih, presensi pulang berhasil. Hati-hati di jalan dan selamat beristirahat.'
-                        ], 200);
-                    } catch (\Exception $e) {
-                        return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
-                    }
-                }
-            }
-        }
+        return response()->json([
+            'status' => true,
+            'message' => $result['message'],
+            'notifikasi' => $result['notifikasi'] ?? null,
+            'is_terlambat' => $result['is_terlambat'] ?? false,
+            'menit_terlambat' => $result['menit_terlambat'] ?? 0,
+            'suara' => $result['suara'] ?? null,
+        ], $result['code'] ?? 200);
     }
 
 
@@ -706,10 +272,25 @@ class PresensiController extends Controller
     }
     public function edit(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         $nik = Crypt::decrypt($request->nik);
         $tanggal = $request->tanggal;
 
         $karyawan = Karyawan::where('nik', $nik)->first();
+        if (!$karyawan) {
+            return '<div class="alert alert-danger">Karyawan tidak ditemukan</div>';
+        }
+
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!in_array($karyawan->kode_cabang, $userCabangs) || !in_array($karyawan->kode_dept, $userDepartemens)) {
+                return '<div class="alert alert-danger">Anda tidak memiliki akses ke data presensi cabang ini.</div>';
+            }
+        }
+
         $jam_kerja = Jamkerja::all();
         $presensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
         if ($presensi && $presensi->status_potongan !== null) {
@@ -725,19 +306,36 @@ class PresensiController extends Controller
 
     public function update(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         $request->validate([
             'nik' => 'required',
             'tanggal' => 'required',
             'kode_jam_kerja' => 'required',
             'status' => 'required',
         ]);
-        $presensi = Presensi::where('nik', $request->nik)->where('tanggal', $request->tanggal)->first();
+
+        $nik = Crypt::decrypt($request->nik);
+        $karyawan = Karyawan::where('nik', $nik)->first();
+        if (!$karyawan) {
+            return Redirect::back()->with(messageError('Karyawan tidak ditemukan'));
+        }
+
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!in_array($karyawan->kode_cabang, $userCabangs) || !in_array($karyawan->kode_dept, $userDepartemens)) {
+                return Redirect::back()->with(messageError('Anda tidak memiliki akses ke data presensi cabang ini'));
+            }
+        }
+
+        $tanggal = $request->tanggal;
+        $presensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
         if ($presensi && $presensi->status_potongan !== null) {
             return redirect()->back()->with(['warning' => 'Data Presensi Sudah Dikunci, Hubungi Admin Untuk Membuka Kunci Laporan']);
         }
 
-        $nik = Crypt::decrypt($request->nik);
-        $tanggal = $request->tanggal;
         $kode_jam_kerja = $request->kode_jam_kerja;
         $jam_in = $request->jam_in;
         $jam_out = $request->jam_out;
@@ -778,14 +376,37 @@ class PresensiController extends Controller
 
     public function show($id, $status)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         $presensi = Presensi::where('presensi.id', $id)
-            ->with('mesinfingerprint')
             ->join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
             ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
             ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
             ->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
-            ->select('presensi.*', 'karyawan.nama_karyawan', 'karyawan.kode_cabang', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'cabang.nama_cabang', 'cabang.lokasi_cabang')
+            ->select('presensi.*', 'karyawan.nama_karyawan', 'karyawan.kode_cabang', 'karyawan.kode_dept', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'cabang.nama_cabang', 'cabang.lokasi_cabang')
             ->first();
+
+        if (!$presensi) {
+            abort(404, 'Data presensi tidak ditemukan.');
+        }
+
+        if (!$user->isSuperAdmin() && !$user->can('presensi.index')) {
+            $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
+            if (!$userkaryawan || $presensi->nik !== $userkaryawan->nik) {
+                abort(403, 'Anda tidak memiliki hak akses ke data presensi ini.');
+            }
+        } elseif (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs) && !in_array($presensi->kode_cabang, $userCabangs)) {
+                abort(403, 'Anda tidak memiliki akses ke cabang presensi ini.');
+            }
+            if (!empty($userDepartemens) && !in_array($presensi->kode_dept, $userDepartemens)) {
+                abort(403, 'Anda tidak memiliki akses ke departemen presensi ini.');
+            }
+        }
+
         $cabang = Cabang::where('kode_cabang', $presensi->kode_cabang)->first();
         $lokasi = explode(',', $cabang->lokasi_cabang);
         $data['latitude'] = $lokasi[0];
@@ -811,8 +432,7 @@ class PresensiController extends Controller
 
     public function histori(Request $request)
     {
-        $user = User::where('id', auth()->user()->id)->first();
-        $userkaryawan = Userkaryawan::where('id_user', auth()->user()->id)->first();
+        $userkaryawan = auth()->user()->userkaryawan ?? Userkaryawan::where('id_user', auth()->user()->id)->first();
         $data['datapresensi'] = Presensi::join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
             ->where('presensi.nik', $userkaryawan->nik)
             ->leftJoin('presensi_izinabsen_approve', 'presensi.id', '=', 'presensi_izinabsen_approve.id_presensi')
@@ -843,9 +463,7 @@ class PresensiController extends Controller
             ->limit(30)
             ->get();
             
-        $data['namasettings'] = Pengaturanumum::first();
-        $data['denda_list'] = Denda::orderBy('dari')->get()->toArray();
-        
+        $data['namasettings'] = Pengaturanumum::getSetting();
         return view('presensi.histori', $data);
     }
 
@@ -890,34 +508,8 @@ class PresensiController extends Controller
 
 
         $namahari = getnamaHari(date('D', strtotime($tanggal_presensi)));
-        //Cek Jam Kerja By Date
-        $jamkerja = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-            ->where('nik', $karyawan->nik)
-            ->where('tanggal', $tanggal_presensi)
-            ->first();
-
-        //Jika Tidak Memiliki Jam Kerja By Date
-        if ($jamkerja == null) {
-            //Cek Jam Kerja harian / Jam Kerja Khusus / Jam Kerja Per Orangannya
-            $jamkerja = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                ->where('nik', $karyawan->nik)->where('hari', $namahari)->first();
-
-            // Jika Jam Kerja Harian Kosong
-            if ($jamkerja == null) {
-                // Fallback: Cek Jadwal Kerja Global
-                $gs = Pengaturanumum::where('id', 1)->first();
-                if ($gs && $gs->global_jamkerja_aktif) {
-                    $globalJk = GlobalJamkerja::where('hari', $namahari)->first();
-                    if ($globalJk && $globalJk->kode_jam_kerja) {
-                        $jamkerja = Jamkerja::where('kode_jam_kerja', $globalJk->kode_jam_kerja)->first();
-                    }
-                }
-                // Legacy fallback jika global tidak aktif
-                if ($jamkerja == null) {
-                    $jamkerja = Jamkerja::where('kode_jam_kerja', 'JK01')->first();
-                }
-            }
-        }
+        $kode_jk = $karyawan->kode_jam_kerja ?: 'JK01';
+        $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jk)->first();
 
         //Cek Presensi
         $presensi = Presensi::where('nik', $karyawan->nik)->where('tanggal', $tanggal_presensi)->first();
@@ -999,16 +591,31 @@ class PresensiController extends Controller
 
     public function destroy($id)
     {
-        $presensi = Presensi::find($id);
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $presensi = Presensi::join('karyawan', 'presensi.nik', '=', 'karyawan.nik')
+            ->select('presensi.*', 'karyawan.kode_cabang', 'karyawan.kode_dept')
+            ->where('presensi.id', $id)
+            ->first();
+
         if ($presensi) {
+            if (!$user->isSuperAdmin()) {
+                $userCabangs = $user->getCabangCodes();
+                $userDepartemens = $user->getDepartemenCodes();
+                if (!in_array($presensi->kode_cabang, $userCabangs) || !in_array($presensi->kode_dept, $userDepartemens)) {
+                    abort(403, 'Anda tidak memiliki akses untuk menghapus presensi cabang ini.');
+                }
+            }
+
             if ($presensi->status_potongan != null) {
                 return Redirect::back()->with(['warning' => 'Data Presensi Sudah Dikunci, Hubungi Admin Untuk Membuka Kunci Laporan']);
             }
             try {
                 $folderPath = "public/uploads/absensi/";
-                Storage::delete($folderPath . $presensi->foto_in);
-                Storage::delete($folderPath . $presensi->foto_out);
-                $presensi->delete();
+                if ($presensi->foto_in) Storage::delete($folderPath . $presensi->foto_in);
+                if ($presensi->foto_out) Storage::delete($folderPath . $presensi->foto_out);
+                Presensi::where('id', $id)->delete();
                 return Redirect::back()->with(messageSuccess('Data Berhasil Dihapus'));
             } catch (\Exception $e) {
                 return Redirect::back()->with(messageError($e->getMessage()));

@@ -21,7 +21,7 @@
     </div>
     <x-input-with-icon icon="ti ti-sun" label="Jumlah Hari" name="jml_hari" disabled="true" :value="$izinsakit->jml_hari" />
     <x-textarea label="Keterangan" name="keterangan" :value="$izinsakit->keterangan" />
-    <x-input-file name="sid" label="sid" :value="$izinsakit->doc_sid" accept="image/*" />
+    <x-input-file name="sid" label="Surat Keterangan Dokter (SID)" :value="$izinsakit->doc_sid" accept="image/*" />
     <div class="form-group mb-3">
         <button class="btn btn-primary w-100" id="btnSimpan"><i class="ti ti-send me-1"></i>Simpan</button>
     </div>

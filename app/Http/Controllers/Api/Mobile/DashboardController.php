@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Presensi;
-use App\Models\Pengumuman;
 use App\Models\User;
 use App\Models\Userkaryawan;
 use Carbon\Carbon;
@@ -50,38 +49,7 @@ class DashboardController extends Controller
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
             ->first();
 
-        // 3. Check for contract warning (ends within 30 days)
-        $kontrak = DB::table('kontrak')
-            ->where('nik', $nik)
-            ->where('status_kontrak', '1')
-            ->where('jenis_kontrak', '!=', 'T')
-            ->orderBy('sampai', 'desc')
-            ->first();
 
-        $notif_kontrak = null;
-        if ($kontrak) {
-            $tgl_akhir = Carbon::parse($kontrak->sampai);
-            $today = Carbon::now(config('app.timezone'));
-            $sisa_hari = $today->diffInDays($tgl_akhir, false);
-
-            if ($sisa_hari >= 0 && $sisa_hari <= 30) {
-                $notif_kontrak = [
-                    'sisa_hari' => $sisa_hari,
-                    'tanggal_akhir' => $tgl_akhir->translatedFormat('d F Y')
-                ];
-            }
-        }
-
-        // 4. Check for active SP (discipline warning)
-        $todayStr = Carbon::now(config('app.timezone'))->toDateString();
-        $notif_sp = DB::table('pelanggaran')
-            ->where('nik', $nik)
-            ->where('dari', '<=', $todayStr)
-            ->where('sampai', '>=', $todayStr)
-            ->first();
-
-        // 5. Get latest announcement
-        $pengumuman = Pengumuman::orderBy('created_at', 'desc')->first();
 
         // 6. Check if it's user's birthday
         $karyawan = $userKaryawan->karyawan;
@@ -140,59 +108,8 @@ class DashboardController extends Controller
                 $namahari = 'sabtu';
             }
 
-            $kode_dept = $karyawan->kode_dept;
-
-            // Cek Ajuan Jadwal yang sudah disetujui
-            $ajuan_jadwal = \App\Models\AjuanJadwal::where('nik', $karyawan->nik)
-                ->where('tanggal', $hariini)
-                ->where('status', 'a')
-                ->first();
-
-            if ($ajuan_jadwal) {
-                $jamkerja = \App\Models\Jamkerja::getByCode($ajuan_jadwal->kode_jam_kerja_tujuan);
-            } else {
-                // Cek Jam Kerja By Date
-                $jamkerja = \App\Models\Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                    ->where('nik', $karyawan->nik)
-                    ->where('tanggal', $hariini)
-                    ->first();
-
-                if ($jamkerja == null) {
-                    // Cek Jam Kerja Grup
-                    $cek_group = \App\Models\GrupDetail::where('nik', $karyawan->nik)->first();
-                    if ($cek_group) {
-                        $jamkerja = \App\Models\GrupJamkerjaBydate::where('kode_grup', $cek_group->kode_grup)
-                            ->where('tanggal', $hariini)
-                            ->join('presensi_jamkerja', 'grup_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->first();
-                    }
-
-                    if ($jamkerja == null) {
-                        // Cek Jam Kerja harian
-                        $jamkerja = \App\Models\Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('nik', $karyawan->nik)->where('hari', $namahari)->first();
-                    }
-
-                    if ($jamkerja == null) {
-                        // Cek Jam Kerja by Dept
-                        $jamkerja = \App\Models\Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
-                            ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('kode_dept', $kode_dept)
-                            ->where('kode_cabang', $karyawan->kode_cabang)
-                            ->where('hari', $namahari)->first();
-                    }
-
-                    if ($jamkerja == null) {
-                        // Fallback Jadwal Kerja Global
-                        if ($general_setting && $general_setting->global_jamkerja_aktif) {
-                            $globalJk = \App\Models\GlobalJamkerja::where('hari', $namahari)->first();
-                            if ($globalJk && $globalJk->kode_jam_kerja) {
-                                $jamkerja = \App\Models\Jamkerja::getByCode($globalJk->kode_jam_kerja);
-                            }
-                        }
-                    }
-                }
-            }
+            $kode_jk = $karyawan->kode_jam_kerja ?: 'JK01';
+            $jamkerja = \App\Models\Jamkerja::getByCode($kode_jk);
         }
 
         // 8. Get presence history
@@ -281,18 +198,7 @@ class DashboardController extends Controller
                 ],
                 'is_birthday' => $is_birthday,
                 'umur' => $umur,
-                'notif_kontrak' => $notif_kontrak,
-                'notif_sp' => $notif_sp ? [
-                    'id' => $notif_sp->no_sp,
-                    'jenis_sp' => $notif_sp->jenis_sp ?? 'Peringatan Disiplin',
-                    'sampai' => Carbon::parse($notif_sp->sampai)->translatedFormat('d F Y'),
-                ] : null,
-                'pengumuman' => $pengumuman ? [
-                    'id' => $pengumuman->id,
-                    'judul' => $pengumuman->judul,
-                    'isi' => strip_tags($pengumuman->isi),
-                    'created_at' => Carbon::parse($pengumuman->created_at)->translatedFormat('d F Y'),
-                ] : null,
+
                 'cabang' => $cabang ? [
                     'nama_cabang' => $cabang->nama_cabang,
                     'lokasi_cabang' => $cabang->lokasi_cabang,
