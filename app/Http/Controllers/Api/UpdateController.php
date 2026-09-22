@@ -99,15 +99,18 @@ class UpdateController extends Controller
             // Download file
             $success = $this->updateService->downloadUpdate($update, $updateLog);
 
+            $freshLog = $updateLog->fresh();
+            $logMessage = $freshLog->message ?? ($success ? 'File berhasil diunduh' : 'Gagal mengunduh file');
+
             return response()->json([
                 'success' => $success,
-                'message' => $success ? 'File berhasil diunduh' : 'Gagal mengunduh file',
+                'message' => $logMessage,
                 'data' => [
                     'update_log_id' => $updateLog->id,
                     'version' => $update->version,
-                    'status' => $updateLog->fresh()->status,
+                    'status' => $freshLog->status,
                 ],
-            ], $success ? 200 : 500);
+            ], $success ? 200 : 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -149,14 +152,17 @@ class UpdateController extends Controller
             // Install update
             $success = $this->updateService->installUpdate($update, $updateLog, Auth::id() ?? $request->input('user_id'));
 
+            $freshLog = $updateLog->fresh();
+            $logMessage = $freshLog->message ?? ($success ? 'Update berhasil diinstall' : 'Gagal menginstall update');
+
             return response()->json([
                 'success' => $success,
-                'message' => $success ? 'Update berhasil diinstall' : 'Gagal menginstall update',
+                'message' => $logMessage,
                 'data' => [
-                    'update_log' => $updateLog->fresh(),
+                    'update_log' => $freshLog,
                     'current_version' => $this->updateService->getCurrentVersion(),
                 ],
-            ], $success ? 200 : 500);
+            ], $success ? 200 : 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -204,15 +210,18 @@ class UpdateController extends Controller
             // Install
             $installSuccess = $this->updateService->installUpdate($update, $updateLog, Auth::id() ?? $request->input('user_id'));
 
+            $freshLog = $updateLog->fresh();
+            $logMessage = $freshLog->message ?? ($installSuccess ? 'Update berhasil diinstall' : 'Gagal menginstall update');
+
             return response()->json([
                 'success' => $installSuccess,
-                'message' => $installSuccess ? 'Update berhasil diinstall' : 'Gagal menginstall update',
+                'message' => $logMessage,
                 'data' => [
-                    'update_log' => $updateLog->fresh(),
+                    'update_log' => $freshLog,
                     'current_version' => $this->updateService->getCurrentVersion(),
-                    'previous_version' => $updateLog->previous_version,
+                    'previous_version' => $freshLog->previous_version,
                 ],
-            ], $installSuccess ? 200 : 500);
+            ], $installSuccess ? 200 : 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

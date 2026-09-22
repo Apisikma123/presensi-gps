@@ -22,32 +22,28 @@
     </div>
 </div>
 
-<!-- Search & Filter Bar -->
+<!-- Search & Filter Bar (Standardized Compact Admin Filter Toolbar) -->
 <div class="card admin-filter-toolbar mb-3">
-    <div class="card-body p-3">
-        <form action="{{ route('cabang.index') }}" method="GET">
-            <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
-                <div class="flex-grow-1" style="min-width: 240px;">
-                    <x-input-with-icon label="" value="{{ Request('nama_cabang') }}" name="nama_cabang"
-                        icon="ti ti-search" placeholder="Cari nama atau kode cabang..." hideLabel="true" />
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5"
-                        style="height: 38px; min-width: 90px;">
-                        <i class="ti ti-search"></i>
-                        <span>Cari</span>
-                    </button>
-                    @if (Request('nama_cabang'))
-                        <a href="{{ route('cabang.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1"
-                            style="height: 38px; padding: 0 12px;" title="Reset Filter">
-                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
-                            <span>Reset</span>
-                        </a>
-                    @endif
-                </div>
+    <form action="{{ route('cabang.index') }}" method="GET" class="m-0">
+        <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+            <div class="flex-grow-1" style="min-width: 240px;">
+                <x-input-with-icon label="" value="{{ Request('nama_cabang') }}" name="nama_cabang"
+                    icon="ti ti-search" placeholder="Cari nama atau kode cabang..." hideLabel="true" />
             </div>
-        </form>
-    </div>
+            <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                    <i class="ti ti-search" style="font-size: 14px;"></i>
+                    <span>Cari</span>
+                </button>
+                @if (Request('nama_cabang'))
+                    <a href="{{ route('cabang.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                        <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                        <span>Reset</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+    </form>
 </div>
 
 <!-- Table Card -->
@@ -155,7 +151,27 @@
 
 @endsection
 
+@push('mystyle')
+<link rel="stylesheet" href="{{ asset('assets/vendor/libs/leaflet/leaflet.css') }}" />
+<style>
+    #map {
+        height: 380px !important;
+        width: 100% !important;
+        border-radius: 8px;
+        border: 1px solid #E2E8F0;
+        position: relative;
+    }
+    .leaflet-pane {
+        z-index: 400 !important;
+    }
+    .leaflet-top, .leaflet-bottom {
+        z-index: 500 !important;
+    }
+</style>
+@endpush
+
 @push('myscript')
+<script src="{{ asset('assets/vendor/libs/leaflet/leaflet.js') }}"></script>
 <script>
     $(function() {
         $(document).on('click', '#btncreateCabang', function(e) {
@@ -169,6 +185,14 @@
             var kode_cabang = $(this).attr("kode_cabang");
             $('#mdleditCabang').modal("show");
             $("#loadeditCabang").load('/cabang/' + kode_cabang);
+        });
+
+        // Ensure Leaflet recalculates size when modal opens
+        $('#mdlcreateCabang, #mdleditCabang').on('shown.bs.modal', function() {
+            setTimeout(function() {
+                if (window._cabangEditMap) window._cabangEditMap.invalidateSize();
+                if (window._cabangCreateMap) window._cabangCreateMap.invalidateSize();
+            }, 100);
         });
     });
 </script>

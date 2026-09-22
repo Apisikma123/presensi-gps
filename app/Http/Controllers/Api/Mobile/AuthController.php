@@ -28,8 +28,31 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $username = $request->input('username');
-        $password = $request->input('password');
+        $username = (string)$request->input('username');
+        $password = (string)$request->input('password');
+        $normalizedUsername = \Illuminate\Support\Str::lower(trim($username));
+        $clientIp = (string)$request->ip();
+
+        $accountKey = 'mobile-login-account:' . $normalizedUsername;
+        $ipKey = 'mobile-login-ip:' . $clientIp;
+
+        // 1. Account limiter: Max 5 failed attempts per 60 seconds
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($accountKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($accountKey);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak percobaan login pada akun ini. Silakan coba lagi dalam ' . $seconds . ' detik.'
+            ], 429);
+        }
+
+        // 2. IP limiter: Max 20 failed attempts per 60 seconds (prevents password spraying)
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($ipKey, 20)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($ipKey);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak percobaan login dari jaringan/perangkat Anda. Silakan coba lagi dalam ' . $seconds . ' detik.'
+            ], 429);
+        }
 
         // Check user by username or email
         $user = User::where('username', $username)
@@ -37,11 +60,16 @@ class AuthController extends Controller
             ->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($accountKey, 60);
+            \Illuminate\Support\Facades\RateLimiter::hit($ipKey, 60);
             return response()->json([
                 'success' => false,
                 'message' => 'Username atau password salah'
             ], 401);
         }
+
+        // On successful credential check, clear the account throttle
+        \Illuminate\Support\Facades\RateLimiter::clear($accountKey);
 
         // Check if user is linked to Karyawan
         $userKaryawan = $user->userkaryawan;

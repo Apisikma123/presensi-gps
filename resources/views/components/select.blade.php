@@ -10,13 +10,14 @@
     'showKey' => false,
     'hideLabel' => false,
     'placeholder' => null,
+    'required' => false,
 ])
 
 <div class="form-group {{ $hideLabel ? 'mb-0' : 'mb-3' }}">
     @if($label && !$hideLabel)
-        <label for="{{ $name }}" class="form-label" style="font-weight: 600;">{{ $label }}</label>
+        <label for="{{ $name }}" class="form-label" style="font-weight: 600;">{{ $label }} {!! $required ? '<span class="text-danger">*</span>' : '' !!}</label>
     @endif
-    <select name="{{ $name }}" id="{{ $name }}" class="form-select {{ $select2 }}">
+    <select name="{{ $name }}" id="{{ $name }}" class="form-select {{ $select2 }}" {{ $required ? 'required' : '' }}>
         <option value="">{{ $placeholder ?? $label }}</option>
         @foreach ($data as $d)
             <option {{ $d->$key == $selected ? 'selected' : '' }} value="{{ $d->$key }}">

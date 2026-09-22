@@ -16,8 +16,9 @@
             <div class="col">
                 <div class="alert alert-warning">
                     <p>
-                        Maaf,Anda hari ini tidak bisa melakukan presensi karena hari ini Anda sedang Libur !
-                        {{ $harilibur->keterangan }}
+                        Hari ini Anda dijadwalkan LIBUR / OFF. Tidak ada kewajiban presensi.
+                        <br>
+                        <small class="text-muted">{{ $keterangan_libur ?? ($harilibur->keterangan ?? '') }}</small>
                     </p>
                 </div>
             </div>

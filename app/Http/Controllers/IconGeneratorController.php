@@ -54,7 +54,7 @@ class IconGeneratorController extends Controller
         }
 
         $request->validate([
-            'icon' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240', // Max 10MB, exclude SVG for now
+            'icon' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // Max 2MB global cap
         ]);
 
         try {

@@ -5,30 +5,28 @@ namespace App\Http\Controllers;
 use App\Models\Approveizinsakit;
 use App\Models\Cabang;
 use App\Models\Departemen;
-use App\Models\Detailsetjamkerjabydept;
 use App\Models\Izinabsen;
 use App\Models\Izincuti;
 use App\Models\Izinsakit;
+use App\Models\Jamkerja;
 use App\Models\Karyawan;
+use App\Models\Pengaturanumum;
 use App\Models\Presensi;
-use App\Models\Setjamkerjabydate;
-use App\Models\Setjamkerjabyday;
 use App\Models\User;
 use App\Models\Userkaryawan;
+use App\Services\ApprovalService;
+use App\Services\AttendanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
-use App\Services\ApprovalService;
-use App\Models\Approval;
-use App\Models\ApprovalLayer;
 
 class IzinsakitController extends Controller
 {
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $qizin = Izinsakit::query();
@@ -86,9 +84,9 @@ class IzinsakitController extends Controller
         return view('izinsakit.index', $data);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $qkaryawan = Karyawan::query();
@@ -115,9 +113,14 @@ class IzinsakitController extends Controller
         $karyawan = $qkaryawan->get();
 
         $data['karyawan'] = $karyawan;
+        $data['general_setting'] = Pengaturanumum::first();
 
         if ($user->hasRole('karyawan')) {
             return view('izinsakit.create-mobile', $data);
+        }
+
+        if ($request->ajax()) {
+            return view('izinsakit.create-modal', $data);
         }
 
         return view('izinsakit.create', $data);
@@ -125,7 +128,7 @@ class IzinsakitController extends Controller
 
     public function edit($kode_izin_sakit)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);
         $izinsakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)
@@ -176,68 +179,94 @@ class IzinsakitController extends Controller
         $user = User::findorfail(auth()->user()->id);
         $role = $user->getRoleNames()->first();
         $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
-        $nik = $user->hasRole('karyawan') ? $userkaryawan->nik : $request->nik;
-        if ($role == 'karyawan') {
+
+        if ($user->hasRole('karyawan')) {
+            if (!$userkaryawan || empty($userkaryawan->nik)) {
+                return Redirect::back()->withInput()->with(messageError('Akun Anda belum terhubung dengan data karyawan. Silakan hubungi admin.'));
+            }
+            $nik = $userkaryawan->nik;
             $request->validate([
-                'dari' => 'required',
-                'sampai' => 'required',
+                'dari' => 'required|date',
+                'sampai' => 'required|date',
                 'keterangan' => 'required',
-                'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+                'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
         } else {
+            $nik = $request->nik;
             $request->validate([
                 'nik' => 'required',
-                'dari' => 'required',
-                'sampai' => 'required',
+                'dari' => 'required|date',
+                'sampai' => 'required|date',
                 'keterangan' => 'required',
-                'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+                'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             ]);
+        }
+
+        $dari = $request->dari;
+        $sampai = $request->sampai;
+        $jmlhari = hitungHari($request->dari, $request->sampai, $nik);
+        $setting = Pengaturanumum::first();
+        $batasi_hari_izin = $setting->batasi_hari_izin ?? 0;
+        $jml_hari_izin_max = $setting->jml_hari_izin_max ?? 0;
+
+        if ($jmlhari > $jml_hari_izin_max && $batasi_hari_izin == 1) {
+            $msg = 'Tidak Boleh Lebih dari ' . $jml_hari_izin_max . ' Hari!';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($msg));
         }
 
         DB::beginTransaction();
         try {
             $cek_izin_absen = Izinabsen::where('nik', $nik)
-                ->whereBetween('dari', [$request->dari, $request->sampai])
-                ->orWhereBetween('sampai', [$request->dari, $request->sampai])
-                ->where('nik', $nik)
+                ->where(function ($q) use ($request) {
+                    $q->where('dari', '<=', $request->sampai)
+                      ->where('sampai', '>=', $request->dari);
+                })
+                ->where('status', '!=', '2')
                 ->first();
 
             $cek_izin_sakit = Izinsakit::where('nik', $nik)
-                ->whereBetween('dari', [$request->dari, $request->sampai])
-                ->orWhereBetween('sampai', [$request->dari, $request->sampai])
-                ->where('nik', $nik)
+                ->where(function ($q) use ($request) {
+                    $q->where('dari', '<=', $request->sampai)
+                      ->where('sampai', '>=', $request->dari);
+                })
+                ->where('status', '!=', '2')
                 ->first();
 
             $cek_izin_cuti = Izincuti::where('nik', $nik)
-                ->whereBetween('dari', [$request->dari, $request->sampai])
-                ->orWhereBetween('sampai', [$request->dari, $request->sampai])
-                ->where('nik', $nik)
+                ->where(function ($q) use ($request) {
+                    $q->where('dari', '<=', $request->sampai)
+                      ->where('sampai', '>=', $request->dari);
+                })
+                ->where('status', '!=', '2')
                 ->first();
 
-            if ($cek_izin_absen) {
-                return Redirect::back()->with(messageError('Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Pada Rentang Tanggal Tersebut!'));
-            } else if ($cek_izin_sakit) {
-                return Redirect::back()->with(messageError('Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Absen Pada Rentang Tanggal Tersebut!'));
-            } else if ($cek_izin_cuti) {
-                return Redirect::back()->with(messageError('Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Absen Pada Rentang Tanggal Tersebut!'));
+            if ($cek_izin_absen || $cek_izin_sakit || $cek_izin_cuti) {
+                $msg = 'Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Pada Rentang Tanggal Tersebut!';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return Redirect::back()->withInput()->with(messageError($msg));
             }
             $lastizinsakit = Izinsakit::select('kode_izin_sakit')
-                ->whereRaw('YEAR(tanggal)="' . date('Y', strtotime($request->dari)) . '"')
-                ->whereRaw('MONTH(tanggal)="' . date('m', strtotime($request->dari)) . '"')
+                ->whereRaw('YEAR(tanggal) = ?', [date('Y', strtotime($request->dari))])
+                ->whereRaw('MONTH(tanggal) = ?', [date('m', strtotime($request->dari))])
                 ->orderBy("kode_izin_sakit", "desc")
                 ->first();
             $last_kode_izin_sakit = $lastizinsakit != null ? $lastizinsakit->kode_izin_sakit : '';
             $kode_izin_sakit  = buatkode($last_kode_izin_sakit, "IS"  . date('ym', strtotime($request->dari)), 4);
-
 
             $data_sid = [];
             if ($request->hasfile('sid')) {
                 $sid_name = \App\Helpers\ImageOptimizer::saveAsWebp(
                     $request->file('sid'),
                     'uploads/sid',
-                    $kode_izin_sakit,
+                    $kode_izin_sakit . '_' . \Illuminate\Support\Str::random(24),
                     80,
-                    1280
+                    1280,
+                    'private'
                 );
                 $data_sid = [
                     'doc_sid' => $sid_name,
@@ -259,16 +288,28 @@ class IzinsakitController extends Controller
             $data = array_merge($dataizinsakit, $data_sid);
             $simpandatasakit = Izinsakit::create($data);
             DB::commit();
-            return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
+
+            if ($user->hasRole('karyawan')) {
+                return Redirect::route('pengajuanizin.index')->with(messageSuccess('Data Berhasil Disimpan'));
+            } else {
+                return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
+            }
         } catch (\Exception $e) {
             DB::rollBack();
-            return Redirect::back()->with(messageError($e->getMessage()));
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($e->getMessage()));
         }
     }
 
     public function approve($kode_izin_sakit)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);
@@ -289,13 +330,19 @@ class IzinsakitController extends Controller
             }
         }
 
+        // Anti Self-Approval Protection
+        $approvalService = app(ApprovalService::class);
+        if ($approvalService->isSelfApproval($user, $izinabsen->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan menyetujui (approve) pengajuan izin sakit milik Anda sendiri.');
+        }
+
         $data['izinsakit'] = $izinabsen;
         return view('izinsakit.approve', $data);
     }
 
     public function storeapprove(Request $request, $kode_izin_sakit)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);
@@ -316,8 +363,13 @@ class IzinsakitController extends Controller
             }
         }
 
-        // Dynamic Approval Logic
+        // Anti Self-Approval Protection: Applicant cannot approve their own request
         $approvalService = app(ApprovalService::class);
+        if ($approvalService->isSelfApproval($user, $izinsakit->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan menyetujui (approve) pengajuan izin sakit milik Anda sendiri.');
+        }
+
+        // Dynamic Approval Logic
         $userRole = $user->getRoleNames()->first();
         $currentStep = $izinsakit->approval_step;
         $approvalUserId = $approvalService->getApprovalUserId($user);
@@ -340,65 +392,49 @@ class IzinsakitController extends Controller
         DB::beginTransaction();
         try {
             if (isset($request->approve)) {
-                
-                // 1. Record Approval (atas nama admin jika delegasi)
-                Approval::create([
-                    'approvable_type' => Izinsakit::class,
-                    'approvable_id' => $kode_izin_sakit,
-                    'user_id' => $approvalUserId,
-                    'level' => $currentStep,
-                    'status' => 'approved',
-                    'keterangan' => 'Approved by ' . $approvalAdmin->name,
-                ]);
+                // P1-1: Cegah approval sakit menimpa presensi hadir aktual
+                $hasActualAttendance = Presensi::where('nik', $nik)
+                    ->whereBetween('tanggal', [$dari, $sampai])
+                    ->where('status', 'h')
+                    ->whereNotNull('jam_in')
+                    ->exists();
 
-                // 2. Check for Next Level rule
-                $nextLevel = $currentStep + 1;
-                $nextRule = $approvalService->getLayer('IZIN', $nextLevel, $kode_dept, $kode_jabatan, $kode_cabang);
-                
-                 if ($nextRule && !$user->hasRole('super admin')) {
-                    // Move to next step
-                     Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                        'approval_step' => $nextLevel
-                    ]);
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Berhasil disetujui (Tahap ' . $currentStep . '). Menunggu approval tahap selanjutnya.'));
+                if ($hasActualAttendance) {
+                    throw new \Exception('Karyawan sudah tercatat hadir pada tanggal ini. Izin/Sakit/Cuti tidak dapat disetujui sebelum data presensi dikoreksi.');
                 }
 
-                // If No Next Rule -> FINAL APPROVAL
                 Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                    'status' => 1
+                    'status' => 1,
+                    'approval_step' => 1
                 ]);
 
-                while (strtotime($dari) <= strtotime($sampai)) {
+                $karyawan = Karyawan::where('nik', $izinsakit->nik)->first();
+                $kode_jam_kerja = !empty($karyawan?->kode_jam_kerja) ? $karyawan->kode_jam_kerja : 'JK01';
+                $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first()
+                    ?? Jamkerja::where('kode_jam_kerja', 'JK01')->first();
 
-                    //Cek Jadwal Pada Setiap tanggal
-                    $namahari = getnamaHari(date('D', strtotime($dari)));
+                $schedules = AttendanceService::getEffectiveSchedulesBatch([$nik], $dari, $sampai);
 
-                    $jamkerja = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                        ->where('nik', $izinsakit->nik)
-                        ->where('tanggal', $dari)
-                        ->first();
-                    if ($jamkerja == null) {
-                        $jamkerja = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('nik', $izinsakit->nik)->where('hari', $namahari)
-                            ->first();
-                    }
+                $curr = $dari;
+                while (strtotime($curr) <= strtotime($sampai)) {
+                    $eff = $schedules[$nik][$curr] ?? null;
+                    $isOff = $eff ? $eff['is_off'] : false;
 
-                    if ($jamkerja == null) {
-                        $jamkerja = Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
-                            ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('kode_dept', $kode_dept)
-                            ->where('kode_cabang', $izinsakit->kode_cabang)
-                            ->where('hari', $namahari)->first();
-                    }
-                    if ($jamkerja == null) {
-                        $error .= 'Jam Kerja pada Tanggal ' . $dari . ' Belum Di Set! <br>';
-                    } else {
+                    if (!$isOff) {
+                        $jkCode = $eff && $eff['jam_kerja'] ? $eff['jam_kerja']->kode_jam_kerja : ($jamkerja ? $jamkerja->kode_jam_kerja : 'JK01');
+                        
+                        $existing = Presensi::where('nik', $nik)->where('tanggal', $curr)->first();
+                        $auditNote = null;
+                        if ($existing && $existing->status === 'a') {
+                            $auditNote = "[IZIN_SUSULAN] Diubah dari ALPHA (a) ke SAKIT. Approved by: " . ($user->name ?? 'Admin') . " on " . now()->format('Y-m-d H:i:s') . ". Ref: " . $kode_izin_sakit;
+                        }
+
                         $presensi = Presensi::updateOrCreate(
-                            ['nik' => $nik, 'tanggal' => $dari],
+                            ['nik' => $nik, 'tanggal' => $curr],
                             [
-                                'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
+                                'kode_jam_kerja' => $jkCode,
                                 'status' => 's',
+                                'keterangan' => $auditNote ?? ($izinsakit->keterangan ?? 'Izin Sakit'),
                             ]
                         );
 
@@ -408,32 +444,31 @@ class IzinsakitController extends Controller
                         );
                     }
 
-
-                    $dari = date('Y-m-d', strtotime($dari . ' +1 day'));
+                    $curr = date('Y-m-d', strtotime($curr . ' +1 day'));
                 }
             } else {
-                 // REJECTION
-                 Approval::create([
-                    'approvable_type' => Izinsakit::class,
-                    'approvable_id' => $kode_izin_sakit,
-                    'user_id' => $approvalUserId,
-                    'level' => $currentStep,
-                    'status' => 'rejected',
-                    'keterangan' => 'Rejected by ' . $approvalAdmin->name,
-                ]);
-
                 Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                    'status' => 2
+                    'status' => 2,
+                    'approval_step' => 1
                 ]);
             }
             if (!empty($error)) {
                 DB::rollBack();
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $error], 422);
+                }
                 return Redirect::back()->with(messageError($error));
             }
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
@@ -441,7 +476,7 @@ class IzinsakitController extends Controller
 
     public function cancelapprove($kode_izin_sakit)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);
@@ -460,105 +495,46 @@ class IzinsakitController extends Controller
             }
         }
         
+        // Anti Self-Approval Protection: Applicant cannot cancel approval of own request
+        $approvalService = app(ApprovalService::class);
+        if ($approvalService->isSelfApproval($user, $izinsakit->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan membatalkan persetujuan pengajuan milik Anda sendiri.');
+        }
+        
         DB::beginTransaction();
         try {
-            // Case 1: Status is Pending (0) but moved steps (Intermediate Cancellation)
-            if ($izinsakit->status == 0) {
-                 // Logic: Find the approval for the *previous* step (current_step - 1)
-                 // NOTE: Since approval_step points to the *requirement* (waiting for X), 
-                 // the *last done* approval was at level (approval_step - 1).
-                 $lastStep = $izinsakit->approval_step - 1;
-                 
-                $lastApproval = Approval::where('approvable_type', Izinsakit::class)
-                    ->where('approvable_id', $kode_izin_sakit)
-                    ->where('level', $lastStep)
-                    ->where('user_id', $user->id) // Must be the one who approved it
-                    ->first();
-
-                if ($lastApproval) {
-                    $lastApproval->delete();
-                    Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                        'approval_step' => $lastStep
-                    ]);
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Approval dibatalkan. Kembali ke tahap sebelumnya.'));
-                } else {
-                     return Redirect::back()->with(messageError('Anda tidak dapat membatalkan approval ini (Bukan approver terakhir atau sudah diproses lanjut).'));
+            if ($izinsakit->status == 1) {
+                $approves = Approveizinsakit::where('kode_izin_sakit', $kode_izin_sakit)->get();
+                foreach ($approves as $appr) {
+                    $p = Presensi::find($appr->id_presensi);
+                    if ($p) {
+                        if (str_contains($p->keterangan ?? '', '[IZIN_SUSULAN]')) {
+                            $p->update([
+                                'status' => 'a',
+                                'keterangan' => 'Tanpa Keterangan (Alpha) - Dibatalkan dari Izin Sakit Susulan Ref: ' . $kode_izin_sakit,
+                                'jam_in' => null,
+                                'jam_out' => null
+                            ]);
+                        } else {
+                            $p->delete();
+                        }
+                    }
                 }
-            } 
-            // Case 2: Status is Final Approved (1)
-            else if ($izinsakit->status == 1) {
-                // This is the "Final Cancellation" - undo the final approval
-                // Current code logic deletes presensi and resets status to 0. 
-                // We should also delete the Final Approval record.
-                
-                // Find final approval record (highest level)
-                $lastApproval = Approval::where('approvable_type', Izinsakit::class)
-                    ->where('approvable_id', $kode_izin_sakit)
-                    ->where('user_id', $user->id)
-                    ->orderBy('level', 'desc')
-                    ->first();
+                Approveizinsakit::where('kode_izin_sakit', $kode_izin_sakit)->delete();
 
-                if($lastApproval){
-                     // Revert step to this level (so it becomes pending at this level again)
-                     $revertStep = $lastApproval->level;
-                     $lastApproval->delete();
-                     
-                     // Delete Presensi Data
-                     $presensi = Approveizinsakit::where('kode_izin_sakit', $kode_izin_sakit)->get();
-                     Presensi::whereIn('id', $presensi->pluck('id_presensi'))->delete();
-                     Approveizinsakit::where('kode_izin_sakit', $kode_izin_sakit)->delete();
-
-                     Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                        'status' => 0,
-                        'approval_step' => $revertStep
-                    ]);
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Approval final dibatalkan. Kembali ke tahap sebelumnya.'));
-
-                } else {
-                    // Fallback for Super Admin or legacy cleanup 
-                    $presensi = Approveizinsakit::where('kode_izin_sakit', $kode_izin_sakit)->get();
-                    Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                        'status' => 0
-                        // approval_step stays same?? or reset? 
-                        // Safer to not touch approval_step if we don't know, but ideally we should knows.
-                        // Im assuming legacy manual reset sets status 0.
-                    ]);
-                    Approveizinsakit::where('kode_izin_sakit', $kode_izin_sakit)->delete();
-                    Presensi::whereIn('id', $presensi->pluck('id_presensi'))->delete();
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
-                }
-            }
-            // Case 3: Status is Rejected (2)
-            else if ($izinsakit->status == 2) {
-                 // Find the rejection approval record
-                 $lastApproval = Approval::where('approvable_type', Izinsakit::class)
-                    ->where('approvable_id', $kode_izin_sakit)
-                    ->where('user_id', $user->id)
-                    ->orderBy('level', 'desc')
-                    ->first();
-
-                 if($lastApproval){
-                      // Revert step to this level
-                      $revertStep = $lastApproval->level;
-                      $lastApproval->delete();
-                      
-                      Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                         'status' => 0,
-                         'approval_step' => $revertStep
-                     ]);
-                     DB::commit();
-                     return Redirect::back()->with(messageSuccess('Penolakan dibatalkan. Kembali ke tahap sebelumnya.'));
-                 } else {
-                     // Fallback
-                     Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
-                         'status' => 0
-                     ]);
-                     DB::commit();
-                     return Redirect::back()->with(messageSuccess('Penolakan Berhasil Dibatalkan'));
-                 }
+                Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
+                    'status' => 0,
+                    'approval_step' => 0
+                ]);
+                DB::commit();
+                return Redirect::back()->with(messageSuccess('Persetujuan izin sakit berhasil dibatalkan'));
+            } else if ($izinsakit->status == 2) {
+                Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update([
+                    'status' => 0,
+                    'approval_step' => 0
+                ]);
+                DB::commit();
+                return Redirect::back()->with(messageSuccess('Penolakan Berhasil Dibatalkan'));
             }
             
             return Redirect::back()->with(messageError('Status tidak valid untuk pembatalan.'));
@@ -580,15 +556,23 @@ class IzinsakitController extends Controller
             abort(404, 'Data izin sakit tidak ditemukan.');
         }
 
-        /** @var \App\Models\User $user */
+        if ($izinsakit->status == 1) {
+            $msg = 'Pengajuan izin sakit yang sudah disetujui tidak dapat diedit langsung. Batalkan persetujuan terlebih dahulu.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->with(messageError($msg));
+        }
+
+        /** @var User $user */
         $user = auth()->user();
         if (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
-            if (!empty($userCabangs) && !in_array($izinsakit->kode_cabang, $userCabangs)) {
+            if (empty($userCabangs) || !in_array($izinsakit->kode_cabang, $userCabangs)) {
                 abort(403, 'Anda tidak memiliki akses ke cabang izin sakit ini.');
             }
-            if (!empty($userDepartemens) && !in_array($izinsakit->kode_dept, $userDepartemens)) {
+            if (empty($userDepartemens) || !in_array($izinsakit->kode_dept, $userDepartemens)) {
                 abort(403, 'Anda tidak memiliki akses ke departemen izin sakit ini.');
             }
         }
@@ -598,22 +582,28 @@ class IzinsakitController extends Controller
             'dari' => 'required',
             'sampai' => 'required',
             'keterangan' => 'required',
-            'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
         DB::beginTransaction();
         try {
             $data_sid = [];
             if ($request->hasfile('sid')) {
                 if (!empty($izinsakit->doc_sid)) {
-                    Storage::disk('public')->delete('uploads/sid/' . $izinsakit->doc_sid);
+                    if (Storage::disk('private')->exists('uploads/sid/' . $izinsakit->doc_sid)) {
+                        Storage::disk('private')->delete('uploads/sid/' . $izinsakit->doc_sid);
+                    }
+                    if (Storage::disk('public')->exists('uploads/sid/' . $izinsakit->doc_sid)) {
+                        Storage::disk('public')->delete('uploads/sid/' . $izinsakit->doc_sid);
+                    }
                 }
 
                 $sid_name = \App\Helpers\ImageOptimizer::saveAsWebp(
                     $request->file('sid'),
                     'uploads/sid',
-                    $kode_izin_sakit,
+                    $kode_izin_sakit . '_' . \Illuminate\Support\Str::random(24),
                     80,
-                    1280
+                    1280,
+                    'private'
                 );
                 $data_sid = [
                     'doc_sid' => $sid_name,
@@ -632,23 +622,41 @@ class IzinsakitController extends Controller
 
             $simpandatasakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->update($data);
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
 
-    public function destroy($kode_izin_sakit)
+    public function destroy(Request $request, $kode_izin_sakit)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);
         $izinsakit = Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)
             ->join('karyawan', 'presensi_izinsakit.nik', '=', 'karyawan.nik')
             ->first();
+        
+        if (!$izinsakit) {
+            abort(404, 'Data izin sakit tidak ditemukan.');
+        }
+
+        if ($izinsakit->status != 0) {
+            $msg = 'Pengajuan izin sakit yang sudah diproses tidak dapat dihapus langsung. Batalkan persetujuan terlebih dahulu.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->with(messageError($msg));
+        }
         
         // Cek akses jika bukan super admin
         if (!$user->isSuperAdmin()) {
@@ -668,9 +676,23 @@ class IzinsakitController extends Controller
         }
         
         try {
+            if (!empty($izinsakit->doc_sid)) {
+                if (Storage::disk('private')->exists('uploads/sid/' . $izinsakit->doc_sid)) {
+                    Storage::disk('private')->delete('uploads/sid/' . $izinsakit->doc_sid);
+                }
+                if (Storage::disk('public')->exists('uploads/sid/' . $izinsakit->doc_sid)) {
+                    Storage::disk('public')->delete('uploads/sid/' . $izinsakit->doc_sid);
+                }
+            }
             Izinsakit::where('kode_izin_sakit', $kode_izin_sakit)->delete();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Dihapus']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Dihapus'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
@@ -678,7 +700,7 @@ class IzinsakitController extends Controller
 
     public function show($kode_izin_sakit)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_sakit = Crypt::decrypt($kode_izin_sakit);

@@ -37,7 +37,7 @@ class BpjskesehatanImport implements ToCollection, WithStartRow
             // Generate Kode BPJS Kesehatan
             $tahun = date('Y', strtotime($tanggal_berlaku));
             $last_bpjs = Bpjskesehatan::orderBy('kode_bpjs_kesehatan', 'desc')
-                ->whereRaw('YEAR(tanggal_berlaku) = ' . $tahun)
+                ->whereYear('tanggal_berlaku', $tahun)
                 ->first();
             
             $last_kode = $last_bpjs != null ? $last_bpjs->kode_bpjs_kesehatan : '';

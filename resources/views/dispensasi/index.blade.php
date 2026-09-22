@@ -18,64 +18,60 @@
             <div>
                 <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                     <span>Dispensasi Keterlambatan</span>
-                    <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
-                        {{ $dispensasi->total() }} Total
+                    <span class="badge" style="background: rgba(30, 77, 62, 0.08); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.15); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+                        {{ number_format($dispensasi->total(), 0, ',', '.') }} Total
                     </span>
                 </h5>
                 <small class="text-muted" style="font-size: 12px;">Dispensasi batas toleransi keterlambatan untuk jam masuk shift.</small>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <a href="#" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreateDispensasi" style="height: 36px; border-radius: 8px;">
-                    <i class="ti ti-plus"></i>
+                <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreateDispensasi" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+                    <i class="ti ti-plus" style="font-size: 16px;"></i>
                     <span>Tambah Dispensasi</span>
                 </a>
             </div>
         </div>
 
-        <!-- Search & Filter Bar (Standardized Admin Filter Toolbar) -->
+        <!-- Search & Filter Bar (Standardized Compact Admin Filter Toolbar) -->
         <div class="card admin-filter-toolbar mb-3">
-            <div class="card-body p-3">
-                <form action="{{ route('dispensasi.index') }}" method="GET">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-lg-3 col-md-4 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Dari Tanggal</label>
-                            <x-input-with-icon label="" value="{{ Request('dari') }}" name="dari" icon="ti ti-calendar"
-                                datepicker="flatpickr-date" placeholder="Dari Tanggal" hideLabel="true" />
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Sampai Tanggal</label>
-                            <x-input-with-icon label="" value="{{ Request('sampai') }}" name="sampai" icon="ti ti-calendar"
-                                datepicker="flatpickr-date" placeholder="Sampai Tanggal" hideLabel="true" />
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-12">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Cari Karyawan</label>
-                            <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan"
-                                icon="ti ti-search" placeholder="Cari nama karyawan..." hideLabel="true" />
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Status Dispensasi</label>
-                            <select name="status" id="status" class="form-select">
-                                <option value="">Semua Status</option>
-                                <option value="PENDING" {{ Request('status') === 'PENDING' ? 'selected' : '' }}>Pending</option>
-                                <option value="APPROVED" {{ Request('status') === 'APPROVED' ? 'selected' : '' }}>Disetujui</option>
-                                <option value="REJECTED" {{ Request('status') === 'REJECTED' ? 'selected' : '' }}>Ditolak</option>
-                            </select>
-                        </div>
-                        <div class="col-12 d-flex justify-content-end gap-2 pt-1">
+            <form action="{{ route('dispensasi.index') }}" method="GET" class="m-0">
+                <div class="row g-2 align-items-center">
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                        <x-input-with-icon label="" value="{{ Request('dari') }}" name="dari" icon="ti ti-calendar"
+                            datepicker="flatpickr-date" placeholder="Dari Tanggal" hideLabel="true" />
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 col-12">
+                        <x-input-with-icon label="" value="{{ Request('sampai') }}" name="sampai" icon="ti ti-calendar"
+                            datepicker="flatpickr-date" placeholder="Sampai Tanggal" hideLabel="true" />
+                    </div>
+                    <div class="col-xl col-lg col-md-6 col-12">
+                        <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan"
+                            icon="ti ti-search" placeholder="Cari nama karyawan..." hideLabel="true" />
+                    </div>
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                        <select name="status" id="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="PENDING" {{ Request('status') === 'PENDING' ? 'selected' : '' }}>Pending</option>
+                            <option value="APPROVED" {{ Request('status') === 'APPROVED' ? 'selected' : '' }}>Disetujui</option>
+                            <option value="REJECTED" {{ Request('status') === 'REJECTED' ? 'selected' : '' }}>Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <button class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5" type="submit">
+                                <i class="ti ti-search" style="font-size: 14px;"></i>
+                                <span>Cari Data</span>
+                            </button>
                             @if (Request('dari') || Request('sampai') || Request('nama_karyawan') || Request('status'))
-                                <a href="{{ route('dispensasi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" style="height: 38px; padding: 0 14px;" title="Reset Filter">
+                                <a href="{{ route('dispensasi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
                                     <i class="ti ti-refresh" style="font-size: 14px;"></i>
                                     <span>Reset</span>
                                 </a>
                             @endif
-                            <button class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5" type="submit" style="height: 38px; min-width: 130px;">
-                                <i class="ti ti-search" style="font-size: 15px;"></i>
-                                <span>Cari Data</span>
-                            </button>
                         </div>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
 
         <!-- Table Card -->
@@ -112,23 +108,38 @@
                                 </td>
                                 <td class="px-3 text-center">
                                     @if ($d->status === 'APPROVED')
-                                        <span class="badge badge-status-approved">Disetujui</span>
+                                        <span class="badge-status badge-status-approved">
+                                            <span class="badge-status-dot"></span>Disetujui
+                                        </span>
                                     @elseif ($d->status === 'REJECTED')
-                                        <span class="badge badge-status-rejected">Ditolak</span>
+                                        <span class="badge-status badge-status-rejected">
+                                            <span class="badge-status-dot"></span>Ditolak
+                                        </span>
                                     @else
-                                        <span class="badge badge-status-pending">Pending</span>
+                                        <span class="badge-status badge-status-pending">
+                                            <span class="badge-status-dot"></span>Pending
+                                        </span>
                                     @endif
                                 </td>
                                 <td class="px-3 text-end">
-                                    <div class="d-inline-flex gap-1">
-                                        <button class="btn btn-xs btn-outline-primary btnApproveDispensasi" data-id="{{ $d->id }}" title="Approval">
-                                            <i class="ti ti-check" style="font-size: 14px;"></i>
-                                        </button>
-                                        <form action="{{ route('dispensasi.destroy', $d->id) }}" method="POST" class="d-inline deleteform">
+                                    <div class="d-inline-flex align-items-center gap-1.5">
+                                        @php
+                                            $isSelfDispensasi = (auth()->user()->userkaryawan?->nik === $d->nik) || (auth()->user()->username === $d->nik);
+                                        @endphp
+                                        @if ($isSelfDispensasi)
+                                            <span class="badge bg-secondary-subtle text-secondary py-1 px-2" style="font-size: 11px;" title="Pengajuan Anda sendiri (Self-approval dilarang)">
+                                                <i class="ti ti-user-x me-1"></i>Self
+                                            </span>
+                                        @else
+                                            <button class="btnApprove btn-action-tbl btn-action-approve" id_dispensasi="{{ $d->id }}" title="Approval">
+                                                <i class="ti ti-check"></i>
+                                            </button>
+                                        @endif
+                                        <form action="{{ route('dispensasi.destroy', $d->id) }}" method="POST" class="d-inline deleteform m-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-xs btn-outline-danger btnDelete" type="submit" title="Hapus">
-                                                <i class="ti ti-trash" style="font-size: 14px;"></i>
+                                            <button class="btnDelete btn-action-tbl btn-action-delete delete-confirm" type="submit" title="Hapus">
+                                                <i class="ti ti-trash"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -155,28 +166,11 @@
     </div>
 </div>
 
-<x-modal-form id="modalDispensasi" size="modal-md" title="Dispensasi Keterlambatan" />
-
 @endsection
 
 @push('myscript')
 <script>
     $(function() {
-        $('#btnCreateDispensasi').click(function(e) {
-            e.preventDefault();
-            $('#modalDispensasi').modal('show');
-            $('#modalDispensasi').find('.modal-title').text('Tambah Dispensasi Keterlambatan');
-            $('#modalDispensasi').find('#loadmodal').load('{{ route("dispensasi.create") }}');
-        });
-
-        $('.btnApproveDispensasi').click(function(e) {
-            e.preventDefault();
-            const id = $(this).data('id');
-            $('#modalDispensasi').modal('show');
-            $('#modalDispensasi').find('.modal-title').text('Persetujuan Dispensasi Keterlambatan');
-            $('#modalDispensasi').find('#loadmodal').load(`/dispensasi/${id}/approve`);
-        });
-
         $('.deleteform').submit(function(e) {
             e.preventDefault();
             var form = this;

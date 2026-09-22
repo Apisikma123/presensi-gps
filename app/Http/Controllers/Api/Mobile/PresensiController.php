@@ -60,7 +60,7 @@ class PresensiController extends Controller
         $validator = Validator::make($request->all(), [
             'lokasi' => 'required|string', // "latitude,longitude"
             'kode_jam_kerja' => 'required|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -75,7 +75,31 @@ class PresensiController extends Controller
             $generalsetting = Pengaturanumum::getSetting();
             $status_lock_location = $karyawan->lock_location;
             $lokasi = $request->input('lokasi');
-            $kode_jam_kerja = $request->input('kode_jam_kerja');
+
+            // Robust GPS Coordinate Validation
+            $koordinat_user = explode(",", $lokasi);
+            if (count($koordinat_user) !== 2 || !is_numeric(trim($koordinat_user[0])) || !is_numeric(trim($koordinat_user[1]))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format koordinat lokasi GPS tidak valid.'
+                ], 400);
+            }
+
+            $latitude_user = (float) trim($koordinat_user[0]);
+            $longitude_user = (float) trim($koordinat_user[1]);
+            if ($latitude_user < -90 || $latitude_user > 90 || $longitude_user < -180 || $longitude_user > 180) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Titik koordinat GPS berada di luar rentang koordinat bumi yang valid.'
+                ], 400);
+            }
+
+            // Enforce locked shift schedule if employee lock_jam_kerja is active
+            if ($karyawan->lock_jam_kerja == 1 && !empty($karyawan->kode_jam_kerja)) {
+                $kode_jam_kerja = $karyawan->kode_jam_kerja;
+            } else {
+                $kode_jam_kerja = $request->input('kode_jam_kerja');
+            }
 
             $cabang = Cabang::getByCode($karyawan->kode_cabang);
             if (!$cabang) {
@@ -127,13 +151,15 @@ class PresensiController extends Controller
             }
 
             // Calculate distance
-            $koordinat_user = explode(",", $lokasi);
-            $latitude_user = trim($koordinat_user[0]);
-            $longitude_user = trim($koordinat_user[1]);
-
             $koordinat_kantor = explode(",", $lokasi_kantor);
-            $latitude_kantor = trim($koordinat_kantor[0]);
-            $longitude_kantor = trim($koordinat_kantor[1]);
+            if (count($koordinat_kantor) !== 2 || !is_numeric(trim($koordinat_kantor[0])) || !is_numeric(trim($koordinat_kantor[1]))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Titik lokasi kantor cabang belum diatur dengan benar oleh administrator.'
+                ], 400);
+            }
+            $latitude_kantor = (float) trim($koordinat_kantor[0]);
+            $longitude_kantor = (float) trim($koordinat_kantor[1]);
 
             $jarak = hitungjarak($latitude_kantor, $longitude_kantor, $latitude_user, $longitude_user);
             $radius = round($jarak["meters"]);
@@ -211,37 +237,42 @@ class PresensiController extends Controller
             $imageInput = $request->hasFile('image') ? $request->file('image') : $request->input('image');
             $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80, 800);
 
-            // Face Recognition verification (if enabled)
+            // Face Recognition verification (pure PHP biometrics, zero python process spawn)
             if (isset($generalsetting->face_recognition) && $generalsetting->face_recognition == 1) {
-                $nama_folder_wajah = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
-                $folderWajahPath = "public/uploads/facerecognition/" . $nama_folder_wajah;
-                
-                if (Storage::exists($folderWajahPath) && count(Storage::files($folderWajahPath)) > 0) {
-                    $selfieFullPath = Storage::path("public/uploads/absensi/" . $fileName);
-                    $registeredDirFullPath = Storage::path($folderWajahPath);
-                    
-                    $pythonPath = PHP_OS_FAMILY === 'Windows' ? 'python' : (file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python3');
-                    $scriptPath = base_path('verify_face.py');
-                    
-                    $command = escapeshellcmd($pythonPath) . " " . escapeshellarg($scriptPath) . " " . escapeshellarg($selfieFullPath) . " " . escapeshellarg($registeredDirFullPath) . " 2>&1";
-                    
-                    $output = shell_exec($command);
-                    $result = json_decode($output, true);
-                    
-                    if (!$result || !isset($result['matched']) || !$result['matched']) {
-                        Storage::delete("public/uploads/absensi/" . $fileName);
-                        
-                        $failMsg = isset($result['message']) ? $result['message'] : 'Verifikasi wajah gagal. Wajah Anda tidak cocok dengan data terdaftar.';
-                        return response()->json([
-                            'success' => false,
-                            'message' => $failMsg
-                        ], 400);
+                $masterFace = \App\Models\Facerecognition::where('nik', $karyawan->nik)->first();
+                if (!$masterFace) {
+                    Storage::delete("public/uploads/absensi/" . $fileName);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Data biometrik wajah Anda belum terdaftar di sistem. Silakan daftarkan wajah terlebih dahulu.'
+                    ], 400);
+                }
+
+                if ($request->filled('face_descriptor') && !empty($masterFace->descriptor)) {
+                    $clientDesc = is_string($request->input('face_descriptor')) ? json_decode($request->input('face_descriptor'), true) : $request->input('face_descriptor');
+                    $masterDesc = is_string($masterFace->descriptor) ? json_decode($masterFace->descriptor, true) : $masterFace->descriptor;
+
+                    if (is_array($clientDesc) && is_array($masterDesc) && count($clientDesc) === 128 && count($masterDesc) === 128) {
+                        $distance = 0.0;
+                        for ($i = 0; $i < 128; $i++) {
+                            $diff = (float)$clientDesc[$i] - (float)$masterDesc[$i];
+                            $distance += $diff * $diff;
+                        }
+                        $distance = sqrt($distance);
+
+                        if ($distance > 0.50) {
+                            Storage::delete("public/uploads/absensi/" . $fileName);
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Verifikasi wajah gagal. Wajah Anda tidak cocok dengan data master terdaftar.'
+                            ], 400);
+                        }
                     }
                 }
             }
 
             // === ATOMIC PERSISTENCE WITH ROW-LEVEL LOCK ===
-            \Illuminate\Support\Facades\DB::transaction(function () use ($karyawan, $tanggal_presensi, $jam_presensi, $lokasi, $fileName, $kode_jam_kerja, $status, &$presensi_hariini) {
+            DB::transaction(function () use ($karyawan, $tanggal_presensi, $jam_presensi, $lokasi, $fileName, $kode_jam_kerja, $status, &$presensi_hariini) {
                 $locked = Presensi::where('nik', $karyawan->nik)
                     ->where('tanggal', $tanggal_presensi)
                     ->lockForUpdate()
@@ -399,168 +430,5 @@ class PresensiController extends Controller
             'success' => true,
             'data' => $riwayatFormatted
         ]);
-    }
-
-    /**
-     * Break Attendance (Mulai / Selesai Istirahat)
-     */
-    public function istirahat(Request $request)
-    {
-        $user = $request->user();
-        $userKaryawan = $user->userkaryawan;
-
-        if (!$userKaryawan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Akun Anda tidak terdaftar sebagai karyawan'
-            ], 403);
-        }
-
-        $karyawan = Karyawan::where('nik', $userKaryawan->nik)->first();
-        if (!$karyawan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profil data karyawan tidak ditemukan'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|in:1,2', // 1 = Mulai Istirahat, 2 = Selesai Istirahat
-            'lokasi' => 'required|string',
-            'kode_jam_kerja' => 'required|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $status = $request->input('status');
-            $lokasi = $request->input('lokasi');
-            $kode_jam_kerja = $request->input('kode_jam_kerja');
-
-            $generalsetting = Pengaturanumum::where('id', 1)->first();
-            $tanggal_sekarang = Carbon::now(config('app.timezone'))->format('Y-m-d');
-            $jam_sekarang = Carbon::now(config('app.timezone'))->format('H:i');
-            $tanggal_kemarin = Carbon::now(config('app.timezone'))->copy()->subDay()->format('Y-m-d');
-            $tanggal_besok = Carbon::now(config('app.timezone'))->copy()->addDay()->format('Y-m-d');
-
-            // Cek presensi hari ini
-            $presensi_kemarin = Presensi::where('nik', $karyawan->nik)
-                ->join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                ->where('presensi.nik', $karyawan->nik)
-                ->where('presensi.tanggal', $tanggal_kemarin)->first();
-
-            $lintas_hari = $presensi_kemarin ? $presensi_kemarin->lintashari : 0;
-            $tanggal_presensi = $lintas_hari == 1 ? $tanggal_kemarin : $tanggal_sekarang;
-
-            $presensi_hariini = Presensi::where('nik', $karyawan->nik)
-                ->where('tanggal', $tanggal_presensi)
-                ->first();
-
-            if (!$presensi_hariini) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda belum melakukan presensi masuk'
-                ], 400);
-            }
-
-            $jam_kerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first();
-            if (!$jam_kerja || $jam_kerja->istirahat == 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak ada istirahat untuk jam kerja saat ini'
-                ], 400);
-            }
-
-            // Save break selfie
-            $in_out = $status == 1 ? "out" : "in";
-            $folderPath = "public/uploads/istirahat/";
-            if (!Storage::exists($folderPath)) {
-                Storage::makeDirectory($folderPath, 0775, true);
-            }
-
-            $jam_presensi = Carbon::now(config('app.timezone'))->format('Y-m-d H:i:s');
-            $fileName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out . ".png";
-
-            $imageFile = $request->file('image');
-            Storage::put($folderPath . $fileName, file_get_contents($imageFile));
-
-            $batas_jam_absen = 30;
-            $jam_awal_istirahat = $tanggal_presensi . " " . date('H:i', strtotime($jam_kerja->jam_awal_istirahat));
-            $jam_mulai_istirahat = Carbon::parse($jam_awal_istirahat)->copy()->subMinutes($batas_jam_absen);
-
-            if ($status == 1) {
-                // Mulai Istirahat
-                if ($presensi_hariini->istirahat_out != null) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Anda sudah mencatat Mulai Istirahat hari ini'
-                    ], 400);
-                }
-
-                if (Carbon::now(config('app.timezone'))->lt($jam_mulai_istirahat)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Maaf, belum waktunya memulai istirahat. Istirahat dapat dilakukan mulai pukul ' . $jam_mulai_istirahat->format('H:i')
-                    ], 400);
-                }
-
-                $presensi_hariini->update([
-                    'istirahat_out' => $jam_presensi,
-                    'lokasi_istirahat_out' => $lokasi,
-                    'foto_istirahat_out' => $fileName
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Berhasil memulai istirahat',
-                    'data' => [
-                        'istirahat_out' => Carbon::now(config('app.timezone'))->format('H:i'),
-                        'foto_istirahat_out' => asset('storage/uploads/istirahat/' . $fileName)
-                    ]
-                ]);
-            } else {
-                // Selesai Istirahat
-                if ($presensi_hariini->istirahat_out == null) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Anda belum mencatat Mulai Istirahat hari ini'
-                    ], 400);
-                }
-
-                if ($presensi_hariini->istirahat_in != null) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Anda sudah mengakhiri istirahat hari ini'
-                    ], 400);
-                }
-
-                $presensi_hariini->update([
-                    'istirahat_in' => $jam_presensi,
-                    'lokasi_istirahat_in' => $lokasi,
-                    'foto_istirahat_in' => $fileName
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Berhasil mengakhiri istirahat',
-                    'data' => [
-                        'istirahat_in' => Carbon::now(config('app.timezone'))->format('H:i'),
-                        'foto_istirahat_in' => asset('storage/uploads/istirahat/' . $fileName)
-                    ]
-                ]);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
     }
 }

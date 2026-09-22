@@ -46,7 +46,7 @@ Artisan::command('audit:routes {--spa}', function () {
         },
         'Reports (Laporan Presensi)' => function() {
             $c = app(\App\Http\Controllers\LaporanController::class);
-            $view = $c->presensi(new Request());
+            $view = $c->presensi();
             return $view->render();
         },
         'Profile' => function() {
@@ -108,3 +108,5 @@ Artisan::command('audit:routes {--spa}', function () {
     $this->table(['Route', 'Total Time', 'Queries', 'Duplicates', 'DB Time', 'Render Size'], $results);
     return 0;
 });
+
+

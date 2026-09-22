@@ -15,12 +15,36 @@ class FacerecognitionController extends Controller
 {
     public function create($nik)
     {
-        $data['nik'] = Crypt::decrypt($nik);
+        $nik = Crypt::decrypt($nik);
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $karyawan = Karyawan::where('nik', $nik)->firstOrFail();
+
+        if ($user->hasRole('karyawan')) {
+            $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+            if (!$userkaryawan || $userkaryawan->nik !== $nik) {
+                abort(403, 'Akses ditolak.');
+            }
+            if (Facerecognition::where('nik', $nik)->exists()) {
+                return redirect()->route('facerecognition.karyawan.preview')->with('info', 'Data biometrik wajah Anda sudah terdaftar.');
+            }
+        } elseif (!$user->isSuperAdmin()) {
+            if (!$user->can('karyawan.edit')) {
+                abort(403, 'Anda tidak memiliki wewenang untuk mendaftarkan wajah.');
+            }
+            $userCabangs = $user->getCabangCodes();
+            if (empty($userCabangs) || !in_array($karyawan->kode_cabang, $userCabangs)) {
+                abort(403, 'Anda tidak memiliki akses ke karyawan cabang ini.');
+            }
+        }
+
+        $data['nik'] = $nik;
         return view('facerecognition.create', $data);
     }
 
     // Halaman daftarkan wajah untuk karyawan (mobile layout)
-    public function createKaryawan()
+    // Halaman daftarkan wajah untuk karyawan (mobile layout)
+    public function createKaryawan(Request $request)
     {
         $user = auth()->user();
         $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
@@ -32,10 +56,9 @@ class FacerecognitionController extends Controller
         $data['nik'] = $userkaryawan->nik;
         $data['karyawan'] = Karyawan::where('nik', $userkaryawan->nik)->first();
 
-        // Cek apakah sudah ada data wajah sebelumnya
-        $existingWajah = Facerecognition::where('nik', $userkaryawan->nik)->get();
-        if ($existingWajah->count() > 0) {
-            // Jika sudah ada, redirect ke halaman preview
+        // Cek apakah sudah ada data wajah sebelumnya. Redirect ke preview jika ada, kecuali ada parameter rekam ulang (?re=1)
+        $existingWajah = Facerecognition::where('nik', $userkaryawan->nik)->count();
+        if ($existingWajah > 0 && !$request->has('re')) {
             return redirect()->route('facerecognition.karyawan.preview');
         }
 
@@ -66,21 +89,22 @@ class FacerecognitionController extends Controller
         
         $data['wajahList'] = $wajahList->map(function($wajah) use ($folderRelativePath, $nama_folder) {
             $filePath = $folderRelativePath . '/' . $wajah->wajah;
-            $wajah->file_exists = Storage::disk('public')->exists($filePath);
+            $wajah->file_exists = Storage::disk('private')->exists($filePath) || Storage::disk('public')->exists($filePath);
             
             if ($wajah->file_exists) {
-                $encodedFolder = rawurlencode($nama_folder);
-                $encodedFileName = rawurlencode($wajah->wajah);
-                $encodedFolder = str_replace('%2F', '/', $encodedFolder);
-                
                 try {
-                    $fileTimestamp = Storage::disk('public')->lastModified($filePath);
+                    $fileTimestamp = Storage::disk('private')->exists($filePath)
+                        ? Storage::disk('private')->lastModified($filePath)
+                        : Storage::disk('public')->lastModified($filePath);
                 } catch (\Exception $e) {
                     $fileTimestamp = \Carbon\Carbon::parse($wajah->created_at)->timestamp;
                 }
                 
-                // Gunakan timestamp file + microtime agar cache browser selalu diperbarui saat rekam ulang
-                $wajah->image_url = url('/storage/uploads/facerecognition/' . $encodedFolder . '/' . $encodedFileName . '?v=' . $fileTimestamp . '_' . microtime(true));
+                // Gunakan protected file route agar tidak expose ke public URL
+                $wajah->image_url = route('file.face', [
+                    'folder' => $nama_folder,
+                    'filename' => $wajah->wajah
+                ]) . '?v=' . $fileTimestamp . '_' . microtime(true);
             } else {
                 $wajah->image_url = null;
             }
@@ -91,7 +115,7 @@ class FacerecognitionController extends Controller
         return view('facerecognition.preview-karyawan', $data);
     }
 
-    // Hapus semua wajah karyawan yang sedang login
+    // Hapus semua wajah karyawan yang sedang login untuk rekam ulang
     public function destroyAllKaryawan()
     {
         $user = auth()->user();
@@ -108,22 +132,21 @@ class FacerecognitionController extends Controller
 
         $folder = $karyawan->nik . '-' . getNamaDepan(strtolower($karyawan->nama_karyawan));
         $folderPath = 'uploads/facerecognition/' . $folder;
-        
+
         try {
-            // Hapus semua file di folder disk public
+            if (Storage::disk('private')->exists($folderPath)) {
+                Storage::disk('private')->deleteDirectory($folderPath);
+            }
             if (Storage::disk('public')->exists($folderPath)) {
                 Storage::disk('public')->deleteDirectory($folderPath);
             }
-            // Hapus juga jika ada folder terpisah di local disk legacy
-            if (Storage::exists('public/' . $folderPath)) {
-                Storage::deleteDirectory('public/' . $folderPath);
-            }
-            // Hapus semua record di database
             Facerecognition::where('nik', $userkaryawan->nik)->delete();
-            
-            return redirect()->route('facerecognition.karyawan.create')->with('success', 'Data wajah lama berhasil dihapus. Silakan lakukan perekaman ulang.');
+
+            return redirect()->route('facerecognition.karyawan.create', ['re' => 1])
+                ->with('success', 'Data wajah lama berhasil direset. Silakan lakukan perekaman baru.');
         } catch (\Exception $e) {
-            return redirect()->route('facerecognition.karyawan.preview')->with('error', 'Gagal menghapus data wajah: ' . $e->getMessage());
+            return redirect()->route('facerecognition.karyawan.preview')
+                ->with('error', 'Gagal mereset data wajah: ' . $e->getMessage());
         }
     }
 
@@ -152,17 +175,40 @@ class FacerecognitionController extends Controller
             return response()->json(['success' => false, 'message' => 'Karyawan tidak ditemukan.'], 404);
         }
 
+        if (!$user->isSuperAdmin() && !$user->hasRole('karyawan')) {
+            $userCabangs = $user->getCabangCodes();
+            if (empty($userCabangs) || !in_array($karyawan->kode_cabang, $userCabangs)) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke karyawan cabang ini.'], 403);
+            }
+        }
+
         $nama_folder = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
         $folderPath = "uploads/facerecognition/" . $nama_folder;
 
-        if (!Storage::disk('public')->exists($folderPath)) {
-            Storage::disk('public')->makeDirectory($folderPath);
+        if (!Storage::disk('private')->exists($folderPath)) {
+            Storage::disk('private')->makeDirectory($folderPath);
         }
 
         try {
             $saved = [];
+            $descriptors = $request->has('descriptors') 
+                ? (is_string($request->descriptors) ? json_decode($request->descriptors, true) : $request->descriptors) 
+                : [];
+
             // Jika multi-capture dengan file upload (metode baru)
             if ($request->hasFile('files')) {
+                // Jika rekam ulang oleh karyawan, bersihkan dataset lama agar dataset digantikan oleh sampel baru
+                if ($user->hasRole('karyawan')) {
+                    $oldWajah = Facerecognition::where('nik', $targetNik)->get();
+                    foreach ($oldWajah as $old) {
+                        $oldFile = $folderPath . '/' . $old->wajah;
+                        if (Storage::disk('private')->exists($oldFile)) {
+                            Storage::disk('private')->delete($oldFile);
+                        }
+                    }
+                    Facerecognition::where('nik', $targetNik)->delete();
+                }
+
                 $metadata = json_decode($request->metadata, true);
                 $files = $request->file('files');
                 $cekWajah = Facerecognition::where('nik', $targetNik)->count();
@@ -177,13 +223,19 @@ class FacerecognitionController extends Controller
                         $folderPath,
                         $baseName,
                         85,
-                        640
+                        640,
+                        'private'
                     );
+
+                    $desc = (isset($descriptors[$index]) && is_array($descriptors[$index]) && count($descriptors[$index]) === 128)
+                        ? $descriptors[$index]
+                        : null;
 
                     // Simpan ke database
                     Facerecognition::create([
                         'nik' => $targetNik,
-                        'wajah' => $fileName
+                        'wajah' => $fileName,
+                        'descriptor' => $desc
                     ]);
 
                     $saved[] = $fileName;
@@ -192,11 +244,23 @@ class FacerecognitionController extends Controller
                 return response()->json(['success' => true, 'message' => count($saved) . ' gambar berhasil disimpan', 'files' => $saved]);
 
             } else if ($request->has('images')) {
+                // Jika rekam ulang oleh karyawan, bersihkan dataset lama
+                if ($user->hasRole('karyawan')) {
+                    $oldWajah = Facerecognition::where('nik', $targetNik)->get();
+                    foreach ($oldWajah as $old) {
+                        $oldFile = $folderPath . '/' . $old->wajah;
+                        if (Storage::disk('private')->exists($oldFile)) {
+                            Storage::disk('private')->delete($oldFile);
+                        }
+                    }
+                    Facerecognition::where('nik', $targetNik)->delete();
+                }
+
                 // JSON Base64 string
                 $images = json_decode($request->images, true);
                 $cekWajah = Facerecognition::where('nik', $targetNik)->count();
                 $urutan = $cekWajah + 1;
-                foreach ($images as $img) {
+                foreach ($images as $index => $img) {
                     $direction = isset($img['direction']) ? $img['direction'] : 'front';
                     $baseName = $urutan . "_" . $direction;
                     $image = $img['image'];
@@ -206,12 +270,18 @@ class FacerecognitionController extends Controller
                         $folderPath,
                         $baseName,
                         85,
-                        640
+                        640,
+                        'private'
                     );
                     
+                    $desc = (isset($descriptors[$index]) && is_array($descriptors[$index]) && count($descriptors[$index]) === 128)
+                        ? $descriptors[$index]
+                        : null;
+
                     Facerecognition::create([
                         'nik' => $targetNik,
-                        'wajah' => $fileName
+                        'wajah' => $fileName,
+                        'descriptor' => $desc
                     ]);
                     $saved[] = $fileName;
                     $urutan++;
@@ -228,12 +298,18 @@ class FacerecognitionController extends Controller
                     $folderPath,
                     (string) $formatName,
                     85,
-                    640
+                    640,
+                    'private'
                 );
                 
+                $desc = (isset($descriptors[0]) && is_array($descriptors[0]) && count($descriptors[0]) === 128)
+                    ? $descriptors[0]
+                    : (is_array($descriptors) && count($descriptors) === 128 ? $descriptors : null);
+
                 Facerecognition::create([
                     'nik' => $targetNik,
-                    'wajah' => $fileName
+                    'wajah' => $fileName,
+                    'descriptor' => $desc
                 ]);
                 return response()->json(['success' => true, 'message' => 'Gambar berhasil disimpan', 'file' => $fileName]);
             } else {
@@ -246,21 +322,33 @@ class FacerecognitionController extends Controller
 
     public function destroy($id)
     {
-        $id = Crypt::decrypt($id);
-        $facerecognition = Facerecognition::where('id', $id)->firstOrFail();
-        
         /** @var \App\Models\User $user */
         $user = auth()->user();
-        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
-        if (!$user->can('karyawan.edit') && (!$userkaryawan || $facerecognition->nik !== $userkaryawan->nik)) {
-            abort(403, 'Akses ditolak. Anda tidak berhak menghapus data wajah ini.');
+
+        // SEC-008: Employees cannot delete biometric records directly
+        if ($user->hasRole('karyawan') || !$user->can('karyawan.edit')) {
+            abort(403, 'Akses ditolak. Penghapusan data biometrik wajah hanya dapat dilakukan oleh Administrator.');
         }
 
+        $id = Crypt::decrypt($id);
+        $facerecognition = Facerecognition::where('id', $id)->firstOrFail();
+        $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
         $karyawan = Karyawan::where('nik', $facerecognition->nik)->first();
+
+        if (!$user->isSuperAdmin()) {
+            if (!$karyawan) {
+                abort(403, 'Data karyawan tidak ditemukan.');
+            }
+            $userCabangs = $user->getCabangCodes();
+            if (empty($userCabangs) || !in_array($karyawan->kode_cabang, $userCabangs)) {
+                abort(403, 'Anda tidak memiliki akses ke data wajah karyawan cabang ini.');
+            }
+        }
         try {
             $nama_file = $facerecognition->wajah;
             $nama_folder = $karyawan->nik . "-" . getNamaDepan(strtolower($karyawan->nama_karyawan));
             $path = 'uploads/facerecognition/' . $nama_folder . "/" . $nama_file;
+            Storage::disk('private')->delete($path);
             Storage::disk('public')->delete($path);
             $facerecognition->delete();
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
@@ -281,16 +369,57 @@ class FacerecognitionController extends Controller
             return response()->json([]);
         }
         $wajah = Facerecognition::where('nik', $userkaryawan->nik)
-            ->select('id', 'nik', 'wajah')
+            ->select('id', 'nik', 'wajah', 'descriptor')
             ->get();
         return response()->json($wajah);
     }
 
-    // Hapus semua wajah berdasarkan NIK
+    public function syncDescriptors(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
+        if (!$userkaryawan) {
+            return response()->json(['success' => false, 'message' => 'Karyawan not found'], 404);
+        }
+
+        $descriptors = $request->input('descriptors', []);
+        if (empty($descriptors) || !is_array($descriptors)) {
+            return response()->json(['success' => false, 'message' => 'No descriptors provided'], 400);
+        }
+
+        $updated = 0;
+        foreach ($descriptors as $item) {
+            $id = $item['id'] ?? null;
+            $desc = $item['descriptor'] ?? null;
+            if ($id && is_array($desc) && count($desc) === 128) {
+                $record = Facerecognition::where('id', $id)
+                    ->where('nik', $userkaryawan->nik)
+                    ->first();
+                if ($record) {
+                    $record->descriptor = $desc;
+                    $record->save();
+                    $updated++;
+                }
+            }
+        }
+
+        return response()->json(['success' => true, 'updated' => $updated]);
+    }
+
+    // Hapus semua wajah berdasarkan NIK (Hanya Administrator berwenang)
     public function destroyAll($nik)
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
+
+        // SEC-008: Employees cannot reset biometric datasets
+        if ($user->hasRole('karyawan') || !$user->can('karyawan.edit')) {
+            abort(403, 'Akses ditolak. Reset data biometrik wajah hanya dapat dilakukan oleh Administrator.');
+        }
 
         $nik = Crypt::decrypt($nik);
         $karyawan = Karyawan::where('nik', $nik)->first();
@@ -308,7 +437,10 @@ class FacerecognitionController extends Controller
         $folder = $karyawan->nik . '-' . getNamaDepan(strtolower($karyawan->nama_karyawan));
         $folderPath = 'uploads/facerecognition/' . $folder;
         try {
-            // Hapus semua file di folder
+            // Hapus semua file di folder (private dan legacy public)
+            if (Storage::disk('private')->exists($folderPath)) {
+                Storage::disk('private')->deleteDirectory($folderPath);
+            }
             if (Storage::disk('public')->exists($folderPath)) {
                 Storage::disk('public')->deleteDirectory($folderPath);
             }

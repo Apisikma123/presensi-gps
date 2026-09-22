@@ -9,7 +9,11 @@ class Userkaryawan extends Model
 {
     use HasFactory;
     protected $table = 'users_karyawan';
-    protected $guarded = [];
+    protected $fillable = [
+        'id_user',
+        'nik',
+        'approval_admin_id',
+    ];
 
     /**
      * Admin user yang terhubung sebagai approver delegasi.

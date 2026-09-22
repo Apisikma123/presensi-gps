@@ -1,150 +1,167 @@
 @extends('layouts.app')
-@section('titlepage', 'Hari Libur')
+@section('titlepage', 'Hari Libur & Tanggal Merah')
 
 @section('content')
 @section('navigasi')
-    <div class="d-flex justify-content-between align-items-center w-100">
-        <div>
-            Hari Libur
-            <div class="text-muted mt-1" style="font-size: 0.75rem; font-weight: normal; text-transform: none; letter-spacing: 0px;">
-                Manajemen data hari libur nasional dan khusus.
-            </div>
-        </div>
-        <nav aria-label="breadcrumb" class="d-none d-md-block" style="font-size: 0.75rem;">
-            <ol class="breadcrumb breadcrumb-style1 mb-0">
-                <li class="breadcrumb-item">
-                    <a href="{{ route('dashboard.index') }}">
-                        <i class="ti ti-home-2 ti-xs"></i>
-                    </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="javascript:void(0);">
-                        <i class="ti ti-database ti-xs me-1"></i> Data Master
-                    </a>
-                </li>
-                <li class="breadcrumb-item active">
-                    <i class="ti ti-calendar ti-xs me-1"></i> Hari Libur
-                </li>
-            </ol>
-        </nav>
-    </div>
+    <span>Hari Libur & Tanggal Merah</span>
 @endsection
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            @can('harilibur.create')
-                <a href="#" class="btn btn-primary" id="btnCreate">
-                    <i class="ti ti-plus me-1"></i> Tambah Hari Libur
-                </a>
-            @endcan
-        </div>
-        <form action="{{ route('harilibur.index') }}" method="GET">
-            <div class="row g-2 mb-3">
-                <div class="col-lg-3 col-md-6 col-sm-12">
-                    <x-input-with-icon icon="ti ti-calendar" label="Dari" name="dari" datepicker="flatpickr-date"
-                        :value="Request('dari')" hideLabel />
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-12">
-                    <x-input-with-icon icon="ti ti-calendar" label="Sampai" name="sampai" datepicker="flatpickr-date"
-                        :value="Request('sampai')" hideLabel />
-                </div>
-                @if ($user->hasRole(['super admin', 'gm administrasi']) || !$cabang->isEmpty())
-                    <div class="col-lg-4 col-md-9 col-sm-12">
-                        <select name="kode_cabang" id="kode_cabang" class="form-select select2Kodecabangsearch">
-                            <option value="">Semua Cabang</option>
-                            @foreach ($cabang as $c)
-                                <option value="{{ $c->kode_cabang }}"
-                                    {{ Request('kode_cabang') == $c->kode_cabang ? 'selected' : '' }}>
-                                    {{ textUpperCase($c->nama_cabang) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-                <div class="col-lg-2 col-md-3 col-sm-12">
-                    <button class="btn btn-primary w-100" id="btnSearch"><i class="ti ti-search me-1"></i>Cari</button>
-                </div>
-            </div>
-        </form>
+<!-- Page Header -->
+<div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="page-title mb-1">Hari Libur & Tanggal Merah</h4>
+        <p class="page-subtitle text-muted mb-0">Manajemen hari libur nasional, cuti bersama, dan hari operasional khusus outlet cabang.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        @can('harilibur.create')
+            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate">
+                <i class="ti ti-plus"></i>
+                <span>Tambah Hari Libur</span>
+            </a>
+        @endcan
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center py-2" style="min-height: 50px;">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-calendar me-2 fs-5"></i>
-                    <h6 class="card-title mb-0">Data Hari Libur</h6>
+<!-- Search & Filter Bar (Standardized Compact Admin Filter Toolbar) -->
+<div class="card admin-filter-toolbar mb-3">
+    <form action="{{ route('harilibur.index') }}" method="GET" class="m-0">
+        <div class="row g-2 align-items-center">
+            <div class="col-xl col-lg col-md col-sm-12">
+                <x-input-with-icon icon="ti ti-calendar" label="Dari" name="dari" datepicker="flatpickr-date"
+                    :value="Request('dari')" placeholder="Dari Tanggal" hideLabel />
+            </div>
+            <div class="col-xl col-lg col-md col-sm-12">
+                <x-input-with-icon icon="ti ti-calendar" label="Sampai" name="sampai" datepicker="flatpickr-date"
+                    :value="Request('sampai')" placeholder="Sampai Tanggal" hideLabel />
+            </div>
+            @if ($user->hasRole(['super admin', 'gm administrasi']) || !$cabang->isEmpty())
+                <div class="col-xl col-lg col-md col-sm-12">
+                    <select name="kode_cabang" id="kode_cabang" class="form-select select2Kodecabangsearch">
+                        <option value="">Semua Cabang / Outlet</option>
+                        @foreach ($cabang as $c)
+                            <option value="{{ $c->kode_cabang }}"
+                                {{ Request('kode_cabang') == $c->kode_cabang ? 'selected' : '' }}>
+                                {{ textUpperCase($c->nama_cabang) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-1.5">
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5" id="btnSearch">
+                        <i class="ti ti-search" style="font-size: 14px;"></i>
+                        <span>Cari</span>
+                    </button>
+                    @if (Request('dari') || Request('sampai') || Request('kode_cabang'))
+                        <a href="{{ route('harilibur.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                            <span>Reset</span>
+                        </a>
+                    @endif
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th class="py-3" style="width: 60px;">NO.</th>
-                                <th class="py-3">KODE</th>
-                                <th class="py-3">TANGGAL</th>
-                                <th class="py-3">CABANG</th>
-                                <th class="py-3" style="width: 30%">KETERANGAN</th>
-                                <th class="py-3 text-center" style="width: 120px;">#</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($harilibur as $d)
-                                <tr>
-                                    <td class="py-2">{{ $loop->iteration + $harilibur->firstItem() - 1 }}</td>
-                                    <td class="fw-bold py-2 text-primary">{{ $d->kode_libur }}</td>
-                                    <td class="py-2">{{ formatIndo($d->tanggal) }}</td>
-                                    <td class="py-2"><span class="badge bg-label-info text-uppercase">{{ $d->nama_cabang }}</span></td>
-                                    <td class="py-2">{{ $d->keterangan }}</td>
-                                    <td class="py-2 text-center">
-                                        <div class="d-inline-flex border rounded overflow-hidden shadow-xs">
-                                            @can('harilibur.edit')
-                                                <a href="#" class="btn btn-sm btnEdit px-2 py-1 border-0 rounded-0"
-                                                    kode_libur="{{ Crypt::encrypt($d->kode_libur) }}" title="Edit"
-                                                    style="background: #f8f9fa;">
-                                                    <i class="ti ti-edit fs-6 text-primary"></i>
-                                                </a>
-                                            @endcan
-                                            @can('harilibur.setharilibur')
-                                                <a href="{{ route('harilibur.aturharilibur', Crypt::encrypt($d->kode_libur)) }}" 
-                                                    class="btn btn-sm px-2 py-1 border-0 rounded-0 border-start" title="Atur"
-                                                    style="background: #f8f9fa;">
-                                                    <i class="ti ti-settings-cog fs-6 text-info"></i>
-                                                </a>
-                                            @endcan
-                                            @can('harilibur.delete')
-                                                <form method="POST" name="deleteform" class="deleteform m-0"
-                                                    action="{{ route('harilibur.delete', Crypt::encrypt($d->kode_libur)) }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm delete-confirm px-2 py-1 border-0 rounded-0 border-start"
-                                                        title="Hapus" style="background: #f8f9fa;">
-                                                        <i class="ti ti-trash fs-6 text-danger"></i>
-                                                    </button>
-                                                </form>
-                                            @endcan
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            @if($harilibur->isEmpty())
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">Data tidak ditemukan.</td>
-                                </tr>
+        </div>
+    </form>
+</div>
+
+<!-- Table Card -->
+<div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 50px;" class="text-center">NO</th>
+                    <th style="width: 130px;">KODE LIBUR</th>
+                    <th>TANGGAL & HARI</th>
+                    <th>CABANG / OUTLET</th>
+                    <th>KETERANGAN LIBUR</th>
+                    <th class="text-end" style="width: 140px;">AKSI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($harilibur as $d)
+                    <tr>
+                        <td class="text-center font-mono text-muted" style="font-size: 12px;">
+                            {{ $loop->iteration + ($harilibur->currentPage() - 1) * $harilibur->perPage() }}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11.5px; font-weight: 600;">
+                                {{ $d->kode_libur }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                                    style="width: 34px; height: 34px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                                    <i class="ti ti-calendar-event fs-5"></i>
+                                </div>
+                                <div>
+                                    <span class="fw-bold text-dark d-block font-mono" style="font-size: 13px;">{{ formatIndo($d->tanggal) }}</span>
+                                    <span class="text-muted" style="font-size: 11.5px;">{{ \Carbon\Carbon::parse($d->tanggal)->translatedFormat('l') }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            @if ($d->kode_cabang === 'ALL')
+                                <span class="badge font-mono" style="background: rgba(30, 77, 62, 0.1); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.2); font-size: 11px;">
+                                    <i class="ti ti-world me-1"></i> SEMUA CABANG (NASIONAL)
+                                </span>
+                            @else
+                                <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
+                                    <i class="ti ti-building-store me-1 text-muted"></i> {{ textUpperCase($d->nama_cabang) }}
+                                </span>
                             @endif
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="mt-2">
-            {{ $harilibur->links() }}
-        </div>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-dark" style="font-size: 13px;">{{ $d->keterangan }}</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-1.5">
+                                @can('harilibur.edit')
+                                    <button type="button" class="btnEdit btn-action-tbl btn-action-edit"
+                                        kode_libur="{{ Crypt::encrypt($d->kode_libur) }}" title="Edit Hari Libur">
+                                        <i class="ti ti-edit"></i>
+                                    </button>
+                                @endcan
+
+                                @can('harilibur.setharilibur')
+                                    <a href="{{ route('harilibur.aturharilibur', Crypt::encrypt($d->kode_libur)) }}" 
+                                        class="btn-action-tbl btn-action-settings" title="Atur Karyawan Libur">
+                                        <i class="ti ti-settings"></i>
+                                    </a>
+                                @endcan
+
+                                @can('harilibur.delete')
+                                    <form method="POST" name="deleteform" class="deleteform d-inline m-0"
+                                        action="{{ route('harilibur.delete', Crypt::encrypt($d->kode_libur)) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="delete-confirm btn-action-tbl btn-action-delete"
+                                            title="Hapus Hari Libur">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </form>
+                                @endcan
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="ti ti-calendar-off text-muted fs-1 d-block mb-2" style="opacity: 0.4;"></i>
+                            <h6 class="mb-1 text-dark fw-semibold">Tidak Ada Data Hari Libur</h6>
+                            <small class="text-muted">Klik tombol "Tambah Hari Libur" di atas untuk menambahkan data libur baru.</small>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
+</div>
+
+<div class="mt-2">
+    {{ $harilibur->links() }}
 </div>
 
 <x-modal-form id="modal" show="loadmodal" />
@@ -157,27 +174,17 @@
         if (select2Kodecabangsearch.length > 0) {
             select2Kodecabangsearch.each(function() {
                 var $this = $(this);
-                $this.wrap('<div class="position-relative"></div>').select2({
-                    placeholder: 'Semua Cabang',
+                $this.wrap('<div class="position-relative w-100"></div>').select2({
+                    placeholder: 'Semua Cabang / Outlet',
                     allowClear: true,
+                    width: '100%',
                     dropdownParent: $this.parent()
                 });
             });
         }
 
-        function loading() {
-            $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                </div>`);
-        };
-
         $("#btnCreate").click(function(e) {
             e.preventDefault();
-            loading();
             $("#modal").modal("show");
             $(".modal-title").text("Tambah Hari Libur");
             $("#loadmodal").load(`/harilibur/create`);
@@ -187,7 +194,6 @@
         $(".btnEdit").click(function(e) {
             e.preventDefault();
             const kode_libur = $(this).attr("kode_libur");
-            loading();
             $("#modal").modal("show");
             $(".modal-title").text("Edit Hari Libur");
             $("#loadmodal").load(`/harilibur/${kode_libur}/edit`);

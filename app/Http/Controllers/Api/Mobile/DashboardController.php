@@ -219,7 +219,6 @@ class DashboardController extends Controller
                     'nama_perusahaan' => \App\Models\Pengaturanumum::where('id', 1)->first()->nama_perusahaan,
                     'logo' => \App\Models\Pengaturanumum::where('id', 1)->first()->logo ? asset('storage/logo/' . \App\Models\Pengaturanumum::where('id', 1)->first()->logo) : null,
                     'alamat' => \App\Models\Pengaturanumum::where('id', 1)->first()->alamat,
-                    'absen_istirahat' => (\App\Models\Pengaturanumum::where('id', 1)->first()->absen_istirahat == 1 && \App\Models\KaryawanMenuSetting::isActive('absen_istirahat')) ? 1 : 0,
                     'mobile_theme_scheme' => \App\Models\Pengaturanumum::where('id', 1)->first()->mobile_theme_scheme ?? 'green',
                 ] : null,
             ]

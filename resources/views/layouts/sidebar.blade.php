@@ -28,7 +28,7 @@
              </div>
          </a>
 
-         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-xl-none">
+         <a href="javascript:void(0);" class="layout-menu-close menu-link text-large ms-auto d-xl-none d-flex align-items-center justify-content-center" id="btn-close-sidebar" aria-label="Tutup Menu" style="width: 36px; height: 36px; border-radius: 8px; cursor: pointer; text-decoration: none;">
              <i class="ti ti-x ti-sm align-middle text-white"></i>
          </a>
      </div>
@@ -96,15 +96,15 @@
              </a>
          </li>
 
-         <!-- 2. KARYAWAN -->
-         @if (auth()->user()->hasAnyPermission(['karyawan.index', 'departemen.index', 'cabang.index', 'cuti.index', 'jabatan.index', 'jamkerja.index']))
+         <!-- 2. DATA MASTER -->
+         @if (auth()->user()->hasAnyPermission(['karyawan.index', 'departemen.index', 'cabang.index', 'cuti.index', 'jabatan.index', 'jamkerja.index', 'harilibur.index']))
              <li class="menu-header small text-uppercase px-3 py-2 text-white-50 mt-2" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;">
-                 <span>KARYAWAN</span>
+                 <span>DATA MASTER</span>
              </li>
-             <li class="menu-item {{ request()->is(['karyawan', 'karyawan/*', 'departemen', 'departemen/*', 'cabang', 'cabang/*', 'cuti', 'cuti/*', 'jabatan', 'jabatan/*', 'jamkerja', 'jamkerja/*']) ? 'open' : '' }}">
+             <li class="menu-item {{ request()->is(['karyawan', 'karyawan/*', 'departemen', 'departemen/*', 'cabang', 'cabang/*', 'cuti', 'cuti/*', 'jabatan', 'jabatan/*', 'jamkerja', 'jamkerja/*', 'harilibur', 'harilibur/*']) ? 'open' : '' }}">
                  <a href="javascript:void(0);" class="menu-link menu-toggle">
-                     <i class="menu-icon tf-icons ti ti-users"></i>
-                     <div>Data Karyawan</div>
+                     <i class="menu-icon tf-icons ti ti-database"></i>
+                     <div>Data Master</div>
                  </a>
                  <ul class="menu-sub">
                      @can('karyawan.index')
@@ -118,6 +118,13 @@
                          <li class="menu-item {{ request()->is(['jamkerja', 'jamkerja/*']) ? 'active' : '' }}">
                              <a href="{{ route('jamkerja.index') }}" class="menu-link">
                                  <div>Shift Kerja (Pagi & Siang)</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('harilibur.index')
+                         <li class="menu-item {{ request()->is(['harilibur', 'harilibur/*']) ? 'active' : '' }}">
+                             <a href="{{ route('harilibur.index') }}" class="menu-link">
+                                 <div>Hari Libur / Tanggal Merah</div>
                              </a>
                          </li>
                      @endcan
@@ -270,13 +277,53 @@
          <li class="menu-item mt-3 pt-2 border-top" style="border-color: rgba(255, 255, 255, 0.1) !important;">
              <form method="POST" action="{{ route('logout') }}" id="formSidebarLogout">
                  @csrf
-                 <a href="#" onclick="event.preventDefault(); document.getElementById('formSidebarLogout').submit();" class="menu-link text-danger">
+                 <a href="javascript:void(0);" onclick="event.preventDefault(); document.getElementById('formSidebarLogout').submit();" class="menu-link text-danger">
                      <i class="menu-icon tf-icons ti ti-logout"></i>
                      <div class="fw-semibold">Keluar / Log Out</div>
                  </a>
              </form>
          </li>
      </ul>
+     <script>
+         (function() {
+             try {
+                 if (window.Helpers) {
+                     window.Helpers.scrollToActive = function() {};
+                     window.Helpers._scrollToActive = function() {};
+                 }
+                 var mi = document.querySelector('#layout-menu .menu-inner');
+                 if (mi) {
+                     var currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+                     var lastPath = sessionStorage.getItem('sidebar_last_path');
+                     var isSamePage = (lastPath === currentPath);
+                     var pos = sessionStorage.getItem('sidebar_scroll_pos');
+
+                     if (isSamePage && pos !== null) {
+                         mi.scrollTop = parseInt(pos, 10);
+                     } else {
+                         var activeItem = mi.querySelector('.menu-item.active');
+                         if (activeItem) {
+                             if (activeItem.offsetTop < 240) {
+                                 mi.scrollTop = 0;
+                             } else {
+                                 var targetScroll = Math.max(0, activeItem.offsetTop - Math.round(mi.clientHeight / 3));
+                                 mi.scrollTop = targetScroll;
+                             }
+                         } else {
+                             mi.scrollTop = 0;
+                         }
+                     }
+
+                     sessionStorage.setItem('sidebar_last_path', currentPath);
+                     sessionStorage.setItem('sidebar_scroll_pos', mi.scrollTop);
+
+                     mi.addEventListener('scroll', function() {
+                         sessionStorage.setItem('sidebar_scroll_pos', mi.scrollTop);
+                         sessionStorage.setItem('sidebar_last_path', window.location.pathname.replace(/\/$/, '') || '/');
+                     }, { passive: true });
+                 }
+             } catch (e) {}
+         })();
+     </script>
  </aside>
  <!-- / Menu -->
-

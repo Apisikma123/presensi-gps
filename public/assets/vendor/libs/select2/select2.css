@@ -127,13 +127,13 @@
   padding: 0.5rem 1rem;
 }
 .select2-results__option[role=option][aria-selected=true] {
-  background-color: #7367f0;
+  background-color: #1E4D3E;
   color: #fff;
 }
 
 .select2-container--default .select2-results__option--highlighted:not([aria-selected=true]) {
-  background-color: rgba(115, 103, 240, 0.08) !important;
-  color: #7367f0 !important;
+  background-color: rgba(30, 77, 62, 0.12) !important;
+  color: #1E4D3E !important;
 }
 
 .select2-hidden-accessible {
@@ -245,8 +245,8 @@
   line-height: 0.875;
   float: left;
   font-weight: 500;
-  color: #7367f0;
-  background-color: rgba(115, 103, 240, 0.16);
+  color: #1E4D3E;
+  background-color: rgba(30, 77, 62, 0.16);
 }
 html:not([dir=rtl]) .select2-container--default .select2-selection--multiple .select2-selection__choice {
   padding-right: 1.3rem;

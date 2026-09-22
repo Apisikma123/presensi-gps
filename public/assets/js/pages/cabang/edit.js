@@ -1,8 +1,9 @@
 (function () {
     const formeditCabang = document.querySelector('#formeditCabang');
     // Form validation for Add new record
-    if (formeditCabang) {
-        const fv = FormValidation.formValidation(formeditCabang, {
+    if (formeditCabang && typeof FormValidation !== 'undefined' && FormValidation.formValidation) {
+        try {
+            const fv = FormValidation.formValidation(formeditCabang, {
             fields: {
                 kode_cabang: {
                     validators: {
@@ -143,7 +144,12 @@
                 });
             }
         });
+        } catch(e) {
+            console.warn('FormValidation initialization skipped:', e);
+        }
+    }
 
+    if (formeditCabang) {
         // Validasi panjang real-time
         const namaCabangInput = formeditCabang.querySelector('[name="nama_cabang"]');
         if (namaCabangInput) {
@@ -178,42 +184,83 @@
         }
 
         // Initialize Leaflet Map
-        const mapElement = document.getElementById('map');
-        if (mapElement) {
+        const mapElement = formeditCabang ? (formeditCabang.querySelector('#map') || document.getElementById('map')) : document.getElementById('map');
+
+        function initMap() {
+            if (!mapElement || typeof L === 'undefined') return;
+
             let map, marker, circle;
             const lokasiInput = formeditCabang.querySelector('[name="lokasi_cabang"]');
             const radiusInput = formeditCabang.querySelector('[name="radius_cabang"]');
-            
-            // Cek dan hapus map yang sudah ada sebelumnya untuk mencegah error "Map container is already initialized"
+
+            // Fix Leaflet default icon path
+            delete L.Icon.Default.prototype._getIconUrl;
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: '/assets/vendor/libs/leaflet/images/marker-icon-2x.png',
+                iconUrl: '/assets/vendor/libs/leaflet/images/marker-icon.png',
+                shadowUrl: '/assets/vendor/libs/leaflet/images/marker-shadow.png',
+            });
+
+            // Clean previous instance if exists to prevent "Map container is already initialized"
+            if (window._cabangEditMap) {
+                try {
+                    window._cabangEditMap.remove();
+                } catch(e) {}
+                window._cabangEditMap = null;
+            }
             if (mapElement._leaflet_id) {
-                // Hapus semua child elements dari map container
                 mapElement.innerHTML = '';
-                // Reset leaflet ID
                 delete mapElement._leaflet_id;
             }
-            
-            // Default location (Tasikmalaya)
-            let defaultLat = -7.317623;
-            let defaultLng = 108.199358;
-            let defaultZoom = 13;
+
+            // Default location
+            let defaultLat = -6.229746;
+            let defaultLng = 106.807493;
+            let defaultZoom = 15;
 
             // Parse existing location if available
             if (lokasiInput && lokasiInput.value) {
                 const coords = lokasiInput.value.split(',');
-                if (coords.length === 2) {
+                if (coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
                     defaultLat = parseFloat(coords[0].trim());
                     defaultLng = parseFloat(coords[1].trim());
                 }
             }
 
-            // Initialize map
-            map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
+            // Initialize map directly on element
+            map = L.map(mapElement).setView([defaultLat, defaultLng], defaultZoom);
+            window._cabangEditMap = map;
 
             // Add OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
+                attribution: '&copy; OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
+
+            // Invalidate size on modal events, observer, and timeouts to avoid blank/grey tiles
+            var refreshMap = function() {
+                if (map) {
+                    map.invalidateSize();
+                }
+            };
+
+            // ResizeObserver to immediately catch when modal becomes visible
+            if ('ResizeObserver' in window && mapElement) {
+                var ro = new ResizeObserver(function(entries) {
+                    for (var i = 0; i < entries.length; i++) {
+                        if (entries[i].contentRect.width > 20 && entries[i].contentRect.height > 20) {
+                            refreshMap();
+                        }
+                    }
+                });
+                ro.observe(mapElement);
+            }
+
+            [50, 150, 300, 600, 1000].forEach(function(delay) {
+                setTimeout(refreshMap, delay);
+            });
+            $('#mdleditCabang, #modal, .modal').on('shown.bs.modal', refreshMap);
+            $(window).on('resize', refreshMap);
 
             // Function to update location input and marker
             function updateLocation(lat, lng) {
@@ -239,9 +286,9 @@
                 const radius = radiusInput ? parseInt(radiusInput.value) || 30 : 30;
                 if (radius > 0) {
                     circle = L.circle([lat, lng], {
-                        color: '#3388ff',
-                        fillColor: '#3388ff',
-                        fillOpacity: 0.2,
+                        color: '#1E4D3E',
+                        fillColor: '#1E4D3E',
+                        fillOpacity: 0.15,
                         radius: radius
                     }).addTo(map);
                 }
@@ -254,7 +301,7 @@
 
                 // Show popup with coordinates
                 marker.bindPopup(`
-                    <b>Lokasi Dipilih</b><br>
+                    <b>Lokasi Cabang</b><br>
                     Latitude: ${lat.toFixed(6)}<br>
                     Longitude: ${lng.toFixed(6)}<br>
                     <small>Drag marker untuk memindahkan lokasi</small>
@@ -279,9 +326,9 @@
                             map.removeLayer(circle);
                         }
                         circle = L.circle([position.lat, position.lng], {
-                            color: '#3388ff',
-                            fillColor: '#3388ff',
-                            fillOpacity: 0.2,
+                            color: '#1E4D3E',
+                            fillColor: '#1E4D3E',
+                            fillOpacity: 0.15,
                             radius: radius
                         }).addTo(map);
                     }
@@ -289,8 +336,8 @@
             }
 
             // Search location function
-            const searchInput = document.getElementById('searchLocation');
-            const searchButton = document.getElementById('btnSearchLocation');
+            const searchInput = formeditCabang.querySelector('#searchLocation') || document.getElementById('searchLocation');
+            const searchButton = formeditCabang.querySelector('#btnSearchLocation') || document.getElementById('btnSearchLocation');
 
             function searchLocation() {
                 const query = searchInput.value.trim();
@@ -350,7 +397,7 @@
                         })
                         .finally(() => {
                             searchButton.disabled = false;
-                            searchButton.innerHTML = '<i class="ti ti-search me-1"></i> Cari';
+                            searchButton.innerHTML = originalText;
                         });
                 }
             }
@@ -368,6 +415,23 @@
                         searchLocation();
                     }
                 });
+            }
+        }
+
+        if (mapElement) {
+            if (typeof L === 'undefined') {
+                if (!document.querySelector('link[href*="leaflet.css"]')) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = '/assets/vendor/libs/leaflet/leaflet.css';
+                    document.head.appendChild(link);
+                }
+                const script = document.createElement('script');
+                script.src = '/assets/vendor/libs/leaflet/leaflet.js';
+                script.onload = initMap;
+                document.head.appendChild(script);
+            } else {
+                initMap();
             }
         }
     }

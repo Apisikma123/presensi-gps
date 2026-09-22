@@ -17,6 +17,8 @@ class Update extends Model
         'file_url',
         'file_size',
         'checksum',
+        'sha256',
+        'signature',
         'is_major',
         'is_active',
         'migrations',
@@ -54,5 +56,21 @@ class Update extends Model
     public function scopeMajor($query)
     {
         return $query->where('is_major', true);
+    }
+
+    /**
+     * Resolve SHA-256 with fallback to checksum if 64-character hash
+     */
+    public function getSha256Attribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        if (!empty($this->attributes['checksum']) && strlen(trim($this->attributes['checksum'])) === 64) {
+            return trim($this->attributes['checksum']);
+        }
+
+        return null;
     }
 }

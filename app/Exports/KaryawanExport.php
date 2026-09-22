@@ -27,18 +27,21 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
                 'departemen.nama_dept',
                 'jabatan.nama_jabatan',
                 'cabang.nama_cabang',
-                'status_kawin.status_kawin as nama_status_kawin',
-                'status_karyawan.nama_status_karyawan'
+                'presensi_jamkerja.nama_jam_kerja'
             )
             ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
             ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
             ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
-            ->leftJoin('status_kawin', 'karyawan.kode_status_kawin', '=', 'status_kawin.kode_status_kawin')
-            ->leftJoin('status_karyawan', 'karyawan.status_karyawan', '=', 'status_karyawan.kode_status_karyawan')
+            ->leftJoin('presensi_jamkerja', 'karyawan.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
             ->orderBy('nama_karyawan', 'asc');
 
         if (!empty($this->filters['nama_karyawan'])) {
-            $query->where('nama_karyawan', 'like', '%' . $this->filters['nama_karyawan'] . '%');
+            $nama = $this->filters['nama_karyawan'];
+            $query->where(function ($sub) use ($nama) {
+                $sub->where('karyawan.nama_karyawan', 'like', '%' . $nama . '%')
+                    ->orWhere('karyawan.nik', 'like', '%' . $nama . '%')
+                    ->orWhere('karyawan.nik_show', 'like', '%' . $nama . '%');
+            });
         }
 
         if (!empty($this->filters['kode_cabang'])) {
@@ -53,12 +56,12 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
             $query->where('karyawan.kode_jabatan', $this->filters['kode_jabatan']);
         }
 
-        if (!empty($this->filters['kode_group'])) {
-            $query->where('karyawan.kode_group', $this->filters['kode_group']);
+        if (!empty($this->filters['kode_jam_kerja'])) {
+            $query->where('karyawan.kode_jam_kerja', $this->filters['kode_jam_kerja']);
         }
 
         $user = auth()->user();
-        if (!$user->isSuperAdmin()) {
+        if ($user && !$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
 
@@ -83,73 +86,60 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
         return [
             'NIK',
             'NIK Perusahaan',
-            'No. KTP',
             'Nama Karyawan',
-            'Tempat Lahir',
-            'Tanggal Lahir',
-            'Alamat',
-            'Alamat Sesuai KTP',
+            'Jenis Kelamin',
             'No. HP',
             'Email',
-            'Jenis Kelamin',
-            'Status Pernikahan',
-            'Pendidikan Terakhir',
-            'Jurusan',
+            'Alamat',
             'Cabang',
             'Departemen',
             'Jabatan',
-            'Tanggal Masuk',
-            'Status Kerja',
-            'NPWP',
-            'Kontak Darurat',
-            'Hubungan Kontak Darurat',
-            'Nama Bank',
-            'No. Rekening',
-            'Nama Rekening',
-            'Hitung PPh21',
-            'RFID UID',
+            'Jam Kerja',
+            'Status Karyawan',
             'Status Keaktifan',
+            'Tanggal Masuk',
             'Tanggal Nonaktif',
-            'Tanggal Off Gaji',
-            'Lock Lokasi'
+            'Lock Lokasi',
+            'Lock Jam Kerja',
+            'RFID UID'
         ];
     }
 
     public function map($karyawan): array
     {
-        return [
+        $statusKaryawan = $karyawan->status_karyawan == 'K' ? 'Kontrak' : ($karyawan->status_karyawan == 'T' ? 'Tetap' : ($karyawan->status_karyawan ?: '-'));
+        $jenisKelamin = $karyawan->jenis_kelamin == 'L' ? 'Laki-laki' : ($karyawan->jenis_kelamin == 'P' ? 'Perempuan' : ($karyawan->jenis_kelamin ?: '-'));
+        $statusAktif = $karyawan->status_aktif_karyawan == 1 ? 'Aktif' : 'Non Aktif';
+        $lockLocation = $karyawan->lock_location == 1 ? 'Ya' : 'Tidak';
+        $lockJamKerja = $karyawan->lock_jam_kerja == 1 ? 'Ya' : 'Tidak';
+
+        $data = [
             "'" . $karyawan->nik,
-            $karyawan->nik_show,
-            "'" . $karyawan->no_ktp,
+            $karyawan->nik_show ?: $karyawan->nik,
             $karyawan->nama_karyawan,
-            $karyawan->tempat_lahir,
-            $karyawan->tanggal_lahir,
-            $karyawan->alamat,
-            $karyawan->alamat_sesuai_ktp,
-            $karyawan->no_hp,
-            $karyawan->email,
-            $karyawan->jenis_kelamin == 'L' ? 'Laki-laki' : ($karyawan->jenis_kelamin == 'P' ? 'Perempuan' : $karyawan->jenis_kelamin),
-            $karyawan->nama_status_kawin,
-            $karyawan->pendidikan_terakhir,
-            $karyawan->jurusan,
-            $karyawan->nama_cabang,
-            $karyawan->nama_dept,
-            $karyawan->nama_jabatan,
-            $karyawan->tanggal_masuk,
-            $karyawan->nama_status_karyawan,
-            $karyawan->npwp,
-            $karyawan->kontak_darurat,
-            $karyawan->hubungan_kontak_darurat,
-            $karyawan->nama_bank,
-            $karyawan->no_rekening,
-            $karyawan->nama_rekening,
-            $karyawan->hitung_pph21 == 1 ? 'Ya' : 'Tidak',
-            $karyawan->rfid_uid,
-            $karyawan->status_aktif_karyawan == 1 ? 'Aktif' : 'Non Aktif',
-            $karyawan->tanggal_nonaktif,
-            $karyawan->tanggal_off_gaji,
-            $karyawan->lock_location == 1 ? 'Ya' : 'Tidak'
+            $jenisKelamin,
+            $karyawan->no_hp ?: '-',
+            $karyawan->email ?: '-',
+            $karyawan->alamat ?: '-',
+            $karyawan->nama_cabang ?: $karyawan->kode_cabang,
+            $karyawan->nama_dept ?: $karyawan->kode_dept,
+            $karyawan->nama_jabatan ?: $karyawan->kode_jabatan,
+            $karyawan->nama_jam_kerja ?: $karyawan->kode_jam_kerja,
+            $statusKaryawan,
+            $statusAktif,
+            $karyawan->tanggal_masuk ?: '-',
+            $karyawan->tanggal_nonaktif ?: '-',
+            $lockLocation,
+            $lockJamKerja,
+            $karyawan->rfid_uid ?: '-'
         ];
+
+        return array_map(function ($value) {
+            if (is_string($value) && preg_match('/^[=\+\-@\t\r]/', $value)) {
+                return "'" . $value;
+            }
+            return $value;
+        }, $data);
     }
 
     public function styles(Worksheet $sheet)

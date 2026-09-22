@@ -47,7 +47,9 @@ class PresensiController extends Controller
                 'foto_out',
                 'status',
                 'lintashari',
-                'total_jam'
+                'total_jam',
+                'is_dispensasi',
+                'presensi_jamkerja.batas_toleransi'
             )
             ->where('presensi.tanggal', $tanggal);
 
@@ -79,7 +81,9 @@ class PresensiController extends Controller
             'foto_out',
             'lintashari',
             'karyawan.pin',
-            'total_jam'
+            'total_jam',
+            'presensi.is_dispensasi',
+            'presensi.batas_toleransi'
         );
         $query->leftjoinSub($presensi, 'presensi', function ($join) {
             $join->on('karyawan.nik', '=', 'presensi.nik');
@@ -110,6 +114,31 @@ class PresensiController extends Controller
 
         if (!empty($request->nama_karyawan)) {
             $query->where('nama_karyawan', 'like', '%' . $request->nama_karyawan . '%');
+        }
+
+        if (!empty($request->status)) {
+            if ($request->status == 'h') {
+                $query->where('presensi.status', 'h');
+            } elseif ($request->status == 'telat') {
+                $query->where('presensi.status', 'h')
+                    ->where(function ($q) {
+                        $q->whereNull('presensi.is_dispensasi')->orWhere('presensi.is_dispensasi', '!=', 1);
+                    })
+                    ->whereRaw("TIME(presensi.jam_in) > COALESCE(presensi.batas_toleransi, '07:05:00')");
+            } elseif ($request->status == 'tepat') {
+                $query->where('presensi.status', 'h')
+                    ->where(function ($q) {
+                        $q->where('presensi.is_dispensasi', 1)
+                            ->orWhereRaw("TIME(presensi.jam_in) <= COALESCE(presensi.batas_toleransi, '07:05:00')");
+                    });
+            } elseif (in_array($request->status, ['i', 's', 'c'])) {
+                $query->where('presensi.status', $request->status);
+            } elseif ($request->status == 'alpa') {
+                $query->where(function ($q) {
+                    $q->whereNull('presensi.status')
+                        ->orWhere('presensi.status', 'a');
+                });
+            }
         }
 
         $karyawan = $query->paginate(10);
@@ -192,12 +221,24 @@ class PresensiController extends Controller
         //Cek Presensi
         $presensi = Presensi::where('nik', $karyawan->nik)->where('tanggal', $hariini)->first();
 
+        // Enforce Effective Schedule from AttendanceService
+        $effectiveSchedule = \App\Services\AttendanceService::getEffectiveSchedule($karyawan->nik, $hariini, $karyawan);
 
-        if ($kode_jam_kerja == null) {
+        // Phase 3 UI Guard: If scheduled OFF and not yet clocked in, block presensi form
+        if ($effectiveSchedule['is_off'] && ($presensi == null || $presensi->jam_in == null)) {
+            $data['keterangan_libur'] = $effectiveSchedule['keterangan'] ?? 'Hari ini Anda dijadwalkan LIBUR / OFF. Tidak ada kewajiban presensi.';
+            $data['hariini'] = $hariini;
+            $data['karyawan'] = $karyawan;
+            return view('presensi.notif_libur', $data);
+        }
+
+        if (!$effectiveSchedule['is_off'] && !empty($effectiveSchedule['jam_kerja'])) {
+            $jamkerja = $effectiveSchedule['jam_kerja'];
+        } elseif ($kode_jam_kerja != null) {
+            $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first();
+        } else {
             $kode_jk = $karyawan->kode_jam_kerja ?: 'JK01';
             $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jk)->first();
-        } else {
-            $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first();
         }
 
         if ($presensi != null && $presensi->status != 'h') {
@@ -206,17 +247,45 @@ class PresensiController extends Controller
             return view('presensi.notif_jamkerja');
         }
 
-        $kode_cabang_array = $karyawan->kode_cabang_array ?? [];
-        $data['cabang'] = Cabang::WhereIn('kode_cabang', $kode_cabang_array)
-            ->orWhere('kode_cabang', $karyawan->kode_cabang)
-            ->get();
+        // Phase 4: Enforce Expected Branch from Schedule
+        $expectedCabangCode = !empty($effectiveSchedule['kode_cabang']) ? $effectiveSchedule['kode_cabang'] : $karyawan->kode_cabang;
+        $scheduledCabang = Cabang::getByCode($expectedCabangCode) ?? Cabang::where('kode_cabang', $expectedCabangCode)->first();
+        if ($scheduledCabang) {
+            $lokasi_kantor = $scheduledCabang;
+        }
+
+        // Lock dropdown to scheduled branch
+        $data['cabang'] = collect([$lokasi_kantor]);
 
         $data['hariini'] = $hariini;
         $data['jam_kerja'] = $jamkerja;
         $data['lokasi_kantor'] = $lokasi_kantor;
         $data['presensi'] = $presensi;
         $data['karyawan'] = $karyawan;
-        $data['wajah'] = Facerecognition::where('nik', $karyawan->nik)->count();
+        $user_wajah = Facerecognition::where('nik', $karyawan->nik)->select('id', 'nik', 'wajah', 'descriptor')->get();
+        $data['wajah'] = $user_wajah->count();
+        $data['user_wajah'] = $user_wajah;
+
+        // Cek apakah hari ini Hari Libur Resmi
+        $hari_libur = DB::table('hari_libur_detail')
+            ->join('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
+            ->where('hari_libur_detail.nik', $karyawan->nik)
+            ->where('hari_libur.tanggal', $hariini)
+            ->select('hari_libur.*')
+            ->first();
+
+        if (!$hari_libur) {
+            $hari_libur = DB::table('hari_libur')
+                ->where('tanggal', $hariini)
+                ->where(function ($q) use ($karyawan) {
+                    $q->where('kode_cabang', $karyawan->kode_cabang ?? '')
+                        ->orWhere('kode_cabang', 'ALL');
+                })
+                ->first();
+        }
+        $attendanceNonce = bin2hex(random_bytes(16));
+        session(['attendance_nonce' => $attendanceNonce, 'attendance_nonce_time' => now()->timestamp]);
+        $data['attendance_nonce'] = $attendanceNonce;
 
         return view('presensi.create', $data);
     }
@@ -237,6 +306,9 @@ class PresensiController extends Controller
             'lokasi_cabang' => $request->lokasi_cabang,
             'image' => $imageInput,
             'is_mock' => $request->is_mock,
+            'face_descriptor' => $request->face_descriptor,
+            'attendance_nonce' => $request->attendance_nonce,
+            'early_out_reason' => $request->early_out_reason,
         ];
 
         if ($request->status == 1) {
@@ -251,6 +323,7 @@ class PresensiController extends Controller
                 'message' => $result['message'],
                 'notifikasi' => $result['notifikasi'] ?? null,
                 'suara' => $result['suara'] ?? null,
+                'new_nonce' => $result['new_nonce'] ?? null,
             ], $result['code'] ?? 400);
         }
 
@@ -261,6 +334,7 @@ class PresensiController extends Controller
             'is_terlambat' => $result['is_terlambat'] ?? false,
             'menit_terlambat' => $result['menit_terlambat'] ?? 0,
             'suara' => $result['suara'] ?? null,
+            'new_nonce' => $result['new_nonce'] ?? null,
         ], $result['code'] ?? 200);
     }
 
@@ -314,6 +388,9 @@ class PresensiController extends Controller
             'tanggal' => 'required',
             'kode_jam_kerja' => 'required',
             'status' => 'required',
+            'alasan_koreksi' => 'required|string|max:500',
+        ], [
+            'alasan_koreksi.required' => 'Alasan koreksi wajib diisi.',
         ]);
 
         $nik = Crypt::decrypt($request->nik);
@@ -337,25 +414,47 @@ class PresensiController extends Controller
         }
 
         $kode_jam_kerja = $request->kode_jam_kerja;
-        $jam_in = $request->jam_in;
-        $jam_out = $request->jam_out;
-        $istirahat_out = $request->istirahat_out;
-        $istirahat_in = $request->istirahat_in;
         $status = $request->status;
+
+        $jam_in = !empty($request->jam_in) ? (strlen($request->jam_in) <= 8 ? ($tanggal . ' ' . $request->jam_in) : $request->jam_in) : null;
+        $jam_out = !empty($request->jam_out) ? (strlen($request->jam_out) <= 8 ? ($tanggal . ' ' . $request->jam_out) : $request->jam_out) : null;
+        $istirahat_out = null;
+        $istirahat_in = null;
+
+        if ($status !== 'h') {
+            $jam_in = null;
+            $jam_out = null;
+        }
+
+        // P1-2: Audit Trail koreksi manual presensi & resolving duty branch
+        $effectiveSchedule = AttendanceService::getEffectiveSchedule($nik, $tanggal, $karyawan);
+        $resolvedBranch = !empty($effectiveSchedule['kode_cabang']) ? $effectiveSchedule['kode_cabang'] : ($karyawan->kode_cabang ?? null);
+
+        $auditData = [
+            'last_corrected_by' => $user?->id ?? auth()->id(),
+            'last_correction_reason' => $request->alasan_koreksi,
+            'last_corrected_at' => Carbon::now(config('app.timezone')),
+        ];
 
         try {
             $cekpresensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
             if (!empty($cekpresensi)) {
-                Presensi::where('nik', $nik)->where('tanggal', $tanggal)->update([
+                $updateData = array_merge([
                     'jam_in' => $jam_in,
                     'jam_out' => $jam_out,
                     'istirahat_out' => $istirahat_out,
                     'istirahat_in' => $istirahat_in,
                     'status' => $status,
                     'kode_jam_kerja' => $kode_jam_kerja,
-                ]);
+                ], $auditData);
+
+                if (empty($cekpresensi->kode_cabang) && !empty($resolvedBranch)) {
+                    $updateData['kode_cabang'] = $resolvedBranch;
+                }
+
+                $cekpresensi->update($updateData);
             } else {
-                Presensi::create([
+                Presensi::create(array_merge([
                     'nik' => $nik,
                     'tanggal' => $tanggal,
                     'jam_in' => $jam_in,
@@ -363,8 +462,9 @@ class PresensiController extends Controller
                     'istirahat_out' => $istirahat_out,
                     'istirahat_in' => $istirahat_in,
                     'kode_jam_kerja' => $kode_jam_kerja,
-                    'status' => $status
-                ]);
+                    'kode_cabang' => $resolvedBranch,
+                    'status' => $status,
+                ], $auditData));
             }
 
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
@@ -399,10 +499,10 @@ class PresensiController extends Controller
         } elseif (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
-            if (!empty($userCabangs) && !in_array($presensi->kode_cabang, $userCabangs)) {
+            if (empty($userCabangs) || !in_array($presensi->kode_cabang, $userCabangs)) {
                 abort(403, 'Anda tidak memiliki akses ke cabang presensi ini.');
             }
-            if (!empty($userDepartemens) && !in_array($presensi->kode_dept, $userDepartemens)) {
+            if (empty($userDepartemens) || !in_array($presensi->kode_dept, $userDepartemens)) {
                 abort(403, 'Anda tidak memiliki akses ke departemen presensi ini.');
             }
         }
@@ -443,7 +543,6 @@ class PresensiController extends Controller
 
             ->leftJoin('presensi_izincuti_approve', 'presensi.id', '=', 'presensi_izincuti_approve.id_presensi')
             ->leftJoin('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
-            ->leftJoin('mesin_fingerprints', 'presensi.id_mesin', '=', 'mesin_fingerprints.id')
             ->select(
                 'presensi.*',
                 'presensi_jamkerja.nama_jam_kerja',
@@ -453,15 +552,14 @@ class PresensiController extends Controller
                 'presensi_jamkerja.lintashari',
                 'presensi_izinabsen.keterangan as keterangan_izin',
                 'presensi_izinsakit.keterangan as keterangan_izin_sakit',
-                'presensi_izincuti.keterangan as keterangan_izin_cuti',
-                'mesin_fingerprints.nama_mesin'
+                'presensi_izincuti.keterangan as keterangan_izin_cuti'
             )
             ->when(!empty($request->dari) && !empty($request->sampai), function ($q) use ($request) {
                 $q->whereBetween('presensi.tanggal', [$request->dari, $request->sampai]);
             })
             ->orderBy('presensi.tanggal', 'desc')
-            ->limit(30)
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
             
         $data['namasettings'] = Pengaturanumum::getSetting();
         return view('presensi.histori', $data);
@@ -623,5 +721,30 @@ class PresensiController extends Controller
         } else {
             return Redirect::back()->with(messageError('Data Tidak Ditemukan'));
         }
+    }
+
+    /**
+     * Trigger generate otomatis status Tanpa Keterangan / Alpha ('a') dari web admin
+     */
+    public function generateAutoAlpha(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->can('presensi.edit')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk memproses kehadiran.');
+        }
+
+        $tanggal = $request->input('tanggal') ?: date('Y-m-d');
+        $result = AttendanceService::generateAutoAlpha($tanggal, false);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($result);
+        }
+
+        if ($result['success']) {
+            return Redirect::back()->with(messageSuccess($result['message']));
+        }
+
+        return Redirect::back()->with(messageError($result['message']));
     }
 }

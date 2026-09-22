@@ -65,7 +65,7 @@ class MvpPresentationSeeder extends Seeder
         DB::table('cabang')->truncate();
 
         // Hapus user selain admin
-        DB::table('users')->whereNotIn('username', ['admin', 'adamadifa'])->delete();
+        DB::table('users')->whereNotIn('username', ['admin'])->delete();
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 

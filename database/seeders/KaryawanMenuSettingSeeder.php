@@ -14,7 +14,6 @@ class KaryawanMenuSettingSeeder extends Seeder
     {
         $menus = [
             ['kode_menu' => 'idcard', 'nama_menu' => 'ID Card', 'status' => 1],
-            ['kode_menu' => 'absen_istirahat', 'nama_menu' => 'Absen Istirahat', 'status' => 1],
             ['kode_menu' => 'kontrak', 'nama_menu' => 'Dokumen Kontrak', 'status' => 1],
             ['kode_menu' => 'lembur', 'nama_menu' => 'Lembur Harian', 'status' => 1],
             ['kode_menu' => 'slipgaji', 'nama_menu' => 'Slip Gaji', 'status' => 1],

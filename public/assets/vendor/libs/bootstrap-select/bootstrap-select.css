@@ -446,7 +446,7 @@ select.selectpicker {
 }
 
 .bootstrap-select .dropdown-menu a:not([href]):not(.active):not(:active):not(.selected):hover {
-  color: #7367f0 !important;
+  color: #1E4D3E !important;
 }
 .bootstrap-select .btn[class*=btn-]:active,
 .bootstrap-select .btn[class*=btn-].active {

@@ -37,7 +37,7 @@ class BpjstenagakerjaImport implements ToCollection, WithStartRow
             // Generate Kode BPJS Tenaga Kerja
             $tahun = date('Y', strtotime($tanggal_berlaku));
             $last_bpjs = Bpjstenagakerja::orderBy('kode_bpjs_tk', 'desc')
-                ->whereRaw('YEAR(tanggal_berlaku) = ' . $tahun)
+                ->whereYear('tanggal_berlaku', $tahun)
                 ->first();
             
             $last_kode = $last_bpjs != null ? $last_bpjs->kode_bpjs_tk : '';

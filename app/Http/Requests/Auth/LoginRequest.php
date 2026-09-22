@@ -73,6 +73,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
+        // Per-user identifier + IP rate limit (prevents account brute-force without blocking shared Wi-Fi/NAT colleagues)
         if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
@@ -82,7 +83,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'id_user' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),

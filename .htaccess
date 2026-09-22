@@ -1,0 +1,22 @@
+# Defense-in-depth shield for Laravel shared hosting deployments
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent direct access to sensitive core directories & files
+    RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|artisan|storage/.*|bootstrap/.*|database/.*|app/.*|resources/.*)$ - [F,L,NC]
+
+    # If request is not already for /public, forward safely into public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Block dotfiles and sensitive extensions
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(?i)\.(env|sql|lock|git|sh|bat|log|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

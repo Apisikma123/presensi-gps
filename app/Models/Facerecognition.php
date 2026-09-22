@@ -10,8 +10,14 @@ class Facerecognition extends Model
     use HasFactory;
 
     protected $table = 'karyawan_wajah';
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'nik',
+        'wajah',
+        'descriptor',
+    ];
 
-    // Relasi dengan Karyawan
+    protected $casts = [
+        'descriptor' => 'array',
+    ];
 
 }

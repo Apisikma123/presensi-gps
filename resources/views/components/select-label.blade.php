@@ -8,14 +8,27 @@
     'kode' => false,
     'upperCase' => false,
     'select2' => '',
+    'required' => false,
+    'optional' => false,
+    'placeholder' => null,
 ])
 
-
-
 <div class="form-group mb-3">
-    <label for="exampleFormControlInput1" style="font-weight: 600" class="form-label">{{ $label }}</label>
-    <select name="{{ $name }}" id="{{ $name }}" class="form-select {{ $select2 }}">
-        <option value="">{{ $label }}</option>
+    @if ($label)
+        <label for="{{ $name }}" style="font-weight: 600; font-size: 13px;" class="form-label d-flex align-items-center justify-content-between mb-1">
+            <span>
+                {{ $label }}
+                @if ($required)
+                    <span class="text-danger fw-bold ms-0.5">*</span>
+                @endif
+            </span>
+            @if ($optional && !$required)
+                <span class="text-muted fw-normal font-monospace" style="font-size: 10.5px;">(Opsional)</span>
+            @endif
+        </label>
+    @endif
+    <select name="{{ $name }}" id="{{ $name }}" class="form-select {{ $select2 }}" {{ $required ? 'required' : '' }}>
+        <option value="">{{ $placeholder ?? 'Pilih ' . $label }}</option>
         @foreach ($data as $d)
             <option {{ $d->$key == $selected ? 'selected' : '' }} value="{{ $d->$key }}">
                 {{ $kode ? $d->$key . ' - ' : '' }}

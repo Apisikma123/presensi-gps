@@ -1,120 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sesi Berakhir</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sesi Berakhir (419) | BrewSync Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --surface-bg: #faf9f8;
+            --card-bg: #ffffff;
+            --primary: #25160e;
+            --primary-hover: #3c2a21;
+            --text-main: #1a1c1c;
+            --text-muted: #64748b;
+            --border-subtle: rgba(60, 42, 33, 0.08);
+            --amber-accent: #b45309;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #32745e 0%, #1a4a3a 100%);
+            background-color: var(--surface-bg);
+            color: var(--text-main);
             min-height: 100vh;
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .error-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(60, 42, 33, 0.04), 0 1px 3px rgba(60, 42, 33, 0.03);
+            width: 100%;
+            max-width: 460px;
+            padding: 2.5rem 2rem;
+            text-align: center;
         }
 
-        .pulse {
-            animation: pulse 2s infinite;
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 8px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: var(--amber-accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.05);
-                opacity: 0.8;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+        .icon-symbol {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fde68a;
         }
 
-        .floating {
-            animation: floating 3s ease-in-out infinite;
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
         }
 
-        @keyframes floating {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-20px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
+        p.desc {
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: var(--text-muted);
+            margin-bottom: 1.75rem;
         }
 
-        .bg-pattern {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
         }
     </style>
 </head>
 
-<body class="flex items-center justify-center p-4 bg-pattern">
-    <!-- Decorative elements -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div class="absolute top-10 left-10 w-20 h-20 bg-[#32745e] opacity-20 rounded-full"></div>
-        <div class="absolute bottom-10 right-10 w-32 h-32 bg-[#32745e] opacity-20 rounded-full"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#32745e] opacity-10 rounded-full">
+<body>
+    <main class="error-card">
+        <div class="icon-symbol">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
         </div>
-    </div>
 
-    <div class="w-full max-w-md relative z-10">
-        <div class="glass-effect rounded-2xl p-8 shadow-xl" data-aos="fade-up" data-aos-duration="1000">
-            <div class="text-center">
-                <!-- Modern illustration -->
-                <div class="mb-6 floating" data-aos="zoom-in" data-aos-delay="200">
-                    <img src="https://cdni.iconscout.com/illustration/premium/thumb/session-expired-4489361-3723269.png" alt="Session Expired"
-                        class="w-48 h-48 mx-auto">
-                </div>
-
-                <h1 class="text-3xl font-bold text-[#32745e] mb-4" data-aos="fade-up" data-aos-delay="400">
-                    Sesi Berakhir
-                </h1>
-
-                <p class="text-gray-600 mb-8" data-aos="fade-up" data-aos-delay="600">
-                    Maaf, sesi Anda telah berakhir. Silakan login kembali untuk melanjutkan.
-                </p>
-
-                <a href="{{ route('loginuser') }}"
-                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#32745e] to-[#1a4a3a] text-white font-semibold rounded-lg shadow-lg hover:from-[#1a4a3a] hover:to-[#32745e] transition duration-300 ease-in-out transform hover:scale-105"
-                    data-aos="fade-up" data-aos-delay="800">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
-                        </path>
-                    </svg>
-                    Login Kembali
-                </a>
-            </div>
+        <div class="status-badge">
+            <span>HTTP 419</span>
+            <span>•</span>
+            <span>SESSION EXPIRED</span>
         </div>
-    </div>
 
-    <script>
-        AOS.init({
-            once: true,
-            offset: 50
-        });
-    </script>
+        <h1>Sesi Telah Berakhir</h1>
+
+        <p class="desc">
+            Sesi autentikasi Anda telah berakhir demi keamanan data presensi. Silakan masuk kembali ke akun Anda untuk melanjutkan aktivitas.
+        </p>
+
+        <a href="{{ route('loginuser') }}" class="btn btn-primary">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+            </svg>
+            Masuk Kembali (Login)
+        </a>
+    </main>
 </body>
 
 </html>

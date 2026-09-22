@@ -169,53 +169,114 @@
         margin: 4px 0;
         border-top-color: #F1F5F9;
     }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #1E4D3E !important;
+        box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.12) !important;
+    }
+    .input-group .form-control:focus {
+        box-shadow: none !important;
+        border-left: 0 !important;
+    }
+
+    .btn-primary {
+        background-color: #1E4D3E !important;
+        border-color: #1E4D3E !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .btn-primary:hover {
+        background-color: #163A2F !important;
+        border-color: #163A2F !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+        transform: scale(0.98);
+    }
+
+    .btn-outline-success {
+        border-color: #10B981 !important;
+        color: #047857 !important;
+        background-color: #FFFFFF !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #ECFDF5 !important;
+        border-color: #059669 !important;
+        color: #047857 !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-secondary {
+        border-color: #CBD5E1 !important;
+        color: #334155 !important;
+        background-color: #FFFFFF !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #F8FAFC !important;
+        border-color: #94A3B8 !important;
+        color: #0F172A !important;
+        transform: translateY(-1px);
+    }
 </style>
 @endpush
 
 @section('content')
 
 <!-- Standard Page Header -->
-<div class="admin-page-header">
+<div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div class="header-title-group">
-        <h5 class="page-title">
+        <h4 class="page-title mb-1 d-flex align-items-center gap-2">
             <span>Data Karyawan</span>
-            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
-                {{ $karyawan->total() }} Total
+            <span class="badge" style="background: rgba(30, 77, 62, 0.08); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.15); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+                {{ number_format($karyawan->total(), 0, ',', '.') }} Total
             </span>
-        </h5>
-        <p class="page-subtitle">Manajemen data profil karyawan, penugasan outlet, shift kerja, dan status akun operasional.</p>
+        </h4>
+        <p class="page-subtitle text-muted mb-0">Manajemen data profil karyawan, penugasan outlet, shift kerja, dan status akun operasional.</p>
     </div>
 
-    <div class="header-action-group">
+    <div class="header-action-group d-flex align-items-center gap-2 flex-wrap">
         @can('karyawan.create')
-            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate" style="height: 38px;">
-                <i class="ti ti-plus"></i>
+            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+                <i class="ti ti-plus" style="font-size: 16px;"></i>
                 <span>Tambah Karyawan</span>
             </a>
-            <a href="{{ route('karyawan.export', request()->query()) }}" class="btn btn-outline-success d-inline-flex align-items-center gap-1.5" style="height: 38px;">
-                <i class="ti ti-file-spreadsheet"></i>
+            <a href="{{ route('karyawan.export', request()->query()) }}" data-no-pjax class="btn btn-export-excel d-inline-flex align-items-center gap-1.5" style="height: 38px; border-radius: 10px; font-weight: 500; padding: 0 14px; border-width: 1px; border-style: solid;">
+                <i class="ti ti-file-spreadsheet" style="font-size: 16px;"></i>
                 <span>Export Excel</span>
             </a>
-            <a href="#" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" id="btnImport" style="height: 38px;">
-                <i class="ti ti-file-upload"></i>
+            {{-- Tombol Import Excel disembunyikan sementara sesuai permintaan --}}
+            {{-- <a href="#" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" id="btnImport" style="height: 38px; border-radius: 10px; font-weight: 500; padding: 0 14px; border-color: #CBD5E1; color: #334155; background: #FFFFFF;">
+                <i class="ti ti-file-upload" style="font-size: 16px;"></i>
                 <span>Import Excel</span>
-            </a>
+            </a> --}}
         @endcan
     </div>
 </div>
 
-<!-- Standard Filter Toolbar (Spacious 2-Tier Responsive Layout) -->
-<div class="admin-filter-toolbar mb-3">
-    <form action="{{ route('karyawan.index') }}" method="GET" id="filterKaryawanForm">
-        <div class="row g-2 mb-2">
-            <div class="col-lg-4 col-md-6 col-12">
-                <div class="input-group">
-                    <span class="input-group-text bg-light text-muted"><i class="ti ti-search"></i></span>
+<!-- Standard Filter Toolbar Card (Compact Single-Row Toolbar) -->
+<div class="card admin-filter-toolbar mb-3">
+    <form action="{{ route('karyawan.index') }}" method="GET" id="filterKaryawanForm" class="m-0">
+        <div class="row g-2 align-items-center">
+            <!-- 1. Search Input: Nama / NIK (Expands to fill available space) -->
+            <div class="col-xl col-lg col-md-12 col-12">
+                <div class="input-group admin-table-search">
+                    <span class="input-group-text text-muted">
+                        <i class="ti ti-search" style="font-size: 14px;"></i>
+                    </span>
                     <input type="text" name="nama_karyawan" class="form-control" placeholder="Cari nama atau NIK karyawan..."
-                        value="{{ Request('nama_karyawan') }}">
+                        value="{{ Request('nama_karyawan') }}" autocomplete="off">
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-12">
+
+            <!-- 2. Dropdown: Cabang -->
+            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
                 <select name="kode_cabang" class="form-select" onchange="document.getElementById('filterKaryawanForm').submit();">
                     <option value="">Semua Outlet / Cabang</option>
                     @foreach ($cabang as $c)
@@ -225,7 +286,9 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-3 col-md-6 col-12">
+
+            <!-- 3. Dropdown: Departemen -->
+            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
                 <select name="kode_dept" class="form-select" onchange="document.getElementById('filterKaryawanForm').submit();">
                     <option value="">Semua Departemen</option>
                     @foreach ($departemen as $d)
@@ -235,7 +298,9 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-2 col-md-6 col-12">
+
+            <!-- 4. Dropdown: Jabatan -->
+            <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-12">
                 <select name="kode_jabatan" class="form-select" onchange="document.getElementById('filterKaryawanForm').submit();">
                     <option value="">Semua Jabatan</option>
                     @foreach ($jabatan as $j)
@@ -245,39 +310,21 @@
                     @endforeach
                 </select>
             </div>
-        </div>
-        <div class="row g-2 align-items-center">
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="d-flex align-items-center gap-2">
-                    <label class="form-label text-muted small mb-0 text-nowrap">Urutkan:</label>
-                    <select name="sort_by" class="form-select form-select-sm" onchange="document.getElementById('filterKaryawanForm').submit();">
-                        <option value="nama_karyawan" {{ Request('sort_by') == 'nama_karyawan' ? 'selected' : '' }}>Nama Karyawan</option>
-                        <option value="nik_show" {{ Request('sort_by') == 'nik_show' ? 'selected' : '' }}>NIK / ID</option>
-                    </select>
+
+            <!-- 5. Action Buttons (Compact button with Cari Data) -->
+            <div class="col-auto">
+                <div class="d-flex align-items-center gap-1.5">
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                        <i class="ti ti-search" style="font-size: 14px;"></i>
+                        <span>Cari Data</span>
+                    </button>
+                    @if(Request('nama_karyawan') || Request('kode_cabang') || Request('kode_dept') || Request('kode_jabatan'))
+                        <a href="{{ route('karyawan.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                            <span>Reset</span>
+                        </a>
+                    @endif
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-6">
-                <div class="d-flex align-items-center gap-2">
-                    <label class="form-label text-muted small mb-0 text-nowrap">Baris:</label>
-                    <select name="per_page" class="form-select form-select-sm font-mono" onchange="document.getElementById('filterKaryawanForm').submit();">
-                        <option value="10" {{ Request('per_page', 10) == 10 ? 'selected' : '' }}>10 baris</option>
-                        <option value="25" {{ Request('per_page') == 25 ? 'selected' : '' }}>25 baris</option>
-                        <option value="50" {{ Request('per_page') == 50 ? 'selected' : '' }}>50 baris</option>
-                        <option value="100" {{ Request('per_page') == 100 ? 'selected' : '' }}>100 baris</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-4 col-12 d-flex justify-content-lg-end justify-content-start gap-2">
-                <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-3">
-                    <i class="ti ti-search"></i>
-                    <span>Cari Data</span>
-                </button>
-                @if(Request('nama_karyawan') || Request('kode_cabang') || Request('kode_dept') || Request('kode_jabatan') || Request('sort_by') != 'nama_karyawan' || Request('per_page') != 10)
-                    <a href="{{ route('karyawan.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3" title="Reset Filter">
-                        <i class="ti ti-refresh"></i>
-                        <span>Reset</span>
-                    </a>
-                @endif
             </div>
         </div>
     </form>
@@ -349,13 +396,14 @@
                             </div>
                         </td>
                         <td>
-                            <div class="d-flex flex-column gap-1">
-                                <span class="badge bg-label-primary align-self-start" style="font-size: 11px;">
-                                    {{ $d->nama_jabatan }}
+                            <div class="d-flex flex-column" style="gap: 3px;">
+                                <span class="fw-bold text-dark" style="font-size: 13px; line-height: 1.3;">
+                                    {{ $d->nama_jabatan ?? '-' }}
                                 </span>
-                                <small class="text-muted" style="font-size: 11.5px;">
-                                    <i class="ti ti-building me-1"></i>{{ $d->nama_dept }}
-                                </small>
+                                <div class="d-flex align-items-center text-muted" style="font-size: 11.5px; line-height: 1.25; gap: 4px;">
+                                    <i class="ti ti-building" style="font-size: 13px; color: #94A3B8; flex-shrink: 0;"></i>
+                                    <span>{{ $d->nama_dept ?? '-' }}</span>
+                                </div>
                             </div>
                         </td>
                         <td>
@@ -431,7 +479,6 @@
 <x-modal-form id="modal" show="loadmodal" size="modal-lg" />
 <x-modal-form id="modalSetJamkerja" show="loadmodalSetJamkerja" size="modal-lg" title="Set Jam Kerja" />
 <x-modal-form id="modalSetCabang" show="loadmodalSetCabang" size="modal-lg" title="Set Cabang Karyawan" />
-<x-modal-form id="modalImport" show="loadmodalImport" size="modal-lg" title="Import Data Karyawan" />
 
 @endsection
 
@@ -443,12 +490,6 @@
             $("#modal").modal("show");
             $(".modal-title").text("Tambah Data Karyawan");
             $("#loadmodal").load("{{ route('karyawan.create') }}");
-        });
-
-        $(document).on('click', '#btnImport', function(e) {
-            e.preventDefault();
-            $("#modalImport").modal("show");
-            $("#loadmodalImport").load("{{ route('karyawan.import') }}");
         });
 
         $(document).on('click', '.btnEdit', function(e) {
@@ -463,28 +504,7 @@
             e.preventDefault();
             const nik = $(this).attr("nik");
             $("#modalSetJamkerja").modal("show");
-            $("#loadmodalSetJamkerja").html(`<div class="sk-wave sk-primary" style="margin:auto">
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-            </div>`);
             $("#loadmodalSetJamkerja").load(`/karyawan/${nik}/setjamkerja`);
-        });
-
-        $(document).on('click', '.btnSetCabang', function(e) {
-            e.preventDefault();
-            const nik = $(this).attr("nik");
-            $("#modalSetCabang").modal("show");
-            $("#loadmodalSetCabang").html(`<div class="sk-wave sk-primary" style="margin:auto">
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-            </div>`);
-            $("#loadmodalSetCabang").load(`/karyawan/${nik}/setcabang`);
         });
 
         $(document).on('click', '.delete-all-user', function(e) {

@@ -12,9 +12,19 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Jalankan worker queue tiap menit untuk memproses job antrian
+        // Jalankan worker queue untuk memproses job antrian sesuai interval cron shared hosting
         $schedule->command('queue:work --queue=default --sleep=3 --tries=3 --stop-when-empty')
-            ->everyMinute()
+            ->everyThirtyMinutes()
+            ->withoutOverlapping();
+
+        // Cek dan generate otomatis status Tanpa Keterangan / Alpha ('a') setelah jam shift berakhir
+        $schedule->command('presensi:auto-alpha')
+            ->hourly()
+            ->withoutOverlapping();
+
+        // Pengarsipan foto presensi lama (>12 bulan) ke ZIP private (Max 1 bulan tertua per run, aman shared hosting)
+        $schedule->command('maintenance:archive-attendance-photos --execute')
+            ->dailyAt('02:00')
             ->withoutOverlapping();
     }
 

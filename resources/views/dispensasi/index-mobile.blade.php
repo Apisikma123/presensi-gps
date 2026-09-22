@@ -3,8 +3,10 @@
 @section('title', 'Dispensasi Kehadiran')
 
 @section('header_left')
-    <a href="{{ route('dashboard.index') }}"
-        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
 @endsection

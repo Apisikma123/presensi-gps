@@ -22,32 +22,28 @@
     </div>
 </div>
 
-<!-- Search & Filter Bar -->
+<!-- Search & Filter Bar (Standardized Compact Admin Filter Toolbar) -->
 <div class="card admin-filter-toolbar mb-3">
-    <div class="card-body p-3">
-        <form action="{{ route('cuti.index') }}" method="GET">
-            <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
-                <div class="flex-grow-1" style="min-width: 240px;">
-                    <x-input-with-icon label="" value="{{ Request('nama_cuti') }}" name="nama_cuti"
-                        icon="ti ti-search" placeholder="Cari nama atau kode jenis cuti..." hideLabel="true" />
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5"
-                        style="height: 38px; min-width: 90px;">
-                        <i class="ti ti-search"></i>
-                        <span>Cari</span>
-                    </button>
-                    @if (Request('nama_cuti'))
-                        <a href="{{ route('cuti.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1"
-                            style="height: 38px; padding: 0 12px;" title="Reset Filter">
-                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
-                            <span>Reset</span>
-                        </a>
-                    @endif
-                </div>
+    <form action="{{ route('cuti.index') }}" method="GET" class="m-0">
+        <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap">
+            <div class="flex-grow-1" style="min-width: 240px;">
+                <x-input-with-icon label="" value="{{ Request('nama_cuti') }}" name="nama_cuti"
+                    icon="ti ti-search" placeholder="Cari nama atau kode jenis cuti..." hideLabel="true" />
             </div>
-        </form>
-    </div>
+            <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                    <i class="ti ti-search" style="font-size: 14px;"></i>
+                    <span>Cari</span>
+                </button>
+                @if (Request('nama_cuti'))
+                    <a href="{{ route('cuti.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                        <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                        <span>Reset</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+    </form>
 </div>
 
 <!-- Table Card -->
@@ -137,21 +133,10 @@
 @push('myscript')
 <script>
     $(function() {
-        function loading() {
-            $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-            </div>`);
-        };
-
         $(document).on('click', '#btnCreate', function(e) {
             e.preventDefault();
             $("#modal").modal("show");
             $(".modal-title").text("Tambah Jenis Cuti");
-            loading();
             $("#loadmodal").load("{{ route('cuti.create') }}");
         });
 
@@ -160,7 +145,6 @@
             const kode_cuti = $(this).attr("kode_cuti");
             $("#modal").modal("show");
             $(".modal-title").text("Edit Jenis Cuti");
-            loading();
             $("#loadmodal").load(`/cuti/${kode_cuti}`);
         });
     });

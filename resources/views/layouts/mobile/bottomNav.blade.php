@@ -1,11 +1,16 @@
 <style>
-    /* App Bottom Menu Base */
+    /* App Bottom Menu Base - Responsive to Safe Area (antislop-layoutmobile) */
     .appBottomMenu {
-        height: 56px;
+        height: calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        box-sizing: border-box !important;
         position: fixed;
         left: 0;
         right: 0;
         bottom: 0;
+        max-width: 480px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -97,9 +102,9 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
     }
 
-    /* Reset potential safe-area-inset conflict from style.css */
-    .appBottomMenu {
-        padding-bottom: 0 !important;
+    /* Keep nav tap targets comfortable and clear of home gesture line */
+    .appBottomMenu .item {
+        min-height: 48px;
     }
 </style>
 <div class="appBottomMenu">

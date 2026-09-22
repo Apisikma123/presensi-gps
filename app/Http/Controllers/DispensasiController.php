@@ -89,8 +89,16 @@ class DispensasiController extends Controller
         } elseif (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
-            if (!empty($userCabangs)) $qkaryawan->whereIn('kode_cabang', $userCabangs);
-            if (!empty($userDepartemens)) $qkaryawan->whereIn('kode_dept', $userDepartemens);
+            if (!empty($userCabangs)) {
+                $qkaryawan->whereIn('kode_cabang', $userCabangs);
+            } else {
+                $qkaryawan->whereRaw('1 = 0');
+            }
+            if (!empty($userDepartemens)) {
+                $qkaryawan->whereIn('kode_dept', $userDepartemens);
+            } else {
+                $qkaryawan->whereRaw('1 = 0');
+            }
         }
 
         $data['karyawan'] = $qkaryawan->get();
@@ -106,6 +114,20 @@ class DispensasiController extends Controller
             $nik = $userkaryawan?->nik;
         } else {
             $nik = $request->nik;
+            if (!$user->isSuperAdmin()) {
+                $targetKaryawan = Karyawan::where('nik', $nik)->first();
+                if (!$targetKaryawan) {
+                    return Redirect::back()->with(messageError('Karyawan tidak ditemukan'));
+                }
+                $userCabangs = $user->getCabangCodes();
+                $userDepartemens = $user->getDepartemenCodes();
+                if (empty($userCabangs) || !in_array($targetKaryawan->kode_cabang, $userCabangs)) {
+                    abort(403, 'Anda tidak memiliki akses ke cabang karyawan ini.');
+                }
+                if (empty($userDepartemens) || !in_array($targetKaryawan->kode_dept, $userDepartemens)) {
+                    abort(403, 'Anda tidak memiliki akses ke departemen karyawan ini.');
+                }
+            }
         }
 
         $request->validate([
@@ -124,7 +146,11 @@ class DispensasiController extends Controller
                 ->exists();
 
             if ($exists) {
-                return Redirect::back()->with(messageError('Pengajuan dispensasi untuk tanggal tersebut sudah ada!'));
+                $msg = 'Pengajuan dispensasi untuk tanggal tersebut sudah ada!';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return Redirect::back()->with(messageError($msg));
             }
 
             PresensiDispensasi::create([
@@ -137,32 +163,58 @@ class DispensasiController extends Controller
             ]);
 
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Pengajuan dispensasi berhasil dikirim.']);
+            }
             if ($user->hasRole('karyawan')) {
                 return Redirect::route('dispensasi.index')->with(messageSuccess('Pengajuan dispensasi berhasil dikirim.'));
             }
             return Redirect::back()->with(messageSuccess('Pengajuan dispensasi berhasil dikirim.'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal mengajukan dispensasi: ' . $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError('Gagal mengajukan dispensasi: ' . $e->getMessage()));
+        }
+    }
+
+    private function resolveDispensasiId($id)
+    {
+        if (is_numeric($id)) {
+            return (int) $id;
+        }
+        try {
+            return Crypt::decrypt($id);
+        } catch (\Exception $e) {
+            return $id;
         }
     }
 
     public function approve($id)
     {
-        $id = Crypt::decrypt($id);
-        $dispensasi = PresensiDispensasi::with('karyawan')->findOrFail($id);
+        $id = $this->resolveDispensasiId($id);
+        $dispensasi = PresensiDispensasi::with(['karyawan.jabatan', 'karyawan.departemen', 'karyawan.cabang'])->findOrFail($id);
         $this->authorizeAdminAccess($dispensasi);
         return view('dispensasi.approve', compact('dispensasi'));
     }
 
     public function storeApprove(Request $request, $id)
     {
-        $id = Crypt::decrypt($id);
+        $id = $this->resolveDispensasiId($id);
         $dispensasi = PresensiDispensasi::with('karyawan')->findOrFail($id);
         $this->authorizeAdminAccess($dispensasi);
 
         $status = $request->status; // 'APPROVED' or 'REJECTED'
-        if (!in_array($status, ['APPROVED', 'REJECTED'])) {
+        if (empty($status)) {
+            if ($request->has('approve') || $request->approve === 'approve') {
+                $status = 'APPROVED';
+            } elseif ($request->has('tolak') || $request->tolak === 'tolak') {
+                $status = 'REJECTED';
+            }
+        }
+
+        if (!in_array($status, ['APPROVED', 'REJECTED', 'PENDING'])) {
             return Redirect::back()->with(messageError('Status persetujuan tidak valid!'));
         }
 
@@ -196,16 +248,22 @@ class DispensasiController extends Controller
             }
 
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Persetujuan dispensasi berhasil diproses.']);
+            }
             return Redirect::back()->with(messageSuccess('Persetujuan dispensasi berhasil diproses.'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal memproses persetujuan: ' . $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError('Gagal memproses persetujuan: ' . $e->getMessage()));
         }
     }
 
-    public function cancelApprove($id)
+    public function cancelApprove(Request $request, $id)
     {
-        $id = Crypt::decrypt($id);
+        $id = $this->resolveDispensasiId($id);
         $dispensasi = PresensiDispensasi::with('karyawan')->findOrFail($id);
         $this->authorizeAdminAccess($dispensasi);
 
@@ -226,20 +284,30 @@ class DispensasiController extends Controller
             ]);
 
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Persetujuan dispensasi berhasil dibatalkan.']);
+            }
             return Redirect::back()->with(messageSuccess('Persetujuan dispensasi berhasil dibatalkan.'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal membatalkan: ' . $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError('Gagal membatalkan: ' . $e->getMessage()));
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $id = Crypt::decrypt($id);
+        $id = $this->resolveDispensasiId($id);
         $dispensasi = PresensiDispensasi::with('karyawan')->findOrFail($id);
 
         if ($dispensasi->status === 'APPROVED') {
-            return Redirect::back()->with(messageError('Dispensasi yang sudah disetujui tidak dapat dihapus langsung.'));
+            $msg = 'Dispensasi yang sudah disetujui tidak dapat dihapus langsung.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->with(messageError($msg));
         }
 
         /** @var \App\Models\User $user */
@@ -254,6 +322,9 @@ class DispensasiController extends Controller
         }
 
         $dispensasi->delete();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Pengajuan dispensasi berhasil dihapus.']);
+        }
         return Redirect::back()->with(messageSuccess('Pengajuan dispensasi berhasil dihapus.'));
     }
 
@@ -265,15 +336,24 @@ class DispensasiController extends Controller
             abort(403, 'Akses ditolak. Anda tidak memiliki wewenang untuk persetujuan dispensasi.');
         }
 
+        // Anti Self-Approval Protection: Applicant cannot approve their own request
+        $approvalService = app(\App\Services\ApprovalService::class);
+        if ($approvalService->isSelfApproval($user, $dispensasi->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan menyetujui pengajuan dispensasi milik Anda sendiri.');
+        }
+
         if (!$user->isSuperAdmin()) {
             $karyawan = $dispensasi->karyawan ?? Karyawan::where('nik', $dispensasi->nik)->first();
+            if (!$karyawan) {
+                abort(403, 'Data karyawan tidak ditemukan.');
+            }
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
 
-            if (!empty($userCabangs) && $karyawan && !in_array($karyawan->kode_cabang, $userCabangs)) {
+            if (empty($userCabangs) || !in_array($karyawan->kode_cabang, $userCabangs)) {
                 abort(403, 'Anda tidak memiliki akses ke cabang dispensasi ini.');
             }
-            if (!empty($userDepartemens) && $karyawan && !in_array($karyawan->kode_dept, $userDepartemens)) {
+            if (empty($userDepartemens) || !in_array($karyawan->kode_dept, $userDepartemens)) {
                 abort(403, 'Anda tidak memiliki akses ke departemen dispensasi ini.');
             }
         }

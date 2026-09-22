@@ -171,17 +171,7 @@
                         <x-textarea-label label="Alamat Perusahaan" name="alamat" icon="ti ti-map-pin" :value="$setting->alamat ?? ''" />
                         <x-input-with-icon-label label="Telepon" name="telepon" icon="ti ti-phone" :value="$setting->telepon ?? ''" />
                         <x-input-with-icon-label label="Nama HRD" name="nama_hrd" icon="ti ti-user" :value="$setting->nama_hrd ?? ''" />
-                        <div class="form-group mb-3">
-                            <label for="logo" style="font-weight: 600" class="form-label">Logo Perusahaan</label>
-                            <input type="file" class="form-control" name="logo" id="logo">
-                            <div class="mt-2 text-center">
-                                @if ($setting->logo && Storage::exists('public/logo/' . $setting->logo))
-                                    <img src="{{ asset('storage/logo/' . $setting->logo) }}" alt="Logo Perusahaan" style="max-width: 200px;">
-                                @else
-                                    <img src="https://placehold.co/200x200?text=Logo+Perusahaan&font=roboto" alt="Logo Default" style="max-width: 200px;">
-                                @endif
-                            </div>
-                        </div>
+                        <x-input-file name="logo" label="Logo Perusahaan" :value="$setting->logo" helper="Format: WEBP, PNG, JPG (Maks. 2MB)" :crop="true" cropRatio="free" cropShape="rect" />
                     </div>
                 </div>
                 <!-- Laporan -->
@@ -235,35 +225,43 @@
                             <small class="text-muted d-block mb-3">
                                 Jadwal ini digunakan sebagai fallback jika karyawan tidak memiliki jadwal kerja dari level manapun (by date, grup, by day, departemen).
                             </small>
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 100px;">Hari</th>
-                                        <th>Jam Kerja</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php
-                                        $daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-                                    @endphp
-                                    @foreach($daftarHari as $hari)
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead class="table-light">
                                         <tr>
-                                            <td class="align-middle" style="font-weight: 600;">{{ $hari }}</td>
-                                            <td>
-                                                <select name="global_jamkerja[{{ $hari }}]" class="form-select form-select-sm">
-                                                    <option value="">-- Libur --</option>
-                                                    @foreach($jamkerja_list as $jk)
-                                                        <option value="{{ $jk->kode_jam_kerja }}"
-                                                            @selected(isset($global_jamkerja[$hari]) && $global_jamkerja[$hari]->kode_jam_kerja == $jk->kode_jam_kerja)>
-                                                            {{ $jk->kode_jam_kerja }} - {{ $jk->nama_jam_kerja }} ({{ $jk->jam_masuk }} - {{ $jk->jam_pulang }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
+                                            <th style="width: 75px; white-space: nowrap; font-size: 11.5px; font-weight: 700; text-transform: uppercase;">Hari</th>
+                                            <th style="font-size: 11.5px; font-weight: 700; text-transform: uppercase;">Jam Kerja</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @php
+                                            $daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                                        @endphp
+                                        @foreach($daftarHari as $hari)
+                                            <tr>
+                                                <td class="align-middle py-2 px-2.5 text-dark" style="font-weight: 600; font-size: 12.5px; white-space: nowrap;">{{ $hari }}</td>
+                                                <td class="py-1 px-1.5">
+                                                    <select name="global_jamkerja[{{ $hari }}]" class="form-select form-select-sm" style="font-size: 12px; height: 35px; border-radius: 8px; padding-right: 30px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; background-position: right 8px center;">
+                                                        <option value="">-- Libur --</option>
+                                                        @foreach($jamkerja_list as $jk)
+                                                            @php
+                                                                $masuk = !empty($jk->jam_masuk) ? substr($jk->jam_masuk, 0, 5) : '';
+                                                                $pulang = !empty($jk->jam_pulang) ? substr($jk->jam_pulang, 0, 5) : '';
+                                                                $jamStr = ($masuk && $pulang) ? " ({$masuk} - {$pulang})" : '';
+                                                            @endphp
+                                                            <option value="{{ $jk->kode_jam_kerja }}"
+                                                                title="{{ $jk->kode_jam_kerja }} - {{ $jk->nama_jam_kerja }} ({{ $jk->jam_masuk }} - {{ $jk->jam_pulang }})"
+                                                                @selected(isset($global_jamkerja[$hari]) && $global_jamkerja[$hari]->kode_jam_kerja == $jk->kode_jam_kerja)>
+                                                                {{ $jk->kode_jam_kerja }} - {{ $jk->nama_jam_kerja }}{{ $jamStr }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -372,14 +370,7 @@
                                 <span class="switch-right">No</span>
                             </label>
                         </div>
-                        <label for="" style="font-weight: 600" class="form-label">Tampilkan Rate di Slip Gaji</label>
-                        <div class="checkbox-wrapper-55 mb-2">
-                            <label class="rocker rocker-small">
-                                <input type="checkbox" name="show_rate_slip" @checked($setting->show_rate_slip ?? true)>
-                                <span class="switch-left">Yes</span>
-                                <span class="switch-right">No</span>
-                            </label>
-                        </div>
+
                         <label for="" style="font-weight: 600" class="form-label">Denda</label>
                         <div class="checkbox-wrapper-55 mb-2">
                             <label class="rocker rocker-small">
@@ -429,80 +420,32 @@
                             </label>
                         </div>
                         <x-input-with-icon-label label="Batas Hari Izin (Dalam Hari)" name="jml_hari_izin_max" icon="ti ti-clock" :value="$setting->jml_hari_izin_max ?? ''" />
+                        <x-input-with-icon-label label="Batas Pengambilan Cuti Bulanan (Maks. Kali/Hari per Bulan)" name="monthly_leave_quota" icon="ti ti-calendar" :value="$setting->monthly_leave_quota ?? ''" />
+                        <small class="text-muted d-block mb-2">Batas maksimal pengambilan cuti per bulan (kosongkan/isi 0 jika tidak ingin dibatasi per bulan)</small>
                         <x-input-with-icon-label label="Batas Presensi Lintas Hari" name="batas_presensi_lintashari" icon="ti ti-clock"
                             :value="$setting->batas_presensi_lintashari ?? ''" />
-                        <label for="" style="font-weight: 600" class="form-label">Absen Istirahat</label>
-                        <div class="checkbox-wrapper-55 mb-2">
-                            <label class="rocker rocker-small">
-                                <input type="checkbox" name="absen_istirahat" @checked($setting->absen_istirahat ?? false)>
-                                <span class="switch-left">Yes</span>
-                                <span class="switch-right">No</span>
-                            </label>
-                        </div>
-                        <label for="" style="font-weight: 600" class="form-label">Potongan Istirahat</label>
-                        <div class="checkbox-wrapper-55 mb-2">
-                            <label class="rocker rocker-small">
-                                <input type="checkbox" name="potongan_istirahat" @checked($setting->potongan_istirahat ?? false)>
-                                <span class="switch-left">Yes</span>
-                                <span class="switch-right">No</span>
-                            </label>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- COLUMN 3 -->
             <div class="col-lg-4 col-md-6 col-sm-12">
-                <!-- Pengaturan Menu Karyawan -->
-                <div class="card mb-3">
-                    <div class="card-header d-flex justify-between align-items-center">
-                        <h6 class="mb-0 font-weight-bold">Menu Karyawan Aktif</h6>
-                        <small class="text-muted">Centang untuk memunculkan menu</small>
-                    </div>
-                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                        <div class="row">
-                            @foreach ($karyawan_menus as $menu)
-                                <div class="col-6 mb-2">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" 
-                                            name="karyawan_menu[{{ $menu->kode_menu }}]" 
-                                            id="menu_{{ $menu->kode_menu }}" 
-                                            value="1" 
-                                            @checked($menu->status == 1)>
-                                        <label class="form-check-label" style="font-size: 12px; font-weight: 600;" for="menu_{{ $menu->kode_menu }}">
-                                            {{ $menu->nama_menu }}
-                                        </label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
                 <!-- PWA -->
                 <div class="card mb-3">
                     <div class="card-header">
                          <h6 class="mb-0">PWA Settings</h6>
                     </div>
                     <div class="card-body">
-                        <div class="form-group mb-3">
-                            <label for="pwa_icon" style="font-weight: 600" class="form-label">
-                                Upload Icon Master (1080x1080px)
-                            </label>
-                            <input type="file" class="form-control" name="pwa_icon" id="pwa_icon" accept="image/*">
-                            <small class="text-muted">
-                                Upload gambar dengan ukuran 1080x1080px atau lebih besar.
-                                Sistem akan otomatis generate berbagai ukuran untuk PWA.
-                            </small>
-                        </div>
+                        <x-input-file name="pwa_icon" label="Upload Icon Master (1080x1080px)" helper="Maks. 2MB (1:1 Square)" :crop="true" cropRatio="1" cropShape="square" />
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <button type="button" class="btn btn-success w-100" id="btnGenerateIcons">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center" id="btnGenerateIcons">
                                     <i class="ti ti-device-mobile me-1"></i> Generate
                                 </button>
                             </div>
-                            <div class="col-md-6">
-                                <button type="button" class="btn btn-warning w-100" id="btnPreviewIcons">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center text-white" id="btnPreviewIcons">
                                     <i class="ti ti-eye me-1"></i> Preview
                                 </button>
                             </div>
@@ -571,14 +514,14 @@
                         <p class="text-muted" style="font-size: 12px; line-height: 1.5;">
                             Jika Anda mengalami masalah file upload tidak bisa diakses (404/403) atau sistem gagal membuat folder/menyimpan file baru saat upload dokumen, klik tombol di bawah untuk menyetel ulang permission folder storage menjadi 775 secara rekursif.
                         </p>
-                        <button type="button" class="btn btn-warning w-100" id="btnFixPermissions">
+                        <button type="button" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center text-white" id="btnFixPermissions">
                             <i class="ti ti-folder-lock me-1"></i> Perbaiki Permission Storage
                         </button>
                     </div>
                 </div>
 
-                <button class="btn btn-primary w-100 mb-4" id="btnSimpan">
-                    <i class="ti ti-refresh me-1"></i> Update Settings
+                <button class="btn btn-primary w-100 mb-4 py-2 d-inline-flex align-items-center justify-content-center fw-bold shadow-sm" id="btnSimpan" style="font-size: 15px;">
+                    <i class="ti ti-device-floppy me-2" style="font-size: 18px;"></i> Update Settings
                 </button>
             </div>
         </div>
@@ -615,8 +558,8 @@
 
         // PWA Icon Generator
         $('#btnGenerateIcons').click(function() {
-            const fileInput = document.getElementById('pwa_icon');
-            const file = fileInput.files[0];
+            const fileInput = document.querySelector('input[name="pwa_icon"]') || document.getElementById('pwa_icon');
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
 
             if (!file) {
                 Swal.fire({

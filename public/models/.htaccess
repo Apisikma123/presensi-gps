@@ -1,0 +1,18 @@
+# Scoped Caching Specifically for Face-API AI Models
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 30 days"
+    ExpiresByType application/json "access plus 1 day"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Shard weights: 30 days cache
+    <FilesMatch "-shard[0-9]+$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # Manifest JSON: 1 day with must-revalidate so updates/versioning propagate cleanly
+    <FilesMatch "\.json$">
+        Header set Cache-Control "public, max-age=86400, must-revalidate"
+    </FilesMatch>
+</IfModule>

@@ -14,10 +14,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // Update API Routes
-Route::prefix('update')->group(function () {
+Route::prefix('update')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/check', [App\Http\Controllers\Api\UpdateController::class, 'checkUpdate']);
     Route::get('/version', [App\Http\Controllers\Api\UpdateController::class, 'getCurrentVersion']);
-    Route::middleware(['auth:sanctum', 'role:super admin'])->group(function () {
+    Route::middleware('role:super admin')->group(function () {
         Route::get('/list', [App\Http\Controllers\Api\UpdateController::class, 'listUpdates']);
         Route::get('/history', [App\Http\Controllers\Api\UpdateController::class, 'history']);
         Route::get('/log/{id}', [App\Http\Controllers\Api\UpdateController::class, 'showLog']);
@@ -32,7 +32,7 @@ Route::prefix('update')->group(function () {
 // Mobile API Routes (Final Scope Whitelist)
 Route::prefix('mobile')->group(function () {
     Route::post('/login', [App\Http\Controllers\Api\Mobile\AuthController::class, 'login'])
-        ->middleware('throttle:10,1');
+        ->middleware('throttle:30,1');
 
     Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckKaryawanExists::class])->group(function () {
         Route::post('/logout', [App\Http\Controllers\Api\Mobile\AuthController::class, 'logout']);
@@ -55,5 +55,9 @@ Route::prefix('mobile')->group(function () {
         Route::get('/facerecognition', [App\Http\Controllers\Api\Mobile\FacerecognitionController::class, 'index']);
         Route::post('/facerecognition', [App\Http\Controllers\Api\Mobile\FacerecognitionController::class, 'store']);
         Route::delete('/facerecognition', [App\Http\Controllers\Api\Mobile\FacerecognitionController::class, 'destroy']);
+
+        // Protected Files Streaming for Mobile
+        Route::get('/files/sid/{filename}', [App\Http\Controllers\ProtectedFileController::class, 'streamSid'])->name('api.file.sid');
+        Route::get('/files/facerecognition/{folder}/{filename}', [App\Http\Controllers\ProtectedFileController::class, 'streamFace'])->name('api.file.face');
     });
 });

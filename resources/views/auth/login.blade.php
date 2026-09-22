@@ -12,7 +12,8 @@
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('/assets/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}" />
+    <link rel="shortcut icon" href="{{ $app_logo_url ?? asset('favicon.ico') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -61,8 +62,8 @@
                         {{-- <img src="{{ asset('assets/img/logo/hibah.png') }}" alt="" width="160"> --}}
                     </div>
                     <!-- /Logo -->
-                    <h4 class="mb-1 pt-2">E-PRESENSI! 👋</h4>
-                    <p class="mb-4">Silahkan Login !</p>
+                    <h4 class="mb-1 pt-2" style="font-family: 'Outfit', sans-serif; font-weight: 700;">E-Presensi Enterprise</h4>
+                    <p class="mb-4 text-muted">Silakan masuk ke akun Anda</p>
                     <x-alert-error :messages="$errors->get('id_user')" class="mt-2" />
                     <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                         @csrf
@@ -74,9 +75,6 @@
                         <div class="mb-3 form-password-toggle">
                             <div class="d-flex justify-content-between">
                                 <label class="form-label" for="password">Password</label>
-                                <a href="auth-forgot-password-basic.html">
-                                    <small>Forgot Password?</small>
-                                </a>
                             </div>
                             <div class="input-group input-group-merge">
                                 <input type="password" id="password" class="form-control" name="password"
@@ -149,3 +147,6 @@
 
 <!-- Page JS -->
 <script src="{{ asset('/assets/js/pages-auth.js') }}"></script>
+
+<!-- Global Action Loading Overlay -->
+@include('components.global-loading')

@@ -3,7 +3,10 @@
 @section('title', 'E-Presensi')
 
 @section('header_left')
-    <a href="javascript:;" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform" onclick="window.history.back()">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
 @endsection
@@ -220,9 +223,9 @@
 
         #listcabang select:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.5);
-            background-color: rgba(0, 0, 0, 0.6);
-            animation: pulse 1.5s infinite;
+            border-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
         }
 
         #listcabang select option {
@@ -918,6 +921,18 @@
                 </div>
             @else
                 <div id="active-presensi-wrapper">
+                    @if (!empty($hari_libur))
+                        <div style="margin: 0 0 12px 0; padding: 12px 14px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-left: 3px solid #1E4D3E; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(30, 77, 62, 0.12);">
+                                <ion-icon name="calendar-outline" style="font-size: 18px; color: #1E4D3E;"></ion-icon>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 9.5px; font-weight: 800; color: #1E4D3E; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; line-height: 1;">HARI LIBUR OPERASIONAL</div>
+                                <div style="font-size: 13px; font-weight: 800; color: #0F172A; margin-top: 2px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $hari_libur->keterangan }}</div>
+                                <div style="font-size: 11px; color: #64748B; margin-top: 2px; line-height: 1.3;">Bebas kewajiban presensi. Kehadiran tercatat sebagai operasional khusus tanpa penalti keterlambatan.</div>
+                            </div>
+                        </div>
+                    @endif
                     <div class="camera-section">
                         <div id="facedetection" style="position:relative;">
                             <!-- GPS Permission Button / Status -->
@@ -1067,8 +1082,6 @@
     <!-- Face Recognition dengan Caching -->
     <script src="{{ asset('assets/vendor/face-api.min.js') }}"></script>
     <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ file_exists(public_path('assets/external/js/face-model-cache.js')) ? filemtime(public_path('assets/external/js/face-model-cache.js')) : time() }}"></script>
-    <!-- html2canvas untuk capture map sebagai watermark -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <!-- Anti-Fake GPS & Mock Location Detector -->
     <script src="{{ asset('assets/js/anti-fake-gps.js') }}?v={{ file_exists(public_path('assets/js/anti-fake-gps.js')) ? filemtime(public_path('assets/js/anti-fake-gps.js')) : time() }}"></script>
     <script type="text/javascript">
@@ -1388,7 +1401,6 @@
 
             // --- Tambahkan deteksi device mobile di awal script ---
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            console.log(isMobile);
             // Fungsi untuk inisialisasi webcam
                 // ===============================================
                 // WEBCAM & FACE RECOGNITION MODERN SYSTEM
@@ -1448,7 +1460,11 @@
                     }
 
                     // Initialize Leaflet map (first time only)
-                    map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 18);
+                    map = L.map('map', {
+                        minZoom: 3,
+                        maxBounds: [[-85.05112878, -180], [85.05112878, 180]],
+                        maxBoundsViscosity: 1.0
+                    }).setView([position.coords.latitude, position.coords.longitude], 18);
                     
                     var lokasi_kantor = lokasi_cabang;
                     var lok = lokasi_kantor.split(",");
@@ -1458,6 +1474,7 @@
 
                     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
+                        noWrap: true,
                         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     }).addTo(map);
 
@@ -1629,12 +1646,14 @@
             // MODERN FACE RECOGNITION IMPLEMENTATION
             // =========================================================
 
+            window.initialServerWajah = @json($user_wajah ?? []);
             const FaceConfig = {
                 isEnabled: {{ $general_setting->face_recognition }},
                 modelsUrl: '/models',
                 detection: {
                     // UNIVERSAL MOBILE OPTIMIZATION for all devices
                     interval: 200, 
+                    intervalRecognized: 800,
                     inputSize: 224, 
                     scoreThreshold: 0.3, 
                     minConfidence: 0.45,
@@ -1841,6 +1860,7 @@
 
                     // 3. Helper to attach native stream to video element
                     const attachNativeStream = (stream) => {
+                        window.activeCameraStream = stream;
                         container._stream = stream;
                         let video = document.createElement('video');
                         video.setAttribute('autoplay', 'autoplay');
@@ -1959,13 +1979,19 @@
                         let descriptions = [];
                         const timestamp = new Date().getTime();
                         
-                        // Fetch data wajah terbaru dari server
-                        let data = [];
-                        try {
-                            const response = await fetch(`/facerecognition/getwajah?t=${timestamp}`);
-                            data = await response.json();
-                        } catch (e) {
-                            console.warn('Failed to fetch face list from server', e);
+                        // Gunakan server-inlined wajah jika tersedia (hemat 1 HTTP roundtrip)
+                        let data = (window.initialServerWajah && Array.isArray(window.initialServerWajah) && window.initialServerWajah.length > 0)
+                            ? window.initialServerWajah
+                            : null;
+
+                        // Fetch fallback jika data belum tersedia di inlined HTML
+                        if (!data) {
+                            try {
+                                const response = await fetch(`/facerecognition/getwajah?t=${timestamp}`);
+                                data = await response.json();
+                            } catch (e) {
+                                console.warn('Failed to fetch face list from server', e);
+                            }
                         }
 
                         if (!data || data.length === 0) {
@@ -1989,26 +2015,40 @@
                             console.warn('Cache lookup failed', e);
                         }
 
-                        if (cached && cached.wajahSig === serverWajahSig && cached.descriptors && cached.descriptors.length > 0) {
+                        // Cek apakah server sudah mengirim descriptor terhitung (0-download optimization)
+                        const hasAllServerDescriptors = data.every(d => d.descriptor && Array.isArray(d.descriptor) && d.descriptor.length === 128);
+
+                        if (hasAllServerDescriptors) {
+                            console.log('[Presensi] Using instant precomputed descriptors from server (0 image download)');
+                            descriptions = data.map(d => new Float32Array(d.descriptor));
+                        } else if (cached && cached.wajahSig === serverWajahSig && cached.descriptors && cached.descriptors.length > 0) {
                             console.log('[Presensi] Using verified fast cached descriptors');
                             descriptions = cached.descriptors.map(d => d instanceof Float32Array ? d : new Float32Array(Object.values(d)));
                         } else {
-                            console.log('[Presensi] Face data changed or cache invalid, generating fresh descriptors from server...');
+                            console.log('[Presensi] Generating descriptors and auto-syncing to server...');
                             if (window.FaceModelCache && window.FaceModelCache.clearDescriptors) {
                                 await window.FaceModelCache.clearDescriptors(nik);
                             }
                             
                             const label = `${FaceConfig.user.nik}-${FaceConfig.user.name}`;
+                            const syncPayload = [];
                             const promises = data.map(async (faceData) => {
                                 try {
-                                    const imgPath = `/storage/uploads/facerecognition/${label}/${faceData.wajah}?t=${timestamp}`;
+                                    if (faceData.descriptor && Array.isArray(faceData.descriptor) && faceData.descriptor.length === 128) {
+                                        return new Float32Array(faceData.descriptor);
+                                    }
+                                    const imgPath = `/files/facerecognition/${label}/${faceData.wajah}?t=${timestamp}`;
                                     const img = await faceapi.fetchImage(imgPath);
                                     const normalizedCanvas = ImageProcessing.normalizeBrightness(img, 128);
                                     const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224 });
                                     const detection = await faceapi.detectSingleFace(normalizedCanvas, options)
                                         .withFaceLandmarks()
                                         .withFaceDescriptor();
-                                    return detection ? detection.descriptor : null;
+                                    if (detection && detection.descriptor) {
+                                        syncPayload.push({ id: faceData.id, descriptor: Array.from(detection.descriptor) });
+                                        return detection.descriptor;
+                                    }
+                                    return null;
                                 } catch (err) {
                                     console.warn('Error processing face image', err);
                                     return null;
@@ -2021,6 +2061,18 @@
                             if (descriptions.length > 0 && window.FaceModelCache && window.FaceModelCache.saveDescriptors) {
                                 await window.FaceModelCache.saveDescriptors(nik, descriptions, data.map(d=>d.wajah), serverWajahSig);
                                 console.log('[Presensi] Fresh face descriptors generated and cached');
+                            }
+
+                            // Auto sync descriptors to server in background
+                            if (syncPayload.length > 0) {
+                                fetch('{{ route("facerecognition.syncDescriptors") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({ descriptors: syncPayload })
+                                }).catch(err => console.warn('Background descriptor sync failed', err));
                             }
                         }
 
@@ -2072,6 +2124,7 @@
                     let stableCount = 0;
                     let noFaceCount = 0;
                     let isProcessing = false;
+                    let lastRecognizedState = false;
                     
                     const loop = async () => {
                         if(!this.isDetecting) return;
@@ -2097,6 +2150,9 @@
                                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                                 if (detection) {
+                                    if (detection.descriptor) {
+                                        window.currentLiveDescriptor = Array.from(detection.descriptor);
+                                    }
                                     noFaceCount = 0;
                                     stableCount++;
 
@@ -2144,6 +2200,7 @@
                                         
                                         // Update Global State
                                         faceRecognitionDetected = isRecognized ? 1 : 0;
+                                        lastRecognizedState = isRecognized;
                                         
                                         // === MODERN ROUNDED BOX DESIGN ===
                                         // Use RESIZED detection box for drawing
@@ -2309,6 +2366,7 @@
                                     if(noFaceCount > FaceConfig.detection.maxNoFaceFrames) {
                                         stableCount = 0;
                                         faceRecognitionDetected = 0;
+                                        lastRecognizedState = false;
                                         UI.disableButtons();
                                         
                                         // === DRAW NO FACE DETECTED ALERT ===
@@ -2367,8 +2425,11 @@
                             isProcessing = false;
                         }
 
-                        // Throttle with requestAnimationFrame
-                        setTimeout(() => requestAnimationFrame(loop), FaceConfig.detection.interval);
+                        // Throttle with requestAnimationFrame (800ms when recognized to save CPU/battery, 200ms when searching)
+                        const currentInterval = (lastRecognizedState && stableCount >= FaceConfig.detection.minStableFrames)
+                            ? (FaceConfig.detection.intervalRecognized || 800)
+                            : FaceConfig.detection.interval;
+                        setTimeout(() => requestAnimationFrame(loop), currentInterval);
                     };
 
                     loop();
@@ -2475,914 +2536,40 @@
             // Start App
             App.init();
 
-            // Release camera tracks when leaving the page
-            window.addEventListener('beforeunload', () => {
+            // Release camera tracks & stop detection when leaving the page (Phase 9)
+            const cleanupCameraResources = () => {
+                FaceService.isDetecting = false;
+                if (window.activeCameraStream) {
+                    try {
+                        window.activeCameraStream.getTracks().forEach(t => {
+                            if (t && typeof t.stop === 'function') t.stop();
+                        });
+                    } catch (e) {}
+                    window.activeCameraStream = null;
+                }
                 const container = document.querySelector('.webcam-capture');
                 if (container && container._stream) {
-                    try { container._stream.getTracks().forEach(t => t.stop()); } catch (e) {}
-                }
-            });
-
-            // [REFRACTOR] LEGACY CODE DISABLED
-            // This block is replaced by App.init() above
-            if (false) {
-                // Preload descriptors di background (non-blocking)
-                const nik = "{{ $karyawan->nik }}";
-                const label = "{{ $karyawan->nik }}-{{ getNamaDepan(strtolower($karyawan->nama_karyawan)) }}";
-
-                // Preload descriptors jika cache utility tersedia
-                if (window.FaceModelCache && typeof window.FaceModelCache.preloadFaceDescriptors === 'function') {
-                    // Tunggu face-api.js selesai dimuat, lalu preload di background
-                    if (typeof faceapi !== 'undefined') {
-                        window.FaceModelCache.preloadFaceDescriptors(nik, label).then(success => {
-                            if (success) {
-                                console.log(`[Presensi] Descriptors preloaded for ${nik} in background`);
-                            }
-                        }).catch(err => {
-                            console.warn(`[Presensi] Failed to preload descriptors:`, err);
-                        });
-                    } else {
-                        // Tunggu face-api.js dimuat
-                        const checkFaceApi = setInterval(() => {
-                            if (typeof faceapi !== 'undefined') {
-                                clearInterval(checkFaceApi);
-                                window.FaceModelCache.preloadFaceDescriptors(nik, label).then(success => {
-                                    if (success) {
-                                        console.log(`[Presensi] Descriptors preloaded for ${nik} in background`);
-                                    }
-                                }).catch(err => {
-                                    console.warn(`[Presensi] Failed to preload descriptors:`, err);
-                                });
-                            }
-                        }, 100);
-                    }
-                }
-
-                // Tambahkan indikator loading dengan styling yang lebih baik
-                const loadingIndicator = document.createElement('div');
-                loadingIndicator.id = 'face-recognition-loading';
-                loadingIndicator.innerHTML = `
-    <div class="spinner-border text-light" role="status">
-        <span class="sr-only">Memuat pengenalan wajah...</span>
-    </div>
-    <div class="mt-2 text-light">Memuat model pengenalan wajah...</div>
-`;
-                loadingIndicator.style.position = 'absolute';
-                loadingIndicator.style.top = '50%';
-                loadingIndicator.style.left = '50%';
-                loadingIndicator.style.transform = 'translate(-50%, -50%)';
-                loadingIndicator.style.zIndex = '1000';
-                loadingIndicator.style.textAlign = 'center';
-                
-                const faceDetectionEl = document.getElementById('facedetection');
-                if (faceDetectionEl) {
-                    faceDetectionEl.appendChild(loadingIndicator);
-                } else {
-                    console.warn('Element #facedetection not found, cannot append loading indicator');
-                }
-
-                // Load model dengan caching (menggunakan utility dari dashboard jika ada)
-                let modelLoadingPromise;
-
-                // Cek apakah model sudah di-preload dari dashboard
-                const modelsPreloaded = sessionStorage.getItem('faceModelsPreloaded') === 'true';
-                const preloadTime = sessionStorage.getItem('faceModelsPreloadTime');
-                const preloadAge = preloadTime ? Date.now() - parseInt(preloadTime) : null;
-
-                // Jika sudah di-preload dalam 30 menit terakhir, model mungkin masih di memory browser
-                if (modelsPreloaded && preloadAge && preloadAge < 30 * 60 * 1000) {
-                    console.log('Models may be cached from dashboard preload, loading...');
-                }
-
-                if (window.FaceModelCache && typeof window.FaceModelCache.loadModelWithCache === 'function') {
-                    // Gunakan cached loading jika utility tersedia
-                    console.log('Using cached model loading...');
-                    modelLoadingPromise = isMobile ? Promise.all([
-                        window.FaceModelCache.loadModelWithCache(faceapi.nets.tinyFaceDetector, '/models'),
-                        window.FaceModelCache.loadModelWithCache(faceapi.nets.faceRecognitionNet, '/models'),
-                        window.FaceModelCache.loadModelWithCache(faceapi.nets.faceLandmark68Net, '/models'),
-                    ]) : Promise.all([
-                        window.FaceModelCache.loadModelWithCache(faceapi.nets.ssdMobilenetv1, '/models'),
-                        window.FaceModelCache.loadModelWithCache(faceapi.nets.faceRecognitionNet, '/models'),
-                        window.FaceModelCache.loadModelWithCache(faceapi.nets.faceLandmark68Net, '/models'),
-                    ]);
-                } else {
-                    // Fallback: load normal jika utility tidak tersedia
-                    console.log('Using normal model loading (cache utility not available)...');
-                    modelLoadingPromise = isMobile ? Promise.all([
-                        faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-                        faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-                        faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                    ]) : Promise.all([
-                        faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-                        faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-                        faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-                    ]);
-                }
-
-                // Mulai pengenalan wajah setelah model dimuat
-                modelLoadingPromise.then(() => {
-                    const loadingEl = document.getElementById('face-recognition-loading');
-                    if (loadingEl) loadingEl.remove();
-
-                    // Debugging: Periksa video stream sebelum memulai face recognition
-                    const video = document.querySelector('.webcam-capture video');
-                    if (video) {
-                        console.log('Video element found:', video);
-                        console.log('Video readyState:', video.readyState);
-                        console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-                        console.log('Video paused:', video.paused);
-                        console.log('Video srcObject:', video.srcObject);
-
-                        // Tambahkan event listener untuk monitoring video
-                        video.addEventListener('loadedmetadata', () => {
-                            console.log('Video metadata loaded:', video.videoWidth, 'x', video.videoHeight);
-                        });
-
-                        video.addEventListener('canplay', () => {
-                            console.log('Video can play');
-                        });
-
-                        video.addEventListener('playing', () => {
-                            console.log('Video is playing');
-                        });
-
-                        video.addEventListener('error', (e) => {
-                            console.error('Video error:', e);
-                        });
-                    }
-
-                    startFaceRecognition();
-                }).catch(err => {
-                    console.error("Error loading models:", err);
-                    const loadingEl = document.getElementById('face-recognition-loading');
-                    if (loadingEl) loadingEl.remove();
-                    // Coba muat ulang model jika terjadi error
-                    setTimeout(() => {
-                        console.log('Retrying to load face recognition models');
-                        modelLoadingPromise.then(() => {
-                            startFaceRecognition();
-                        });
-                    }, 2000);
-                });
-
-                async function getLabeledFaceDescriptions() {
-                    // Pastikan model sudah dimuat sebelum memproses foto
-                    await ensureModelsLoaded();
-
-                    const labels = [
-                        "{{ $karyawan->nik }}-{{ getNamaDepan(strtolower($karyawan->nama_karyawan)) }}"
-                    ];
-                    const nik = "{{ $karyawan->nik }}";
-                    let namakaryawan;
-                    let jmlwajah = "{{ $wajah == 0 ? 1 : $wajah }}";
-
-                    // Tambahkan indikator loading untuk memuat data wajah
-                    const faceDataLoading = document.createElement('div');
-                    faceDataLoading.id = 'face-data-loading';
-                    faceDataLoading.innerHTML = `
-        <div class="spinner-border text-light" role="status">
-            <span class="sr-only">Memuat data wajah...</span>
-        </div>
-        <div class="mt-2 text-light">Memuat data wajah...</div>
-    `;
-                    faceDataLoading.style.position = 'absolute';
-                    faceDataLoading.style.top = '50%';
-                    faceDataLoading.style.left = '50%';
-                    faceDataLoading.style.transform = 'translate(-50%, -50%)';
-                    faceDataLoading.style.zIndex = '1000';
-                    faceDataLoading.style.textAlign = 'center';
-                    
-                    const faceDetectionEl = document.getElementById('facedetection');
-                    if (faceDetectionEl) {
-                        faceDetectionEl.appendChild(faceDataLoading);
-                    } else {
-                         console.warn('Element #facedetection not found, cannot append face data loading');
-                    }
-
                     try {
-                        // Cek apakah descriptors sudah di-cache
-                        let cachedDescriptors = null;
-                        if (window.FaceModelCache && typeof window.FaceModelCache.loadDescriptors === 'function') {
-                            cachedDescriptors = await window.FaceModelCache.loadDescriptors(nik);
-                        }
-
-                        if (cachedDescriptors && cachedDescriptors.descriptors && cachedDescriptors.descriptors.length > 0) {
-                            // Validasi: Cek apakah data wajah masih ada di server sebelum menggunakan cache
-                            const timestamp = new Date().getTime();
-                            try {
-                                const response = await fetch(`/facerecognition/getwajah?t=${timestamp}`);
-                                const serverData = await response.json();
-
-                                // Jika tidak ada data di server, clear cache dan regenerate
-                                if (!serverData || serverData.length === 0) {
-                                    console.log(`[Presensi] No face data on server for ${nik}, clearing cache...`);
-                                    if (window.FaceModelCache && typeof window.FaceModelCache.clearDescriptors === 'function') {
-                                        await window.FaceModelCache.clearDescriptors(nik);
-                                    }
-                                    cachedDescriptors = null; // Force regenerate
-                                } else {
-                                    // Validasi: Bandingkan jumlah file wajah dengan cache
-                                    // Jika jumlah berbeda, cache mungkin outdated, regenerate
-                                    const serverFileCount = serverData.length;
-                                    const cacheFileCount = cachedDescriptors.wajahFiles ? cachedDescriptors.wajahFiles.length : 0;
-
-                                    if (serverFileCount !== cacheFileCount) {
-                                        console.log(
-                                            `[Presensi] Face count mismatch (server: ${serverFileCount}, cache: ${cacheFileCount}), clearing cache...`
-                                        );
-                                        if (window.FaceModelCache && typeof window.FaceModelCache.clearDescriptors === 'function') {
-                                            await window.FaceModelCache.clearDescriptors(nik);
-                                        }
-                                        cachedDescriptors = null; // Force regenerate
-                                    } else {
-                                        // Cache masih valid, gunakan cache
-                                        console.log(
-                                            `[Presensi] Using cached descriptors for ${nik} (${cachedDescriptors.descriptors.length} descriptors)`
-                                        );
-                                        const faceDataLoadingEl = document.getElementById('face-data-loading');
-                                        if (faceDataLoadingEl) faceDataLoadingEl.remove();
-
-                                        const result = labels.map(label => {
-                                            return new faceapi.LabeledFaceDescriptors(label, cachedDescriptors.descriptors);
-                                        });
-
-                                        return result;
-                                    }
-                                }
-                            } catch (validationError) {
-                                console.warn(`[Presensi] Error validating cache, regenerating:`, validationError);
-                                // Jika error validasi, clear cache dan regenerate untuk aman
-                                if (window.FaceModelCache && typeof window.FaceModelCache.clearDescriptors === 'function') {
-                                    await window.FaceModelCache.clearDescriptors(nik);
-                                }
-                                cachedDescriptors = null; // Force regenerate
-                            }
-                        }
-
-                        // Fallback: Generate descriptors secara parallel (jika cache tidak ada)
-                        console.log(`[Presensi] Cache not found, generating descriptors in parallel for ${nik}...`);
-                        const timestamp = new Date().getTime();
-                        const response = await fetch(`/facerecognition/getwajah?t=${timestamp}`);
-                        const data = await response.json();
-                        console.log('Data wajah yang diterima:', data);
-
-                        const result = await Promise.all(
-                            labels.map(async (label) => {
-                                const descriptions = [];
-                                let validFaceFound = false;
-                                const wajahFiles = [];
-
-                                // Proses foto referensi (Maksimal 2 foto terbaru untuk kecepatan)
-                                const processPromises = data.slice(0, 2).map(async (faceData) => {
-                                    try {
-                                        // Gunakan timestamp tetap untuk cache browser, hanya tambahkan versi jika file baru
-                                        // Ini memungkinkan browser cache bekerja dengan baik
-                                        const imagePath =
-                                            `/storage/uploads/facerecognition/${label}/${faceData.wajah}?v=1`;
-
-                                        const imgResponse = await fetch(imagePath, {
-                                            cache: 'force-cache'
-                                        });
-                                        if (!imgResponse.ok) {
-                                            console.warn(`File foto wajah ${faceData.wajah} tidak ditemukan`);
-                                            return null;
-                                        }
-
-                                        const img = await faceapi.fetchImage(imagePath);
-                                        if (!img) return null;
-
-                                        // Generate descriptor
-                                        let detections;
-                                        try {
-                                            if (isMobile) {
-                                                // Pastikan TinyFaceDetector sudah dimuat
-                                                if (!faceapi.nets.tinyFaceDetector || !faceapi.nets.tinyFaceDetector
-                                                    .isLoaded) {
-                                                    console.warn(
-                                                        'TinyFaceDetector not loaded yet, skipping this image');
-                                                    return null;
-                                                }
-                                                // Gunakan parameter yang sama dengan saat presensi (inputSize 224)
-                                                detections = await faceapi.detectSingleFace(
-                                                    img, new faceapi.TinyFaceDetectorOptions({
-                                                        inputSize: 160, // Optimized dari 224 untuk kecepatan loading
-                                                        scoreThreshold: 0.3 // Sama dengan saat presensi
-                                                    })
-                                                ).withFaceLandmarks().withFaceDescriptor();
-                                            } else {
-                                                // Pastikan SsdMobilenetv1 sudah dimuat
-                                                if (!faceapi.nets.ssdMobilenetv1 || !faceapi.nets.ssdMobilenetv1
-                                                    .isLoaded) {
-                                                    console.warn(
-                                                        'SsdMobilenetv1 not loaded yet, skipping this image');
-                                                    return null;
-                                                }
-                                                // Gunakan parameter yang sama dengan saat presensi (minConfidence 0.4)
-                                                detections = await faceapi.detectSingleFace(
-                                                    img, new faceapi.SsdMobilenetv1Options({
-                                                        minConfidence: 0.4 // Sama dengan saat presensi
-                                                    })
-                                                ).withFaceLandmarks().withFaceDescriptor();
-                                            }
-                                        } catch (modelError) {
-                                            console.error(`Model error while processing ${faceData.wajah}:`,
-                                                modelError);
-                                            // Jika error karena model belum dimuat, tunggu sebentar dan retry
-                                            if (modelError.message && modelError.message.includes(
-                                                    'load model before inference')) {
-                                                console.log('Model not ready, waiting 200ms before retry...');
-                                                await new Promise(resolve => setTimeout(resolve, 200));
-                                                // Retry sekali
-                                                try {
-                                                    if (isMobile) {
-                                                        detections = await faceapi.detectSingleFace(
-                                                            img, new faceapi.TinyFaceDetectorOptions({
-                                                                inputSize: 160,
-                                                                scoreThreshold: 0.5
-                                                            })
-                                                        ).withFaceLandmarks().withFaceDescriptor();
-                                                    } else {
-                                                        detections = await faceapi.detectSingleFace(
-                                                            img, new faceapi.SsdMobilenetv1Options({
-                                                                minConfidence: 0.5
-                                                            })
-                                                        ).withFaceLandmarks().withFaceDescriptor();
-                                                    }
-                                                } catch (retryError) {
-                                                    console.error(`Retry failed for ${faceData.wajah}:`, retryError);
-                                                    return null;
-                                                }
-                                            } else {
-                                                return null;
-                                            }
-                                        }
-
-                                        if (detections) {
-                                            return {
-                                                descriptor: detections.descriptor,
-                                                wajahFile: faceData.wajah
-                                            };
-                                        }
-                                    } catch (err) {
-                                        console.error(`Error processing ${faceData.wajah}:`, err);
-                                    }
-                                    return null;
-                                });
-
-                                // Wait semua proses selesai secara parallel
-                                const results = await Promise.all(processPromises);
-                                const validResults = results.filter(r => r !== null);
-
-                                validResults.forEach(result => {
-                                    descriptions.push(result.descriptor);
-                                    wajahFiles.push(result.wajahFile);
-                                    validFaceFound = true;
-                                });
-
-                                // Simpan ke cache untuk next time
-                                if (validFaceFound && window.FaceModelCache && typeof window.FaceModelCache.saveDescriptors ===
-                                    'function') {
-                                    await window.FaceModelCache.saveDescriptors(nik, descriptions, wajahFiles);
-                                    console.log(`[Presensi] Descriptors cached for ${nik}`);
-                                }
-
-                                if (!validFaceFound) {
-                                    console.warn(`Tidak ditemukan wajah valid untuk ${label}`);
-                                    namakaryawan = "unknown";
-                                } else {
-                                    namakaryawan = label;
-                                }
-
-                                return new faceapi.LabeledFaceDescriptors(namakaryawan, descriptions);
-                            })
-                        );
-
-                        // Hapus indikator loading setelah data wajah dimuat
-                        const faceDataLoadingEl = document.getElementById('face-data-loading');
-                        if (faceDataLoadingEl) faceDataLoadingEl.remove();
-                        return result;
-                    } catch (error) {
-                        console.error('Error dalam getLabeledFaceDescriptions:', error);
-                        const faceDataLoadingEl = document.getElementById('face-data-loading');
-                        if (faceDataLoadingEl) faceDataLoadingEl.remove();
-                        throw error;
-                    }
+                        container._stream.getTracks().forEach(t => {
+                            if (t && typeof t.stop === 'function') t.stop();
+                        });
+                    } catch (e) {}
+                    container._stream = null;
                 }
-
-                // Fungsi untuk memastikan model benar-benar siap
-                async function ensureModelsLoaded() {
-                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                    // Cek apakah model sudah dimuat dengan mencoba mengakses properti isLoaded
-                    // Jika tidak ada properti isLoaded, kita coba langsung load model
-                    let maxRetries = 50; // Max 5 detik (50 x 100ms)
-                    let retries = 0;
-
-                    while (retries < maxRetries) {
-                        try {
-                            const detectorLoaded = isMobile ?
-                                (faceapi.nets.tinyFaceDetector && faceapi.nets.tinyFaceDetector.isLoaded) :
-                                (faceapi.nets.ssdMobilenetv1 && faceapi.nets.ssdMobilenetv1.isLoaded);
-
-                            const recognitionLoaded = faceapi.nets.faceRecognitionNet && faceapi.nets.faceRecognitionNet.isLoaded;
-                            const landmarkLoaded = faceapi.nets.faceLandmark68Net && faceapi.nets.faceLandmark68Net.isLoaded;
-
-                            if (detectorLoaded && recognitionLoaded && landmarkLoaded) {
-                                console.log('All models confirmed loaded');
-                                return true;
-                            }
-
-                            retries++;
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                        } catch (error) {
-                            console.warn('Error checking model status:', error);
-                            retries++;
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                        }
-                    }
-
-                    // Jika masih belum loaded setelah max retries, log warning
-                    console.warn('Models may not be fully loaded, proceeding anyway...');
-                    return true; // Proceed anyway, let face-api handle errors
-                }
-
-                // Variable untuk tracking retry
-                let faceRecognitionRetries = 0;
-                const maxFaceRecognitionRetries = 10; // Stop after 10 attempts (approx 10-20 seconds)
-
-                async function startFaceRecognition() {
+                const videoEl = document.querySelector('.webcam-capture video');
+                if (videoEl && videoEl.srcObject) {
                     try {
-                        // Stop if permission denied or retries exceeded
-                        if (cameraPermissionDenied) {
-                            console.warn('Camera permission denied, stopping face recognition');
-                            return;
-                        }
-
-                        if (faceRecognitionRetries >= maxFaceRecognitionRetries) {
-                            console.error('Max face recognition retries reached. Stopping.');
-                            // Show user friendly error
-                            const faceDetectionEl = document.getElementById('facedetection');
-                            if (faceDetectionEl) {
-                                const errorMsg = document.createElement('div');
-                                errorMsg.innerHTML = '<div class="alert alert-danger">Gagal memulai kamera. Silakan refresh halaman.</div>';
-                                errorMsg.style.position = 'absolute';
-                                errorMsg.style.bottom = '10px';
-                                errorMsg.style.width = '100%';
-                                errorMsg.style.zIndex = '2000';
-                                errorMsg.style.textAlign = 'center';
-                                faceDetectionEl.appendChild(errorMsg);
-                            }
-                            return;
-                        }
-
-                        // Pastikan model benar-benar sudah dimuat sebelum digunakan
-                        await ensureModelsLoaded();
-
-                        const labeledFaceDescriptors = await getLabeledFaceDescriptions();
-                        // Threshold 0.42 ketat: Distance < 0.42 = Wajah Pemilik Sah, >= 0.42 = Wajah Berbeda / Asing
-                        const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.42);
-
-                        const video = document.querySelector('.webcam-capture video');
-
-                        if (!video) {
-                            console.error('Video element tidak ditemukan');
-                            faceRecognitionRetries++;
-                            // Exponential backoff for retry
-                            const delay = Math.min(1000 * Math.pow(1.5, faceRecognitionRetries), 5000);
-                            console.log(`Retrying in ${delay}ms (Attempt ${faceRecognitionRetries}/${maxFaceRecognitionRetries})`);
-                            setTimeout(startFaceRecognition, delay);
-                            return;
-                        }
-
-                        // Reset retries on success
-                        faceRecognitionRetries = 0;
-
-                        // Tunggu video benar-benar ready dengan lebih patient
-                        if (!video.videoWidth || !video.videoHeight || video.readyState < 2) {
-                            console.log('Video belum ready, waiting... readyState:', video.readyState);
-                            setTimeout(startFaceRecognition, 500);
-                            return;
-                        }
-
-                        console.log('Video ready:', video.videoWidth, 'x', video.videoHeight);
-
-                        // Dapatkan parent element terlebih dahulu
-                        const parent = video.parentElement;
-                        if (!parent) {
-                            console.error('Parent video tidak ditemukan');
-                            return;
-                        }
-
-                        // Periksa apakah canvas sudah ada untuk menghindari duplikasi
-                        const existingCanvas = parent.querySelector('canvas');
-                        if (existingCanvas) {
-                            console.log('Canvas sudah ada, menghapus yang lama');
-                            existingCanvas.remove();
-                        }
-
-                        const canvas = faceapi.createCanvasFromMedia(video);
-
-                        // Tunggu sebentar untuk memastikan video dimensions sudah stabil
-                        await new Promise(resolve => setTimeout(resolve, 100));
-
-                        // Set dimensi canvas sesuai dengan video
-                        const videoWidth = video.videoWidth || video.clientWidth;
-                        const videoHeight = video.videoHeight || video.clientHeight;
-
-                        console.log('Setting canvas dimensions:', videoWidth, 'x', videoHeight);
-
-                        canvas.width = videoWidth;
-                        canvas.height = videoHeight;
-                        canvas.style.position = 'absolute';
-                        canvas.style.top = '0';
-                        canvas.style.left = '0';
-                        canvas.style.width = '100%';
-                        canvas.style.height = '100%';
-                        canvas.style.pointerEvents = 'none';
-                        canvas.style.zIndex = '10'; // Pastikan canvas di atas video
-
-                        // Mirror canvas jika video di-mirror
-                        const videoStyle = window.getComputedStyle(video);
-                        if (videoStyle.transform.includes('matrix(-1')) {
-                            canvas.style.transform = 'scaleX(-1)';
-                        }
-
-                        // Append canvas ke parent yang sama dengan video
-                        parent.appendChild(canvas);
-                        console.log('Canvas berhasil ditambahkan ke parent');
-
-                        // --- ABSEN BUTTONS ---
-                        let absenButtons = [document.getElementById('absenmasuk'), document.getElementById('absenpulang')];
-
-                        const ctx = canvas.getContext("2d");
-                        if (!ctx) {
-                            console.error('Tidak bisa mendapatkan canvas context');
-                            return;
-                        }
-
-                        const displaySize = {
-                            width: videoWidth,
-                            height: videoHeight
-                        };
-                        faceapi.matchDimensions(canvas, displaySize);
-
-                        console.log('Face recognition setup completed, starting detection...');
-
-                        // OPTIMASI: Variable untuk deteksi yang ringan & efisien
-                        let lastDetectionTime = 0;
-                        let detectionInterval = isMobile ? 250 : 200; // Interval optimal untuk performa ringan & hemat CPU
-                        let isProcessing = false;
-                        let consecutiveMatches = 0;
-                        let requiredConsecutiveMatches = isMobile ? 1 : 1; // Langsung terdeteksi
-
-                        // OPTIMASI: Sistem anti-flicker yang lebih ringan
-                        let stableDetectionCount = 0;
-                        let noFaceCount = 0;
-                        const minStableFrames = isMobile ? 1 : 2; // Lebih cepat untuk stabilitas
-                        const maxNoFaceFrames = isMobile ? 3 : 4; // Lebih cepat reset
-
-                        // State tracking untuk smoothing (dikurangi untuk performa)
-                        let lastValidDetection = null;
-                        let detectionHistory = [];
-                        const historySize = isMobile ? 2 : 3; // Dikurangi untuk performa
-
-                        // Smoothing untuk match distance (dikurangi untuk performa)
-                        let matchDistanceHistory = [];
-                        const matchDistanceHistorySize = isMobile ? 2 : 3; // Dikurangi untuk performa
-                        let lastMatchResult = null; // true = dikenali, false = tidak dikenali
-
-                        async function detectFaces() {
-                            try {
-                                // Pastikan video masih aktif
-                                if (video.paused || video.ended) {
-                                    console.log('Video tidak aktif, menghentikan deteksi');
-                                    return [];
-                                }
-
-                                if (isMobile) {
-                                    // OPTIMASI: Gunakan inputSize 160 untuk processing lebih cepat
-                                    const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({
-                                            inputSize: 160, // Lebih kecil = lebih cepat
-                                            scoreThreshold: 0.4 // Threshold optimal untuk akurasi vs kecepatan
-                                        }))
-                                        .withFaceLandmarks()
-                                        .withFaceDescriptor();
-                                    return detection ? [detection] : [];
-                                } else {
-                                    const detection = await faceapi.detectSingleFace(video, new faceapi.SsdMobilenetv1Options({
-                                            minConfidence: 0.5 // Threshold optimal
-                                        }))
-                                        .withFaceLandmarks()
-                                        .withFaceDescriptor();
-                                    return detection ? [detection] : [];
-                                }
-                            } catch (error) {
-                                console.error("Error dalam deteksi wajah:", error);
-                                return [];
-                            }
-                        }
-
-                        function updateCanvas() {
-                            // Periksa apakah video dan canvas masih valid
-                            if (!video || !canvas || !ctx) {
-                                console.error('Video, canvas atau context tidak valid');
-                                return;
-                            }
-
-                            // Periksa apakah video masih memiliki dimensi valid
-                            if (!video.videoWidth || !video.videoHeight) {
-                                console.log('Video dimensions tidak valid, menunggu...');
-                                setTimeout(updateCanvas, 500);
-                                return;
-                            }
-
-                            if (!isProcessing) {
-                                const now = Date.now();
-                                if (now - lastDetectionTime > detectionInterval) {
-                                    isProcessing = true;
-                                    lastDetectionTime = now;
-
-                                    detectFaces()
-                                        .then(detections => {
-                                            const resizedDetections = faceapi.resizeResults(detections, displaySize);
-
-                                            // PERBAIKAN: Update detection history untuk smoothing
-                                            const hasFace = resizedDetections && resizedDetections.length > 0;
-                                            detectionHistory.push(hasFace);
-                                            if (detectionHistory.length > historySize) {
-                                                detectionHistory.shift();
-                                            }
-
-                                            // Hitung persentase deteksi positif dalam history
-                                            const positiveDetections = detectionHistory.filter(d => d).length;
-                                            const detectionRatio = positiveDetections / detectionHistory.length;
-
-                                            // OPTIMASI: Stabilitas lebih cepat dengan threshold lebih rendah
-                                            if (hasFace && detectionRatio >= 0.5) { // 50% dari history (lebih cepat)
-                                                stableDetectionCount++;
-                                                noFaceCount = 0;
-                                                lastValidDetection = resizedDetections[0];
-                                            } else if (!hasFace) {
-                                                noFaceCount++;
-                                                if (noFaceCount >= maxNoFaceFrames) {
-                                                    stableDetectionCount = 0;
-                                                    lastValidDetection = null;
-                                                }
-                                            }
-
-                                            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                                            // Reset status deteksi
-                                            faceRecognitionDetected = 0;
-
-                                            // PERBAIKAN: Tampilkan deteksi hanya jika sudah stabil
-                                            const shouldShowDetection = stableDetectionCount >= minStableFrames && lastValidDetection;
-
-                                            if (shouldShowDetection) {
-                                                const detection = lastValidDetection;
-
-                                                if (detection && detection.descriptor) {
-                                                    const match = faceMatcher.findBestMatch(detection.descriptor);
-
-                                                    const box = detection.detection.box;
-                                                    const isUnknown = match.toString().includes("unknown");
-
-                                                    // OPTIMASI: Smoothing lebih sederhana untuk performa
-                                                    matchDistanceHistory.push(match.distance);
-                                                    if (matchDistanceHistory.length > matchDistanceHistorySize) {
-                                                        matchDistanceHistory.shift();
-                                                    }
-
-                                                    // Gunakan distance terbaru jika history masih sedikit, rata-rata jika sudah cukup
-                                                    const avgDistance = matchDistanceHistory.length >= matchDistanceHistorySize ?
-                                                        matchDistanceHistory.reduce((a, b) => a + b, 0) / matchDistanceHistory.length :
-                                                        match.distance; // Langsung gunakan distance terbaru
-
-                                                    // Threshold 0.42 ketat: Distance < 0.42 = Wajah Pemilik Sah, >= 0.42 = Wajah Berbeda / Asing
-                                                    const isNotRecognized = avgDistance > 0.42;
-
-                                                    // === CENTER POSITION VALIDATION ===
-                                                    const faceCenterX = box.x + box.width / 2;
-                                                    const faceCenterY = box.y + box.height / 2;
-                                                    const canvasCenterX = displaySize.width / 2;
-                                                    const canvasCenterY = displaySize.height / 2;
-
-                                                    const maxOffX = displaySize.width * 0.30;
-                                                    const maxOffY = displaySize.height * 0.30;
-                                                    const isCentered = (Math.abs(faceCenterX - canvasCenterX) <= maxOffX) && (Math.abs(faceCenterY - canvasCenterY) <= maxOffY);
-
-                                                    // Menentukan warna dan status berdasarkan kondisi
-                                                    let boxColor, labelColor, labelText;
-                                                    let currentMatchResult = !isUnknown && !isNotRecognized && isCentered;
-
-                                                    if (isUnknown || !currentMatchResult) {
-                                                        // Wajah tidak dikenali / di luar tengah - warna kuning
-                                                        boxColor = '#FFC107';
-                                                        labelColor = 'rgba(255, 193, 7, 0.8)';
-                                                        if (!isCentered) {
-                                                            labelText = 'Posisikan Wajah di Tengah Lingkaran';
-                                                        } else {
-                                                            labelText = 'Wajah Tidak Dikenali / Bukan Pemilik Akun';
-                                                        }
-                                                        consecutiveMatches = 0;
-                                                        lastMatchResult = false;
-                                                        faceRecognitionDetected = 0;
-                                                    } else {
-                                                        // Wajah dikenali & pas di tengah - warna hijau
-                                                        boxColor = '#4CAF50';
-                                                        labelColor = 'rgba(76, 175, 80, 0.8)';
-                                                        labelText = "{{ $karyawan->nama_karyawan }}";
-                                                        consecutiveMatches++;
-                                                        if (consecutiveMatches >= requiredConsecutiveMatches) {
-                                                            faceRecognitionDetected = 1;
-                                                        }
-                                                        lastMatchResult = true;
-                                                    }
-
-                                                    // Menggunakan style modern untuk box deteksi wajah
-                                                    ctx.strokeStyle = boxColor;
-                                                    ctx.lineWidth = 3;
-                                                    ctx.lineJoin = 'round';
-                                                    ctx.lineCap = 'round';
-
-                                                    // Fungsi menggambar kotak dengan sudut membulat
-                                                    function drawRoundedRect(ctx, x, y, width, height, radius) {
-                                                        ctx.beginPath();
-                                                        ctx.moveTo(x + radius, y);
-                                                        ctx.lineTo(x + width - radius, y);
-                                                        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-                                                        ctx.lineTo(x + width, y + height - radius);
-                                                        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                                                        ctx.lineTo(x + radius, y + height);
-                                                        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-                                                        ctx.lineTo(x, y + radius);
-                                                        ctx.quadraticCurveTo(x, y, x + radius, y);
-                                                        ctx.closePath();
-                                                        ctx.stroke();
-                                                    }
-
-                                                    // Gambar kotak deteksi wajah selalu persegi (square) dan terpusat
-                                                    const squareSize = Math.min(box.width, box.height);
-                                                    const squareX = box.x + (box.width - squareSize) / 2;
-                                                    const squareY = box.y + (box.height - squareSize) / 2;
-
-                                                    // Kotak modern dengan efek glow
-                                                    ctx.save();
-                                                    ctx.shadowColor = boxColor.includes('#4CAF50') ? 'rgba(76, 175, 80, 0.6)' :
-                                                        'rgba(255, 193, 7, 0.6)';
-                                                    ctx.shadowBlur = 18;
-                                                    ctx.strokeStyle = boxColor;
-                                                    ctx.lineWidth = 3;
-                                                    drawRoundedRect(ctx, squareX, squareY, squareSize, squareSize, 16);
-                                                    ctx.restore();
-
-                                                    // Garis pandu horizontal
-                                                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                                                    ctx.lineWidth = 1;
-                                                    ctx.setLineDash([5, 5]);
-
-                                                    ctx.beginPath();
-                                                    ctx.moveTo(box.x, box.y + box.height / 3);
-                                                    ctx.lineTo(box.x + box.width, box.y + box.height / 3);
-                                                    ctx.stroke();
-
-                                                    ctx.beginPath();
-                                                    ctx.moveTo(box.x, box.y + (box.height * 2) / 3);
-                                                    ctx.lineTo(box.x + box.width, box.y + (box.height * 2) / 3);
-                                                    ctx.stroke();
-
-                                                    // Garis pandu vertikal
-                                                    ctx.beginPath();
-                                                    ctx.moveTo(box.x + box.width / 3, box.y);
-                                                    ctx.lineTo(box.x + box.width / 3, box.y + box.height);
-                                                    ctx.stroke();
-
-                                                    ctx.beginPath();
-                                                    ctx.moveTo(box.x + (box.width * 2) / 3, box.y);
-                                                    ctx.lineTo(box.x + (box.width * 2) / 3, box.y + box.height);
-                                                    ctx.stroke();
-
-                                                    // Reset line style
-                                                    ctx.setLineDash([]);
-
-                                                    // Label dengan style modern
-                                                    const fontSize = 13;
-                                                    ctx.font = `${fontSize}px 'Arial', sans-serif`;
-                                                    const textWidth = ctx.measureText(labelText).width;
-
-                                                    // Background label lebih rapat dan proporsional
-                                                    const labelPadding = 3;
-                                                    const labelHeight = fontSize + labelPadding * 2;
-                                                    const labelWidth = Math.max(textWidth + labelPadding * 2, squareSize * 0.6);
-                                                    const labelX = squareX + (squareSize - labelWidth) / 2;
-                                                    const labelY = squareY + squareSize + 4;
-
-                                                    // Gambar background label dengan sudut membulat
-                                                    ctx.fillStyle = labelColor;
-                                                    ctx.beginPath();
-                                                    ctx.moveTo(labelX + 8, labelY);
-                                                    ctx.lineTo(labelX + labelWidth - 8, labelY);
-                                                    ctx.quadraticCurveTo(labelX + labelWidth, labelY, labelX + labelWidth, labelY + 8);
-                                                    ctx.lineTo(labelX + labelWidth, labelY + labelHeight - 8);
-                                                    ctx.quadraticCurveTo(labelX + labelWidth, labelY + labelHeight, labelX + labelWidth -
-                                                        8, labelY + labelHeight);
-                                                    ctx.lineTo(labelX + 8, labelY + labelHeight);
-                                                    ctx.quadraticCurveTo(labelX, labelY + labelHeight, labelX, labelY + labelHeight - 8);
-                                                    ctx.lineTo(labelX, labelY + 8);
-                                                    ctx.quadraticCurveTo(labelX, labelY, labelX + 8, labelY);
-                                                    ctx.closePath();
-                                                    ctx.fill();
-
-                                                    // Teks label
-                                                    ctx.fillStyle = 'white';
-                                                    ctx.textAlign = 'center';
-                                                    ctx.textBaseline = 'middle';
-                                                    ctx.fillText(labelText, squareX + squareSize / 2, labelY + labelHeight / 2);
-
-                                                    // Update status tombol absen
-                                                    absenButtons.forEach(btn => btn.disabled = false);
-                                                }
-                                            } else if (noFaceCount >= maxNoFaceFrames) {
-                                                // Tampilkan label di tengah canvas dengan tampilan menarik
-                                                const label = "Wajah Tidak Terdeteksi";
-                                                const fontSize = 28;
-                                                ctx.font = `bold ${fontSize}px Arial`;
-                                                ctx.textAlign = "center";
-                                                ctx.textBaseline = "middle";
-                                                const centerX = canvas.width / 2;
-                                                const centerY = canvas.height / 2;
-
-                                                // Ukuran background
-                                                const paddingX = 32;
-                                                const paddingY = 18;
-                                                const textWidth = ctx.measureText(label).width;
-                                                const boxWidth = textWidth + paddingX * 2;
-                                                const boxHeight = fontSize + paddingY * 2;
-                                                const boxX = centerX - boxWidth / 2;
-                                                const boxY = centerY - boxHeight / 2;
-
-                                                // Background semi transparan & rounded
-                                                ctx.save();
-                                                ctx.globalAlpha = 0.85;
-                                                ctx.fillStyle = "#F44336";
-                                                ctx.beginPath();
-                                                ctx.moveTo(boxX + 16, boxY);
-                                                ctx.lineTo(boxX + boxWidth - 16, boxY);
-                                                ctx.quadraticCurveTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + 16);
-                                                ctx.lineTo(boxX + boxWidth, boxY + boxHeight - 16);
-                                                ctx.quadraticCurveTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - 16, boxY +
-                                                    boxHeight);
-                                                ctx.lineTo(boxX + 16, boxY + boxHeight);
-                                                ctx.quadraticCurveTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - 16);
-                                                ctx.lineTo(boxX, boxY + 16);
-                                                ctx.quadraticCurveTo(boxX, boxY, boxX + 16, boxY);
-                                                ctx.closePath();
-                                                ctx.fill();
-                                                ctx.restore();
-
-                                                // Efek shadow/glow pada teks
-                                                ctx.save();
-                                                ctx.shadowColor = "#fff";
-                                                ctx.shadowBlur = 8;
-                                                ctx.fillStyle = "#fff";
-                                                ctx.fillText(label, centerX, centerY);
-                                                ctx.restore();
-
-                                            }
-
-                                            isProcessing = false;
-                                        })
-                                        .catch(err => {
-                                            console.error("Error dalam deteksi wajah:", err);
-                                            isProcessing = false;
-                                        });
-                                }
-                            }
-
-                            // OPTIMASI: Gunakan requestAnimationFrame untuk semua device (lebih smooth)
-                            requestAnimationFrame(updateCanvas);
-                        }
-
-                        // Mulai loop animasi
-                        updateCanvas();
-
-                    } catch (error) {
-                        console.error("Error starting face recognition:", error);
-                        
-                        faceRecognitionRetries++;
-                        if (faceRecognitionRetries < maxFaceRecognitionRetries) {
-                            // Coba inisialisasi ulang face recognition jika terjadi error
-                            setTimeout(() => {
-                                console.log('Retrying face recognition initialization after error');
-                                startFaceRecognition();
-                            }, 2000);
-                        } else {
-                            console.error('Max retries reached after error. Stopping.');
-                        }
-                    }
+                        videoEl.srcObject.getTracks().forEach(t => {
+                            if (t && typeof t.stop === 'function') t.stop();
+                        });
+                    } catch (e) {}
+                    videoEl.srcObject = null;
                 }
-            }
+            };
+            window.addEventListener('beforeunload', cleanupCameraResources);
+            window.addEventListener('pagehide', cleanupCameraResources);
+            window.addEventListener('unload', cleanupCameraResources);
+
 
             function showPermissionWarning(type) {
                 const messages = {
@@ -3411,176 +2598,137 @@
                 });
             }
 
+            // Flag pencegah double-submit presensi
+            let isSubmittingPresensi = false;
+            let currentAttendanceNonce = "{{ $attendance_nonce ?? '' }}";
+
             /**
-             * Menambahkan watermark koordinat dan mini map ke foto presensi
-             * @param {string} imageDataURI - Data URI dari foto webcam
-             * @param {string} koordinat - Koordinat GPS user (lat,lng)
-             * @returns {Promise<string>} - Data URI foto dengan watermark
+             * Menambahkan watermark koordinat dan tanggal/waktu ke gambar langsung sebagai binary Blob
+             * @param {string} imageDataURI - Data URI dari tangkapan kamera
+             * @param {string} koordinat - String koordinat "lat,lng"
+             * @returns {Promise<Blob>} - Blob JPEG dengan watermark (langsung multipart)
              */
-            async function addWatermarkToImage(imageDataURI, koordinat) {
-                return new Promise(async (resolve) => {
+            async function addWatermarkToBlob(imageDataURI, koordinat) {
+                return new Promise((resolve) => {
                     try {
                         const img = new Image();
-                        img.onload = async function() {
-                            // Buat canvas dengan ukuran foto
+                        img.onload = function() {
                             const canvas = document.createElement('canvas');
                             const ctx = canvas.getContext('2d');
-                            canvas.width = img.width;
-                            canvas.height = img.height;
 
-                            // Gambar foto asli
-                            ctx.drawImage(img, 0, 0);
-
-                            // === WATERMARK KOORDINAT (kiri bawah) ===
-                            const coords = koordinat.split(',');
-                            const lat = parseFloat(coords[0]).toFixed(6);
-                            const lng = parseFloat(coords[1]).toFixed(6);
-                            const now = new Date();
-                            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-                            // Background semi-transparan untuk teks koordinat
-                            const fontSize = Math.max(12, Math.floor(canvas.width / 40));
-                            const padding = 8;
-                            const lineHeight = fontSize + 4;
-                            const textLines = [
-                                `${lat}, ${lng}`,
-                                `${dateStr}  ${timeStr}`
-                            ];
-
-                            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-                            // Hitung lebar teks terpanjang
-                            let maxTextWidth = 0;
-                            textLines.forEach(line => {
-                                const w = ctx.measureText(line).width;
-                                if (w > maxTextWidth) maxTextWidth = w;
-                            });
-
-                            const boxWidth = maxTextWidth + padding * 2;
-                            const boxHeight = textLines.length * lineHeight + padding * 2;
-                            const boxX = 8;
-                            const boxY = canvas.height - boxHeight - 8;
-
-                            // Background box
-                            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-                            ctx.beginPath();
-                            const r = 8;
-                            ctx.moveTo(boxX + r, boxY);
-                            ctx.lineTo(boxX + boxWidth - r, boxY);
-                            ctx.quadraticCurveTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + r);
-                            ctx.lineTo(boxX + boxWidth, boxY + boxHeight - r);
-                            ctx.quadraticCurveTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - r, boxY + boxHeight);
-                            ctx.lineTo(boxX + r, boxY + boxHeight);
-                            ctx.quadraticCurveTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - r);
-                            ctx.lineTo(boxX, boxY + r);
-                            ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
-                            ctx.closePath();
-                            ctx.fill();
-
-                            // Teks koordinat
-                            ctx.fillStyle = '#FFFFFF';
-                            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-                            ctx.textBaseline = 'top';
-                            textLines.forEach((line, i) => {
-                                ctx.fillText(line, boxX + padding, boxY + padding + (i * lineHeight));
-                            });
-
-                            // === MINI MAP (kanan bawah) ===
-                            try {
-                                const mapEl = document.getElementById('map');
-                                if (mapEl && typeof html2canvas !== 'undefined') {
-                                    const mapCanvas = await html2canvas(mapEl, {
-                                        useCORS: true,
-                                        allowTaint: true,
-                                        scale: 1,
-                                        logging: false,
-                                        backgroundColor: '#ffffff'
-                                    });
-
-                                    // Ukuran mini map di foto (kecil di sudut kanan bawah)
-                                    const miniMapSize = Math.floor(canvas.width * 0.30); // 30% lebar foto
-                                    const miniMapHeight = Math.floor(miniMapSize * 0.75); // Rasio 4:3
-                                    const miniMapX = canvas.width - miniMapSize - 8;
-                                    const miniMapY = canvas.height - miniMapHeight - 8;
-                                    const miniMapRadius = 8;
-
-                                    // Border dan shadow untuk mini map
-                                    ctx.save();
-                                    // Shadow
-                                    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-                                    ctx.shadowBlur = 6;
-                                    ctx.shadowOffsetX = 2;
-                                    ctx.shadowOffsetY = 2;
-
-                                    // Rounded rectangle clip path
-                                    ctx.beginPath();
-                                    ctx.moveTo(miniMapX + miniMapRadius, miniMapY);
-                                    ctx.lineTo(miniMapX + miniMapSize - miniMapRadius, miniMapY);
-                                    ctx.quadraticCurveTo(miniMapX + miniMapSize, miniMapY, miniMapX + miniMapSize, miniMapY + miniMapRadius);
-                                    ctx.lineTo(miniMapX + miniMapSize, miniMapY + miniMapHeight - miniMapRadius);
-                                    ctx.quadraticCurveTo(miniMapX + miniMapSize, miniMapY + miniMapHeight, miniMapX + miniMapSize - miniMapRadius, miniMapY + miniMapHeight);
-                                    ctx.lineTo(miniMapX + miniMapRadius, miniMapY + miniMapHeight);
-                                    ctx.quadraticCurveTo(miniMapX, miniMapY + miniMapHeight, miniMapX, miniMapY + miniMapHeight - miniMapRadius);
-                                    ctx.lineTo(miniMapX, miniMapY + miniMapRadius);
-                                    ctx.quadraticCurveTo(miniMapX, miniMapY, miniMapX + miniMapRadius, miniMapY);
-                                    ctx.closePath();
-
-                                    // Fill white bg first (for shadow)
-                                    ctx.fillStyle = '#ffffff';
-                                    ctx.fill();
-                                    ctx.restore();
-
-                                    // Clip and draw map
-                                    ctx.save();
-                                    ctx.beginPath();
-                                    ctx.moveTo(miniMapX + miniMapRadius, miniMapY);
-                                    ctx.lineTo(miniMapX + miniMapSize - miniMapRadius, miniMapY);
-                                    ctx.quadraticCurveTo(miniMapX + miniMapSize, miniMapY, miniMapX + miniMapSize, miniMapY + miniMapRadius);
-                                    ctx.lineTo(miniMapX + miniMapSize, miniMapY + miniMapHeight - miniMapRadius);
-                                    ctx.quadraticCurveTo(miniMapX + miniMapSize, miniMapY + miniMapHeight, miniMapX + miniMapSize - miniMapRadius, miniMapY + miniMapHeight);
-                                    ctx.lineTo(miniMapX + miniMapRadius, miniMapY + miniMapHeight);
-                                    ctx.quadraticCurveTo(miniMapX, miniMapY + miniMapHeight, miniMapX, miniMapY + miniMapHeight - miniMapRadius);
-                                    ctx.lineTo(miniMapX, miniMapY + miniMapRadius);
-                                    ctx.quadraticCurveTo(miniMapX, miniMapY, miniMapX + miniMapRadius, miniMapY);
-                                    ctx.closePath();
-                                    ctx.clip();
-                                    ctx.drawImage(mapCanvas, miniMapX, miniMapY, miniMapSize, miniMapHeight);
-                                    ctx.restore();
-
-                                    // Border mini map
-                                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-                                    ctx.lineWidth = 2;
-                                    ctx.beginPath();
-                                    ctx.moveTo(miniMapX + miniMapRadius, miniMapY);
-                                    ctx.lineTo(miniMapX + miniMapSize - miniMapRadius, miniMapY);
-                                    ctx.quadraticCurveTo(miniMapX + miniMapSize, miniMapY, miniMapX + miniMapSize, miniMapY + miniMapRadius);
-                                    ctx.lineTo(miniMapX + miniMapSize, miniMapY + miniMapHeight - miniMapRadius);
-                                    ctx.quadraticCurveTo(miniMapX + miniMapSize, miniMapY + miniMapHeight, miniMapX + miniMapSize - miniMapRadius, miniMapY + miniMapHeight);
-                                    ctx.lineTo(miniMapX + miniMapRadius, miniMapY + miniMapHeight);
-                                    ctx.quadraticCurveTo(miniMapX, miniMapY + miniMapHeight, miniMapX, miniMapY + miniMapHeight - miniMapRadius);
-                                    ctx.lineTo(miniMapX, miniMapY + miniMapRadius);
-                                    ctx.quadraticCurveTo(miniMapX, miniMapY, miniMapX + miniMapRadius, miniMapY);
-                                    ctx.closePath();
-                                    ctx.stroke();
+                            // Downscale to max 640px to reduce payload to ~40-60KB
+                            let targetWidth = img.width;
+                            let targetHeight = img.height;
+                            const maxDim = 640;
+                            if (targetWidth > maxDim || targetHeight > maxDim) {
+                                if (targetWidth > targetHeight) {
+                                    targetHeight = Math.round((targetHeight * maxDim) / targetWidth);
+                                    targetWidth = maxDim;
+                                } else {
+                                    targetWidth = Math.round((targetWidth * maxDim) / targetHeight);
+                                    targetHeight = maxDim;
                                 }
-                            } catch (mapError) {
-                                console.warn('Gagal capture mini map untuk watermark:', mapError);
-                                // Tetap lanjut tanpa mini map
+                            }
+                            canvas.width = targetWidth;
+                            canvas.height = targetHeight;
+
+                            // Gambar foto asli yang sudah di-resize
+                            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                            // Watermark Koordinat & Waktu (kiri bawah)
+                            if (koordinat) {
+                                const coords = koordinat.split(',');
+                                const lat = coords[0] ? parseFloat(coords[0]).toFixed(6) : '-';
+                                const lng = coords[1] ? parseFloat(coords[1]).toFixed(6) : '-';
+                                const now = new Date();
+                                const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                                const fontSize = Math.max(12, Math.floor(canvas.width / 40));
+                                const padding = 8;
+                                const lineHeight = fontSize + 4;
+                                const textLines = [
+                                    `${lat}, ${lng}`,
+                                    `${dateStr}  ${timeStr}`
+                                ];
+
+                                ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+                                let maxTextWidth = 0;
+                                textLines.forEach(line => {
+                                    const w = ctx.measureText(line).width;
+                                    if (w > maxTextWidth) maxTextWidth = w;
+                                });
+
+                                const boxWidth = maxTextWidth + padding * 2;
+                                const boxHeight = textLines.length * lineHeight + padding * 2;
+                                const boxX = 8;
+                                const boxY = canvas.height - boxHeight - 8;
+
+                                // Background box semi-transparan
+                                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                                ctx.beginPath();
+                                const r = 8;
+                                ctx.moveTo(boxX + r, boxY);
+                                ctx.lineTo(boxX + boxWidth - r, boxY);
+                                ctx.quadraticCurveTo(boxX + boxWidth, boxY, boxX + boxWidth, boxY + r);
+                                ctx.lineTo(boxX + boxWidth, boxY + boxHeight - r);
+                                ctx.quadraticCurveTo(boxX + boxWidth, boxY + boxHeight, boxX + boxWidth - r, boxY + boxHeight);
+                                ctx.lineTo(boxX + r, boxY + boxHeight);
+                                ctx.quadraticCurveTo(boxX, boxY + boxHeight, boxX, boxY + boxHeight - r);
+                                ctx.lineTo(boxX, boxY + r);
+                                ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
+                                ctx.closePath();
+                                ctx.fill();
+
+                                // Teks koordinat & timestamp
+                                ctx.fillStyle = '#FFFFFF';
+                                ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+                                ctx.textBaseline = 'top';
+                                textLines.forEach((line, i) => {
+                                    ctx.fillText(line, boxX + padding, boxY + padding + (i * lineHeight));
+                                });
                             }
 
-                            // Convert canvas ke data URI
-                            resolve(canvas.toDataURL('image/jpeg', 0.92));
+                            // Native canvas.toBlob untuk efisiensi RAM/CPU maksimal
+                            if (canvas.toBlob) {
+                                canvas.toBlob(function(blob) {
+                                    resolve(blob || dataURItoBlob(canvas.toDataURL('image/jpeg', 0.75)));
+                                }, 'image/jpeg', 0.75);
+                            } else {
+                                resolve(dataURItoBlob(canvas.toDataURL('image/jpeg', 0.75)));
+                            }
+                        };
+                        img.onerror = function() {
+                            resolve(dataURItoBlob(imageDataURI));
                         };
                         img.src = imageDataURI;
                     } catch (error) {
                         console.error('Error menambahkan watermark:', error);
-                        // Jika gagal, kembalikan foto asli tanpa watermark
-                        resolve(imageDataURI);
+                        resolve(dataURItoBlob(imageDataURI));
                     }
                 });
             }
 
+            function resetButtonPresensi(btnId, iconName, labelText) {
+                isSubmittingPresensi = false;
+                $(btnId).prop('disabled', false).html(
+                    `<ion-icon name="${iconName}" style="font-size: 20px"></ion-icon><span>${labelText}</span>`
+                );
+                $("#absenmasuk").prop('disabled', false);
+                $("#absenpulang").prop('disabled', false);
+                updateShiftStatus();
+                // Resume deteksi wajah jika video masih aktif
+                const videoEl = document.querySelector('.webcam-capture video');
+                if (videoEl && !FaceService.isDetecting && FaceConfig.isEnabled == 1) {
+                    FaceService.startDetection(videoEl);
+                }
+            }
+
             $("#absenmasuk").click(function() {
+                if (isSubmittingPresensi) {
+                    return false;
+                }
+
                 if (cameraPermissionDenied) {
                     showPermissionWarning('camera');
                     return;
@@ -3626,7 +2774,8 @@
                         return false;
                     }
                 }
-                   // === PENGECEKAN JADWAL MASUK SEBELUM FOTO ===
+
+                // === PENGECEKAN JADWAL MASUK SEBELUM FOTO ===
                 if (shiftConfig.sudahMasuk) {
                     speakVoice("Anda sudah melakukan presensi masuk hari ini.");
                     Swal.fire({
@@ -3668,7 +2817,9 @@
                     }
                 }
 
-                // alert(lokasi);
+                // Kunci submit untuk mencegah double click & hentikan loop kamera untuk hemat CPU
+                isSubmittingPresensi = true;
+                FaceService.isDetecting = false;
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenmasuk").html(
@@ -3680,27 +2831,21 @@
                 });
 
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
+                    isSubmittingPresensi = false;
                     swal.fire({
                         icon: 'error',
                         title: 'Wajah Tidak Terdeteksi',
                         text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
                         didClose: function() {
-                            $("#absenmasuk").html(
-                                '<ion-icon name="finger-print-outline" style="font-size: 20px"></ion-icon><span>Masuk</span>'
-                            );
-                            $("#absenpulang").html(
-                                '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
-                            );
-                            updateShiftStatus();
+                            resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
+                            resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
                         }
-                    })
+                    });
                     return false;
                 } else {
-                    // Tambahkan watermark koordinat + mini map ke foto
-                    addWatermarkToImage(image, lokasi).then(function(watermarkedImage) {
-                        var blob = dataURItoBlob(watermarkedImage);
+                    addWatermarkToBlob(image, lokasi).then(function(blob) {
                         var formData = new FormData();
-                        formData.append('image', blob, 'image.png'); // Send as file
+                        formData.append('image', blob, 'image.jpg');
                         formData.append('_token', "{{ csrf_token() }}");
                         formData.append('status', status);
                         formData.append('lokasi', lokasi);
@@ -3708,15 +2853,22 @@
                         formData.append('kode_jam_kerja', "{{ $jam_kerja->kode_jam_kerja }}");
                         formData.append('is_mock', (window.AntiFakeGPS && AntiFakeGPS.analyze(lastRawPosition).isMock) ? '1' : '0');
                         formData.append('mock_score', (window.AntiFakeGPS ? AntiFakeGPS.analyze(lastRawPosition).score : 0));
+                        if (window.currentLiveDescriptor && Array.isArray(window.currentLiveDescriptor)) {
+                            formData.append('face_descriptor', JSON.stringify(window.currentLiveDescriptor));
+                        }
+                        formData.append('attendance_nonce', currentAttendanceNonce);
 
                         $.ajax({
                             type: 'POST',
                             url: "{{ route('presensi.store') }}",
-                            data: formData, // Use FormData
-                            processData: false, // Prevent jQuery from processing the data
-                            contentType: false, // Prevent jQuery from setting contentType
+                            data: formData,
+                            processData: false,
+                            contentType: false,
                             cache: false,
                             success: function(data) {
+                                if (data && data.new_nonce) {
+                                    currentAttendanceNonce = data.new_nonce;
+                                }
                                 if (data.status == true) {
                                     if (data.suara) speakVoice(data.suara);
                                     shiftConfig.sudahMasuk = true;
@@ -3737,29 +2889,33 @@
                             },
                             error: function(xhr) {
                                 const resp = xhr.responseJSON || {};
+                                if (resp.new_nonce) {
+                                    currentAttendanceNonce = resp.new_nonce;
+                                }
                                 if (resp.suara) speakVoice(resp.suara);
                                 swal.fire({
                                     icon: 'error',
                                     title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
                                     text: resp.message || 'Terjadi kesalahan sistem.',
                                     didClose: function() {
-                                        $("#absenmasuk").html(
-                                            '<ion-icon name="finger-print-outline" style="font-size: 20px"></ion-icon><span>Masuk</span>'
-                                        );
-                                        $("#absenpulang").html(
-                                            '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
-                                        );
-                                        updateShiftStatus();
+                                        resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
+                                        resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
                                     }
                                 });
+                            },
+                            complete: function() {
+                                isSubmittingPresensi = false;
                             }
                         });
                     });
                 }
-
             });
 
-            $("#absenpulang").click(function() {
+            $("#absenpulang").click(async function() {
+                if (isSubmittingPresensi) {
+                    return false;
+                }
+
                 if (cameraPermissionDenied) {
                     showPermissionWarning('camera');
                     return;
@@ -3832,7 +2988,7 @@
                     return false;
                 }
 
-                // === STRICT: CEK WAKTU PULANG (BELUM JAM PULANG GK BISA FOTO) ===
+                // === PHASE 8: EARLY CLOCK-OUT HANDLING ===
                 const now = new Date();
                 const jamMasuk = parseTimeToday(shiftConfig.jamMasuk);
                 const jamPulang = parseTimeToday(shiftConfig.jamPulang);
@@ -3843,19 +2999,34 @@
                 }
                 const earliestPulang = (shiftConfig.batasi && shiftConfig.batasPulangMenit > 0) ? batasMulaiPulang : jamPulang;
 
+                let earlyOutReason = '';
                 if (now < earliestPulang) {
-                    speakVoice("Maaf, belum waktunya untuk presensi pulang. Jam pulang shift Anda pukul " + shiftConfig.jamPulang + ".");
-                    Swal.fire({
+                    const confirmEarly = await Swal.fire({
+                        title: 'Pulang Lebih Awal?',
+                        text: 'Jam pulang shift Anda adalah pukul ' + shiftConfig.jamPulang + '. Anda akan tercatat pulang lebih awal.',
                         icon: 'warning',
-                        title: 'Belum Waktunya Pulang',
-                        text: 'Maaf, belum saatnya untuk presensi pulang. Jam pulang shift Anda adalah pukul ' + shiftConfig.jamPulang + '.',
+                        input: 'text',
+                        inputPlaceholder: 'Tuliskan alasan singkat pulang awal...',
+                        showCancelButton: true,
                         confirmButtonColor: '#1E4D3E',
-                        confirmButtonText: 'Mengerti'
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Ya, Pulang Sekarang',
+                        cancelButtonText: 'Batal',
+                        inputValidator: (value) => {
+                            if (!value || !value.trim()) {
+                                return 'Alasan pulang lebih awal wajib diisi!';
+                            }
+                        }
                     });
-                    return false; // JANGAN BISA FOTO! STOP SEBELUM WEBCAM.SNAP
+                    if (!confirmEarly.isConfirmed) {
+                        return false;
+                    }
+                    earlyOutReason = confirmEarly.value ? confirmEarly.value.trim() : '';
                 }
 
-                // alert(lokasi);
+                // Kunci submit untuk mencegah double click & hentikan loop kamera untuk hemat CPU
+                isSubmittingPresensi = true;
+                FaceService.isDetecting = false;
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenpulang").html(
@@ -3866,31 +3037,33 @@
                     image = uri;
                 });
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
+                    isSubmittingPresensi = false;
                     swal.fire({
                         icon: 'error',
                         title: 'Wajah Tidak Terdeteksi',
                         text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
                         didClose: function() {
-                            $("#absenpulang").html(
-                                '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
-                            );
-                            updateShiftStatus();
+                            resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
+                            resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
                         }
-                    })
+                    });
                     return false;
                 } else {
-                    // Tambahkan watermark koordinat + mini map ke foto
-                    addWatermarkToImage(image, lokasi).then(function(watermarkedImage) {
-                        var blob = dataURItoBlob(watermarkedImage);
+                    addWatermarkToBlob(image, lokasi).then(function(blob) {
                         var formData = new FormData();
-                        formData.append('image', blob, 'image.png');
+                        formData.append('image', blob, 'image.jpg');
                         formData.append('_token', "{{ csrf_token() }}");
                         formData.append('status', status);
                         formData.append('lokasi', lokasi);
                         formData.append('lokasi_cabang', lokasi_cabang);
                         formData.append('kode_jam_kerja', "{{ $jam_kerja->kode_jam_kerja }}");
+                        formData.append('early_out_reason', earlyOutReason);
                         formData.append('is_mock', (window.AntiFakeGPS && AntiFakeGPS.analyze(lastRawPosition).isMock) ? '1' : '0');
                         formData.append('mock_score', (window.AntiFakeGPS ? AntiFakeGPS.analyze(lastRawPosition).score : 0));
+                        if (window.currentLiveDescriptor && Array.isArray(window.currentLiveDescriptor)) {
+                            formData.append('face_descriptor', JSON.stringify(window.currentLiveDescriptor));
+                        }
+                        formData.append('attendance_nonce', currentAttendanceNonce);
 
                         $.ajax({
                             type: 'POST',
@@ -3900,20 +3073,20 @@
                             contentType: false,
                             cache: false,
                             success: function(data) {
+                                if (data && data.new_nonce) {
+                                    currentAttendanceNonce = data.new_nonce;
+                                }
                                 if (data.status == true) {
                                     if (data.suara) speakVoice(data.suara);
                                     
-                                    // Set state selesai
                                     shiftConfig.sudahPulang = true;
 
-                                    // Update timestamp pada dynamic card
                                     const nowSuccess = new Date();
                                     const h = String(nowSuccess.getHours()).padStart(2, '0');
                                     const m = String(nowSuccess.getMinutes()).padStart(2, '0');
                                     const elRekapOut = document.getElementById('rekap-jam-out');
                                     if (elRekapOut) elRekapOut.textContent = h + ':' + m;
 
-                                    // Switch langsung ke card putih "Anda telah selesai bekerja hari ini"
                                     const activeWrapper = document.getElementById('active-presensi-wrapper');
                                     const dynamicCard = document.getElementById('dynamic-selesai-card');
                                     if (activeWrapper && dynamicCard) {
@@ -3938,18 +3111,22 @@
                             },
                             error: function(xhr) {
                                 const resp = xhr.responseJSON || {};
+                                if (resp.new_nonce) {
+                                    currentAttendanceNonce = resp.new_nonce;
+                                }
                                 if (resp.suara) speakVoice(resp.suara);
                                 swal.fire({
                                     icon: 'error',
                                     title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
                                     text: resp.message || 'Terjadi kesalahan sistem.',
                                     didClose: function() {
-                                        $("#absenpulang").html(
-                                            '<ion-icon name="log-out-outline" style="font-size: 20px"></ion-icon><span>Pulang</span>'
-                                        );
-                                        updateShiftStatus();
+                                        resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
+                                        resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
                                     }
                                 });
+                            },
+                            complete: function() {
+                                isSubmittingPresensi = false;
                             }
                         });
                     });

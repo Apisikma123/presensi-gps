@@ -6,29 +6,27 @@ use App\Models\Approveizincuti;
 use App\Models\Cabang;
 use App\Models\Cuti;
 use App\Models\Departemen;
-use App\Models\Detailsetjamkerjabydept;
 use App\Models\Izinabsen;
 use App\Models\Izincuti;
 use App\Models\Izinsakit;
+use App\Models\Jamkerja;
 use App\Models\Karyawan;
+use App\Models\Pengaturanumum;
 use App\Models\Presensi;
-use App\Models\Setjamkerjabydate;
-use App\Models\Setjamkerjabyday;
 use App\Models\User;
 use App\Models\Userkaryawan;
+use App\Services\ApprovalService;
+use App\Services\AttendanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
-use App\Models\Approval;
-use App\Models\ApprovalLayer;
-use App\Services\ApprovalService;
 
 class IzincutiController extends Controller
 {
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $qcuti = Izincuti::query();
@@ -88,9 +86,9 @@ class IzincutiController extends Controller
     }
 
 
-    public function create()
+    public function create(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $qkaryawan = Karyawan::query();
@@ -117,6 +115,7 @@ class IzincutiController extends Controller
         $karyawan = $qkaryawan->get();
         $data['jenis_cuti'] = Cuti::orderBy('kode_cuti')->get();
         $data['karyawan'] = $karyawan;
+        $data['general_setting'] = Pengaturanumum::first();
 
         if ($user->hasRole('karyawan')) {
             $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
@@ -179,6 +178,9 @@ class IzincutiController extends Controller
 
             return view('izincuti.create-mobile', $data);
         }
+        if ($request->ajax()) {
+            return view('izincuti.create-modal', $data);
+        }
         return view('izincuti.create', $data);
     }
 
@@ -187,25 +189,30 @@ class IzincutiController extends Controller
         $user = User::findorfail(auth()->user()->id);
         $role = $user->getRoleNames()->first();
         $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
-        $nik = $user->hasRole('karyawan') ? $userkaryawan->nik : $request->nik;
-        if ($role == 'karyawan') {
+
+        if ($user->hasRole('karyawan')) {
+            if (!$userkaryawan || empty($userkaryawan->nik)) {
+                return Redirect::back()->withInput()->with(messageError('Akun Anda belum terhubung dengan data karyawan. Silakan hubungi admin.'));
+            }
+            $nik = $userkaryawan->nik;
             $request->validate([
-                'dari' => 'required',
-                'sampai' => 'required',
+                'dari' => 'required|date',
+                'sampai' => 'required|date',
                 'keterangan' => 'required',
                 'kode_cuti' => 'required',
-                'pelimpahan_tugas' => 'required',
-                'nama_kepala_divisi' => 'required',
+                'pelimpahan_tugas' => 'nullable|string|max:255',
+                'nama_kepala_divisi' => 'nullable|string|max:255',
             ]);
         } else {
+            $nik = $request->nik;
             $request->validate([
                 'nik' => 'required',
-                'dari' => 'required',
-                'sampai' => 'required',
+                'dari' => 'required|date',
+                'sampai' => 'required|date',
                 'keterangan' => 'required',
                 'kode_cuti' => 'required',
-                'pelimpahan_tugas' => 'required',
-                'nama_kepala_divisi' => 'required',
+                'pelimpahan_tugas' => 'nullable|string|max:255',
+                'nama_kepala_divisi' => 'nullable|string|max:255',
             ]);
         }
 
@@ -214,75 +221,87 @@ class IzincutiController extends Controller
         DB::beginTransaction();
         try {
             $cek_izin_absen = Izinabsen::where('nik', $nik)
-                ->whereBetween('dari', [$request->dari, $request->sampai])
-                ->orWhereBetween('sampai', [$request->dari, $request->sampai])
-                ->where('nik', $nik)
+                ->where(function ($q) use ($request) {
+                    $q->where('dari', '<=', $request->sampai)
+                      ->where('sampai', '>=', $request->dari);
+                })
+                ->where('status', '!=', '2')
                 ->first();
 
             $cek_izin_sakit = Izinsakit::where('nik', $nik)
-                ->whereBetween('dari', [$request->dari, $request->sampai])
-                ->orWhereBetween('sampai', [$request->dari, $request->sampai])
-                ->where('nik', $nik)
+                ->where(function ($q) use ($request) {
+                    $q->where('dari', '<=', $request->sampai)
+                      ->where('sampai', '>=', $request->dari);
+                })
+                ->where('status', '!=', '2')
                 ->first();
 
             $cek_izin_cuti = Izincuti::where('nik', $nik)
-                ->whereBetween('dari', [$request->dari, $request->sampai])
-                ->orWhereBetween('sampai', [$request->dari, $request->sampai])
-                ->where('nik', $nik)
+                ->where(function ($q) use ($request) {
+                    $q->where('dari', '<=', $request->sampai)
+                      ->where('sampai', '>=', $request->dari);
+                })
+                ->where('status', '!=', '2')
                 ->first();
 
-            if ($cek_izin_absen) {
-                return Redirect::back()->with(messageError('Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Pada Rentang Tanggal Tersebut!'));
-            } else if ($cek_izin_sakit) {
-                return Redirect::back()->with(messageError('Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Absen Pada Rentang Tanggal Tersebut!'));
-            } else if ($cek_izin_cuti) {
-                return Redirect::back()->with(messageError('Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Absen Pada Rentang Tanggal Tersebut!'));
+            if ($cek_izin_absen || $cek_izin_sakit || $cek_izin_cuti) {
+                $msg = 'Anda Sudah Mengajukan Izin Absen/Sakit/Cuti Pada Rentang Tanggal Tersebut!';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return Redirect::back()->withInput()->with(messageError($msg));
             }
             $lastizincuti = Izincuti::select('kode_izin_cuti')
-                ->whereRaw('LEFT(kode_izin_cuti,6)="' . $format . '"')
+                ->whereRaw('LEFT(kode_izin_cuti,6) = ?', [$format])
                 ->orderBy("kode_izin_cuti", "desc")
                 ->first();
             $last_kode_izin_cuti = $lastizincuti != null ? $lastizincuti->kode_izin_cuti : '';
             $kode_izin_cuti  = buatkode($last_kode_izin_cuti, "IC"  . date('ym', strtotime($request->dari)), 4);
 
 
-            $jmlhari = hitungHari($request->dari, $request->sampai);
+            $jmlhari = hitungHari($request->dari, $request->sampai, $nik);
             $cuti = Cuti::where('kode_cuti', $request->kode_cuti)->first();
-            $jml_hari_max = $cuti->jumlah_hari;
-
-            // Validasi Kuota Cuti Bulanan (monthly_leave_quota)
-            $generalsetting = Pengaturanumum::getSetting();
-            $monthlyQuota = $generalsetting->monthly_leave_quota ?? 3;
-            $bulanCuti = date('m', strtotime($request->dari));
-            $tahunCuti = date('Y', strtotime($request->dari));
-
-            $cutiDisetujuiBulanIni = Izincuti::where('nik', $nik)
-                ->where('status', 1)
-                ->whereYear('dari', $tahunCuti)
-                ->whereMonth('dari', $bulanCuti)
+            $max_cuti = $cuti->jumlah_hari;
+            $tahun_cuti = date('Y', strtotime($request->dari));
+            $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
+                ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
+                ->where('presensi.nik', $nik)
+                ->where('presensi_izincuti.kode_cuti', $request->kode_cuti)
+                ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun_cuti])
                 ->count();
-
-            if ($cutiDisetujuiBulanIni >= $monthlyQuota) {
-                return Redirect::back()->with(messageError(
-                    "Kuota cuti bulanan Anda untuk bulan " . date('F Y', strtotime($request->dari)) . 
-                    " sudah mencapai batas maksimal (" . $monthlyQuota . " kali per bulan)."
-                ));
-            }
-
             if ($request->kode_cuti == "C01") {
-                $tahun_cuti = date('Y', strtotime($request->dari));
-                $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
-                    ->where('presensi.nik', $nik)
-                    ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun_cuti])
-                    ->count();
-                $sisa_cuti = $jml_hari_max - $cek_cuti_dipakai;
-
+                $sisa_cuti = $max_cuti - $cek_cuti_dipakai;
                 if ($jmlhari > $sisa_cuti) {
-                    return Redirect::back()->with(messageError('Sisa Cuti Tahunan Anda Adalah ' . $sisa_cuti . ' Hari. Pengajuan ' . $jmlhari . ' Hari Melebihi Batas!'));
+                    $msg = 'Jumlah Hari Melebihi Sisa Cuti ' . $cuti->jenis_cuti . ' Anda, Sisa Cuti Anda Adalah ' . $sisa_cuti . ' Hari Lagi!';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return Redirect::back()->withInput()->with(messageError($msg));
                 }
             } else {
-                if ($jmlhari > $jml_hari_max) {
-                    return Redirect::back()->with(messageError('Maksimal Pengambilan Cuti ' . $cuti->jenis_cuti . ' Adalah ' . $jml_hari_max . ' Hari Per Pengajuan!'));
+                if ($jmlhari > $max_cuti) {
+                    $msg = 'Jumlah Hari Melebihi Maksimal Cuti ' . $cuti->jenis_cuti . ' Yaitu ' . $max_cuti . ' Hari!';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return Redirect::back()->withInput()->with(messageError($msg));
+                }
+            }
+
+            $general_setting = Pengaturanumum::first();
+            if (!empty($general_setting->monthly_leave_quota) && $general_setting->monthly_leave_quota > 0) {
+                $startMonth = date('Y-m-01', strtotime($request->dari));
+                $endMonth = date('Y-m-t', strtotime($request->dari));
+                $cutiBulanIni = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
+                    ->where('presensi.nik', $nik)
+                    ->whereBetween('presensi.tanggal', [$startMonth, $endMonth])
+                    ->count();
+                if (($cutiBulanIni + $jmlhari) > $general_setting->monthly_leave_quota) {
+                    $msg = 'Pengambilan cuti melebihi batas kuota bulanan (' . $general_setting->monthly_leave_quota . ' hari/bulan). Bulan ini sudah terpakai ' . $cutiBulanIni . ' hari!';
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return Redirect::back()->withInput()->with(messageError($msg));
                 }
             }
 
@@ -304,21 +323,29 @@ class IzincutiController extends Controller
 
             Izincuti::create($dataizincuti);
             DB::commit();
-            if ($role == 'karyawan') {
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
+
+            if ($user->hasRole('karyawan')) {
                 return Redirect::route('pengajuanizin.index')->with(messageSuccess('Data Berhasil Disimpan'));
             } else {
                 return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            return Redirect::back()->with(messageError($e->getMessage()));
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($e->getMessage()));
         }
     }
 
 
     public function edit($kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
         $izincuti = Izincuti::where('kode_izin_cuti', $kode_izin_cuti)
@@ -376,15 +403,23 @@ class IzincutiController extends Controller
             abort(404, 'Data izin cuti tidak ditemukan.');
         }
 
-        /** @var \App\Models\User $user */
+        if ($izincuti->status == 1) {
+            $msg = 'Pengajuan izin cuti yang sudah disetujui tidak dapat diedit langsung. Batalkan persetujuan terlebih dahulu.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->with(messageError($msg));
+        }
+
+        /** @var User $user */
         $user = auth()->user();
         if (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
-            if (!empty($userCabangs) && !in_array($izincuti->kode_cabang, $userCabangs)) {
+            if (empty($userCabangs) || !in_array($izincuti->kode_cabang, $userCabangs)) {
                 abort(403, 'Anda tidak memiliki akses ke cabang izin cuti ini.');
             }
-            if (!empty($userDepartemens) && !in_array($izincuti->kode_dept, $userDepartemens)) {
+            if (empty($userDepartemens) || !in_array($izincuti->kode_dept, $userDepartemens)) {
                 abort(403, 'Anda tidak memiliki akses ke departemen izin cuti ini.');
             }
         }
@@ -411,9 +446,15 @@ class IzincutiController extends Controller
                 'nama_kepala_divisi' => $request->nama_kepala_divisi,
             ]);
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
@@ -421,7 +462,7 @@ class IzincutiController extends Controller
 
     public function approve($kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
@@ -442,6 +483,12 @@ class IzincutiController extends Controller
             }
         }
 
+        // Anti Self-Approval Protection
+        $approvalService = app(ApprovalService::class);
+        if ($approvalService->isSelfApproval($user, $izincuti->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan menyetujui (approve) pengajuan cuti milik Anda sendiri.');
+        }
+
         $data['izincuti'] = $izincuti;
         return view('izincuti.approve', $data);
     }
@@ -449,7 +496,7 @@ class IzincutiController extends Controller
 
     public function storeapprove(Request $request, $kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         $approvalService = app(ApprovalService::class);
         
@@ -469,6 +516,11 @@ class IzincutiController extends Controller
             if (!in_array($izincuti->kode_cabang, $userCabangs) || !in_array($izincuti->kode_dept, $userDepartemens)) {
                 abort(403, 'Anda tidak memiliki akses ke izin cuti ini.');
             }
+        }
+
+        // Anti Self-Approval Protection: Applicant cannot approve their own request
+        if ($approvalService->isSelfApproval($user, $izincuti->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan menyetujui (approve) pengajuan cuti milik Anda sendiri.');
         }
         $dari = $izincuti->dari;
         $sampai = $izincuti->sampai;
@@ -492,107 +544,90 @@ class IzincutiController extends Controller
         DB::beginTransaction();
         try {
             if (isset($request->approve)) {
-                 // 1. Record Approval (atas nama admin jika delegasi)
-                Approval::create([
-                    'approvable_type' => Izincuti::class,
-                    'approvable_id' => $kode_izin_cuti,
-                    'user_id' => $approvalUserId,
-                    'level' => $currentStep,
-                    'status' => 'approved',
-                    'keterangan' => 'Approved by ' . $approvalAdmin->name,
-                ]);
+                // P1-1: Cegah approval cuti menimpa presensi hadir aktual
+                $hasActualAttendance = Presensi::where('nik', $nik)
+                    ->whereBetween('tanggal', [$dari, $sampai])
+                    ->where('status', 'h')
+                    ->whereNotNull('jam_in')
+                    ->exists();
 
-                // 2. Check for Next Level rule
-                $nextLevel = $currentStep + 1;
-                $nextRule = $approvalService->getLayer('IZIN', $nextLevel, $kode_dept, $kode_jabatan, $kode_cabang);
-                
-                 if ($nextRule && !$user->hasRole('super admin')) {
-                    // Update to next step
-                    Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update(['approval_step' => $nextLevel]);
-                     DB::commit();
-                    return Redirect::back()->with(messageSuccess('Berhasil disetujui (Tahap ' . $currentStep . '). Menunggu approval tahap selanjutnya.'));
-                } else {
-                    // Final Approval
-                    Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                        'status' => 1
-                    ]);
-
-                    while (strtotime($dari) <= strtotime($sampai)) {
-    
-                        //Cek Jadwal Pada Setiap tanggal
-                        $namahari = getnamaHari(date('D', strtotime($dari)));
-    
-                        $jamkerja = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                            ->where('nik', $izincuti->nik)
-                            ->where('tanggal', $dari)
-                            ->first();
-                        if ($jamkerja == null) {
-    
-                            $jamkerja = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                                ->where('nik', $izincuti->nik)->where('hari', $namahari)
-                                ->first();
-                        }
-    
-                        if ($jamkerja == null) {
-                            $jamkerja = Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
-                                ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-                                ->where('kode_dept', $kode_dept)
-                                ->where('kode_cabang', $izincuti->kode_cabang)
-                                ->where('hari', $namahari)->first();
-                        }
-    
-                        if ($jamkerja == null) {
-                            $error .= 'Jam Kerja pada Tanggal ' . $dari . ' Belum Di Set! <br>';
-                        } else {
-                            $presensi = Presensi::updateOrCreate(
-                                ['nik' => $nik, 'tanggal' => $dari],
-                                [
-                                    'kode_jam_kerja' => $jamkerja->kode_jam_kerja,
-                                    'status' => 'c',
-                                ]
-                            );
-
-                            Approveizincuti::updateOrCreate(
-                                ['kode_izin_cuti' => $kode_izin_cuti, 'id_presensi' => $presensi->id],
-                                ['id_presensi' => $presensi->id, 'kode_izin_cuti' => $kode_izin_cuti]
-                            );
-                        }
-    
-    
-                        $dari = date('Y-m-d', strtotime($dari . ' +1 day'));
-                    }
+                if ($hasActualAttendance) {
+                    throw new \Exception('Karyawan sudah tercatat hadir pada tanggal ini. Izin/Sakit/Cuti tidak dapat disetujui sebelum data presensi dikoreksi.');
                 }
 
-            } else {
-                 // REJECTION Logic
-                Approval::create([
-                    'approvable_type' => Izincuti::class,
-                    'approvable_id' => $kode_izin_cuti,
-                    'user_id' => $approvalUserId,
-                    'level' => $currentStep,
-                    'status' => 'rejected',
-                    'keterangan' => 'Rejected by ' . $approvalAdmin->name,
+                Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
+                    'status' => 1,
+                    'approval_step' => 1
                 ]);
 
+                $karyawan = Karyawan::where('nik', $izincuti->nik)->first();
+                $kode_jam_kerja = !empty($karyawan?->kode_jam_kerja) ? $karyawan->kode_jam_kerja : 'JK01';
+                $jamkerja = Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->first()
+                    ?? Jamkerja::where('kode_jam_kerja', 'JK01')->first();
+
+                $schedules = AttendanceService::getEffectiveSchedulesBatch([$nik], $dari, $sampai);
+
+                $curr = $dari;
+                while (strtotime($curr) <= strtotime($sampai)) {
+                    $eff = $schedules[$nik][$curr] ?? null;
+                    $isOff = $eff ? $eff['is_off'] : false;
+
+                    if (!$isOff) {
+                        $jkCode = $eff && $eff['jam_kerja'] ? $eff['jam_kerja']->kode_jam_kerja : ($jamkerja ? $jamkerja->kode_jam_kerja : 'JK01');
+                        
+                        $existing = Presensi::where('nik', $nik)->where('tanggal', $curr)->first();
+                        $auditNote = null;
+                        if ($existing && $existing->status === 'a') {
+                            $auditNote = "[IZIN_SUSULAN] Diubah dari ALPHA (a) ke CUTI. Approved by: " . ($user->name ?? 'Admin') . " on " . now()->format('Y-m-d H:i:s') . ". Ref: " . $kode_izin_cuti;
+                        }
+
+                        $presensi = Presensi::updateOrCreate(
+                            ['nik' => $nik, 'tanggal' => $curr],
+                            [
+                                'kode_jam_kerja' => $jkCode,
+                                'status' => 'c',
+                                'keterangan' => $auditNote ?? ($izincuti->keterangan ?? 'Izin Cuti'),
+                            ]
+                        );
+
+                        Approveizincuti::updateOrCreate(
+                            ['kode_izin_cuti' => $kode_izin_cuti, 'id_presensi' => $presensi->id],
+                            ['id_presensi' => $presensi->id, 'kode_izin_cuti' => $kode_izin_cuti]
+                        );
+                    }
+
+                    $curr = date('Y-m-d', strtotime($curr . ' +1 day'));
+                }
+            } else {
                 Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                    'status' => 2
+                    'status' => 2,
+                    'approval_step' => 1
                 ]);
             }
             if (!empty($error)) {
                 DB::rollBack();
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $error], 422);
+                }
                 return Redirect::back()->with(messageError($error));
             }
             DB::commit();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
     public function cancelapprove($kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
@@ -610,97 +645,47 @@ class IzincutiController extends Controller
                 abort(403, 'Anda tidak memiliki akses ke izin cuti ini.');
             }
         }
+
+        // Anti Self-Approval Protection: Applicant cannot cancel approval/rejection of own request
+        $approvalService = app(ApprovalService::class);
+        if ($approvalService->isSelfApproval($user, $izincuti->nik)) {
+            abort(403, 'Akses ditolak. Anda tidak diizinkan membatalkan persetujuan pengajuan milik Anda sendiri.');
+        }
         
         DB::beginTransaction();
         try {
-            // Case 1: Status is Pending (0) but moved steps (Intermediate Cancellation)
-             if ($izincuti->status == 0) {
-                 // Logic: Find the approval for the *previous* step (current_step - 1)
-                 $lastStep = $izincuti->approval_step - 1;
-                 
-                $lastApproval = Approval::where('approvable_type', Izincuti::class)
-                    ->where('approvable_id', $kode_izin_cuti)
-                    ->where('level', $lastStep)
-                    ->where('user_id', $user->id) // Must be the one who approved it
-                    ->first();
-
-                if ($lastApproval) {
-                    $lastApproval->delete();
-                    Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                        'approval_step' => $lastStep
-                    ]);
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Approval dibatalkan. Kembali ke tahap sebelumnya.'));
-                } else {
-                     return Redirect::back()->with(messageError('Anda tidak dapat membatalkan approval ini (Bukan approver terakhir atau sudah diproses lanjut).'));
+            if ($izincuti->status == 1) {
+                $approves = Approveizincuti::where('kode_izin_cuti', $kode_izin_cuti)->get();
+                foreach ($approves as $appr) {
+                    $p = Presensi::find($appr->id_presensi);
+                    if ($p) {
+                        if (str_contains($p->keterangan ?? '', '[IZIN_SUSULAN]')) {
+                            $p->update([
+                                'status' => 'a',
+                                'keterangan' => 'Tanpa Keterangan (Alpha) - Dibatalkan dari Cuti Susulan Ref: ' . $kode_izin_cuti,
+                                'jam_in' => null,
+                                'jam_out' => null
+                            ]);
+                        } else {
+                            $p->delete();
+                        }
+                    }
                 }
-            }
-            // Case 2: Status is Final Approved (1)
-            else if ($izincuti->status == 1) {
-                  // Find final approval record (highest level)
-                 $lastApproval = Approval::where('approvable_type', Izincuti::class)
-                    ->where('approvable_id', $kode_izin_cuti)
-                    ->where('user_id', $user->id)
-                    ->orderBy('level', 'desc')
-                    ->first();
+                Approveizincuti::where('kode_izin_cuti', $kode_izin_cuti)->delete();
 
-                if($lastApproval){
-                     // Revert step to this level (so it becomes pending at this level again)
-                     $revertStep = $lastApproval->level;
-                     $lastApproval->delete();
-                     
-                     // Delete Presensi Data & Approveizincuti
-                     $presensi = Approveizincuti::where('kode_izin_cuti', $kode_izin_cuti)->get();
-                     Presensi::whereIn('id', $presensi->pluck('id_presensi'))->delete();
-                     Approveizincuti::where('kode_izin_cuti', $kode_izin_cuti)->delete();
-
-                     Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                        'status' => 0,
-                        'approval_step' => $revertStep
-                    ]);
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Approval final dibatalkan. Kembali ke tahap sebelumnya.'));
-
-                } else {
-                    // Fallback/Legacy
-                    $presensi = Approveizincuti::where('kode_izin_cuti', $kode_izin_cuti)->get();
-                    Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                        'status' => 0
-                    ]);
-                    Approveizincuti::where('kode_izin_cuti', $kode_izin_cuti)->delete();
-                    Presensi::whereIn('id', $presensi->pluck('id_presensi'))->delete();
-                    DB::commit();
-                    return Redirect::back()->with(messageSuccess('Data Berhasil Dibatalkan'));
-                }
-            }
-            // Case 3: Status is Rejected (2)
-            else if ($izincuti->status == 2) {
-                 // Find the rejection approval record
-                 $lastApproval = Approval::where('approvable_type', Izincuti::class)
-                    ->where('approvable_id', $kode_izin_cuti)
-                    ->where('user_id', $user->id)
-                    ->orderBy('level', 'desc')
-                    ->first();
-
-                 if($lastApproval){
-                      // Revert step to this level
-                      $revertStep = $lastApproval->level;
-                      $lastApproval->delete();
-                      
-                      Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                         'status' => 0,
-                         'approval_step' => $revertStep
-                     ]);
-                     DB::commit();
-                     return Redirect::back()->with(messageSuccess('Penolakan dibatalkan. Kembali ke tahap sebelumnya.'));
-                 } else {
-                     // Fallback
-                     Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
-                         'status' => 0
-                     ]);
-                     DB::commit();
-                     return Redirect::back()->with(messageSuccess('Penolakan Berhasil Dibatalkan'));
-                 }
+                Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
+                    'status' => 0,
+                    'approval_step' => 0
+                ]);
+                DB::commit();
+                return Redirect::back()->with(messageSuccess('Persetujuan izin cuti berhasil dibatalkan'));
+            } else if ($izincuti->status == 2) {
+                Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->update([
+                    'status' => 0,
+                    'approval_step' => 0
+                ]);
+                DB::commit();
+                return Redirect::back()->with(messageSuccess('Penolakan Berhasil Dibatalkan'));
             }
             return Redirect::back()->with(messageError('Status tidak valid untuk pembatalan.'));
 
@@ -710,15 +695,27 @@ class IzincutiController extends Controller
         }
     }
 
-    public function destroy($kode_izin_cuti)
+    public function destroy(Request $request, $kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
         $izincuti = Izincuti::where('kode_izin_cuti', $kode_izin_cuti)
             ->join('karyawan', 'presensi_izincuti.nik', '=', 'karyawan.nik')
             ->first();
+        
+        if (!$izincuti) {
+            abort(404, 'Data izin cuti tidak ditemukan.');
+        }
+
+        if ($izincuti->status != 0) {
+            $msg = 'Pengajuan izin cuti yang sudah diproses tidak dapat dihapus langsung. Batalkan persetujuan terlebih dahulu.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->with(messageError($msg));
+        }
         
         // Cek akses jika bukan super admin
         if (!$user->isSuperAdmin()) {
@@ -739,15 +736,21 @@ class IzincutiController extends Controller
         
         try {
             Izincuti::where('kode_izin_cuti', $kode_izin_cuti)->delete();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Dihapus']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Dihapus'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
 
     public function show($kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
@@ -774,7 +777,7 @@ class IzincutiController extends Controller
 
     public function print($kode_izin_cuti)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
         
         $kode_izin_cuti = Crypt::decrypt($kode_izin_cuti);
@@ -809,7 +812,7 @@ class IzincutiController extends Controller
             ->count();
             
         $data['izincuti'] = $izincuti;
-        $data['generalsetting'] = \App\Models\Pengaturanumum::where('id', 1)->first();
+        $data['generalsetting'] = Pengaturanumum::where('id', 1)->first();
         
         // If it's C01 (Cuti Tahunan), calculate sisa
         if ($izincuti->kode_cuti == 'C01') {
@@ -825,7 +828,7 @@ class IzincutiController extends Controller
 
     public function printReport(Request $request)
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = auth()->user();
 
         $qcuti = Izincuti::query();
@@ -908,7 +911,7 @@ class IzincutiController extends Controller
         elseif ($request->status == '2') $filter_status = 'Ditolak';
 
         $data['izincuti'] = $izincuti;
-        $data['generalsetting'] = \App\Models\Pengaturanumum::where('id', 1)->first();
+        $data['generalsetting'] = Pengaturanumum::where('id', 1)->first();
         $data['filters'] = [
             'dari' => $filter_dari,
             'sampai' => $filter_sampai,
@@ -954,5 +957,102 @@ class IzincutiController extends Controller
             'nama_cuti' => $cuti->jenis_cuti,
             'message' => $message
         ]);
+    }
+
+    /**
+     * Hitung Hari Kerja Efektif (Phase 7 Single Source of Truth Leave Preview)
+     */
+    public function hitungHariAjax(Request $request)
+    {
+        $dari = $request->dari;
+        $sampai = $request->sampai;
+
+        if (empty($dari) || empty($sampai)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parameter tanggal dari dan sampai wajib diisi.',
+                'jumlah_hari' => 0,
+                'hari_kerja' => [],
+                'hari_off' => []
+            ], 400);
+        }
+
+        /** @var User $user */
+        $user = auth()->user();
+        $nik = null;
+        if ($user && $user->hasRole('karyawan')) {
+            $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+            $nik = $userkaryawan ? $userkaryawan->nik : null;
+        } else {
+            $nik = $request->nik;
+            if (empty($nik) && $user) {
+                $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+                $nik = $userkaryawan ? $userkaryawan->nik : null;
+            }
+        }
+
+        try {
+            $start = new \DateTime($dari);
+            $end = new \DateTime($sampai);
+            if ($end < $start) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tanggal sampai tidak boleh sebelum tanggal dari.',
+                    'jumlah_hari' => 0,
+                    'hari_kerja' => [],
+                    'hari_off' => []
+                ], 422);
+            }
+
+            $hariKerja = [];
+            $hariOff = [];
+
+            if (!empty($nik)) {
+                $schedules = AttendanceService::getEffectiveSchedulesBatch([$nik], $dari, $sampai);
+                $curr = clone $start;
+                while ($curr <= $end) {
+                    $tglStr = $curr->format('Y-m-d');
+                    $sched = $schedules[$nik][$tglStr] ?? null;
+                    $isOff = $sched ? $sched['is_off'] : false;
+
+                    if ($isOff) {
+                        $hariOff[] = $tglStr;
+                    } else {
+                        $hariKerja[] = $tglStr;
+                    }
+                    $curr->modify('+1 day');
+                }
+            } else {
+                $setting = Pengaturanumum::first();
+                $sistem = $setting->sistem_hari_kerja ?? '6';
+                $curr = clone $start;
+                while ($curr <= $end) {
+                    $tglStr = $curr->format('Y-m-d');
+                    $w = (int)$curr->format('w');
+                    $isOff = ($w === 0) || ($sistem === '5' && $w === 6);
+                    if ($isOff) {
+                        $hariOff[] = $tglStr;
+                    } else {
+                        $hariKerja[] = $tglStr;
+                    }
+                    $curr->modify('+1 day');
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'jumlah_hari' => count($hariKerja),
+                'hari_kerja' => $hariKerja,
+                'hari_off' => $hariOff
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung hari: ' . $e->getMessage(),
+                'jumlah_hari' => 0,
+                'hari_kerja' => [],
+                'hari_off' => []
+            ], 500);
+        }
     }
 }

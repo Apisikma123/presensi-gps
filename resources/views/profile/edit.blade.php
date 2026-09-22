@@ -22,7 +22,11 @@
                         <input type="text" name="username" class="form-control" value="{{ $user->username }}" required>
                     </div>
                     <div class="form-group mb-3">
-                        <label for="">Password</label>
+                        <label for="">Password Lama</label>
+                        <input type="password" name="old_password" class="form-control" placeholder="Masukkan password saat ini jika ingin mengganti password">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="">Password Baru</label>
                         <input type="password" name="password" class="form-control" placeholder="Kosongkan jika tidak ingin mengganti password">
                     </div>
                     <div class="form-group mb-3">

@@ -36,4 +36,9 @@ return [
         'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
     ],
 
+    'face_service' => [
+        'url' => env('FACE_SERVICE_URL', 'http://127.0.0.1:5000'),
+        'timeout' => (int) env('FACE_SERVICE_TIMEOUT', 5),
+    ],
+
 ];

@@ -6,6 +6,7 @@
     <span>Monitoring Presensi</span>
 @endsection
 @push('mystyle')
+<link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
 <link rel="stylesheet" href="{{ asset('assets/vendor/css/leaflet.css') }}" />
 @endpush
 <style>
@@ -69,7 +70,7 @@
     .pill-terlambat { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
     .pill-izin { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
     .pill-sakit { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .pill-cuti { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+    .pill-cuti { background: #f0fdfa; color: #0d9488; border: 1px solid #99f6e4; }
     .pill-alpa { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .pill-belum { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
 
@@ -120,45 +121,71 @@
 
 <div class="row">
     <div class="col-12">
-        <!-- Filter Toolbar -->
+        <!-- Filter Toolbar (Compact Standard Admin Toolbar) -->
         <div class="card admin-filter-toolbar mb-3">
-            <div class="card-body p-3">
-                <form action="{{ route('presensi.index') }}" method="GET">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-lg-3 col-md-4 col-12">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Tanggal Presensi</label>
-                            <x-input-with-icon label="" value="{{ Request('tanggal') }}" name="tanggal" icon="ti ti-calendar"
-                                datepicker="flatpickr-date" placeholder="Pilih Tanggal..." hideLabel="true" />
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-12">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Outlet / Cabang</label>
-                            <div class="form-group mb-0">
-                                <x-select label="" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
-                                    selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch"
-                                    placeholder="Semua Outlet / Cabang" hideLabel="true" />
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-12">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Cari Karyawan</label>
-                            <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
-                                placeholder="Nama karyawan, barista..." hideLabel="true" />
-                        </div>
-                        <div class="col-lg-3 col-md-12 col-12 d-flex align-items-end gap-2 pt-lg-4">
-                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1" style="height: 38px;">
-                                <i class="ti ti-search" style="font-size: 15px;"></i>
+            <form action="{{ route('presensi.index') }}" method="GET" class="m-0">
+                <div class="row g-2 align-items-center">
+                    <div class="col-xl-3 col-lg-3 col-md-4 col-12">
+                        <x-input-with-icon label="" value="{{ Request('tanggal') }}" name="tanggal" icon="ti ti-calendar"
+                            datepicker="flatpickr-date" placeholder="Pilih Tanggal Presensi..." hideLabel="true" />
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-4 col-12">
+                        <x-select label="" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
+                            selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch"
+                            placeholder="Semua Outlet / Cabang" hideLabel="true" />
+                    </div>
+                    <div class="col-xl col-lg col-md-4 col-12">
+                        <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
+                            placeholder="Cari nama karyawan, barista..." hideLabel="true" />
+                    </div>
+                    @if (Request('status'))
+                        <input type="hidden" name="status" value="{{ Request('status') }}">
+                    @endif
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                                <i class="ti ti-search" style="font-size: 14px;"></i>
                                 <span>Cari Data</span>
                             </button>
-                            @if (Request('tanggal') || Request('kode_cabang') || Request('nama_karyawan'))
-                                <a href="{{ route('presensi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" style="height: 38px; padding: 0 12px;" title="Reset Filter">
+                            @can('presensi.edit')
+                                <button type="button" id="btnAutoAlpha" class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-1.5" title="Generate otomatis Tanpa Keterangan (Alpha) untuk karyawan yang tidak hadir pasca jam shift">
+                                    <i class="ti ti-user-x" style="font-size: 14px;"></i>
+                                    <span>Auto Alpha</span>
+                                </button>
+                            @endcan
+                            @if (Request('tanggal') || Request('kode_cabang') || Request('nama_karyawan') || Request('status'))
+                                <a href="{{ route('presensi.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
                                     <i class="ti ti-refresh" style="font-size: 14px;"></i>
                                     <span>Reset</span>
                                 </a>
                             @endif
                         </div>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
+
+        @if (Request('status'))
+            @php
+                $statusLabels = [
+                    'h' => ['label' => 'Hadir Hari Ini', 'bg' => 'rgba(5, 150, 105, 0.1)', 'color' => '#059669', 'border' => 'rgba(5, 150, 105, 0.2)'],
+                    'telat' => ['label' => 'Terlambat', 'bg' => 'rgba(217, 119, 6, 0.1)', 'color' => '#D97706', 'border' => 'rgba(217, 119, 6, 0.2)'],
+                    'tepat' => ['label' => 'Tepat Waktu', 'bg' => 'rgba(5, 150, 105, 0.1)', 'color' => '#059669', 'border' => 'rgba(5, 150, 105, 0.2)'],
+                    'i' => ['label' => 'Izin Absen', 'bg' => 'rgba(37, 99, 235, 0.1)', 'color' => '#2563EB', 'border' => 'rgba(37, 99, 235, 0.2)'],
+                    's' => ['label' => 'Izin Sakit', 'bg' => 'rgba(234, 88, 12, 0.1)', 'color' => '#EA580C', 'border' => 'rgba(234, 88, 12, 0.2)'],
+                    'c' => ['label' => 'Cuti', 'bg' => 'rgba(13, 148, 136, 0.1)', 'color' => '#0D9488', 'border' => 'rgba(13, 148, 136, 0.2)'],
+                    'alpa' => ['label' => 'Tanpa Keterangan (Alpha)', 'bg' => 'rgba(220, 38, 38, 0.08)', 'color' => '#DC2626', 'border' => 'rgba(220, 38, 38, 0.2)'],
+                ];
+                $curStatus = $statusLabels[Request('status')] ?? ['label' => Request('status'), 'bg' => '#F1F5F9', 'color' => '#334155', 'border' => '#E2E8F0'];
+            @endphp
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <small class="text-muted fw-semibold">Filter Status Aktif:</small>
+                <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-pill" style="background: {{ $curStatus['bg'] }}; color: {{ $curStatus['color'] }}; border: 1px solid {{ $curStatus['border'] }}; font-size: 12px;">
+                    <span>{{ $curStatus['label'] }}</span>
+                    <a href="{{ route('presensi.index', request()->except('status')) }}" style="color: inherit; text-decoration: none; font-weight: bold;" title="Hapus filter status">&times;</a>
+                </span>
+            </div>
+        @endif
 
         <!-- Main Content Area -->
         <div class="coffee-table-container">
@@ -328,8 +355,8 @@
                                             <i class="ti ti-calendar-event"></i> Cuti
                                         </span>
                                     @elseif($d->status == 'a')
-                                        <span class="pill-badge pill-alpa">
-                                            <i class="ti ti-x"></i> Tidak Hadir
+                                        <span class="pill-badge pill-alpa" title="Alpha / Tanpa Keterangan">
+                                            <i class="ti ti-user-x"></i> Tanpa Keterangan
                                         </span>
                                     @else
                                         <span class="pill-badge pill-belum">
@@ -425,7 +452,7 @@
                                 @elseif($d->status == 'c')
                                     <span class="pill-badge pill-cuti" style="font-size: 10.5px;">Cuti</span>
                                 @elseif($d->status == 'a')
-                                    <span class="pill-badge pill-alpa" style="font-size: 10.5px;">Tidak Hadir</span>
+                                    <span class="pill-badge pill-alpa" style="font-size: 10.5px;" title="Alpha / Tanpa Keterangan">Alpha</span>
                                 @else
                                     <span class="pill-badge pill-belum" style="font-size: 10.5px;">Belum</span>
                                 @endif
@@ -472,6 +499,7 @@
 <x-modal-form id="modal" size="modal-xl" show="loadmodal" title="" />
 @endsection
 @push('myscript')
+<script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
 <script src="{{ asset('assets/external/js/leaflet.js') }}" defer></script>
 <script>
     $(function() {
@@ -488,6 +516,7 @@
                 },
                 cache: false,
                 success: function(res) {
+                    $('#modal').find('.modal-dialog').removeClass('modal-xl').addClass('modal-lg');
                     $('#modal').modal('show');
                     $('#modal').find('.modal-title').text('Koreksi Presensi');
                     $('#loadmodal').html(res);
@@ -499,45 +528,10 @@
             e.preventDefault();
             const id = $(this).attr("id");
             const status = $(this).attr("status");
-            $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-                <div class="sk-wave-rect"></div>
-            </div>`);
+            $('#modal').find('.modal-dialog').removeClass('modal-lg').addClass('modal-xl');
             $("#modal").modal("show");
             $(".modal-title").text("Data Presensi");
             $("#loadmodal").load(`/presensi/${id}/${status}/show`);
-        });
-
-        $(".btngetDatamesin").click(function(e) {
-            e.preventDefault();
-            var pin = $(this).attr("pin");
-            var tanggal = $(this).attr("tanggal");
-            $("#loadmodal").html(`<div class="sk-wave sk-primary" style="margin:auto">
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            <div class="sk-wave-rect"></div>
-            </div>`);
-            $("#modal").modal("show");
-            $(".modal-title").text("Get Data Mesin");
-            $.ajax({
-                type: 'POST',
-                url: '/presensi/getdatamesin',
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    pin: pin,
-                    tanggal: tanggal,
-                },
-                cache: false,
-                success: function(respond) {
-                    console.log(respond);
-                    $("#loadmodal").html(respond);
-                }
-            });
         });
 
         $(".delete-confirm").click(function(e) {
@@ -556,6 +550,70 @@
                     form.submit();
                 }
             })
+        });
+
+        // Trigger Auto-Alpha via SweetAlert confirmation
+        $("#btnAutoAlpha").click(function(e) {
+            e.preventDefault();
+            const tanggal = "{{ Request('tanggal') ?: date('Y-m-d') }}";
+            Swal.fire({
+                title: 'Jalankan Auto Alpha?',
+                text: 'Sistem akan memindai karyawan yang tidak hadir pada tanggal ' + tanggal + ' setelah jam pulang shift berakhir, lalu mencatatnya sebagai Tanpa Keterangan (Alpha).',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="ti ti-user-x me-1"></i> Ya, Jalankan',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses Absensi...',
+                        text: 'Mohon tunggu, sistem sedang mengevaluasi jadwal shift & kehadiran.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: "{{ route('presensi.auto-alpha') }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            tanggal: tanggal
+                        },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: res.message,
+                                    confirmButtonColor: '#32745e',
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: res.message,
+                                    confirmButtonColor: '#dc2626',
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Terjadi Kesalahan',
+                                text: xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menghubungi server.',
+                                confirmButtonColor: '#dc2626',
+                            });
+                        }
+                    });
+                }
+            });
         });
     });
 </script>

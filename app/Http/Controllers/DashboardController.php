@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Cabang;
 use App\Models\Departemen;
+use App\Models\Jamkerja;
 use App\Models\Karyawan;
 use App\Models\Presensi;
 use App\Models\PresensiDispensasi;
 use App\Models\User;
 use App\Models\Userkaryawan;
 use App\Models\Pengaturanumum;
+use App\Services\AttendanceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +59,7 @@ class DashboardController extends Controller
                     'presensi_izincuti.keterangan as keterangan_izin_cuti'
                 )
                 ->orderBy('presensi.tanggal', 'desc')
-                ->limit(30)
+                ->limit(3)
                 ->get();
 
             $startOfMonth = Carbon::parse($hari_ini)->startOfMonth()->toDateString();
@@ -73,9 +75,35 @@ class DashboardController extends Controller
                 ->whereBetween('presensi.tanggal', [$startOfMonth, $endOfMonth])
                 ->first();
 
-            $data['namasettings'] = Pengaturanumum::getSetting();
+            $setting = Pengaturanumum::getSetting();
+            $data['namasettings'] = $setting;
             $data['bulan_skrg'] = Carbon::parse($hari_ini)->translatedFormat('F');
             $data['tahun_skrg'] = Carbon::parse($hari_ini)->year;
+
+            // Jadwal Kerja Efektif Karyawan Hari Ini (Single Source of Truth)
+            $effectiveSchedule = AttendanceService::getEffectiveSchedule($userkaryawan->nik, $hari_ini, $data['karyawan']);
+            $data['effective_schedule'] = $effectiveSchedule;
+
+            // P1-3: Resolve duty branch from effective schedule
+            $dutyBranchCode = $effectiveSchedule['kode_cabang'] ?? $data['karyawan']?->kode_cabang ?? null;
+            $dutyBranch = !empty($dutyBranchCode) ? Cabang::where('kode_cabang', $dutyBranchCode)->first() : null;
+            $data['nama_cabang_tugas'] = $dutyBranch?->nama_cabang ?? $data['karyawan']?->nama_cabang ?? $dutyBranchCode ?? '';
+
+            if ($effectiveSchedule['is_off']) {
+                $data['hari_libur_hari_ini'] = (object)[
+                    'keterangan' => $effectiveSchedule['keterangan'] ?? 'Hari Libur / OFF',
+                    'is_weekly_off' => true,
+                ];
+            } else {
+                $data['hari_libur_hari_ini'] = null;
+                if (!empty($effectiveSchedule['jam_kerja']) && !empty($data['karyawan'])) {
+                    $data['karyawan']->nama_jam_kerja = $effectiveSchedule['jam_kerja']->nama_jam_kerja;
+                    $data['karyawan']->jam_masuk = $effectiveSchedule['jam_kerja']->jam_masuk;
+                    $data['karyawan']->jam_pulang = $effectiveSchedule['jam_kerja']->jam_pulang;
+                    $data['karyawan']->batas_toleransi = $effectiveSchedule['jam_kerja']->batas_toleransi;
+                }
+            }
+            $data['is_global_off_day'] = $effectiveSchedule['is_off'];
 
             return view('dashboard.karyawan', $data);
         }
@@ -400,6 +428,11 @@ class DashboardController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
+
+        if (!$user || $user->hasRole('karyawan') || (!$user->isSuperAdmin() && !$user->can('presensi.index'))) {
+            abort(403, 'Akses ditolak. Anda tidak memiliki wewenang untuk melihat rekapitulasi presensi karyawan.');
+        }
+
         $tanggal = $request->tanggal ?: Carbon::now(config('app.timezone'))->format('Y-m-d');
         $status = $request->status;
 

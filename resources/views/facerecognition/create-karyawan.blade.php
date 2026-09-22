@@ -299,6 +299,7 @@
         let modelLoaded = false;
         let isScanning = false;
         let imagesCaptured = [];
+        let descriptorsCaptured = [];
         let videoEl = document.getElementById('webcam-video');
         let stream = null;
 
@@ -354,9 +355,11 @@
             btnStart.disabled = true;
             
             try {
-                await faceapi.nets.tinyFaceDetector.loadFromUri('{{ asset("models") }}');
-                // Optional: load landmarks if we want strict checks, but tinyDetector is enough for simple presence
-                // await faceapi.nets.faceLandmark68Net.loadFromUri('/models'); 
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri('{{ asset("models") }}'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('{{ asset("models") }}'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('{{ asset("models") }}')
+                ]);
                 
                 modelLoaded = true;
                 updateStatus('ready', 'Kamera Siap. Klik tombol Mulai.');
@@ -374,6 +377,7 @@
             
             isScanning = true;
             imagesCaptured = []; // Reset
+            descriptorsCaptured = [];
             
             // UI Updates
             btnStart.style.display = 'none'; // Hide button to declutter
@@ -465,6 +469,21 @@
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 80% quality
             
             imagesCaptured.push(dataUrl);
+
+            try {
+                const det = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+                if (det && det.descriptor) {
+                    descriptorsCaptured.push(Array.from(det.descriptor));
+                } else {
+                    descriptorsCaptured.push(null);
+                }
+            } catch (errDesc) {
+                console.warn("Descriptor extraction skipped for frame", errDesc);
+                descriptorsCaptured.push(null);
+            }
+
             console.log(`Captured ${imagesCaptured.length}/${TOTAL_IMAGES_NEEDED}`);
             
             // Update Progress UI
@@ -504,6 +523,7 @@
                 // Backend expects metadata json with direction keys
                 const metadata = imagesCaptured.map(() => ({ direction: 'front' }));
                 formData.append('metadata', JSON.stringify(metadata));
+                formData.append('descriptors', JSON.stringify(descriptorsCaptured));
 
                 // Send AJAX
                 updateStatus('loading', 'Mengeirim data ke server...');

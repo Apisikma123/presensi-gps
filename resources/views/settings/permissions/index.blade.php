@@ -12,22 +12,30 @@
                 <a href="#" class="btn btn-primary" id="btncreatePermission"><i class="fa fa-plus me-2"></i> Tambah
                     Permission</a>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-12">
-                        <form action="{{ route('permissions.index') }}">
-                            <div class="row">
-                                <div class="col-lg-10 col-sm-12 col-md-12">
-                                    <x-select name="id_permission_group" label="Group" :data="$permission_groups" key="id"
-                                        textShow="name" selected="{{ Request('id_permission_group') }}" />
-                                </div>
-                                <div class="col-lg-2 col-sm-12 col-md-12">
-                                    <button class="btn btn-primary">Cari</button>
+            <div class="card-body p-3">
+                <div class="admin-filter-toolbar mb-3">
+                    <form action="{{ route('permissions.index') }}" method="GET" class="m-0">
+                        <div class="row g-2 align-items-center">
+                            <div class="col">
+                                <x-select name="id_permission_group" label="" :data="$permission_groups" key="id"
+                                    textShow="name" selected="{{ Request('id_permission_group') }}" placeholder="Semua Permission Group" hideLabel="true" />
+                            </div>
+                            <div class="col-auto">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <button class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1" type="submit">
+                                        <i class="ti ti-search" style="font-size: 14px;"></i>
+                                        <span>Cari</span>
+                                    </button>
+                                    @if(Request('id_permission_group'))
+                                        <a href="{{ route('permissions.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                                            <span>Reset</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
-
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="row">
                     <div class="col-12">

@@ -3,7 +3,10 @@
 @section('title', 'Ubah Password')
 
 @section('header_left')
-    <a href="{{ route('dashboard.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-lg"></ion-icon>
     </a>
 @endsection
@@ -15,7 +18,7 @@
         }
 
         .form-container {
-            padding: 10px 5px;
+            padding: 10px 5px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .form-label-group {
@@ -120,7 +123,7 @@
             <div class="form-label-group">
                 <ion-icon name="at-outline" class="input-icon"></ion-icon>
                 <input type="text" name="username" id="username" placeholder=" " value="{{ $user->username }}" required>
-                <label for="username">Username</label>
+                <label for="username">Username <span class="req-star">*</span></label>
             </div>
             @error('username')
                 <div class="text-red-500 text-xs px-3 mb-2 font-semibold">
@@ -131,13 +134,13 @@
             <div class="form-label-group">
                 <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
                 <input type="password" name="passwordbaru" id="passwordbaru" placeholder=" " required>
-                <label for="passwordbaru">Password Baru</label>
+                <label for="passwordbaru">Password Baru <span class="req-star">*</span></label>
             </div>
 
             <div class="form-label-group">
                 <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
                 <input type="password" name="konfirmasipassword" id="konfirmasipassword" placeholder=" " required>
-                <label for="konfirmasipassword">Konfirmasi Password</label>
+                <label for="konfirmasipassword">Konfirmasi Password <span class="req-star">*</span></label>
             </div>
 
             <div class="px-2 mb-4">

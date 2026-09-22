@@ -20,7 +20,9 @@
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('logo.png') }}" />
+    <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}" />
+    <link rel="shortcut icon" href="{{ $app_logo_url ?? asset('favicon.ico') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}" />
+    <link rel="apple-touch-icon" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}" />
 
     <!-- DNS Prefetch for external resources -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -38,9 +40,15 @@
     <!-- Tailwind & Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Helpers (Deferred to eliminate render-blocking parser pause) -->
-    <script defer src="{{ asset('/assets/vendor/js/helpers.js') }}"></script>
-    <script defer src="{{ asset('/assets/js/config.js') }}"></script>
+    <!-- Helpers & Theme Config (Must execute before core theme scripts) -->
+    <script src="{{ asset('/assets/vendor/js/helpers.js') }}"></script>
+    <script>
+        if (window.Helpers) {
+            window.Helpers.scrollToActive = function() {};
+            window.Helpers._scrollToActive = function() {};
+        }
+    </script>
+    <script src="{{ asset('/assets/js/config.js') }}"></script>
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -94,7 +102,7 @@
                 <!-- Content wrapper -->
                 <div class="content-wrapper" style="background-color: #EEF2F0;">
                     <!-- Content -->
-                    <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="container-xxl flex-grow-1 container-p-y" id="app-main-content">
                         @hasSection('navigasi')
                             <div class="mb-3">
                                 @yield('navigasi')
@@ -122,8 +130,16 @@
     </div>
     <!-- / Layout wrapper -->
 
+    <!-- Global Help Drawer (Admin Area Only) -->
+    @if(auth()->check() && !auth()->user()->hasRole('karyawan') && (auth()->user()->hasAnyRole(['admin', 'super admin', 'gm administrasi', 'admin pusat']) || auth()->user()->can('dashboard.index')))
+        @include('layouts.help_drawer')
+    @endif
+
     <!-- Core JS -->
     @include('layouts.scripts')
+
+    <!-- Global Action Loading Overlay -->
+    @include('components.global-loading')
 </body>
 
 </html>

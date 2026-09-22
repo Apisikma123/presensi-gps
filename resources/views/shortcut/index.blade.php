@@ -2,7 +2,10 @@
 @section('title', 'Semua Menu')
 
 @section('header_left')
-    <a href="{{ route('dashboard.index') }}" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition-transform">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition-transform"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
 @endsection
@@ -83,7 +86,7 @@
 
                 <a href="{{ route('presensi.histori') }}" class="menu-row">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
                             <ion-icon name="finger-print-outline" class="text-xl"></ion-icon>
                         </div>
                         <div class="flex flex-col min-w-0">

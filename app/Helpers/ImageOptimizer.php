@@ -44,8 +44,14 @@ class ImageOptimizer
             return $filenameWithoutExt . '.png';
         }
 
-        // Clean folder path (remove trailing slash)
-        $folderPath = rtrim($folderPath, '/');
+        // Clean and normalize folder path (prevent disk prefix duplication e.g. 'public/uploads' on 'public' disk)
+        $folderPath = trim($folderPath, '/');
+        if ($disk === 'public' && str_starts_with($folderPath, 'public/')) {
+            $folderPath = substr($folderPath, 7);
+        } elseif ($disk === 'private' && str_starts_with($folderPath, 'private/')) {
+            $folderPath = substr($folderPath, 8);
+        }
+
         $fileName = $filenameWithoutExt . '.webp';
         $fullPath = $folderPath ? ($folderPath . '/' . $fileName) : $fileName;
 
@@ -54,6 +60,33 @@ class ImageOptimizer
             try {
                 $image = @imagecreatefromstring($rawBinary);
                 if ($image !== false) {
+                    // Check and correct EXIF orientation (common on mobile phone camera uploads)
+                    if (function_exists('exif_read_data')) {
+                        try {
+                            $stream = fopen('php://memory', 'r+');
+                            fwrite($stream, $rawBinary);
+                            rewind($stream);
+                            $exif = @exif_read_data($stream);
+                            fclose($stream);
+
+                            if (!empty($exif['Orientation'])) {
+                                switch ($exif['Orientation']) {
+                                    case 3:
+                                        $image = imagerotate($image, 180, 0);
+                                        break;
+                                    case 6:
+                                        $image = imagerotate($image, -90, 0);
+                                        break;
+                                    case 8:
+                                        $image = imagerotate($image, 90, 0);
+                                        break;
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            // Non-fatal if EXIF cannot be parsed
+                        }
+                    }
+
                     $width = imagesx($image);
                     $height = imagesy($image);
 
@@ -75,12 +108,26 @@ class ImageOptimizer
                         imagecopyresampled($resized, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
                         imagedestroy($image);
                         $image = $resized;
+                    } else {
+                        // Even if not downscaled, ensure alpha channel is preserved for PNG/WebP transparency
+                        imagealphablending($image, false);
+                        imagesavealpha($image, true);
                     }
 
-                    // Buffer WebP output
+                    // Buffer WebP output with compression quality
                     ob_start();
                     imagewebp($image, null, $quality);
                     $webpContent = ob_get_clean();
+
+                    // Progressive compression loop if output is somehow still large (> 1.8MB)
+                    $currentQuality = $quality;
+                    while (strlen($webpContent) > 1.8 * 1024 * 1024 && $currentQuality > 30) {
+                        $currentQuality -= 15;
+                        ob_start();
+                        imagewebp($image, null, $currentQuality);
+                        $webpContent = ob_get_clean();
+                    }
+
                     imagedestroy($image);
 
                     if (!empty($webpContent)) {
@@ -93,11 +140,26 @@ class ImageOptimizer
             }
         }
 
-        // Fallback: Store raw binary with png extension
-        $fallbackName = $filenameWithoutExt . '.png';
-        $fallbackPath = $folderPath ? ($folderPath . '/' . $fallbackName) : $fallbackName;
-        Storage::disk($disk)->put($fallbackPath, $rawBinary);
+        // Fallback: Verify image validity before storing fallback
+        $imageInfo = @getimagesizefromstring($rawBinary);
+        if ($imageInfo !== false && !empty($imageInfo['mime'])) {
+            $mime = $imageInfo['mime'];
+            $ext = match ($mime) {
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/webp' => 'webp',
+                'image/gif' => 'gif',
+                default => 'webp',
+            };
 
-        return $fallbackName;
+            $fallbackName = $filenameWithoutExt . '.' . $ext;
+            $fallbackPath = $folderPath ? ($folderPath . '/' . $fallbackName) : $fallbackName;
+            Storage::disk($disk)->put($fallbackPath, $rawBinary);
+
+            return $fallbackName;
+        }
+
+        Log::warning('ImageOptimizer: Rejecting invalid non-image payload for ' . $filenameWithoutExt);
+        throw new \InvalidArgumentException('Format berkas gambar tidak valid.');
     }
 }

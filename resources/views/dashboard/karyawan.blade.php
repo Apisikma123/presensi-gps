@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
@@ -34,16 +34,31 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: {{ $t['bg_body'] ?? '#e8f0ed' }};
+            background-color: #ffffff !important;
             -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+        }
+        @media (min-width: 481px) {
+            body {
+                background-color: #f1f5f3 !important;
+            }
+        }
+        #appCapsule {
+            max-width: 480px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            min-height: 100vh;
+            background-color: #ffffff !important;
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.04);
+            position: relative;
         }
         .hero-bg {
             background-color: {{ $t['primary'] ?? '#2d5a4c' }};
-            border-bottom-left-radius: 40px;
-            border-bottom-right-radius: 40px;
+            border-bottom-left-radius: 32px;
+            border-bottom-right-radius: 32px;
             position: relative;
-            padding-bottom: 80px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             color: #ffffff !important;
         }
         .hero-bg h1,
@@ -118,39 +133,34 @@
             color: #ffffff !important;
         }
 
-        /* Avatar Enhancement */
+        /* Avatar Enhancement per DESIGN.md */
         .avatar-wrapper {
             position: relative;
-            width: 84px;
-            height: 84px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 52px;
+            height: 52px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .avatar-wrapper:active { transform: scale(0.9); }
+        .avatar-wrapper:active { transform: scale(0.92); }
         .avatar-inner {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
             overflow: hidden;
             position: relative;
             z-index: 2;
         }
         .avatar-pulse {
             position: absolute;
-            top: -4px;
-            left: -4px;
-            right: -4px;
-            bottom: -4px;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             z-index: 1;
-            animation: avatar-pulse 3s infinite;
-        }
-        @keyframes avatar-pulse {
-            0% { transform: scale(1); opacity: 0.2; }
-            50% { transform: scale(1.1); opacity: 0.1; }
-            100% { transform: scale(1); opacity: 0.2; }
         }
         .alert-cream  { background-color: #fff3cd; border: 1px solid #ffeeba; }
         .alert-danger  { background-color: #f8d7da; border: 1px solid #f5c6cb; }
@@ -225,151 +235,414 @@
             color: #334155;
             line-height: 1.1;
         }
+
+        /* =========================================================
+           DASHBOARD SPACING & CARD RHYTHM (DESIGN.md Anti-Slop)
+           ========================================================= */
+        .dashboard-hero-bg {
+            background-color: {{ $t['primary'] ?? '#1E4D3E' }};
+            border-bottom-left-radius: 32px;
+            border-bottom-right-radius: 32px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            color: #ffffff !important;
+            padding-bottom: 50px !important;
+        }
+        .dashboard-card-hero-overlap {
+            margin-top: -24px !important;
+            position: relative;
+            z-index: 10;
+        }
+        .dashboard-section-gap {
+            margin-top: 12px !important;
+        }
+        .dashboard-menu-gap {
+            margin-top: 14px !important;
+        }
+        .dashboard-history-gap {
+            margin-top: 20px !important;
+            margin-bottom: 28px !important;
+        }
+        
+        /* Swiss Precision Surface Cards (DESIGN.md) */
+        .dashboard-surface-card {
+            background: #ffffff !important;
+            border-radius: 18px !important;
+            border: 1px solid rgba(15, 23, 42, 0.08) !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03) !important;
+            transition: border-color 0.15s ease;
+        }
+
+        /* Attendance Standalone 2-Card Bento Grid */
+        .attendance-grid-wrap {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+        }
+        .attendance-card {
+            padding: 12px 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+            transition: all 0.15s ease !important;
+        }
+        .attendance-card:hover {
+            border-color: rgba(30, 77, 62, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+        }
+        .attendance-card-icon {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+        }
+        .attendance-card-icon img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        .attendance-card-icon-in {
+            background: #ECFDF5 !important;
+            border: 1px solid #A7F3D0 !important;
+            color: #059669 !important;
+            font-size: 21px !important;
+        }
+        .attendance-card-icon-out {
+            background: #FFFBEB !important;
+            border: 1px solid #FDE68A !important;
+            color: #D97706 !important;
+            font-size: 21px !important;
+        }
+        .attendance-card-info {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            min-width: 0 !important;
+            flex: 1 !important;
+        }
+        .attendance-card-label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.06em !important;
+            text-transform: uppercase !important;
+            color: #64748B !important;
+            line-height: 1 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+        .attendance-card-time-wrap {
+            display: flex !important;
+            align-items: baseline !important;
+            gap: 3px !important;
+            margin-top: 4px !important;
+        }
+        .attendance-card-time {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            color: #0F172A !important;
+            line-height: 1 !important;
+            letter-spacing: -0.02em !important;
+            font-variant-numeric: tabular-nums !important;
+            white-space: nowrap !important;
+        }
+        .attendance-card-tz {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 9px !important;
+            font-weight: 600 !important;
+            color: #94A3B8 !important;
+            line-height: 1 !important;
+        }
+
+        /* Tactile Bento Metric Cards (DESIGN.md - 100% Centered & Grounded) */
+        .rekap-metric-card {
+            background: #FAF9F8;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 13px;
+            padding: 10px 4px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+        .rekap-metric-card:hover {
+            background: #ffffff;
+            border-color: rgba(30, 77, 62, 0.2);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+        }
+        .rekap-metric-val {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 21px;
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+        }
+        .rekap-metric-lbl {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+            line-height: 1;
+        }
+
+        /* 3D Dashboard Menu Cards */
+        .dashboard-menu-card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 18px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 4px 8px;
+            height: 82px;
+            text-align: center;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none !important;
+        }
+        .dashboard-menu-card:hover {
+            border-color: rgba(30, 77, 62, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        }
+        .dashboard-menu-card:active {
+            transform: scale(0.93);
+            background: #f8fafc;
+        }
+        .dashboard-menu-card img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+            margin: 0 auto 5px auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+            transition: transform 0.15s ease;
+        }
+        .dashboard-menu-card:hover img {
+            transform: scale(1.08);
+        }
+        .dashboard-menu-card ion-icon {
+            font-size: 32px;
+            margin: 0 auto 5px auto;
+            color: #1E4D3E;
+        }
+        .dashboard-menu-card span {
+            font-family: 'Inter', sans-serif;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #334155;
+            line-height: 1.1;
+        }
     </style>
 </head>
 <body>
-    <main id="appCapsule" class="max-w-lg mx-auto min-h-screen">
+    <main id="appCapsule" class="max-w-lg mx-auto min-h-screen pb-[calc(100px+env(safe-area-inset-bottom,0px))]">
 
         {{-- ===== HERO SECTION ===== --}}
-        <div class="hero-bg px-5 pt-6 pb-14 text-white overflow-hidden relative">
+        <div class="dashboard-hero-bg px-5 pt-5 text-white overflow-hidden relative">
             {{-- Top Icons --}}
-            <div class="flex justify-between items-center mb-3 relative z-10">
-                <a href="{{ route('shortcut.index') }}" class="glass-icon relative">
-                    <ion-icon name="grid-outline" style="font-size:24px;"></ion-icon>
+            <div class="flex justify-between items-center mb-4 relative z-10">
+                <a href="{{ route('shortcut.index') }}" class="glass-icon relative" title="Menu Cepat">
+                    <ion-icon name="grid-outline" style="font-size:22px;"></ion-icon>
                 </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="glass-icon">
-                        <ion-icon name="exit-outline" style="font-size:24px;"></ion-icon>
+                    <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="glass-icon" title="Keluar">
+                        <ion-icon name="exit-outline" style="font-size:22px;"></ion-icon>
                     </a>
                 </form>
             </div>
 
-            {{-- User Row --}}
-            <div class="flex justify-between items-start mb-0 relative z-10">
-                {{-- Left: Name --}}
-                <div class="fade-in" style="animation-delay:.05s">
-                    <h3 style="font-size:20px; font-weight:800; line-height:1.1; color:#ffffff !important;">{{ $karyawan->nama_karyawan }}</h3>
-                    <span style="font-size:13px; font-weight:400; opacity:.85; display:block; margin-top:2px; color:#ffffff !important;">{{ $karyawan->nama_jabatan }} ({{ $karyawan->nama_dept }})</span>
+            {{-- User Row (Spacious & Cleanly Aligned) --}}
+            <div class="flex justify-between items-center mb-5 relative z-10">
+                {{-- Left: Name & Role --}}
+                <div class="fade-in pr-3 min-w-0" style="animation-delay:.05s">
+                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 21px; font-weight: 800; line-height: 1.2; color: #ffffff !important; letter-spacing: -0.01em; margin: 0;" class="truncate">{{ $karyawan->nama_karyawan }}</h3>
+                    <span style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; opacity: .88; display: block; margin-top: 4px; color: #ffffff !important;" class="truncate">{{ $karyawan->nama_jabatan }} &bull; {{ $karyawan->nama_dept }}</span>
                 </div>
                 {{-- Right: Avatar --}}
-                <a href="{{ route('profile.index') }}" class="fade-in group" style="animation-delay:.1s">
+                <a href="{{ route('profile.index') }}" class="fade-in group shrink-0" style="animation-delay:.1s">
                     <div class="avatar-wrapper">
                         <div class="avatar-pulse"></div>
                         <div class="avatar-inner">
                             @if (!empty($karyawan->foto) && Storage::disk('public')->exists('/karyawan/' . $karyawan->foto))
                                 <div style="width:100%; height:100%; background-image:url({{ getfotoKaryawan($karyawan->foto) }}); background-size:cover; background-position:center;"></div>
                             @else
-                                <img src="{{ asset('assets/template/img/sample/avatar/avatar1.jpg') }}" style="width:100%; height:100%; object-fit:cover;">
+                                <div class="w-full h-full flex items-center justify-center font-bold text-[15px] text-emerald-950 bg-emerald-100 font-mono tracking-wider">
+                                    {{ strtoupper(substr(trim($karyawan->nama_karyawan), 0, 2)) }}
+                                </div>
                             @endif
                         </div>
                     </div>
                 </a>
             </div>
 
-            {{-- Clock --}}
-            <div class="text-center mt-0 mb-4 fade-in relative z-10" style="animation-delay:.15s">
-                <h2 id="jam" style="font-size:44px; font-weight:900; letter-spacing:-2px; line-height:1; margin-bottom:6px; color:#ffffff !important;">0:00:00</h2>
-                <span style="font-size:14px; font-weight:400; opacity:.9; color:#ffffff !important;">Hari ini : {{ getNamaHari(date('D')) }}, {{ DateToIndo(date('Y-m-d')) }}</span>
+            {{-- Clock Section (Harmonized Vertical Spacing) --}}
+            <div class="text-center mt-2 mb-2 pb-0 fade-in relative z-10" style="animation-delay:.15s">
+                <h2 id="jam" style="font-family: 'JetBrains Mono', monospace; font-size: 38px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 10px; color: #ffffff !important; font-variant-numeric: tabular-nums;">0:00:00</h2>
+                <div style="display: inline-flex; align-items: center; justify-content: center;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 9999px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);">
+                        <ion-icon name="calendar-outline" style="font-size: 13px; opacity: 0.9; color: #ffffff;"></ion-icon>
+                        <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: #ffffff !important; letter-spacing: 0.15px;">
+                            {{ getNamaHari(date('D')) }}, {{ DateToIndo(date('Y-m-d')) }}
+                        </span>
+                        @if (!empty($hari_libur_hari_ini))
+                            <span style="margin-left: 4px; padding: 1px 7px; border-radius: 6px; font-size: 9.5px; font-weight: 700; font-family: 'JetBrains Mono', monospace; background: rgba(239, 68, 68, 0.9); color: #ffffff !important; text-transform: uppercase;">
+                                Libur
+                            </span>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
-        {{-- ===== SHIFT INFO CARD ===== --}}
-        <div style="margin-top:-60px; padding:0 20px; position:relative; z-index:10;">
-            <div class="bg-white rounded-[15px] p-3 shadow-md border border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-[42px] h-[42px] rounded-xl flex items-center justify-center text-white" style="background: {{ $t['primary'] ?? '#1E4D3E' }};">
-                        <ion-icon name="time-outline" style="font-size:24px;"></ion-icon>
+        {{-- ===== SHIFT / SCHEDULE CARD (STANDALONE) ===== --}}
+        <div class="px-4 dashboard-card-hero-overlap fade-in" style="animation-delay:.15s">
+            <div class="dashboard-surface-card p-3.5 flex items-center justify-between gap-3">
+                @if (!empty($hari_libur_hari_ini))
+                    {{-- Operational Holiday Header --}}
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: #ECFDF5; border: 1px solid #A7F3D0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <ion-icon name="calendar-outline" style="font-size: 20px; color: #047857;"></ion-icon>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-emerald-800 font-sans leading-none">Hari Libur / OFF</span>
+                            <span class="block text-[13.5px] font-bold text-slate-900 truncate mt-1" style="font-family: 'Outfit', sans-serif;">{{ $hari_libur_hari_ini->keterangan }}</span>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Shift Hari Ini</div>
-                        <div class="text-[14px] font-bold text-slate-800">{{ $karyawan->nama_jam_kerja ?? 'Shift Pagi (07:00)' }}</div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-bold {{ !empty($presensi->jam_in) ? 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }} shrink-0 whitespace-nowrap">
+                        <span class="w-1.5 h-1.5 rounded-full {{ !empty($presensi->jam_in) ? 'bg-[#16a34a]' : 'bg-emerald-600' }}"></span>
+                        {{ !empty($presensi->jam_in) ? 'Sudah Absen' : 'Bebas Absen' }}
+                    </span>
+                @else
+                    {{-- Normal Shift Header (P1-3: Shift + Cabang Tugas) --}}
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: {{ $t['primary'] ?? '#1E4D3E' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;">
+                            <ion-icon name="time-outline" style="font-size: 20px; color: #ffffff;"></ion-icon>
+                        </div>
+                        <div class="min-w-0">
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 font-sans leading-none">Shift Hari Ini</span>
+                            <span class="block text-[13.5px] font-bold text-slate-900 truncate mt-1" style="font-family: 'Outfit', sans-serif;">
+                                {{ ($karyawan->nama_jam_kerja ?? 'Shift Pagi') . (!empty($nama_cabang_tugas) ? ' • ' . $nama_cabang_tugas : '') }}
+                            </span>
+                            @if (!empty($karyawan->jam_masuk) && !empty($karyawan->jam_pulang))
+                                <span class="block text-[11px] font-semibold text-slate-500 font-mono mt-0.5">
+                                    {{ date('H:i', strtotime($karyawan->jam_masuk)) }} - {{ date('H:i', strtotime($karyawan->jam_pulang)) }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-bold shrink-0 whitespace-nowrap {{ !empty($presensi->jam_in) ? 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]' : 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]' }}">
+                        <span class="w-1.5 h-1.5 rounded-full {{ !empty($presensi->jam_in) ? 'bg-[#16a34a]' : 'bg-[#d97706]' }}"></span>
+                        {{ !empty($presensi->jam_in) ? 'Sudah Absen' : 'Belum Absen' }}
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        {{-- ===== ATTENDANCE CLOCK IN / OUT CARDS (STANDALONE 2-CARD BENTO GRID) ===== --}}
+        <div class="px-4 dashboard-section-gap attendance-grid-wrap fade-in" style="animation-delay:.18s">
+            {{-- Jam Masuk Card --}}
+            <div class="dashboard-surface-card attendance-card">
+                <div class="attendance-card-icon attendance-card-icon-in">
+                    @if (!empty($presensi->foto_in) && Storage::disk('public')->exists('/uploads/absensi/' . $presensi->foto_in))
+                        <img src="{{ url('/storage/uploads/absensi/' . $presensi->foto_in) }}" alt="Foto Masuk">
+                    @else
+                        <ion-icon name="log-in-outline"></ion-icon>
+                    @endif
+                </div>
+                <div class="attendance-card-info">
+                    <span class="attendance-card-label">Jam Masuk</span>
+                    <div class="attendance-card-time-wrap">
+                        <span class="attendance-card-time">
+                            {{ !empty($presensi->jam_in) ? date('H:i', strtotime($presensi->jam_in)) : '-- : --' }}
+                        </span>
+                        @if(!empty($presensi->jam_in))
+                            <span class="attendance-card-tz">WIB</span>
+                        @endif
                     </div>
                 </div>
-                <div class="text-right">
-                    <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold font-mono {{ !empty($presensi->jam_in) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
-                        {{ !empty($presensi->jam_in) ? 'Sudah Absen Masuk' : 'Belum Absen Masuk' }}
+            </div>
+
+            {{-- Jam Pulang Card --}}
+            <div class="dashboard-surface-card attendance-card">
+                <div class="attendance-card-icon attendance-card-icon-out">
+                    @if (!empty($presensi->foto_out) && Storage::disk('public')->exists('/uploads/absensi/' . $presensi->foto_out))
+                        <img src="{{ url('/storage/uploads/absensi/' . $presensi->foto_out) }}" alt="Foto Pulang">
+                    @else
+                        <ion-icon name="log-out-outline"></ion-icon>
+                    @endif
+                </div>
+                <div class="attendance-card-info">
+                    <span class="attendance-card-label">Jam Pulang</span>
+                    <div class="attendance-card-time-wrap">
+                        <span class="attendance-card-time">
+                            {{ !empty($presensi->jam_out) ? date('H:i', strtotime($presensi->jam_out)) : '-- : --' }}
+                        </span>
+                        @if(!empty($presensi->jam_out))
+                            <span class="attendance-card-tz">WIB</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== REKAP PRESENSI BULAN INI ===== --}}
+        <div class="px-4 dashboard-section-gap fade-in" style="animation-delay:.2s">
+            <div class="dashboard-surface-card p-3.5 sm:p-4">
+                <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <h4 class="text-[13px] font-bold text-slate-800 tracking-tight m-0" style="font-family: 'Outfit', sans-serif;">
+                            Rekap Presensi Bulan {{ $bulan_skrg }}
+                        </h4>
+                    </div>
+                    <span class="text-[10.5px] font-semibold text-slate-400 font-mono">
+                        {{ date('H:i') }} WIB
                     </span>
                 </div>
-            </div>
-        </div>
 
-        {{-- ===== ATTENDANCE SECTION ===== --}}
-        <div class="px-5 mt-3 fade-in" style="animation-delay:.2s">
-            <div class="bg-white rounded-[15px] py-6 px-5 shadow-sm border border-gray-100 flex items-center">
-                {{-- Jam Masuk --}}
-                <div class="flex-1 flex items-center gap-3">
-                    <div class="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden bg-gray-50 border border-gray-100">
-                        @if (!empty($presensi->foto_in) && Storage::disk('public')->exists('/uploads/absensi/' . $presensi->foto_in))
-                            <img src="{{ url('/storage/uploads/absensi/' . $presensi->foto_in) }}" style="width:100%; height:100%; object-fit:cover;">
-                        @else
-                            <ion-icon name="camera-outline" style="font-size:32px; color: {{ $t['primary'] ?? '#2d5a4c' }}; grayscale: 0.2;"></ion-icon>
-                        @endif
-                    </div>
-                    <div>
-                        <span class="block text-[14px] font-bold text-gray-800" style="letter-spacing:-0.2px; line-height: 1.2;">Jam Masuk</span>
-                        <span class="block text-[16px] font-bold text-gray-400 mt-1" style="letter-spacing: 1px;">{{ !empty($presensi->jam_in) ? date('H:i', strtotime($presensi->jam_in)) : '-- : --' }}</span>
-                    </div>
-                </div>
-
-                {{-- Vertical Separator --}}
-                <div class="w-[1.5px] h-[35px] bg-gray-100 mx-2"></div>
-
-                {{-- Jam Pulang --}}
-                <div class="flex-1 flex items-center gap-3 pl-4">
-                    <div class="flex items-center justify-center w-[40px] h-[40px] rounded-full overflow-hidden bg-gray-50 border border-gray-100">
-                        @if (!empty($presensi->foto_out) && Storage::disk('public')->exists('/uploads/absensi/' . $presensi->foto_out))
-                            <img src="{{ url('/storage/uploads/absensi/' . $presensi->foto_out) }}" style="width:100%; height:100%; object-fit:cover;">
-                        @else
-                            <ion-icon name="camera-outline" style="font-size:32px; color: {{ $t['primary'] ?? '#2d5a4c' }}; grayscale: 0.2;"></ion-icon>
-                        @endif
-                    </div>
-                    <div>
-                        <span class="block text-[14px] font-bold text-gray-800" style="letter-spacing:-0.2px; line-height: 1.2;">Jam Pulang</span>
-                        <span class="block text-[16px] font-bold text-gray-400 mt-1" style="letter-spacing: 1px;">{{ !empty($presensi->jam_out) ? date('H:i', strtotime($presensi->jam_out)) : '-- : --' }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- ===== ATTENDANCE RECAP SECTION ===== --}}
-        <div class="px-5 mt-3 fade-in" style="animation-delay:.25s">
-            <div class="bg-white rounded-[15px] py-3 shadow-sm border border-gray-100 text-center">
-                <h4 style="font-size:15px; font-weight:700; color:#444; margin-bottom:2px; letter-spacing:-0.2px;">Rekap Presensi Bulan {{ $bulan_skrg }}</h4>
-                <span style="font-size:12px; font-weight:400; color:#999; display:block; margin-bottom:8px;">Update Terakhir: {{ date('H:i') }} WIB</span>
-
-                <div class="flex items-center">
+                {{-- DESIGN.md Tactile Bento Metric Cells (100% Centered & Responsive) --}}
+                <div class="grid grid-cols-4 gap-2">
                     {{-- Hadir --}}
-                    <div class="flex-1">
-                        <span class="block text-[28px] font-bold" style="color: {{ $t['primary'] ?? '#2d5a4c' }}; line-height: 1.1;">{{ $rekappresensi->hadir ?? 0 }}</span>
-                        <span class="block text-[12px] font-normal text-gray-400 mt-1">Hadir</span>
+                    <div class="rekap-metric-card">
+                        <span class="rekap-metric-val text-emerald-700">{{ $rekappresensi->hadir ?? 0 }}</span>
+                        <span class="rekap-metric-lbl">Hadir</span>
                     </div>
-
-                    {{-- Separator --}}
-                    <div class="w-[1px] h-[40px] bg-gray-100"></div>
 
                     {{-- Sakit --}}
-                    <div class="flex-1">
-                        <span class="block text-[28px] font-bold" style="color: #ff9800; line-height: 1.1;">{{ $rekappresensi->sakit ?? 0 }}</span>
-                        <span class="block text-[12px] font-normal text-gray-400 mt-1">Sakit</span>
+                    <div class="rekap-metric-card">
+                        <span class="rekap-metric-val text-amber-600">{{ $rekappresensi->sakit ?? 0 }}</span>
+                        <span class="rekap-metric-lbl">Sakit</span>
                     </div>
-
-                    {{-- Separator --}}
-                    <div class="w-[1px] h-[40px] bg-gray-100"></div>
 
                     {{-- Izin --}}
-                    <div class="flex-1">
-                        <span class="block text-[28px] font-bold" style="color: #2196f3; line-height: 1.1;">{{ $rekappresensi->izin ?? 0 }}</span>
-                        <span class="block text-[12px] font-normal text-gray-400 mt-1">Izin</span>
+                    <div class="rekap-metric-card">
+                        <span class="rekap-metric-val text-sky-600">{{ $rekappresensi->izin ?? 0 }}</span>
+                        <span class="rekap-metric-lbl">Izin</span>
                     </div>
 
-                    {{-- Separator --}}
-                    <div class="w-[1px] h-[40px] bg-gray-100"></div>
-
                     {{-- Cuti --}}
-                    <div class="flex-1">
-                        <span class="block text-[28px] font-bold" style="color: #ff5252; line-height: 1.1;">{{ $rekappresensi->cuti ?? 0 }}</span>
-                        <span class="block text-[12px] font-normal text-gray-400 mt-1">Cuti</span>
+                    <div class="rekap-metric-card">
+                        <span class="rekap-metric-val text-rose-600">{{ $rekappresensi->cuti ?? 0 }}</span>
+                        <span class="rekap-metric-lbl">Cuti</span>
                     </div>
                 </div>
             </div>
@@ -377,8 +650,6 @@
 
 
         @php
-            $scheme = $general_setting?->mobile_theme_scheme ?? 'green';
-            
             $quickMenus = [
                 [
                     'href' => route('facerecognition.karyawan.create'),
@@ -409,19 +680,16 @@
                     'id' => null,
                 ],
             ];
-
-            $menuCount = count($quickMenus);
-            $gridColsClass = "grid-cols-4";
         @endphp
         {{-- ===== MENU GRID ===== --}}
-        <div class="px-4 mt-4 fade-in" style="animation-delay:.3s">
-            <div class="grid {{ $gridColsClass }} gap-2">
+        <div class="px-4 dashboard-menu-gap fade-in" style="animation-delay:.25s">
+            <div class="grid grid-cols-4 gap-2.5">
                 @foreach ($quickMenus as $menu)
                     <a href="{{ $menu['href'] }}" @if(!empty($menu['id'])) id="{{ $menu['id'] }}" @endif class="dashboard-menu-card">
-                        @if ($scheme == 'green' && !empty($menu['img']))
+                        @if (!empty($menu['img']))
                             <img src="{{ asset($menu['img']) }}" alt="{{ $menu['title'] }}">
                         @else
-                            <ion-icon name="{{ $menu['icon'] }}" style="color: {{ $t['primary'] ?? '#1E4D3E' }};"></ion-icon>
+                            <ion-icon name="{{ $menu['icon'] }}"></ion-icon>
                         @endif
                         <span>{{ $menu['title'] }}</span>
                     </a>
@@ -430,9 +698,9 @@
         </div>
 
         {{-- ===== HISTORY LIST ===== --}}
-        <div class="px-3 mt-5" style="margin-bottom:30px;">
+        <div class="px-3 dashboard-history-gap">
             <div class="flex items-center justify-between mb-3 px-1">
-                <span class="text-[13px] font-bold text-slate-700">30 Hari Terakhir</span>
+                <span class="text-[13px] font-bold text-slate-700">3 Hari Terakhir</span>
                 <a href="{{ route('presensi.histori') }}" class="text-[12px] font-medium text-emerald-600 hover:text-emerald-700">Lihat Semua</a>
             </div>
 
@@ -579,7 +847,8 @@
                 @endforeach
             </div>
 
-
+            {{-- Extra spacer so the last card is never hidden behind bottom nav --}}
+            <div style="height: calc(100px + env(safe-area-inset-bottom, 0px)); width: 100%;"></div>
         </div>
 
         </div>
@@ -596,26 +865,28 @@
                         <button onclick="hideBirthday()" class="absolute top-4 right-4 text-white/50 hover:text-white">
                             <ion-icon name="close-circle-outline" style="font-size:28px;"></ion-icon>
                         </button>
-                        <div class="mb-6 animate-bounce">
-                            <span style="font-size:70px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));">🎂</span>
+                        <div class="mb-5 flex items-center justify-center">
+                            <div class="w-20 h-20 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-white">
+                                <ion-icon name="ribbon-outline" style="font-size: 42px;"></ion-icon>
+                            </div>
                         </div>
-                        <h2 class="text-2xl font-extrabold text-white mb-1">Selamat Ulang Tahun!</h2>
-                        <h3 class="text-xl font-bold text-white/90 mb-4">{{ $karyawan->nama_karyawan }}</h3>
+                        <h2 class="text-2xl font-bold text-white mb-1" style="font-family: 'Outfit', sans-serif;">Selamat Ulang Tahun</h2>
+                        <h3 class="text-lg font-semibold text-white/90 mb-3">{{ $karyawan->nama_karyawan }}</h3>
                         @if ($umur)
-                            <p class="text-white/80 mb-6 leading-relaxed text-sm">Selamat ulang tahun yang ke-<strong class="text-white">{{ $umur }}</strong> tahun! Semoga sukses dan bahagia selalu. 🎊</p>
+                            <p class="text-white/80 mb-5 leading-relaxed text-sm">Selamat ulang tahun yang ke-<strong class="text-white">{{ $umur }}</strong> tahun. Semoga sehat, sukses, dan berkah selalu.</p>
                         @endif
-                        <div class="flex flex-col gap-2 mb-8 text-left max-w-[240px] mx-auto bg-white/10 p-4 rounded-2xl">
+                        <div class="flex flex-col gap-2 mb-6 text-left max-w-[240px] mx-auto bg-white/10 p-3.5 rounded-xl border border-white/10">
                             <div class="flex items-center gap-2 text-white">
-                                <ion-icon name="sparkles" class="text-yellow-300"></ion-icon>
-                                <span class="text-xs">Panjang umur & sehat selalu</span>
+                                <ion-icon name="checkmark-circle" class="text-emerald-300"></ion-icon>
+                                <span class="text-xs">Kesehatan & kebahagiaan</span>
                             </div>
                             <div class="flex items-center gap-2 text-white">
-                                <ion-icon name="sparkles" class="text-yellow-300"></ion-icon>
-                                <span class="text-xs">Sukses dalam karir & rezeki</span>
+                                <ion-icon name="checkmark-circle" class="text-emerald-300"></ion-icon>
+                                <span class="text-xs">Dedikasi & kesuksesan karir</span>
                             </div>
                         </div>
-                        <button onclick="hideBirthday()" class="w-full py-3 rounded-full bg-white text-{{ $t['primary'] ?? '#2d5a4c' }} font-bold shadow-lg transition-all active:scale-95">
-                            Terima Kasih! 🙏
+                        <button onclick="hideBirthday()" class="w-full py-3 rounded-xl bg-white text-slate-800 font-bold shadow-md transition-all active:scale-95">
+                            Tutup
                         </button>
                     </div>
                 </div>
@@ -657,14 +928,14 @@
                             <p id="modalKeterangan" class="text-sm text-gray-500 mt-1"></p>
                         </div>
 
-                        <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-indigo-50 border border-indigo-100 hidden">
+                        <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 hidden">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-[#1E4D3E] flex items-center justify-center text-white shrink-0">
                                     <ion-icon name="finger-print" style="font-size:20px;"></ion-icon>
                                 </div>
                                 <div>
-                                    <span class="block text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Fingerprint Machine</span>
-                                    <span id="modalNamaMesin" class="text-sm font-bold text-indigo-900"></span>
+                                    <span class="block text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Fingerprint Machine</span>
+                                    <span id="modalNamaMesin" class="text-sm font-bold text-slate-900"></span>
                                 </div>
                             </div>
                         </div>
@@ -706,7 +977,6 @@
     </main>
 
     {{-- ===== BOTTOM NAV ===== --}}
-    <div style="height: 100px;"></div>
     @include('layouts.mobile.bottomNav')
 
     {{-- ===== SCRIPTS ===== --}}
@@ -867,6 +1137,7 @@
             });
         </script>
     @endif
+
     </div>
 </body>
 </html>

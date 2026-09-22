@@ -3,7 +3,10 @@
 @section('title', 'Buat Izin Absen')
 
 @section('header_left')
-    <a href="{{ route('pengajuanizin.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('pengajuanizin.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-lg"></ion-icon>
     </a>
 @endsection
@@ -15,7 +18,7 @@
         }
 
         .form-container {
-            padding: 10px 5px;
+            padding: 10px 5px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .form-label-group {
@@ -116,26 +119,26 @@
 
             <div class="form-label-group">
                 <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-                <input type="text" name="dari" id="dari" placeholder=" " required readonly>
-                <label for="dari">Dari Tanggal</label>
+                <input type="text" name="dari" id="dari" value="{{ old('dari') }}" placeholder=" " required readonly>
+                <label for="dari">Dari Tanggal <span class="req-star">*</span></label>
             </div>
 
             <div class="form-label-group">
                 <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-                <input type="text" name="sampai" id="sampai" placeholder=" " required readonly>
-                <label for="sampai">Sampai Tanggal</label>
+                <input type="text" name="sampai" id="sampai" value="{{ old('sampai') }}" placeholder=" " required readonly>
+                <label for="sampai">Sampai Tanggal <span class="req-star">*</span></label>
             </div>
 
             <div class="form-label-group">
                 <ion-icon name="calculator-outline" class="input-icon"></ion-icon>
-                <input type="text" name="jml_hari" id="jml_hari" placeholder=" " readonly>
-                <label for="jml_hari">Jumlah Hari</label>
+                <input type="text" name="jml_hari" id="jml_hari" value="{{ old('jml_hari') }}" placeholder=" " readonly>
+                <label for="jml_hari">Jumlah Hari <span class="auto-tag">(Otomatis)</span></label>
             </div>
 
             <div class="form-label-group">
                 <ion-icon name="document-text-outline" class="input-icon"></ion-icon>
-                <textarea name="keterangan" id="keterangan" placeholder=" " required></textarea>
-                <label for="keterangan">Keterangan</label>
+                <textarea name="keterangan" id="keterangan" placeholder=" " required>{{ old('keterangan') }}</textarea>
+                <label for="keterangan">Keterangan Izin <span class="req-star">*</span></label>
             </div>
 
             <button type="submit" class="btn-submit-modern" id="btnSimpan">
@@ -165,16 +168,50 @@
 
             const batasi_hari_izin = "{{ $general_setting->batasi_hari_izin ?? 0 }}";
             const jml_hari_izin_max = "{{ $general_setting->jml_hari_izin_max ?? 0 }}";
+            const sistem_hari_kerja = "{{ $general_setting->sistem_hari_kerja ?? '6' }}";
+
+            let hitungHariTimeout = null;
+            function updateHitungHari(startDate, endDate) {
+                if (!startDate || !endDate) {
+                    const el = document.getElementById('jml_hari');
+                    if (el) el.value = 0;
+                    return;
+                }
+                clearTimeout(hitungHariTimeout);
+                hitungHariTimeout = setTimeout(function() {
+                    $.ajax({
+                        url: "{{ route('cuti.hitungHariAjax') }}",
+                        type: 'GET',
+                        data: { dari: startDate, sampai: endDate },
+                        success: function(res) {
+                            if (res && res.success) {
+                                const el = document.getElementById('jml_hari');
+                                if (el) el.value = res.jumlah_hari;
+                            }
+                        },
+                        error: function() {
+                            var start = new Date(startDate + 'T00:00:00');
+                            var end = new Date(endDate + 'T00:00:00');
+                            if (end >= start) {
+                                var count = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                                const el = document.getElementById('jml_hari');
+                                if (el) el.value = count;
+                            }
+                        }
+                    });
+                }, 150);
+            }
 
             function hitungHari(startDate, endDate) {
-                if (startDate && endDate) {
-                    var start = new Date(startDate);
-                    var end = new Date(endDate);
-                    var timeDifference = end - start + (1000 * 3600 * 24);
-                    var dayDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
-                    return dayDifference > 0 ? dayDifference : 0;
-                }
-                return 0;
+                updateHitungHari(startDate, endDate);
+                return parseInt(document.getElementById('jml_hari')?.value || 0);
+            }
+
+            // Inisialisasi hitung hari jika ada value dari old()
+            const initDari = document.getElementById('dari').value;
+            const initSampai = document.getElementById('sampai').value;
+            if (initDari && initSampai) {
+                updateHitungHari(initDari, initSampai);
             }
 
             const btnToday = {
@@ -194,8 +231,7 @@
                 buttons: [btnToday, 'clear'],
                 onSelect: ({date, formattedDate}) => {
                     let sampai = document.getElementById('sampai').value;
-                    let jmlhari = hitungHari(formattedDate, sampai);
-                    document.getElementById('jml_hari').value = jmlhari;
+                    updateHitungHari(formattedDate, sampai);
                 }
             });
 
@@ -206,8 +242,7 @@
                 buttons: [btnToday, 'clear'],
                 onSelect: ({date, formattedDate}) => {
                     let dari = document.getElementById('dari').value;
-                    let jmlhari = hitungHari(dari, formattedDate);
-                    document.getElementById('jml_hari').value = jmlhari;
+                    updateHitungHari(dari, formattedDate);
                 }
             });
 
@@ -220,31 +255,75 @@
 
                 if (!dari || !sampai) {
                     e.preventDefault();
+                    if (typeof window.hideGlobalLoading === 'function') window.hideGlobalLoading();
                     Swal.fire({ title: "Oops!", text: 'Periode Izin Harus Diisi !', icon: "warning" });
                     return;
                 }
 
                 if (new Date(sampai) < new Date(dari)) {
                     e.preventDefault();
+                    if (typeof window.hideGlobalLoading === 'function') window.hideGlobalLoading();
                     Swal.fire({ title: "Oops!", text: 'Periode Izin Tidak Valid !', icon: "warning" });
                     return;
                 }
 
                 if (batasi_hari_izin == 1 && jml_hari > jml_hari_izin_max) {
                     e.preventDefault();
+                    if (typeof window.hideGlobalLoading === 'function') window.hideGlobalLoading();
                     Swal.fire({ title: "Oops!", text: 'Maksimal Izin ' + jml_hari_izin_max + ' Hari !', icon: "warning" });
                     return;
                 }
 
                 if (!keterangan.trim()) {
                     e.preventDefault();
+                    if (typeof window.hideGlobalLoading === 'function') window.hideGlobalLoading();
                     Swal.fire({ title: "Oops!", text: 'Keterangan Harus Diisi !', icon: "warning" });
                     return;
                 }
 
+                e.preventDefault();
                 const btn = document.getElementById('btnSimpan');
-                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
                 btn.innerHTML = `<ion-icon name="sync-outline" class="animate-spin"></ion-icon><span>Memproses...</span>`;
+
+                const formData = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Gagal menyimpan pengajuan izin');
+                    }
+                    if (typeof window.hideGlobalLoading === 'function') window.hideGlobalLoading();
+                    Swal.fire({
+                        title: 'Berhasil Diajukan!',
+                        text: data.message || 'Pengajuan izin Anda telah berhasil dikirim.',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: true,
+                        customClass: { popup: 'modern-swal-popup' }
+                    }).then(() => {
+                        window.location.href = "{{ route('pengajuanizin.index') }}";
+                    });
+                })
+                .catch((error) => {
+                    if (typeof window.hideGlobalLoading === 'function') window.hideGlobalLoading();
+                    btn.style.pointerEvents = 'auto';
+                    btn.innerHTML = `<span>Kirim Pengajuan</span><ion-icon name="send-outline"></ion-icon>`;
+                    Swal.fire({
+                        title: 'Oops!',
+                        text: error.message,
+                        icon: 'error',
+                        confirmButtonColor: '{{ $t['primary'] ?? '#1E4D3E' }}'
+                    });
+                });
             });
         });
     </script>

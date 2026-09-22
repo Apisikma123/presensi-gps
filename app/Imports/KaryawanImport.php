@@ -25,31 +25,20 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
         return new Karyawan([
             'nik' => $nik,
             'nik_show' => $row['nik'], // NIK dari Excel masuk ke nik_show
-            'no_ktp' => $row['no_ktp'],
-            'npwp' => $row['npwp'] ?? null,
             'nama_karyawan' => $row['nama_karyawan'],
-            'tempat_lahir' => $row['tempat_lahir'],
-            'tanggal_lahir' => $this->convertDate($row['tanggal_lahir']),
-            'alamat' => $row['alamat'],
-            'alamat_sesuai_ktp' => $row['alamat_sesuai_ktp'] ?? null,
-            'no_hp' => $row['no_hp'],
+            'alamat' => $row['alamat'] ?? '-',
+            'no_hp' => $row['no_hp'] ?? null,
             'jenis_kelamin' => $row['jenis_kelamin'],
-            'kode_status_kawin' => $row['kode_status_kawin'],
-            'pendidikan_terakhir' => $row['pendidikan_terakhir'],
-            'jurusan' => $row['jurusan'] ?? null,
             'kode_cabang' => $row['kode_cabang'],
             'kode_dept' => $row['kode_dept'],
             'kode_jabatan' => $row['kode_jabatan'],
+            'kode_jam_kerja' => !empty($row['kode_jam_kerja']) ? $row['kode_jam_kerja'] : 'JK01',
             'tanggal_masuk' => $this->convertDate($row['tanggal_masuk']),
-            'status_karyawan' => $row['status_karyawan'],
-            'kode_jadwal' => null,
-            'pin' => null,
-            'tanggal_nonaktif' => null,
-            'tanggal_off_gaji' => null,
-            'lock_location' => 1,
+            'status_karyawan' => $row['status_karyawan'] ?? 'T',
+            'lock_location' => 0,
             'lock_jam_kerja' => 1,
             'status_aktif_karyawan' => $row['status_aktif_karyawan'] ?? 1,
-            'password' => bcrypt('12345')
+            'password' => bcrypt(\Illuminate\Support\Str::password(12, numbers: true, symbols: false))
         ]);
     }
 
@@ -126,14 +115,7 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
         $requiredFields = [
             'nik',
             'nama_karyawan',
-            'no_ktp',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'alamat',
-            'no_hp',
             'jenis_kelamin',
-            'kode_status_kawin',
-            'pendidikan_terakhir',
             'kode_cabang',
             'kode_dept',
             'kode_jabatan',
@@ -178,21 +160,29 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
 
     public function rules(): array
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $cabangRule = ['required', 'exists:cabang,kode_cabang'];
+        $deptRule = ['required', 'exists:departemen,kode_dept'];
+
+        if ($user && !$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepts = $user->getDepartemenCodes();
+            $cabangRule[] = Rule::in(!empty($userCabangs) ? $userCabangs : ['INVALID']);
+            $deptRule[] = Rule::in(!empty($userDepts) ? $userDepts : ['INVALID']);
+        }
+
         return [
-            'nik' => ['required', 'unique:karyawan,nik_show'], // Validasi nik_show untuk uniqueness
-            'no_ktp' => 'required',
+            'nik' => ['required', 'unique:karyawan,nik_show'],
             'nama_karyawan' => 'required',
-            'tempat_lahir' => 'required',
-            'tanggal_lahir' => 'required', // Hapus validasi date, biarkan convertDate handle
-            'alamat' => 'required',
-            'no_hp' => 'required',
+            'no_hp' => 'nullable',
             'jenis_kelamin' => 'required|in:L,P',
-            'kode_status_kawin' => 'required|exists:status_kawin,kode_status_kawin',
-            'pendidikan_terakhir' => 'required',
-            'kode_cabang' => 'required|exists:cabang,kode_cabang',
-            'kode_dept' => 'required|exists:departemen,kode_dept',
+            'alamat' => 'nullable',
+            'kode_cabang' => $cabangRule,
+            'kode_dept' => $deptRule,
             'kode_jabatan' => 'required|exists:jabatan,kode_jabatan',
-            'tanggal_masuk' => 'required', // Hapus validasi date, biarkan convertDate handle
+            'kode_jam_kerja' => 'nullable|exists:presensi_jamkerja,kode_jam_kerja',
+            'tanggal_masuk' => 'required',
             'status_karyawan' => 'required',
             'status_aktif_karyawan' => 'nullable|in:0,1'
         ];
@@ -201,19 +191,13 @@ class KaryawanImport implements ToModel, WithHeadingRow, WithValidation
     public function customValidationMessages()
     {
         return [
+            'kode_cabang.in' => 'Anda tidak memiliki hak akses untuk mengimpor karyawan ke cabang tersebut',
+            'kode_dept.in' => 'Anda tidak memiliki hak akses untuk mengimpor karyawan ke departemen tersebut',
             'nik.required' => 'NIK harus diisi',
             'nik.unique' => 'NIK sudah terdaftar di sistem',
-            'no_ktp.required' => 'No KTP harus diisi',
             'nama_karyawan.required' => 'Nama karyawan harus diisi',
-            'tempat_lahir.required' => 'Tempat lahir harus diisi',
-            'tanggal_lahir.required' => 'Tanggal lahir harus diisi',
-            'alamat.required' => 'Alamat harus diisi',
-            'no_hp.required' => 'No HP harus diisi',
             'jenis_kelamin.required' => 'Jenis kelamin harus diisi',
             'jenis_kelamin.in' => 'Jenis kelamin harus L atau P',
-            'kode_status_kawin.required' => 'Kode status kawin harus diisi',
-            'kode_status_kawin.exists' => 'Kode status kawin tidak valid',
-            'pendidikan_terakhir.required' => 'Pendidikan terakhir harus diisi',
             'kode_cabang.required' => 'Kode cabang harus diisi',
             'kode_cabang.exists' => 'Kode cabang tidak valid',
             'kode_dept.required' => 'Kode departemen harus diisi',

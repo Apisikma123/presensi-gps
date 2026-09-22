@@ -51,9 +51,12 @@ class Globalprovider extends ServiceProvider
             });
             View::share('app_logo_url', $logoPath ? asset($logoPath) : null);
 
+            $themePrimary = !empty($settings?->theme_color_1) ? $settings->theme_color_1 : '#1E4D3E';
+            $themeSecondary = !empty($settings?->theme_color_2) ? $settings->theme_color_2 : '#32745E';
+
             $t = [
-                'primary' => '#1E4D3E',
-                'primary_light' => '#32745E',
+                'primary' => $themePrimary,
+                'primary_light' => $themeSecondary,
                 'bg_body' => '#F8FAF8',
                 'surface' => '#FFFFFF',
                 'text_primary' => '#0F172A',

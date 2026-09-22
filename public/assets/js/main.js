@@ -34,7 +34,8 @@ if (document.getElementById('layout-menu')) {
     layoutMenuEl.forEach(function (element) {
         menu = new Menu(element, {
             orientation: isHorizontalLayout ? 'horizontal' : 'vertical',
-            closeChildren: isHorizontalLayout ? true : false,
+            closeChildren: false,
+            accordion: false, // CRITICAL: NEVER auto-collapse other menus when toggling any menu
             // ? This option only works with Horizontal menu
             showDropdownOnHover: localStorage.getItem('templateCustomizer-' + templateName + '--ShowDropdownOnHover') // If value(showDropdownOnHover) is set in local storage
                 ? localStorage.getItem('templateCustomizer-' + templateName + '--ShowDropdownOnHover') === 'true' // Use the local storage value
@@ -42,9 +43,83 @@ if (document.getElementById('layout-menu')) {
                     ? window.templateCustomizer.settings.defaultShowDropdownOnHover // Use the config.js value
                     : true // Use this if you are not using the config.js and want to set value directly from here
         });
-        // Change parameter to true if you want scroll animation
-        window.Helpers.scrollToActive((animate = false));
+
+        // Disabled auto-scroll so sidebar stays exactly in place
+        window.Helpers.scrollToActive = function () {};
+        window.Helpers._scrollToActive = function () {};
         window.Helpers.mainMenu = menu;
+
+        // Route-aware sidebar scroll restoration
+        const menuInner = element.querySelector('.menu-inner');
+        if (menuInner) {
+            const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+            const lastPath = sessionStorage.getItem('sidebar_last_path');
+            const isSamePage = (lastPath === currentPath);
+            const savedPos = sessionStorage.getItem('sidebar_scroll_pos');
+
+            if (isSamePage && savedPos !== null) {
+                // Same route navigation (e.g. search, pagination, filter) -> exact pixel restore
+                menuInner.scrollTop = parseInt(savedPos, 10);
+            } else {
+                // Different route navigation: ensure active menu item is comfortably visible
+                const activeItem = menuInner.querySelector('.menu-item.active');
+                if (activeItem) {
+                    const isNearTop = activeItem.offsetTop < 240;
+                    if (isNearTop) {
+                        menuInner.scrollTop = 0;
+                    } else {
+                        const targetScroll = Math.max(0, activeItem.offsetTop - Math.round(menuInner.clientHeight / 3));
+                        menuInner.scrollTop = targetScroll;
+                    }
+                } else {
+                    menuInner.scrollTop = 0;
+                }
+            }
+
+            sessionStorage.setItem('sidebar_last_path', currentPath);
+            sessionStorage.setItem('sidebar_scroll_pos', menuInner.scrollTop);
+
+            if (window.Helpers.menuPsScroll) {
+                try { window.Helpers.menuPsScroll.update(); } catch (e) {}
+            }
+
+            menuInner.addEventListener('scroll', function () {
+                sessionStorage.setItem('sidebar_scroll_pos', menuInner.scrollTop);
+                sessionStorage.setItem('sidebar_last_path', window.location.pathname.replace(/\/$/, '') || '/');
+            }, { passive: true });
+        }
+    });
+
+    // Smoothly reveal submenus when clicked at the bottom of the sidebar
+    document.addEventListener('click', function(e) {
+        const toggle = e.target.closest ? e.target.closest('#layout-menu .menu-item > .menu-link.menu-toggle') : null;
+        if (!toggle) return;
+        const item = toggle.closest('.menu-item');
+        const menuInner = document.querySelector('#layout-menu .menu-inner');
+        if (!item || !menuInner) return;
+
+        const willOpen = !item.classList.contains('open');
+        if (willOpen) {
+            setTimeout(function() {
+                try {
+                    const innerRect = menuInner.getBoundingClientRect();
+                    const subMenu = item.querySelector('.menu-sub');
+                    const targetEl = subMenu || item;
+                    const targetRect = targetEl.getBoundingClientRect();
+
+                    if (targetRect.bottom > innerRect.bottom) {
+                        const overflow = targetRect.bottom - innerRect.bottom + 24;
+                        menuInner.scrollBy({
+                            top: overflow,
+                            behavior: 'smooth'
+                        });
+                        if (window.Helpers && window.Helpers.menuPsScroll) {
+                            try { window.Helpers.menuPsScroll.update(); } catch(e) {}
+                        }
+                    }
+                } catch(err) {}
+            }, 260);
+        }
     });
 
     // Initialize menu togglers and bind click on each
@@ -273,26 +348,29 @@ if (document.getElementById('layout-menu')) {
     // Init helpers & misc
     // --------------------
 
-    // Init BS Tooltip
+    // Init BS Tooltip (gated)
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    if (tooltipTriggerList.length) {
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
 
-    // Accordion active class
-    const accordionActiveFunction = function (e) {
-        if (e.type == 'show.bs.collapse' || e.type == 'show.bs.collapse') {
-            e.target.closest('.accordion-item').classList.add('active');
-        } else {
-            e.target.closest('.accordion-item').classList.remove('active');
-        }
-    };
-
+    // Accordion active class (gated)
     const accordionTriggerList = [].slice.call(document.querySelectorAll('.accordion'));
-    const accordionList = accordionTriggerList.map(function (accordionTriggerEl) {
-        accordionTriggerEl.addEventListener('show.bs.collapse', accordionActiveFunction);
-        accordionTriggerEl.addEventListener('hide.bs.collapse', accordionActiveFunction);
-    });
+    if (accordionTriggerList.length) {
+        const accordionActiveFunction = function (e) {
+            if (e.type == 'show.bs.collapse' || e.type == 'show.bs.collapse') {
+                e.target.closest('.accordion-item').classList.add('active');
+            } else {
+                e.target.closest('.accordion-item').classList.remove('active');
+            }
+        };
+        accordionTriggerList.forEach(function (accordionTriggerEl) {
+            accordionTriggerEl.addEventListener('show.bs.collapse', accordionActiveFunction);
+            accordionTriggerEl.addEventListener('hide.bs.collapse', accordionActiveFunction);
+        });
+    }
 
     // If layout is RTL add .dropdown-menu-end class to .dropdown-menu
     // if (isRtl) {
@@ -302,14 +380,20 @@ if (document.getElementById('layout-menu')) {
     // Auto update layout based on screen size
     window.Helpers.setAutoUpdate(true);
 
-    // Toggle Password Visibility
-    window.Helpers.initPasswordToggle();
+    // Toggle Password Visibility (gated)
+    if (document.querySelector('.form-password-toggle')) {
+        window.Helpers.initPasswordToggle();
+    }
 
-    // Speech To Text
-    window.Helpers.initSpeechToText();
+    // Speech To Text (gated)
+    if (document.querySelector('.speech-to-text')) {
+        window.Helpers.initSpeechToText();
+    }
 
-    // Init PerfectScrollbar in Navbar Dropdown (i.e notification)
-    window.Helpers.initNavbarDropdownScrollbar();
+    // Init PerfectScrollbar in Navbar Dropdown (gated)
+    if (document.querySelector('.navbar-dropdown .scrollable-container')) {
+        window.Helpers.initNavbarDropdownScrollbar();
+    }
 
     let horizontalMenuTemplate = document.querySelector("[data-template^='horizontal-menu']");
     if (horizontalMenuTemplate) {

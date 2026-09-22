@@ -24,6 +24,10 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        if (method_exists($request->user(), 'tokens')) {
+            $request->user()->tokens()->delete();
+        }
+
         return back()->with('status', 'password-updated');
     }
 }

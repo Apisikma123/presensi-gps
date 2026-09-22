@@ -7,6 +7,8 @@ use App\Models\Departemen;
 use App\Models\Facerecognition;
 use App\Models\Jabatan;
 use App\Models\Jamkerja;
+use App\Models\Setjamkerjabyday;
+use App\Models\Setjamkerjabydate;
 use App\Models\Karyawan;
 use App\Models\User;
 use App\Models\Userkaryawan;
@@ -104,9 +106,9 @@ class KaryawanController extends Controller
                     'presensi_jamkerja.nama_jam_kerja',
                     'users_karyawan.id_user'
                 )
-                ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-                ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
-                ->join('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+                ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+                ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+                ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
                 ->leftJoin('presensi_jamkerja', 'karyawan.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
                 ->leftJoin('users_karyawan', 'karyawan.nik', '=', 'users_karyawan.nik')
                 ->get()
@@ -167,12 +169,36 @@ class KaryawanController extends Controller
             $userDepartemens = $user->getDepartemenCodes();
 
             if (!in_array($request->kode_cabang, $userCabangs)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke cabang yang dipilih'], 403);
+                }
                 return Redirect::back()->with(messageError('Anda tidak memiliki akses ke cabang yang dipilih'));
             }
 
             if (!in_array($request->kode_dept, $userDepartemens)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke departemen yang dipilih'], 403);
+                }
                 return Redirect::back()->with(messageError('Anda tidak memiliki akses ke departemen yang dipilih'));
             }
+        }
+
+        // Prevent rapid duplicate submission (concurrency / double submit / duplicate AJAX)
+        $recentDuplicate = Karyawan::where('nama_karyawan', $request->nama_karyawan)
+            ->where('kode_cabang', $request->kode_cabang)
+            ->where('kode_dept', $request->kode_dept)
+            ->where('tanggal_masuk', $request->tanggal_masuk)
+            ->where('created_at', '>=', now()->subSeconds(5))
+            ->first();
+
+        if ($recentDuplicate) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Karyawan Berhasil Disimpan'
+                ]);
+            }
+            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Disimpan'));
         }
 
         DB::beginTransaction();
@@ -182,6 +208,7 @@ class KaryawanController extends Controller
             $prefix = $tahun . $bulan;
 
             $last = Karyawan::where('nik', 'like', $prefix . '%')
+                ->lockForUpdate()
                 ->orderBy('nik', 'desc')
                 ->first();
 
@@ -204,7 +231,8 @@ class KaryawanController extends Controller
                 $data_foto = ['foto' => $foto_name];
             }
 
-            $plainPassword = $request->filled('password') ? $request->password : '12345';
+            $isRandomPassword = !$request->filled('password');
+            $plainPassword = $isRandomPassword ? \Illuminate\Support\Str::password(10, numbers: true, symbols: false) : $request->password;
             $hashedPassword = Hash::make($plainPassword);
             $nikShow = !empty($request->nik_show) ? $request->nik_show : $nikAuto;
 
@@ -245,9 +273,27 @@ class KaryawanController extends Controller
             }
 
             DB::commit();
-            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Disimpan'));
+            $successMsg = $isRandomPassword
+                ? "Data Karyawan Berhasil Disimpan (Password sementara: {$plainPassword})"
+                : 'Data Karyawan Berhasil Disimpan';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $successMsg,
+                    'temp_password' => $isRandomPassword ? $plainPassword : null,
+                    'username' => $nikAuto,
+                    'nama_karyawan' => $request->nama_karyawan,
+                ]);
+            }
+            return Redirect::back()->with(messageSuccess($successMsg));
         } catch (\Exception $e) {
             DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
@@ -316,6 +362,9 @@ class KaryawanController extends Controller
 
         if (!$user->isSuperAdmin()) {
             if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke data karyawan cabang ini'], 403);
+                }
                 return Redirect::back()->with(messageError('Anda tidak memiliki akses ke data karyawan cabang ini'));
             }
 
@@ -323,10 +372,16 @@ class KaryawanController extends Controller
             $userDepartemens = $user->getDepartemenCodes();
 
             if (!in_array($request->kode_cabang, $userCabangs)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke cabang yang dipilih'], 403);
+                }
                 return Redirect::back()->with(messageError('Anda tidak memiliki akses ke cabang yang dipilih'));
             }
 
             if (!in_array($request->kode_dept, $userDepartemens)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke departemen yang dipilih'], 403);
+                }
                 return Redirect::back()->with(messageError('Anda tidak memiliki akses ke departemen yang dipilih'));
             }
         }
@@ -372,6 +427,10 @@ class KaryawanController extends Controller
                 $userData = ['name' => $request->nama_karyawan];
                 if ($request->filled('password')) {
                     $userData['password'] = Hash::make($request->password);
+                    $targetUser = User::find($user_karyawan->id_user);
+                    if ($targetUser && method_exists($targetUser, 'tokens')) {
+                        $targetUser->tokens()->delete();
+                    }
                 }
                 User::where('id', $user_karyawan->id_user)->update($userData);
 
@@ -396,8 +455,20 @@ class KaryawanController extends Controller
                 ]);
             }
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Karyawan Berhasil Disimpan'
+                ]);
+            }
             return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Disimpan'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
@@ -544,6 +615,11 @@ class KaryawanController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
+
+        if (!$user->isSuperAdmin() && !$user->can('karyawan.index') && !$user->can('laporan.presensi')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $query = Karyawan::query()->select('nik', 'nik_show', 'nama_karyawan');
 
         if (!$user->isSuperAdmin()) {
@@ -567,6 +643,11 @@ class KaryawanController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
+
+        if (!$user->isSuperAdmin() && !$user->can('karyawan.index')) {
+            abort(403, 'Unauthorized access.');
+        }
+
         $query = Karyawan::query();
 
         if (!$user->isSuperAdmin()) {
@@ -609,18 +690,19 @@ class KaryawanController extends Controller
         }
 
         try {
+            $tempPassword = \Illuminate\Support\Str::password(10, numbers: true, symbols: false);
             $user = User::create([
                 'name' => $karyawan->nama_karyawan,
                 'username' => $karyawan->nik,
                 'email' => $karyawan->nik . '@gmail.com',
-                'password' => Hash::make('12345'),
+                'password' => Hash::make($tempPassword),
             ]);
             $user->assignRole('karyawan');
             Userkaryawan::create([
                 'id_user' => $user->id,
                 'nik' => $karyawan->nik
             ]);
-            return Redirect::back()->with(messageSuccess('User Berhasil Dibuat (Password default: 12345)'));
+            return Redirect::back()->with(messageSuccess('User Berhasil Dibuat (Password sementara: ' . $tempPassword . ')'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));
         }
@@ -661,7 +743,7 @@ class KaryawanController extends Controller
 
     public function import()
     {
-        return view('datamaster.karyawan.import');
+        return view('datamaster.karyawan.import_modal');
     }
 
     public function import_proses(Request $request)
@@ -672,6 +754,111 @@ class KaryawanController extends Controller
             return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Diimport'));
         } catch (\Exception $e) {
             return Redirect::back()->with(messageError($e->getMessage()));
+        }
+    }
+
+    public function setjamkerja($nik)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $nik = Crypt::decrypt($nik);
+        $data['karyawan'] = Karyawan::where('nik', $nik)
+            ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
+            ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
+            ->select('karyawan.*', 'departemen.nama_dept', 'cabang.nama_cabang')
+            ->firstOrFail();
+
+        $data['list_bulan'] = [
+            ['kode_bulan' => 1, 'nama_bulan' => 'Januari'],
+            ['kode_bulan' => 2, 'nama_bulan' => 'Februari'],
+            ['kode_bulan' => 3, 'nama_bulan' => 'Maret'],
+            ['kode_bulan' => 4, 'nama_bulan' => 'April'],
+            ['kode_bulan' => 5, 'nama_bulan' => 'Mei'],
+            ['kode_bulan' => 6, 'nama_bulan' => 'Juni'],
+            ['kode_bulan' => 7, 'nama_bulan' => 'Juli'],
+            ['kode_bulan' => 8, 'nama_bulan' => 'Agustus'],
+            ['kode_bulan' => 9, 'nama_bulan' => 'September'],
+            ['kode_bulan' => 10, 'nama_bulan' => 'Oktober'],
+            ['kode_bulan' => 11, 'nama_bulan' => 'November'],
+            ['kode_bulan' => 12, 'nama_bulan' => 'Desember'],
+        ];
+        $data['start_year'] = 2024;
+        $data['jamkerja'] = Jamkerja::orderBy('kode_jam_kerja')->get();
+        $data['cabang'] = $user ? $user->getCabang() : Cabang::all();
+        $data['jamkerjabyday'] = Setjamkerjabyday::where('nik', $nik)->get()->keyBy('hari');
+        return view('datamaster.karyawan.setjamkerja', $data);
+    }
+
+    public function storejamkerjabyday(Request $request, $nik)
+    {
+        $nik = Crypt::decrypt($nik);
+        $hari = $request->hari ?? [];
+        $kode_jam_kerja = $request->kode_jam_kerja ?? [];
+        $kode_cabang = $request->kode_cabang ?? [];
+        DB::beginTransaction();
+        try {
+            Setjamkerjabyday::where('nik', $nik)->delete();
+            for ($i = 0; $i < count($hari); $i++) {
+                if (!empty($kode_jam_kerja[$i])) {
+                    Setjamkerjabyday::create([
+                        'nik' => $nik,
+                        'hari' => $hari[$i],
+                        'kode_jam_kerja' => $kode_jam_kerja[$i],
+                        'kode_cabang' => !empty($kode_cabang[$i]) ? $kode_cabang[$i] : null
+                    ]);
+                }
+            }
+            DB::commit();
+            return Redirect::back()->with(messageSuccess('Jadwal Mingguan Karyawan Berhasil Disimpan'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Redirect::back()->with(messageError($e->getMessage()));
+        }
+    }
+
+    public function storejamkerjabydate(Request $request)
+    {
+        $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
+        try {
+            Setjamkerjabydate::updateOrCreate(
+                ['nik' => $request->nik, 'tanggal' => $tanggal],
+                [
+                    'kode_jam_kerja' => $request->kode_jam_kerja,
+                    'kode_cabang' => !empty($request->kode_cabang) ? $request->kode_cabang : null
+                ]
+            );
+            return response()->json(['success' => true, 'message' => 'Jadwal Tanggal Berhasil Disimpan']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function getjamkerjabydate(Request $request)
+    {
+        $nik = $request->nik;
+        $bulan = (int)$request->bulan;
+        $tahun = (int)$request->tahun;
+
+        $jamkerjabydate = Setjamkerjabydate::where('nik', $nik)
+            ->join('presensi_jamkerja', 'presensi_jamkerja.kode_jam_kerja', '=', 'presensi_jamkerja_bydate.kode_jam_kerja')
+            ->leftJoin('cabang', 'cabang.kode_cabang', '=', 'presensi_jamkerja_bydate.kode_cabang')
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->select('presensi_jamkerja_bydate.*', 'presensi_jamkerja.nama_jam_kerja', 'presensi_jamkerja.jam_masuk', 'presensi_jamkerja.jam_pulang', 'presensi_jamkerja.color', 'cabang.nama_cabang')
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        return response()->json($jamkerjabydate);
+    }
+
+    public function deletejamkerjabydate(Request $request)
+    {
+        $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
+        try {
+            Setjamkerjabydate::where('nik', $request->nik)->where('tanggal', $tanggal)->delete();
+            return response()->json(['success' => true, 'message' => 'Jadwal Tanggal Berhasil Dihapus']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 }

@@ -20,6 +20,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1E4D3E">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
+    <link rel="shortcut icon" href="{{ $app_logo_url ?? asset('favicon.ico') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
+
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="/assets/img/icons/pwa/icon-192x192.png">
     <link rel="apple-touch-icon" sizes="192x192" href="/assets/img/icons/pwa/icon-192x192.png">

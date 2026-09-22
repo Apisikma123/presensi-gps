@@ -46,7 +46,6 @@ class ProfileController extends Controller
                 'email' => $user->email,
                 'nik' => $karyawan->nik,
                 'no_hp' => $karyawan->no_hp,
-                'no_ktp' => $karyawan->no_ktp,
                 'alamat' => $karyawan->alamat,
                 'jabatan' => $karyawan->jabatan->nama_jabatan ?? null,
                 'departemen' => $karyawan->departemen->nama_dept ?? null,
@@ -137,22 +136,24 @@ class ProfileController extends Controller
 
         try {
             if ($request->hasFile('foto')) {
-                $file = $request->file('foto');
-                $filename = $karyawan->nik . "." . $file->getClientOriginalExtension();
-                $destinationPath = "/public/karyawan";
-
-                // Ensure directory exists
-                if (!Storage::exists($destinationPath)) {
-                    Storage::makeDirectory($destinationPath, 0775, true);
-                }
-
                 // Delete old photo if exists
                 if ($karyawan->foto) {
-                    Storage::delete($destinationPath . "/" . $karyawan->foto);
+                    if (Storage::disk('public')->exists('karyawan/' . $karyawan->foto)) {
+                        Storage::disk('public')->delete('karyawan/' . $karyawan->foto);
+                    }
+                    if (Storage::exists('public/karyawan/' . $karyawan->foto)) {
+                        Storage::delete('public/karyawan/' . $karyawan->foto);
+                    }
                 }
 
-                // Store new file
-                $file->storeAs($destinationPath, $filename);
+                $filename = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $request->file('foto'),
+                    'karyawan',
+                    $karyawan->nik . "_" . time(),
+                    80,
+                    800,
+                    'public'
+                );
 
                 // Update database
                 Karyawan::where('nik', $karyawan->nik)->update([
@@ -162,7 +163,9 @@ class ProfileController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Foto profil berhasil diperbarui',
-                    'foto' => asset('storage/karyawan/' . $filename . '?t=' . time())
+                    'data' => [
+                        'foto' => asset('storage/karyawan/' . $filename)
+                    ]
                 ]);
             }
 

@@ -3,7 +3,10 @@
 @section('title', 'Ajukan Dispensasi')
 
 @section('header_left')
-    <a href="{{ route('dispensasi.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('pengajuanizin.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-lg"></ion-icon>
     </a>
 @endsection
@@ -16,7 +19,7 @@
         }
 
         .form-container {
-            padding: 10px 5px;
+            padding: 10px 5px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .form-label-group {
@@ -130,21 +133,21 @@
             <div class="form-label-group">
                 <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
                 <input type="text" name="tanggal" id="tanggal" placeholder=" " value="{{ date('Y-m-d') }}" required readonly>
-                <label for="tanggal">Tanggal Dispensasi</label>
+                <label for="tanggal">Tanggal Dispensasi <span class="req-star">*</span></label>
             </div>
 
             {{-- Batas Jam Dispensasi --}}
             <div class="form-label-group">
                 <ion-icon name="time-outline" class="input-icon"></ion-icon>
                 <input type="time" name="batas_dispensasi" id="batas_dispensasi" placeholder=" " value="08:00" step="60" required>
-                <label for="batas_dispensasi">Batas Jam Masuk (Toleransi)</label>
+                <label for="batas_dispensasi">Batas Jam Masuk (Toleransi) <span class="req-star">*</span></label>
             </div>
 
             {{-- Alasan Dispensasi --}}
             <div class="form-label-group">
                 <ion-icon name="document-text-outline" class="input-icon"></ion-icon>
                 <textarea name="alasan" id="alasan" placeholder=" " required></textarea>
-                <label for="alasan">Alasan Keterlambatan</label>
+                <label for="alasan">Alasan Keterlambatan <span class="req-star">*</span></label>
             </div>
 
             <button type="submit" class="btn-submit-modern" id="btnSimpan">

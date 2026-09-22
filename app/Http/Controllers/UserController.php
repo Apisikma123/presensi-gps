@@ -181,15 +181,16 @@ class UserController extends Controller
 
         try {
 
-            if (isset($request->password)) {
-                User::where('id', $id)->update([
+            if (!empty($request->password)) {
+                $user->update([
                     'name' => $request->name,
                     'username' => $request->username,
                     'email' => $request->email,
                     'password' => bcrypt($request->password)
                 ]);
+                $user->tokens()->delete();
             } else {
-                User::where('id', $id)->update([
+                $user->update([
                     'name' => $request->name,
                     'username' => $request->username,
                     'email' => $request->email,
@@ -302,15 +303,17 @@ class UserController extends Controller
             'konfirmasipassword' => 'same:passwordbaru'
         ]);
         try {
+            $user = User::where('id', $id)->firstOrFail();
             $data = [
                 'username' => $request->username
             ];
 
             if (!empty($request->passwordbaru)) {
                 $data['password'] = Hash::make($request->passwordbaru);
+                $user->tokens()->delete();
             }
 
-            User::where('id', $id)->update($data);
+            $user->update($data);
             return Redirect::back()->with(['success' => 'Data Berhasil Diupdate']);
         } catch (\Exception $e) {
             return Redirect::back()->with(['error' => $e->getMessage()]);

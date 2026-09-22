@@ -3,7 +3,10 @@
 @section('title', 'ID Card')
 
 @section('header_left')
-    <a href="{{ route('dashboard.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-95 transition-all">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-95 transition-all"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-lg"></ion-icon>
     </a>
 @endsection

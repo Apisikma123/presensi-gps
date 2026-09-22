@@ -35,7 +35,6 @@ class ProfileController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'nama_karyawan' => 'required|string|max:255',
             'no_hp' => 'nullable|string|max:20',
-            'no_ktp' => 'nullable|string|max:30',
             'alamat' => 'nullable|string|max:500',
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
@@ -64,7 +63,6 @@ class ProfileController extends Controller
                 // Strict whitelist: employee can only update basic personal info
                 $data_karyawan = [
                     'nama_karyawan' => $request->nama_karyawan,
-                    'no_ktp' => $request->no_ktp,
                     'no_hp' => $request->no_hp,
                     'alamat' => $request->alamat,
                 ];
@@ -80,8 +78,15 @@ class ProfileController extends Controller
                 $userData['username'] = $request->username;
             }
             User::where('id', $user->id)->update($userData);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data Berhasil Disimpan']);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }
@@ -93,13 +98,28 @@ class ProfileController extends Controller
 
     public function updateprofile(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'password' => 'nullable|string|min:6|confirmed',
+        ];
+
+        if ($request->filled('password')) {
+            $rules['old_password'] = 'required|string';
+        }
+
+        $request->validate($rules, [
+            'old_password.required' => 'Password lama wajib diisi jika ingin mengganti password',
         ]);
+
+        if ($request->filled('password')) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->old_password, $user->password)) {
+                return Redirect::back()->withInput()->with(messageError('Password lama tidak sesuai'));
+            }
+        }
 
         try {
             $data = [
@@ -109,12 +129,22 @@ class ProfileController extends Controller
 
             if ($request->filled('password')) {
                 $data['password'] = \Illuminate\Support\Facades\Hash::make($request->password);
+                if (method_exists($user, 'tokens')) {
+                    $user->tokens()->delete();
+                }
             }
 
             User::where('id', $user->id)->update($data);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Profile Berhasil Diupdate']);
+            }
+
             return Redirect::back()->with(messageSuccess('Profile Berhasil Diupdate'));
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             return Redirect::back()->with(messageError($e->getMessage()));
         }
     }

@@ -17,21 +17,14 @@ class TemplateKaryawanExport implements FromCollection, WithHeadings, WithTitle
     {
         return [
             'nik',
-            'no_ktp',
-            'npwp',
             'nama_karyawan',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'alamat',
-            'alamat_sesuai_ktp',
             'no_hp',
             'jenis_kelamin',
-            'kode_status_kawin',
-            'pendidikan_terakhir',
-            'jurusan',
+            'alamat',
             'kode_cabang',
             'kode_dept',
             'kode_jabatan',
+            'kode_jam_kerja',
             'tanggal_masuk',
             'status_karyawan',
             'status_aktif_karyawan'

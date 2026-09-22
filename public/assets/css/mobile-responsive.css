@@ -1,0 +1,851 @@
+/*
+ * ==========================================================================
+ *  GLOBAL MOBILE RESPONSIVE CSS — Admin Dashboard & Entire Admin Suite
+ *  Applied universally via layouts/styles.blade.php
+ *  Breakpoints: 991.98px (tablet), 767.98px (mobile), 575.98px (small mobile)
+ * ==========================================================================
+ */
+
+/* ==========================================================================
+   1. TABLET (max-width: 991.98px)
+   ========================================================================== */
+@media (max-width: 991.98px) {
+    /* Content container */
+    .container-xxl.container-p-y {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* Cards: tighter padding */
+    .card {
+        border-radius: 10px !important;
+    }
+
+    /* Modal sizing */
+    .modal-dialog {
+        margin: 0.75rem !important;
+    }
+    .modal-lg, .modal-xl {
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+
+    /* Tables: allow smooth horizontal scrolling */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* Page Header tablet wrapping */
+    .admin-page-header {
+        gap: 0.75rem !important;
+    }
+}
+
+/* ==========================================================================
+   2. MOBILE (max-width: 767.98px)
+   ========================================================================== */
+@media (max-width: 767.98px) {
+    /* Layout & container viewport isolation */
+    .layout-page {
+        padding-top: 68px !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    .layout-page, .content-wrapper, body, html {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    .content-wrapper {
+        padding-bottom: 2.5rem !important;
+    }
+
+    /* Fixed Top Navbar on mobile */
+    .layout-navbar-fixed #layout-navbar,
+    #layout-navbar {
+        left: 10px !important;
+        right: 10px !important;
+        width: calc(100% - 20px) !important;
+        max-width: none !important;
+        margin: 8px auto 0 auto !important;
+        padding: 0 10px !important;
+        height: 56px !important;
+        min-height: 56px !important;
+        border-radius: 12px !important;
+    }
+    .btn-help-navbar {
+        width: 38px !important;
+        min-width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        border-radius: 10px !important;
+        justify-content: center !important;
+    }
+    .btn-help-navbar .navbar-btn-label {
+        display: none !important;
+    }
+    .btn-navbar-icon {
+        width: 38px !important;
+        min-width: 38px !important;
+        height: 38px !important;
+        padding: 0 !important;
+        border-radius: 10px !important;
+    }
+    .dropdown-notifications {
+        margin-right: 2px !important;
+    }
+    #navbarSearchWrapper {
+        margin: 0 4px !important;
+        flex: 1 1 auto !important;
+        min-width: 80px !important;
+    }
+    #navbarSearchWrapper .input-group {
+        height: 36px !important;
+    }
+    #navbarSearchInput {
+        height: 36px !important;
+        font-size: 12px !important;
+    }
+    #navbarSearchClear {
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* Content container: mobile gutters */
+    .container-xxl.container-p-y {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-top: 0.75rem !important;
+    }
+
+    /* Row gap reduction on mobile */
+    .row.g-3 {
+        --bs-gutter-y: 0.65rem !important;
+        --bs-gutter-x: 0.65rem !important;
+    }
+
+    /* Cards: compact on mobile */
+    .card {
+        border-radius: 10px !important;
+    }
+    .card-body {
+        padding: 0.85rem !important;
+    }
+    .card-header {
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    /* ==========================================================================
+       ADMIN PAGE HEADER (Universal: Karyawan, Cabang, Jabatan, Presensi, Users, etc.)
+       Fixes "mepet ke kanan" & squished header action buttons
+       ========================================================================== */
+    .admin-page-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .admin-page-header .header-title-group,
+    .admin-page-header > div:first-child {
+        width: 100% !important;
+    }
+    .admin-page-header .page-title {
+        font-size: 1.15rem !important;
+        flex-wrap: wrap !important;
+        gap: 0.4rem !important;
+    }
+    .admin-page-header .page-subtitle {
+        font-size: 12px !important;
+        line-height: 1.4 !important;
+    }
+    .admin-page-header .header-action-group,
+    .admin-page-header .d-flex.align-items-center.gap-2,
+    .admin-page-header > .d-flex:last-child {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+        justify-content: stretch !important;
+    }
+    .admin-page-header .header-action-group .btn,
+    .admin-page-header .d-flex.align-items-center.gap-2 .btn,
+    .admin-page-header > .d-flex:last-child .btn {
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+        text-align: center !important;
+        min-height: 38px !important;
+        font-size: 12.5px !important;
+    }
+
+    /* ==========================================================================
+       ADMIN FILTER TOOLBAR (Universal Compact Search & Filter across all pages)
+       Fixes all buttons & inputs being pushed or crammed to the right
+       ========================================================================== */
+    .admin-filter-toolbar {
+        border-radius: 10px !important;
+        padding: 0.75rem !important;
+    }
+    .admin-filter-toolbar .card-body,
+    .admin-filter-toolbar > form {
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    .admin-filter-toolbar .row.g-2 {
+        gap: 0.45rem 0 !important;
+    }
+
+    /* Handle flex-based filter toolbars (Cabang, Jabatan, Departemen, etc.) */
+    .admin-filter-toolbar .d-flex.flex-wrap,
+    .admin-filter-toolbar .d-flex.flex-md-nowrap {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 0.5rem !important;
+    }
+    .admin-filter-toolbar [style*="min-width"] {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Filter action buttons: full width distribution, NO mepet ke kanan */
+    .admin-filter-toolbar .col-auto,
+    .admin-filter-toolbar .row > .col-auto,
+    .admin-filter-toolbar [class*="col-"] > .d-flex,
+    .admin-filter-toolbar .col-auto .d-flex,
+    .admin-filter-toolbar .d-flex.align-items-center.gap-1\.5 {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.4rem !important;
+        justify-content: stretch !important;
+    }
+    .admin-filter-toolbar .btn,
+    .admin-filter-toolbar button[type="submit"],
+    .admin-filter-toolbar .col-auto .btn,
+    .admin-filter-toolbar .col-auto a.btn,
+    .admin-filter-toolbar .d-flex.align-items-center.gap-1\.5 .btn,
+    .admin-filter-toolbar .d-flex.align-items-center.gap-1\.5 a.btn {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        min-height: 38px !important;
+        height: 38px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+    }
+    .admin-filter-toolbar .col-auto .d-flex > .btn + a.btn,
+    .admin-filter-toolbar .col-auto .d-flex > a.btn + .btn {
+        flex: 1 1 calc(50% - 0.25rem) !important;
+        width: calc(50% - 0.25rem) !important;
+    }
+    .admin-filter-toolbar .row.g-2 {
+        row-gap: 8px !important;
+    }
+    .admin-filter-toolbar .row.g-2 > * {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* ==========================================================================
+       NAVIGATION TABS & PILLS (Karyawan show tabs, Users tabs, Izin tabs)
+       Clean touch-friendly horizontal swipe scrolling
+       ========================================================================== */
+    .nav-pills:not(.flex-column),
+    .nav-tabs:not(.flex-column),
+    .nav-segment {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-width: 100% !important;
+        scrollbar-width: none !important;
+        padding-bottom: 2px !important;
+    }
+    .nav-pills:not(.flex-column)::-webkit-scrollbar,
+    .nav-tabs:not(.flex-column)::-webkit-scrollbar,
+    .nav-segment::-webkit-scrollbar {
+        display: none !important;
+    }
+    .nav-pills:not(.flex-column) .nav-item,
+    .nav-tabs:not(.flex-column) .nav-item,
+    .nav-segment .nav-item {
+        flex-shrink: 0 !important;
+    }
+    .nav-pills:not(.flex-column) .nav-link,
+    .nav-tabs:not(.flex-column) .nav-link,
+    .nav-segment .nav-link {
+        white-space: nowrap !important;
+        font-size: 12px !important;
+        padding: 0.4rem 0.75rem !important;
+    }
+    .nav-segment-container {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* ==========================================================================
+       DASHBOARD SPECIFIC ELEMENTS
+       ========================================================================== */
+    /* Dashboard header card */
+    .dashboard-header-card {
+        padding: 0.85rem 1rem !important;
+        border-radius: 12px !important;
+    }
+    .dashboard-header-card h5 {
+        font-size: 1rem !important;
+    }
+    .dashboard-header-card .rounded-3 {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .dashboard-header-card small {
+        font-size: 11.5px !important;
+    }
+    .dashboard-header-card > .d-flex {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+        width: 100% !important;
+    }
+    .dashboard-header-card > .d-flex > div:first-child {
+        width: 100% !important;
+    }
+    .dashboard-header-card .d-flex.align-items-center.gap-2.flex-shrink-0 {
+        width: 100% !important;
+    }
+
+    /* Digital clock chip - full width sleek centered bar on mobile */
+    .digital-clock-chip {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.85rem !important;
+        width: 100% !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        background: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+    }
+
+    /* Stat priority grid */
+    .stat-priority-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.6rem !important;
+    }
+    .stat-card-priority {
+        padding: 0.85rem !important;
+        min-height: 105px !important;
+        border-radius: 10px !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+    .stat-card-priority .stat-value {
+        font-size: 1.55rem !important;
+        line-height: 1.1 !important;
+    }
+    .stat-card-priority .stat-icon-wrapper {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 8px !important;
+        font-size: 1rem !important;
+        flex-shrink: 0 !important;
+    }
+    .stat-card-priority .stat-subtext {
+        font-size: 10.5px !important;
+        white-space: normal !important;
+        line-height: 1.25 !important;
+        word-break: break-word !important;
+        min-width: 0 !important;
+    }
+
+    /* Sub-metrics strip: sleek scroll track on mobile */
+    .operational-sub-strip {
+        padding: 0.75rem 0.85rem !important;
+        border-radius: 10px !important;
+    }
+    .operational-pills-scroll-track {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 4px !important;
+        scrollbar-width: none !important;
+    }
+    .operational-pills-scroll-track::-webkit-scrollbar {
+        display: none !important;
+    }
+    .sub-metric-pill {
+        flex-shrink: 0 !important;
+        padding: 0.35rem 0.65rem !important;
+    }
+    .sub-metric-pill .sub-metric-value {
+        font-size: 0.9rem !important;
+    }
+    .sub-metric-pill .sub-metric-label {
+        font-size: 10.5px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Chart cards: reduce min-height on mobile */
+    .dashboard-chart-card {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+    .dashboard-chart-card .card-body-chart {
+        min-height: 220px !important;
+        padding: 0 0.5rem 0.75rem 0.5rem !important;
+        overflow: hidden !important;
+        width: 100% !important;
+    }
+    .dashboard-chart-card .apexcharts-canvas {
+        max-width: 100% !important;
+    }
+    .dashboard-chart-card .card-header-clean {
+        padding: 0.85rem 0.85rem 0.4rem 0.85rem !important;
+    }
+    .dashboard-chart-card .card-header-clean h6 {
+        font-size: 13px !important;
+    }
+
+    /* Feed cards */
+    .operational-feed-card .feed-header {
+        padding: 0.75rem 0.85rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.4rem !important;
+    }
+
+    /* ==========================================================================
+       TABLES (Universal Clean Mobile Scroll & Compact Typography)
+       ========================================================================== */
+    .table-responsive {
+        border-radius: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin-bottom: 0 !important;
+        scrollbar-width: thin !important;
+    }
+    .table th, .table td {
+        padding: 0.5rem 0.6rem !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+    }
+    .table thead th {
+        font-size: 10px !important;
+        padding: 0.4rem 0.6rem !important;
+    }
+    .btn-table-detail {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+    }
+    .btn-action-icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        font-size: 13px !important;
+    }
+
+    /* ==========================================================================
+       MODALS & MODAL FOOTERS (Completely fixes "mepet ke kanan")
+       ========================================================================== */
+    .modal-dialog {
+        margin: 0.5rem !important;
+        max-width: calc(100vw - 1rem) !important;
+    }
+    .modal-content {
+        border-radius: 12px !important;
+        max-height: calc(100vh - 1.5rem) !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    .modal-header {
+        padding: 0.75rem 1rem !important;
+        flex-shrink: 0 !important;
+    }
+    .modal-body {
+        padding: 0.85rem !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    .modal-footer,
+    .modal-footer-standard {
+        padding: 0.65rem 0.85rem !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+        justify-content: stretch !important;
+        width: 100% !important;
+        margin-top: 0.75rem !important;
+    }
+    .modal-footer > *,
+    .modal-footer-standard > * {
+        flex: 1 1 auto !important;
+        min-width: 100px !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    .modal-footer-standard button,
+    .modal-footer-standard a,
+    .modal-footer button,
+    .modal-footer a {
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+    }
+    .modal-title {
+        font-size: 14px !important;
+    }
+
+    /* Modal maps (Cabang location picker, etc.) */
+    .modal #map,
+    .modal #map_out {
+        height: 220px !important;
+        min-height: 200px !important;
+        width: 100% !important;
+    }
+
+    /* ==========================================================================
+       HELP DRAWER (Full-screen native experience on mobile)
+       ========================================================================== */
+    #offcanvasHelp {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        border-left: none !important;
+        border-radius: 0 !important;
+    }
+    #offcanvasHelp .offcanvas-header {
+        padding: 0.75rem 1rem !important;
+    }
+    #offcanvasHelp #helpDrawerBody {
+        padding: 0.85rem !important;
+    }
+    #offcanvasHelp .help-card {
+        padding: 0.85rem 1rem !important;
+        border-radius: 10px !important;
+    }
+
+    /* ==========================================================================
+       FOOTER (Centered, compact, no right-drift)
+       ========================================================================== */
+    .content-footer {
+        padding: 0.85rem 0.5rem !important;
+        margin-top: 1.5rem !important;
+    }
+    .footer-container {
+        text-align: center !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        font-size: 11.5px !important;
+    }
+    .footer-container > div {
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* ==========================================================================
+       LIVE TRACKING PRESENSI & MAPS
+       ========================================================================== */
+    .stats-chips {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+    .stat-chip {
+        flex: 1 1 calc(50% - 0.25rem) !important;
+        padding: 6px 10px !important;
+        border-radius: 8px !important;
+    }
+    .stat-chip .stat-chip-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 14px !important;
+    }
+    .stat-chip #stat-total,
+    .stat-chip #stat-locations,
+    .stat-chip #stat-overlap {
+        font-size: 13.5px !important;
+    }
+    #map-wrapper {
+        border-radius: 10px !important;
+    }
+    #map-wrapper #map {
+        height: 380px !important;
+        min-height: 300px !important;
+        width: 100% !important;
+    }
+    #map, #map_out {
+        height: 280px !important;
+        min-height: 240px !important;
+        width: 100% !important;
+    }
+
+    /* ==========================================================================
+       DETAIL KARYAWAN (Profile hero & action buttons)
+       ========================================================================== */
+    .card .row.align-items-center.gy-3 > .col-12.col-lg-7 .d-flex.align-items-start {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+    }
+    .card .border-top.pt-3.mt-3.d-flex.align-items-center.justify-content-between {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+    }
+    .card .border-top.pt-3.mt-3.d-flex.align-items-center.justify-content-between .d-flex {
+        width: 100% !important;
+    }
+    .card .border-top.pt-3.mt-3.d-flex.align-items-center.justify-content-between .btn {
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+    }
+
+    /* ==========================================================================
+       GENERAL SETTINGS
+       ========================================================================== */
+    .checkbox-wrapper-55 .rocker {
+        margin: 0.25rem 0 !important;
+    }
+    #btnSimpan,
+    #btnFixPermissions,
+    #btnGenerateIcons,
+    #btnPreviewIcons {
+        font-size: 13.5px !important;
+        min-height: 38px !important;
+    }
+
+    /* ==========================================================================
+       FORM CONTROLS & UI ELEMENTS ON MOBILE
+       ========================================================================== */
+    .form-control, .form-select {
+        font-size: 13px !important;
+        padding: 0.45rem 0.75rem !important;
+        min-height: 38px !important;
+    }
+    .input-group-text {
+        font-size: 13px !important;
+        padding: 0.45rem 0.65rem !important;
+    }
+    .form-label {
+        font-size: 12.5px !important;
+    }
+    .btn {
+        font-size: 13px !important;
+    }
+    .btn-sm {
+        font-size: 12px !important;
+        padding: 0.3rem 0.6rem !important;
+    }
+    .alert {
+        padding: 0.75rem !important;
+        border-radius: 10px !important;
+        font-size: 12.5px !important;
+    }
+    .alert .d-flex.align-items-center.gap-2\.5 {
+        gap: 0.5rem !important;
+    }
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-dropdown {
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+    .pagination {
+        flex-wrap: wrap !important;
+        gap: 2px !important;
+    }
+    .page-link {
+        padding: 0.3rem 0.55rem !important;
+        font-size: 12px !important;
+    }
+    .badge {
+        font-size: 10.5px !important;
+    }
+    .breadcrumb {
+        font-size: 12px !important;
+    }
+    h4, .h4 { font-size: 1.1rem !important; }
+    h5, .h5 { font-size: 1rem !important; }
+    h6, .h6 { font-size: 0.875rem !important; }
+    .avatar-sm {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    div.dataTables_wrapper div.dataTables_length,
+    div.dataTables_wrapper div.dataTables_filter {
+        text-align: left !important;
+    }
+    div.dataTables_wrapper div.dataTables_info {
+        font-size: 11px !important;
+        padding-top: 0.5rem !important;
+    }
+    div.dataTables_wrapper div.dataTables_paginate {
+        margin-top: 0.5rem !important;
+    }
+    .swal2-popup {
+        width: calc(100vw - 2rem) !important;
+        max-width: 360px !important;
+        font-size: 13px !important;
+    }
+    #toast-container {
+        right: 0.5rem !important;
+        left: 0.5rem !important;
+        top: auto !important;
+        bottom: 0.75rem !important;
+    }
+    #toast-container > .toast {
+        width: 100% !important;
+        max-width: none !important;
+    }
+    .flatpickr-calendar {
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+    .dropdown-menu {
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+    .dropdown-menu-media {
+        width: calc(100vw - 1.5rem) !important;
+        max-width: 360px !important;
+        right: 0 !important;
+        left: auto !important;
+    }
+    #btn-close-sidebar {
+        width: 40px !important;
+        height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .w-100-mobile {
+        width: 100% !important;
+    }
+}
+
+/* ==========================================================================
+   3. SMALL MOBILE (max-width: 575.98px)
+   ========================================================================== */
+@media (max-width: 575.98px) {
+    /* Extra tight gutters */
+    .container-xxl.container-p-y {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Stat grid: 2 cols tight */
+    .stat-priority-grid {
+        gap: 0.5rem !important;
+    }
+    .stat-card-priority {
+        padding: 0.75rem !important;
+        min-height: auto !important;
+    }
+    .stat-card-priority .stat-value {
+        font-size: 1.4rem !important;
+    }
+    .stat-card-priority .stat-label {
+        font-size: 10px !important;
+    }
+
+    /* Stat chips: single column on very small phone */
+    .stat-chip {
+        flex: 1 1 100% !important;
+    }
+
+    /* Dashboard header even more compact */
+    .dashboard-header-card {
+        padding: 0.65rem 0.75rem !important;
+    }
+    .dashboard-header-card h5 {
+        font-size: 0.9rem !important;
+    }
+
+    /* Header action group on small mobile: full width buttons */
+    .admin-page-header .header-action-group .btn,
+    .admin-page-header .d-flex.align-items-center.gap-2 .btn {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* Alert banners: column stacking */
+    .alert .d-flex.align-items-center.justify-content-between {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    .alert .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        margin-top: 0.35rem !important;
+    }
+
+    /* Modal extra small: take maximum width */
+    .modal-dialog {
+        margin: 0.25rem !important;
+        max-width: calc(100vw - 0.5rem) !important;
+    }
+    .modal-body {
+        padding: 0.65rem !important;
+    }
+    .modal-body .row.g-3 {
+        --bs-gutter-x: 0.5rem !important;
+        --bs-gutter-y: 0.5rem !important;
+    }
+    .modal-footer > *,
+    .modal-footer-standard > * {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* Feed cards */
+    .operational-feed-card .feed-header {
+        padding: 0.6rem 0.75rem !important;
+    }
+
+    /* Table cells tighter */
+    .table th, .table td {
+        padding: 0.4rem 0.5rem !important;
+        font-size: 11.5px !important;
+    }
+
+    /* Button group stacking */
+    .d-flex.gap-1\.5,
+    .d-flex.gap-2 {
+        flex-wrap: wrap !important;
+    }
+
+    /* Notification bell: enough room */
+    .navbar-nav.flex-row.align-items-center.ms-auto {
+        flex-shrink: 0 !important;
+        margin-left: 4px !important;
+    }
+}
+
+/* ==========================================================================
+   4. GLOBAL HELPERS (all screen sizes)
+   ========================================================================== */
+
+/* Ensure table-responsive scroll works everywhere */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent long text from breaking layouts */
+.text-truncate-mobile {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Smooth scroll for sub-metric strip */
+.operational-sub-strip .d-flex::-webkit-scrollbar {
+    height: 0;
+    display: none;
+}

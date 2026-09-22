@@ -102,7 +102,6 @@ URL Login: **[http://localhost:8000/login](http://localhost:8000/login)**
 | No | Nama Akun | Username | Password | Role / Hak Akses |
 |:---:|:---|:---|:---|:---|
 | 1 | **Development MVP (Super Admin)** | `admin` | `123456` | Akses Penuh Seluruh Menu & Cabang |
-| 2 | **Development MVP (Super Admin)** | `adamadifa` | `123456` | Akses Penuh Super Admin |
 
 ---
 

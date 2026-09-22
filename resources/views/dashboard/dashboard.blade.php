@@ -207,23 +207,23 @@
 
 <!-- Header Banner -->
 <div class="dashboard-header-card mb-3">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-stretch align-items-md-center justify-content-between flex-column flex-md-row gap-2 gap-md-3">
+        <div class="d-flex align-items-center gap-2.5 gap-md-3" style="min-width: 0; max-width: 100%;">
             <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                style="background: rgba(30, 77, 62, 0.08); color: #1E4D3E; width: 44px; height: 44px; border: 1px solid rgba(30, 77, 62, 0.15);">
+                style="background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #1E4D3E); width: 42px; height: 42px; border: 1px solid rgba(var(--bs-primary-rgb), 0.15);">
                 <i class="ti ti-layout-dashboard fs-3"></i>
             </div>
-            <div>
-                <h5 class="mb-0 fw-bold text-dark">{{ $greeting }}, {{ $userName }}</h5>
-                <small class="text-muted d-flex align-items-center gap-1 mt-0.5" style="font-size: 12.5px;">
-                    <i class="ti ti-calendar text-muted"></i>
-                    <span class="fw-semibold text-dark">{{ $tanggalDisplay }}</span>
-                    <span class="text-muted mx-1">•</span>
-                    <span>Ringkasan Kondisi & Monitoring Kehadiran Karyawan</span>
+            <div style="min-width: 0; flex: 1;">
+                <h5 class="mb-0 fw-bold text-dark text-truncate" style="font-size: clamp(0.95rem, 2.5vw, 1.15rem);">{{ $greeting }}, {{ $userName }}</h5>
+                <small class="text-muted d-flex align-items-center gap-1 mt-0.5" style="font-size: 12px; min-width: 0;">
+                    <i class="ti ti-calendar text-muted flex-shrink-0"></i>
+                    <span class="fw-semibold text-dark text-nowrap">{{ $tanggalDisplay }}</span>
+                    <span class="text-muted mx-1 d-none d-sm-inline">•</span>
+                    <span class="text-truncate d-none d-sm-inline">Ringkasan Kondisi & Monitoring Kehadiran Karyawan</span>
                 </small>
             </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0 w-100-mobile">
             <div class="digital-clock-chip" id="digital-clock">
                 <span id="clock-icon" class="text-muted"><i class="ti ti-clock"></i></span>
                 <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
@@ -233,17 +233,17 @@
     </div>
 </div>
 
-<!-- Filter Toolbar (Clean & Aligned) -->
-<div class="admin-filter-toolbar mb-3">
-    <form action="{{ route('dashboard.index') }}" method="GET">
+<!-- Filter Toolbar (Clean & Aligned Compact Standard) -->
+<div class="card admin-filter-toolbar mb-3">
+    <form action="{{ route('dashboard.index') }}" method="GET" class="m-0">
         <div class="row g-2 align-items-center">
-            <div class="col-lg-3 col-md-6 col-12">
+            <div class="col-xl col-lg col-md-4 col-12">
                 <div class="input-group">
                     <span class="input-group-text bg-light text-muted"><i class="ti ti-calendar"></i></span>
                     <input type="text" name="tanggal" value="{{ $tanggal }}" class="form-control flatpickr-date" placeholder="Pilih Tanggal">
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 col-12">
+            <div class="col-xl col-lg col-md-4 col-12">
                 <select name="kode_cabang" class="form-select">
                     <option value="">Semua Outlet / Cabang</option>
                     @foreach ($cabang as $c)
@@ -253,7 +253,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-3 col-md-6 col-12">
+            <div class="col-xl col-lg col-md-4 col-12">
                 <select name="kode_dept" class="form-select">
                     <option value="">Semua Departemen</option>
                     @foreach ($departemen as $d)
@@ -263,16 +263,19 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-3 col-md-6 col-12 d-flex align-items-center gap-2">
-                <button type="submit" class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center gap-1.5" style="height: 38px;">
-                    <i class="ti ti-filter"></i>
-                    <span>Terapkan Filter</span>
-                </button>
-                @if($selectedCabang || $selectedDept || $tanggal != date('Y-m-d'))
-                    <a href="{{ route('dashboard.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center px-2.5" style="height: 38px;" title="Reset Filter">
-                        <i class="ti ti-refresh"></i>
-                    </a>
-                @endif
+            <div class="col-12 col-md-auto">
+                <div class="d-flex align-items-center gap-1.5 w-100">
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 w-100">
+                        <i class="ti ti-filter" style="font-size: 14px;"></i>
+                        <span>Terapkan Filter</span>
+                    </button>
+                    @if($selectedCabang || $selectedDept || $tanggal != date('Y-m-d'))
+                        <a href="{{ route('dashboard.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 w-100" title="Reset Filter">
+                            <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                            <span>Reset</span>
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     </form>
@@ -300,10 +303,10 @@
 <!-- 4 Priority Statistic Cards -->
 <div class="stat-priority-grid mb-3">
     <!-- 1. Total Karyawan -->
-    <div class="stat-card-priority">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <div class="stat-label">Total Karyawan</div>
+    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('karyawan.index') }}'" title="Klik untuk lihat data karyawan">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div style="min-width: 0;">
+                <div class="stat-label text-truncate">Total Karyawan</div>
                 <h3 class="stat-value">{{ $total_karyawan }}</h3>
             </div>
             <div class="stat-icon-wrapper" style="background: #F1F5F9; color: #334155;">
@@ -311,16 +314,16 @@
             </div>
         </div>
         <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #334155;"></span>
-            <span>Karyawan aktif operasional</span>
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #334155; flex-shrink: 0;"></span>
+            <span class="text-wrap">Karyawan aktif operasional</span>
         </div>
     </div>
 
     <!-- 2. Hadir Tepat Waktu -->
-    <div class="stat-card-priority stat-card-clickable" style="cursor: pointer;" data-status="h" title="Klik untuk lihat rincian">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <div class="stat-label">Hadir Hari Ini</div>
+    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'h']) }}'" title="Klik untuk lihat monitoring presensi hadir">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div style="min-width: 0;">
+                <div class="stat-label text-truncate">Hadir Hari Ini</div>
                 <h3 class="stat-value" style="color: #059669;">{{ $hadir_hari_ini }}</h3>
             </div>
             <div class="stat-icon-wrapper" style="background: #ECFDF5; color: #059669;">
@@ -328,16 +331,16 @@
             </div>
         </div>
         <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
-            <span>Tepat waktu &le; 07:05 / Dispensasi</span>
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669; flex-shrink: 0;"></span>
+            <span class="text-wrap">Tepat waktu &le; 07:05 / Dispensasi</span>
         </div>
     </div>
 
     <!-- 3. Telat Hari Ini -->
-    <div class="stat-card-priority">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <div class="stat-label">Telat Hari Ini</div>
+    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'telat']) }}'" title="Klik untuk lihat monitoring presensi terlambat">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div style="min-width: 0;">
+                <div class="stat-label text-truncate">Telat Hari Ini</div>
                 <h3 class="stat-value" style="color: #D97706;">{{ $telat_hari_ini }}</h3>
             </div>
             <div class="stat-icon-wrapper" style="background: #FFFBEB; color: #D97706;">
@@ -345,16 +348,16 @@
             </div>
         </div>
         <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706;"></span>
-            <span>Masuk melebihi jam toleransi</span>
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; flex-shrink: 0;"></span>
+            <span class="text-wrap">Masuk melebihi jam toleransi</span>
         </div>
     </div>
 
     <!-- 4. Pengajuan Pending -->
-    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location='{{ route('izinabsen.index') }}'">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <div class="stat-label">Pengajuan Pending</div>
+    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('izinabsen.index') }}'" title="Klik untuk buka persetujuan pengajuan">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div style="min-width: 0;">
+                <div class="stat-label text-truncate">Pengajuan Pending</div>
                 <h3 class="stat-value" style="color: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};">{{ $pending_approval }}</h3>
             </div>
             <div class="stat-icon-wrapper" style="background: {{ $pending_approval > 0 ? '#FEF2F2' : '#F8FAFC' }}; color: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};">
@@ -362,45 +365,51 @@
             </div>
         </div>
         <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};"></span>
-            <span>Izin, sakit, cuti, dispensasi</span>
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }}; flex-shrink: 0;"></span>
+            <span class="text-wrap">Izin, sakit, cuti, dispensasi</span>
         </div>
     </div>
 </div>
 
 <!-- Sub-metrics Operational Strip (Izin, Sakit, Cuti, Alpa, Dispensasi) -->
 <div class="operational-sub-strip mb-4">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.05em;">Rincian Status:</span>
+    <div class="d-flex align-items-center justify-content-between flex-column flex-md-row gap-2">
+        <div class="d-flex align-items-center justify-content-between w-100 d-md-none mb-0.5">
+            <span class="text-muted fw-bold small text-uppercase" style="font-size: 11px; letter-spacing: 0.05em;">Rincian Status</span>
+            <small class="text-muted font-mono" style="font-size: 11px;">
+                <i class="ti ti-info-circle me-1"></i>{{ \Carbon\Carbon::parse($tanggal)->format('d/m/Y') }}
+            </small>
+        </div>
+        <div class="operational-pills-scroll-track d-flex align-items-center gap-2 w-100" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+            <span class="text-muted fw-bold small text-uppercase flex-shrink-0 d-none d-md-inline" style="font-size: 11px; letter-spacing: 0.05em;">Rincian Status:</span>
             
-            <div class="sub-metric-pill stat-card-clickable" style="cursor: pointer;" data-status="i" title="Klik untuk lihat daftar izin">
+            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izinabsen.index') }}'" title="Klik untuk kelola daftar permohonan izin absen">
                 <div class="sub-metric-value" style="color: #2563EB;">{{ $izin_hari_ini }}</div>
                 <div class="sub-metric-label">Izin Absen</div>
             </div>
 
-            <div class="sub-metric-pill stat-card-clickable" style="cursor: pointer;" data-status="s" title="Klik untuk lihat daftar sakit">
+            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izinsakit.index') }}'" title="Klik untuk kelola daftar permohonan izin sakit">
                 <div class="sub-metric-value" style="color: #EA580C;">{{ $sakit_hari_ini }}</div>
                 <div class="sub-metric-label">Izin Sakit</div>
             </div>
 
-            <div class="sub-metric-pill stat-card-clickable" style="cursor: pointer;" data-status="c" title="Klik untuk lihat daftar cuti">
-                <div class="sub-metric-value" style="color: #9333EA;">{{ $cuti_hari_ini }}</div>
+            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izincuti.index') }}'" title="Klik untuk kelola daftar permohonan cuti">
+                <div class="sub-metric-value" style="color: #0D9488;">{{ $cuti_hari_ini }}</div>
                 <div class="sub-metric-label">Cuti</div>
             </div>
 
-            <div class="sub-metric-pill">
+            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'alpa']) }}'" title="Klik untuk lihat daftar karyawan tidak hadir">
                 <div class="sub-metric-value text-danger">{{ $tidak_hadir }}</div>
                 <div class="sub-metric-label">Tidak Hadir (Alpa)</div>
             </div>
 
-            <div class="sub-metric-pill">
+            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('dispensasi.index') }}'" title="Klik untuk kelola dispensasi keterlambatan">
                 <div class="sub-metric-value" style="color: #0284C7;">{{ $dispensasi_hari_ini }}</div>
                 <div class="sub-metric-label">Dispensasi Disetujui</div>
             </div>
         </div>
 
-        <small class="text-muted font-mono" style="font-size: 11.5px;">
+        <small class="text-muted font-mono flex-shrink-0 d-none d-md-inline" style="font-size: 11.5px;">
             <i class="ti ti-info-circle me-1"></i>Data per {{ \Carbon\Carbon::parse($tanggal)->format('d/m/Y') }}
         </small>
     </div>
@@ -521,7 +530,15 @@
                                             {{ \Carbon\Carbon::parse($p->tanggal)->format('d/m/Y') }}
                                         </td>
                                         <td class="py-2.5 px-3 text-end">
-                                            <a href="{{ route('izinabsen.index') }}" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 11.5px;">
+                                            @php
+                                                $targetRoute = match($p->kode_tipe ?? '') {
+                                                    'c' => route('izincuti.index'),
+                                                    's' => route('izinsakit.index'),
+                                                    'd' => route('dispensasi.index'),
+                                                    default => route('izinabsen.index'),
+                                                };
+                                            @endphp
+                                            <a href="{{ $targetRoute }}" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 11.5px;">
                                                 Proses
                                             </a>
                                         </td>
@@ -740,7 +757,7 @@
                             type: 'donut',
                             height: 280
                         },
-                        colors: ['#059669', '#D97706', '#2563EB', '#EA580C', '#9333EA', '#DC2626'],
+                        colors: ['#059669', '#D97706', '#2563EB', '#EA580C', '#0D9488', '#DC2626'],
                         dataLabels: { enabled: false },
                         legend: {
                             position: 'bottom',
@@ -850,7 +867,7 @@
                         stacked: true,
                         toolbar: { show: false }
                     },
-                    colors: ['#2563EB', '#EA580C', '#9333EA'],
+                    colors: ['#2563EB', '#EA580C', '#0D9488'],
                     plotOptions: {
                         bar: {
                             borderRadius: 3,

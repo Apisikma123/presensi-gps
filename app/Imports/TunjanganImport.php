@@ -37,7 +37,7 @@ class TunjanganImport implements ToCollection, WithHeadingRow
             // Generate Kode Tunjangan
             $tahun = date('Y', strtotime($tanggal_berlaku));
             $last_tunjangan = Tunjangan::orderBy('kode_tunjangan', 'desc')
-                ->whereRaw('YEAR(tanggal_berlaku) = ' . $tahun)
+                ->whereYear('tanggal_berlaku', $tahun)
                 ->first();
             
             $last_kode = $last_tunjangan != null ? $last_tunjangan->kode_tunjangan : '';

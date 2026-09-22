@@ -43,9 +43,7 @@
         ]
     },
     "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
+        "psr-4": {}
     },
     "scripts": {
         "post-autoload-dump": [

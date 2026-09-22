@@ -8,10 +8,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>@yield('title')</title>
+    <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
+    <link rel="shortcut icon" href="{{ $app_logo_url ?? asset('favicon.ico') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
+    <link rel="apple-touch-icon" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.0/air-datepicker.min.css" rel="stylesheet">
@@ -32,7 +35,20 @@
             --bg-indicator: {{ $t['primary'] }};
             --color-nav-hover: {{ $t['primary_light'] }};
             --bg-nav: #ffffff;
+            --theme-color-1: {{ $t['primary'] }};
+            --theme-color-2: {{ $t['primary_light'] }};
         }
+
+        /* Dynamic Tailwind Arbitrary Hex Overrides */
+        .bg-\[\#1E4D3E\], .bg-\[\#1e4d3e\] { background-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .text-\[\#1E4D3E\], .text-\[\#1e4d3e\] { color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .border-\[\#1E4D3E\], .border-\[\#1e4d3e\] { border-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .focus\:ring-\[\#1E4D3E\]:focus, .focus\:ring-\[\#1e4d3e\]:focus { --tw-ring-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .focus\:border-\[\#1E4D3E\]:focus, .focus\:border-\[\#1e4d3e\]:focus { border-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+
+        .bg-\[\#32745E\], .bg-\[\#32745e\] { background-color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
+        .text-\[\#32745E\], .text-\[\#32745e\] { color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
+        .border-\[\#32745E\], .border-\[\#32745e\] { border-color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
         html { background: {{ $t['primary'] }}; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -128,12 +144,90 @@
             box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.1) !important;
         }
 
+        /* Global Form Required & Optional Indicators */
+        .req-star {
+            color: #e11d48 !important;
+            font-weight: 700 !important;
+            margin-left: 2px !important;
+        }
+        .opt-tag {
+            font-size: 11px !important;
+            font-weight: 400 !important;
+            color: #94a3b8 !important;
+            margin-left: 4px !important;
+        }
+        .auto-tag {
+            font-size: 10.5px !important;
+            font-weight: 400 !important;
+            color: #94a3b8 !important;
+            margin-left: 4px !important;
+        }
+        .form-label-group input:focus ~ label .opt-tag,
+        .form-label-group input:not(:placeholder-shown) ~ label .opt-tag,
+        .form-label-group textarea:focus ~ label .opt-tag,
+        .form-label-group textarea:not(:placeholder-shown) ~ label .opt-tag,
+        .form-label-group select:focus ~ label .opt-tag,
+        .form-label-group select:valid ~ label .opt-tag,
+        .form-label-group input:focus ~ label .auto-tag,
+        .form-label-group input:not(:placeholder-shown) ~ label .auto-tag {
+            font-size: 9px !important;
+            opacity: 0.85;
+        }
+
+        /* App Capsule Base & Bottom Clearance (antislop-layoutmobile R-03, R-35) */
+        #appCapsule {
+            padding-top: calc(56px + env(safe-area-inset-top, 0px) + 14px) !important;
+            padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+            min-height: 100vh;
+            box-sizing: border-box !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Prevent fixed bottomNav from obscuring form action buttons */
+        .form-container {
+            padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
+            box-sizing: border-box !important;
+        }
+
         .air-datepicker-global-container { z-index: 100000 !important; }
-        .air-datepicker-overlay { z-index: 99999 !important; backdrop-filter: blur(2px) !important; -webkit-backdrop-filter: blur(2px) !important; }
-        .air-datepicker { z-index: 100001 !important; font-family: 'Inter', sans-serif !important; border-radius: 16px !important; border: none !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; }
-        .air-datepicker-cell.-selected- { background: {{ $t['primary'] }} !important; }
-        .air-datepicker-cell.-current- { color: {{ $t['primary'] }} !important; }
-        .air-datepicker-button { color: {{ $t['primary'] }} !important; }
+        .air-datepicker-overlay { z-index: 99999 !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
+        .air-datepicker { 
+            z-index: 100001 !important; 
+            font-family: 'Inter', -apple-system, sans-serif !important; 
+            border-radius: 18px !important; 
+            border: 1px solid rgba(15, 23, 42, 0.08) !important; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+            --adp-accent-color: {{ $t['primary'] ?? '#1E4D3E' }};
+            --adp-cell-background-color-selected: {{ $t['primary'] ?? '#1E4D3E' }};
+            --adp-cell-background-color-selected-hover: {{ $t['primary'] ?? '#1E4D3E' }};
+            --adp-color-current-date: {{ $t['primary'] ?? '#1E4D3E' }};
+            --adp-btn-color: {{ $t['primary'] ?? '#1E4D3E' }};
+            --adp-cell-border-radius: 8px;
+        }
+        .air-datepicker-cell {
+            border-radius: 8px !important;
+        }
+        .air-datepicker-cell.-selected-,
+        .air-datepicker-cell.-selected-.-current-,
+        .air-datepicker-cell.-selected-.-focus- { 
+            background: {{ $t['primary'] ?? '#1E4D3E' }} !important; 
+            color: #ffffff !important; 
+            font-weight: 700 !important; 
+        }
+        .air-datepicker-cell.-current-:not(.-selected-) { 
+            color: {{ $t['primary'] ?? '#1E4D3E' }} !important; 
+            font-weight: 700 !important;
+            background: rgba(30, 77, 62, 0.08) !important;
+        }
+        .air-datepicker-button { 
+            color: {{ $t['primary'] ?? '#1E4D3E' }} !important; 
+            font-weight: 600 !important; 
+        }
+        .air-datepicker-button:hover {
+            background: rgba(30, 77, 62, 0.08) !important;
+            color: {{ $t['primary'] ?? '#1E4D3E' }} !important;
+        }
 
         /* SweetAlert2 Unified Cohesive Theme */
         .swal2-container {
@@ -241,7 +335,7 @@
         </div>
     </header>
 
-    <main id="appCapsule" class="pt-[calc(4rem+env(safe-area-inset-top))] pb-24 px-3 max-w-lg mx-auto">
+    <main id="appCapsule" class="px-3 max-w-lg mx-auto">
         @yield('content')
     </main>
 
@@ -253,43 +347,107 @@
     <script src="{{ asset('assets/template/js/base.js') }}?v=2.0"></script>
     <script src="{{ asset('assets/vendor/libs/toastr/toastr.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     {{-- Session Flash Notifications --}}
-    <style>.toast-bottom-full-width { bottom: 5rem }</style>
+    <style>
+        .toast-bottom-full-width { bottom: 5rem }
+        .modern-swal-popup {
+            border-radius: 24px !important;
+            padding: 24px 20px !important;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15) !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        }
+        .modern-swal-popup .swal2-title {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            margin-top: 10px !important;
+        }
+        .modern-swal-popup .swal2-html-container {
+            font-size: 14px !important;
+            color: #64748b !important;
+            margin-top: 6px !important;
+        }
+    </style>
     @if ($message = Session::get('success'))
         <script>
-            toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-            toastr.options.progressBar = true; toastr.options.positionClass = 'toast-bottom-full-width';
-            toastr.success("Berhasil", "{{ $message }}", { timeOut: 3000 });
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: "Berhasil!",
+                        text: {!! json_encode($message) !!},
+                        icon: "success",
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true,
+                        confirmButtonColor: "{{ $t['primary'] ?? '#1E4D3E' }}",
+                        customClass: { popup: 'modern-swal-popup' }
+                    });
+                } else if (typeof toastr !== 'undefined') {
+                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
+                    toastr.options.progressBar = true; toastr.options.positionClass = 'toast-bottom-full-width';
+                    toastr.success({!! json_encode($message) !!}, "Berhasil", { timeOut: 3000 });
+                }
+            });
         </script>
     @endif
     @if ($message = Session::get('error'))
         <script>
-            toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-            toastr.options.progressBar = true; toastr.options.positionClass = 'toast-bottom-full-width';
-            toastr.error("Gagal", "{{ $message }}", { timeOut: 3000 });
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: "Gagal",
+                        text: {!! json_encode($message) !!},
+                        icon: "error",
+                        confirmButtonColor: "{{ $t['primary'] ?? '#1E4D3E' }}"
+                    });
+                } else if (typeof toastr !== 'undefined') {
+                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
+                    toastr.options.progressBar = true; toastr.options.positionClass = 'toast-bottom-full-width';
+                    toastr.error({!! json_encode($message) !!}, "Gagal", { timeOut: 4000 });
+                }
+            });
         </script>
     @endif
     @if ($message = Session::get('warning'))
         <script>
-            toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-            toastr.options.progressBar = true;
-            toastr.warning("Warning", "{{ $message }}", { timeOut: 3000 });
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof toastr !== 'undefined') {
+                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
+                    toastr.options.progressBar = true;
+                    toastr.warning({!! json_encode($message) !!}, "Peringatan", { timeOut: 3000 });
+                }
+            });
         </script>
     @endif
     @if (isset($errors) && $errors->any())
-        @php $err = ''; @endphp
-        @foreach ($errors->all() as $error) @php $err .= $error . ' '; @endphp @endforeach
+        @php
+            $errList = implode("\n", $errors->all());
+        @endphp
         <script>
-            toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-            toastr.options.progressBar = true;
-            toastr.error("Gagal", "{{ addslashes(trim($err)) }}", { timeOut: 3000 });
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: "Periksa Formulir",
+                        text: {!! json_encode($errList) !!},
+                        icon: "warning",
+                        confirmButtonColor: "{{ $t['primary'] ?? '#1E4D3E' }}"
+                    });
+                } else if (typeof toastr !== 'undefined') {
+                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
+                    toastr.options.progressBar = true;
+                    toastr.error({!! json_encode($errList) !!}, "Gagal", { timeOut: 4000 });
+                }
+            });
         </script>
     @endif
 
 
 
     @stack('myscript')
+
+    <!-- Global Action Loading Overlay -->
+    @include('components.global-loading')
 </body>
 </html>

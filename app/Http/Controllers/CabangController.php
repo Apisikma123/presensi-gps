@@ -149,28 +149,30 @@ class CabangController extends Controller
                 'timezone' => $timezone,
             ]);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Berhasil Disimpan'
+                ]);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Illuminate\Database\QueryException $e) {
-            // Tangani error database khusus
             $errorMessage = $e->getMessage();
-
+            $msg = 'Terjadi kesalahan: ' . $errorMessage;
             if (str_contains($errorMessage, 'Duplicate entry')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Kode Cabang sudah digunakan, silakan gunakan kode lain'));
+                $msg = 'Kode Cabang sudah digunakan, silakan gunakan kode lain';
             } elseif (str_contains($errorMessage, 'Data too long')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Data yang dimasukkan terlalu panjang. Pastikan panjang data sesuai batas maksimal'));
-            } else {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Terjadi kesalahan: ' . $errorMessage));
+                $msg = 'Data yang dimasukkan terlalu panjang. Pastikan panjang data sesuai batas maksimal';
             }
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($msg));
         } catch (\Exception $e) {
-            return Redirect::back()
-                ->withInput()
-                ->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
         }
     }
 
@@ -294,24 +296,28 @@ class CabangController extends Controller
                 'timezone' => $timezone,
             ]);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Berhasil Diupdate'
+                ]);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Diupdate'));
         } catch (\Illuminate\Database\QueryException $e) {
-            // Tangani error database khusus
             $errorMessage = $e->getMessage();
-
+            $msg = 'Terjadi kesalahan: ' . $errorMessage;
             if (str_contains($errorMessage, 'Data too long')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Data yang dimasukkan terlalu panjang. Pastikan panjang data sesuai batas maksimal'));
-            } else {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Terjadi kesalahan: ' . $errorMessage));
+                $msg = 'Data yang dimasukkan terlalu panjang. Pastikan panjang data sesuai batas maksimal';
             }
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($msg));
         } catch (\Exception $e) {
-            return Redirect::back()
-                ->withInput()
-                ->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
         }
     }
 

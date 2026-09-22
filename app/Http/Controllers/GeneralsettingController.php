@@ -47,10 +47,9 @@ class GeneralsettingController extends Controller
             'theme_color_2' => 'nullable|string|max:20',
             'mobile_theme_scheme' => 'nullable|string|max:20',
             'session_time' => 'nullable|integer|min:1',
-            'absen_istirahat' => 'nullable',
-            'potongan_istirahat' => 'nullable',
             'show_rate_slip' => 'nullable',
             'sistem_hari_kerja' => 'required|in:5,6',
+            'monthly_leave_quota' => 'nullable|integer|min:0',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
 
@@ -93,9 +92,8 @@ class GeneralsettingController extends Controller
                 'theme_color_2' => $request->theme_color_2,
                 'mobile_theme_scheme' => $request->mobile_theme_scheme,
                 'session_time' => $request->session_time,
-                'absen_istirahat' => $request->has('absen_istirahat') ? 1 : 0,
-                'potongan_istirahat' => $request->has('potongan_istirahat') ? 1 : 0,
                 'sistem_hari_kerja' => $request->sistem_hari_kerja,
+                'monthly_leave_quota' => $request->filled('monthly_leave_quota') ? (int)$request->monthly_leave_quota : 0,
                 'global_jamkerja_aktif' => $request->has('global_jamkerja_aktif') ? 1 : 0,
             ];
 
@@ -104,33 +102,43 @@ class GeneralsettingController extends Controller
             }
 
             if ($request->hasFile('logo')) {
-                $logo = $request->file('logo');
-                $ext = strtolower($logo->getClientOriginalExtension());
-                if (!in_array($ext, ['jpeg', 'png', 'jpg', 'webp'])) {
-                    throw new \Exception('Format file logo tidak valid.');
+                if ($setting->logo) {
+                    if (Storage::disk('public')->exists('logo/' . $setting->logo)) {
+                        Storage::disk('public')->delete('logo/' . $setting->logo);
+                    }
+                    if (Storage::exists('public/logo/' . $setting->logo)) {
+                        Storage::delete('public/logo/' . $setting->logo);
+                    }
                 }
-                $logoName = time() . '_' . uniqid() . '.' . $ext;
-                
-                $destinationPath = 'public/logo';
-                if (!Storage::exists($destinationPath)) {
-                    Storage::makeDirectory($destinationPath, 0775, true);
-                    $path = Storage::path($destinationPath);
-                    chmod($path, 0775);
-                }
-                
-                $logo->storeAs($destinationPath, $logoName);
 
-                // Hapus logo lama jika ada
-                if ($setting->logo && Storage::exists('public/logo/' . $setting->logo)) {
-                    Storage::delete('public/logo/' . $setting->logo);
-                }
+                $logoName = \App\Helpers\ImageOptimizer::saveAsWebp(
+                    $request->file('logo'),
+                    'logo',
+                    'logo_' . time() . '_' . uniqid(),
+                    85,
+                    512,
+                    'public'
+                );
 
                 $data['logo'] = $logoName;
+
+                // Sync otomatis ke public/logo.png dan public/favicon.ico agar favicon browser ikut terupdate
+                try {
+                    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                    $logoImg = $manager->read($request->file('logo'));
+                    $logoImg->toPng()->save(public_path('logo.png'));
+
+                    $favImg = $manager->read($request->file('logo'));
+                    $favImg->cover(64, 64)->toPng()->save(public_path('favicon.ico'));
+                } catch (\Exception $e) {
+                    \Log::warning('Gagal auto-sync logo.png / favicon.ico: ' . $e->getMessage());
+                }
             }
 
             $oldTimezone = $setting->timezone ?? 'Asia/Jakarta';
             $oldSessionTime = $setting->session_time;
             $setting->update($data);
+            \Illuminate\Support\Facades\Cache::forget('global_app_logo_relative_path');
 
             // Update jadwal kerja global per hari
             if ($request->has('global_jamkerja')) {
@@ -165,14 +173,16 @@ class GeneralsettingController extends Controller
                 } catch (\Exception $e) {
                 }
             }
-            // Update karyawan menu settings
-            $menu_inputs = $request->input('karyawan_menu', []);
-            foreach (KaryawanMenuSetting::pluck('kode_menu') as $kode) {
-                KaryawanMenuSetting::where('kode_menu', $kode)->update([
-                    'status' => isset($menu_inputs[$kode]) ? 1 : 0
-                ]);
+            // Update karyawan menu settings (jika ada input dari view)
+            if ($request->has('karyawan_menu')) {
+                $menu_inputs = $request->input('karyawan_menu', []);
+                foreach (KaryawanMenuSetting::pluck('kode_menu') as $kode) {
+                    KaryawanMenuSetting::where('kode_menu', $kode)->update([
+                        'status' => isset($menu_inputs[$kode]) ? 1 : 0
+                    ]);
+                }
+                KaryawanMenuSetting::clearCache();
             }
-            KaryawanMenuSetting::clearCache();
             \Illuminate\Support\Facades\Cache::forget('global_general_setting');
             \Illuminate\Support\Facades\Cache::forget('app_expiration_setting');
             
@@ -194,6 +204,10 @@ class GeneralsettingController extends Controller
         if (!File::exists($envFile)) {
             return false;
         }
+
+        // Sanitize key and value to prevent CRLF injection into .env
+        $key = preg_replace('/[^A-Z0-9_]/i', '', (string)$key);
+        $value = str_replace(["\r", "\n"], '', (string)$value);
 
         $envContent = File::get($envFile);
         

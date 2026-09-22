@@ -22,7 +22,7 @@
 </div>
 
 <!-- Tabs & Filter Bar -->
-<div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);">
+<div class="card admin-filter-toolbar mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);">
     <div class="card-header border-bottom py-2 px-3" style="background: #FAFBFC;">
         <ul class="nav nav-pills gap-1" id="userTabs" role="tablist">
             <li class="nav-item">
@@ -39,16 +39,16 @@
             </li>
         </ul>
     </div>
-    <div class="card-body p-2.5">
-        <form action="{{ route('users.index') }}" id="filterForm" method="GET">
+    <div class="card-body p-2">
+        <form action="{{ route('users.index') }}" id="filterForm" method="GET" class="m-0">
             <input type="hidden" name="user_type" id="user_type" value="{{ Request('user_type', 'biasa') }}">
             <div class="row g-2 align-items-center">
                 @if (Request('user_type', 'biasa') != 'karyawan')
-                    <div class="col-lg-6 col-md-6 col-12">
+                    <div class="col-xl col-lg col-md-6 col-12">
                         <x-input-with-icon label="" value="{{ Request('name') }}" name="name" icon="ti ti-search"
                             placeholder="Cari nama, email, username..." hideLabel="true" />
                     </div>
-                    <div class="col-lg-4 col-md-3 col-12">
+                    <div class="col-xl-3 col-lg-3 col-md-3 col-12">
                         <select name="role_id" id="role_id" class="form-select" onchange="document.getElementById('filterForm').submit();">
                             <option value="">Semua Role / Akses</option>
                             @foreach ($roles as $role)
@@ -60,36 +60,38 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-lg-2 col-md-3 col-12 d-flex align-items-center gap-1.5" style="display: flex !important; flex-direction: row !important; align-items: center !important;">
-                        <button type="submit" class="btn w-100 text-white fw-semibold shadow-sm"
-                            style="background-color: #1E4D3E; border: 1px solid #11382C; border-radius: 8px; height: 36px; font-size: 12.5px; display: inline-flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 6px !important; white-space: nowrap !important;">
-                            <i class="ti ti-search" style="font-size: 14px; display: inline-block !important; width: auto !important;"></i>
-                            <span style="display: inline-block !important; width: auto !important;">Cari</span>
-                        </button>
-                        @if (Request('name') || Request('role_id'))
-                            <a href="{{ route('users.index', ['user_type' => 'biasa']) }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center p-0"
-                                style="height: 36px; width: 36px; min-width: 36px; border-radius: 8px;" title="Reset Filter">
-                                <i class="ti ti-refresh" style="font-size: 14px;"></i>
-                            </a>
-                        @endif
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                                <i class="ti ti-search" style="font-size: 14px;"></i>
+                                <span>Cari</span>
+                            </button>
+                            @if (Request('name') || Request('role_id'))
+                                <a href="{{ route('users.index', ['user_type' => 'biasa']) }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                                    <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                                    <span>Reset</span>
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 @else
-                    <div class="col-lg-10 col-md-9 col-12">
+                    <div class="col-xl col-lg col-md-9 col-12">
                         <x-input-with-icon label="" value="{{ Request('name') }}" name="name" icon="ti ti-search"
                             placeholder="Cari nama karyawan, username, email..." hideLabel="true" />
                     </div>
-                    <div class="col-lg-2 col-md-3 col-12 d-flex align-items-center gap-1.5" style="display: flex !important; flex-direction: row !important; align-items: center !important;">
-                        <button type="submit" class="btn w-100 text-white fw-semibold shadow-sm"
-                            style="background-color: #1E4D3E; border: 1px solid #11382C; border-radius: 8px; height: 36px; font-size: 12.5px; display: inline-flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 6px !important; white-space: nowrap !important;">
-                            <i class="ti ti-search" style="font-size: 14px; display: inline-block !important; width: auto !important;"></i>
-                            <span style="display: inline-block !important; width: auto !important;">Cari</span>
-                        </button>
-                        @if (Request('name'))
-                            <a href="{{ route('users.index', ['user_type' => 'karyawan']) }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center p-0"
-                                style="height: 36px; width: 36px; min-width: 36px; border-radius: 8px;" title="Reset Filter">
-                                <i class="ti ti-refresh" style="font-size: 14px;"></i>
-                            </a>
-                        @endif
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                                <i class="ti ti-search" style="font-size: 14px;"></i>
+                                <span>Cari</span>
+                            </button>
+                            @if (Request('name'))
+                                <a href="{{ route('users.index', ['user_type' => 'karyawan']) }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
+                                    <i class="ti ti-refresh" style="font-size: 14px;"></i>
+                                    <span>Reset</span>
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 @endif
             </div>
@@ -120,7 +122,7 @@
                         <td>
                             <div class="d-flex align-items-center gap-2.5">
                                 <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold"
-                                    style="width: 34px; height: 34px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; font-size: 12px;">
+                                    style="width: 34px; height: 34px; background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #1E4D3E); font-size: 12px;">
                                     {{ strtoupper(substr($d->name, 0, 2)) }}
                                 </div>
                                 <div>

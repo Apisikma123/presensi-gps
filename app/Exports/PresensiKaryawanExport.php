@@ -4,13 +4,14 @@ namespace App\Exports;
 
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
-
+use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PresensiKaryawanExport implements FromView, ShouldAutoSize, WithTitle, WithDrawings
+class PresensiKaryawanExport implements FromView, WithColumnWidths, WithTitle, WithStyles, WithDrawings
 {
     protected $data;
 
@@ -29,38 +30,54 @@ class PresensiKaryawanExport implements FromView, ShouldAutoSize, WithTitle, Wit
         return 'Laporan Presensi Karyawan';
     }
 
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 6,
+            'B' => 14,
+            'C' => 14,
+            'D' => 20,
+            'E' => 14,
+            'F' => 14,
+            'G' => 18,
+            'H' => 32,
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        $sheet->setShowGridlines(true);
+        $sheet->getParent()->getDefaultStyle()->getFont()->setName('Segoe UI');
+        return [];
+    }
+
     public function drawings()
     {
-        $karyawan = $this->data['karyawan'];
+        $karyawan = $this->data['karyawan'] ?? null;
         $drawings = [];
 
-        if (!empty($karyawan->foto)) {
+        if ($karyawan && !empty($karyawan->foto)) {
             $path = storage_path('app/public/karyawan/' . $karyawan->foto);
-            
+            $targetPath = null;
             if (file_exists($path)) {
+                $targetPath = $path;
+            } else {
+                $publicPath = public_path('storage/karyawan/' . $karyawan->foto);
+                if (file_exists($publicPath)) {
+                    $targetPath = $publicPath;
+                }
+            }
+
+            if ($targetPath) {
                 $drawing = new Drawing();
                 $drawing->setName('Foto Karyawan');
                 $drawing->setDescription('Foto Karyawan');
-                $drawing->setPath($path);
-                $drawing->setHeight(100); 
-                $drawing->setCoordinates('A4');
+                $drawing->setPath($targetPath);
+                $drawing->setHeight(75);
+                $drawing->setCoordinates('H4');
                 $drawing->setOffsetX(10);
-                $drawing->setOffsetY(5);
+                $drawing->setOffsetY(4);
                 $drawings[] = $drawing;
-            } else {
-                 // Try finding it in public path if storage path fails (e.g. symlink structure differences)
-                 $publicPath = public_path('storage/karyawan/' . $karyawan->foto);
-                 if(file_exists($publicPath)){
-                    $drawing = new Drawing();
-                    $drawing->setName('Foto Karyawan');
-                    $drawing->setDescription('Foto Karyawan');
-                    $drawing->setPath($publicPath);
-                    $drawing->setHeight(100);
-                    $drawing->setCoordinates('A4');
-                    $drawing->setOffsetX(10);
-                    $drawing->setOffsetY(5);
-                    $drawings[] = $drawing;
-                 }
             }
         }
         

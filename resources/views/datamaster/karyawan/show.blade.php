@@ -44,11 +44,11 @@
                         <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                             <h5 class="mb-0 fw-bold text-dark text-truncate" style="letter-spacing: -0.01em;">{{ textCamelCase($karyawan->nama_karyawan) }}</h5>
                             @if ($karyawan->status_aktif_karyawan === '1')
-                                <span class="badge badge-status-aktif">
+                                <span class="badge-status badge-status-aktif">
                                     <i class="ti ti-check me-0.5"></i> Aktif
                                 </span>
                             @else
-                                <span class="badge badge-status-nonaktif">
+                                <span class="badge-status badge-status-nonaktif">
                                     <i class="ti ti-x me-0.5"></i> Nonaktif
                                 </span>
                             @endif
@@ -105,13 +105,19 @@
             <div class="d-flex align-items-center gap-2">
                 @can('users.create')
                     @if (empty($user))
-                        <a class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1.5" href="{{ route('karyawan.createuser', Crypt::encrypt($karyawan->nik)) }}" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
-                            <i class="ti ti-user-plus"></i> Buat Akun Mobile
-                        </a>
+                        <form action="{{ route('karyawan.createuser', Crypt::encrypt($karyawan->nik)) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1.5" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
+                                <i class="ti ti-user-plus"></i> Buat Akun Mobile
+                            </button>
+                        </form>
                     @else
-                        <a class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1.5" href="{{ route('karyawan.deleteuser', Crypt::encrypt($karyawan->nik)) }}" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
-                            <i class="ti ti-user-x"></i> Reset Akun Mobile
-                        </a>
+                        <form action="{{ route('karyawan.deleteuser', Crypt::encrypt($karyawan->nik)) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin mereset akun mobile karyawan ini?');">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1.5" style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">
+                                <i class="ti ti-user-x"></i> Reset Akun Mobile
+                            </button>
+                        </form>
                     @endif
                 @endcan
             </div>
@@ -174,7 +180,7 @@
                             @foreach ($karyawan_wajah as $wajah)
                                 <div class="col">
                                     <div class="card h-100 border shadow-none" style="border-radius: 8px; overflow: hidden;">
-                                        <img src="{{ asset('storage/uploads/facerecognition/' . $karyawan->nik . '-' . getNamaDepan(strtolower($karyawan->nama_karyawan)) . '/' . $wajah->wajah) }}" 
+                                        <img src="{{ route('file.face', ['folder' => $karyawan->nik . '-' . getNamaDepan(strtolower($karyawan->nama_karyawan)), 'filename' => $wajah->wajah]) }}" 
                                             class="card-img-top" style="height: 120px; object-fit: cover;" alt="Wajah">
                                         <div class="card-body p-2 text-center">
                                             <form action="{{ route('facerecognition.delete', $wajah->id) }}" method="POST" class="d-inline">

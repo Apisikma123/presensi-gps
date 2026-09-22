@@ -1,7 +1,7 @@
 (function () {
     const formcreateKaryawan = document.querySelector('#formcreateKaryawan');
     // Form validation for Add / Edit karyawan
-    if (formcreateKaryawan) {
+    if (formcreateKaryawan && typeof FormValidation !== 'undefined') {
         const fv = FormValidation.formValidation(formcreateKaryawan, {
             fields: {
                 nama_karyawan: {

@@ -244,16 +244,6 @@
                             <div class="jam-kerja-time-label">Jam Pulang</div>
                             <div class="jam-kerja-time-value">{{ date('H:i', strtotime($item->jam_pulang)) }}</div>
                         </div>
-                        @if ($item->istirahat == 1)
-                            <div class="jam-kerja-separator"></div>
-                            <div class="jam-kerja-time">
-                                <div class="jam-kerja-time-label">Istirahat</div>
-                                <div class="jam-kerja-time-value">
-                                    {{ date('H:i', strtotime($item->jam_awal_istirahat)) }} -
-                                    {{ date('H:i', strtotime($item->jam_akhir_istirahat)) }}
-                                </div>
-                            </div>
-                        @endif
                     </div>
                 </div>
             @endforeach

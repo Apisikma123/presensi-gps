@@ -15,15 +15,21 @@
     'min' => null,
     'max' => null,
     'required' => false,
+    'optional' => false,
     'hideLabel' => false,
     'id' => null,
 ])
 <div class="form-group {{ $hideLabel ? 'mb-0' : 'mb-3' }}">
     @if ($label && !$hideLabel)
-        <label for="{{ $id ?? $name }}" class="form-label" style="font-weight: 600;">
-            {{ $label }}
-            @if ($required && !$readonly && !$disabled)
-                <span class="text-danger">*</span>
+        <label for="{{ $id ?? $name }}" class="form-label d-flex align-items-center justify-content-between mb-1" style="font-weight: 600; font-size: 13px;">
+            <span>
+                {{ $label }}
+                @if ($required && !$readonly && !$disabled)
+                    <span class="text-danger fw-bold ms-0.5">*</span>
+                @endif
+            </span>
+            @if ($optional && !$required)
+                <span class="text-muted fw-normal font-monospace" style="font-size: 10.5px;">(Opsional)</span>
             @endif
         </label>
     @endif

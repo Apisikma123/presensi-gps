@@ -21,11 +21,14 @@
     #map {
         height: 640px;
         width: 100%;
-        background: #f8fafc;
+        background: #aad3df;
     }
 
-    /* Fast cluster styling */
-    .custom-cluster-marker {
+    /* Fast cluster styling - Primary Brand Palette (DESIGN.md) */
+    .custom-cluster-marker,
+    .marker-cluster-small,
+    .marker-cluster-medium,
+    .marker-cluster-large {
         background: transparent !important;
         border: none !important;
     }
@@ -36,34 +39,36 @@
         border-radius: 50%;
         color: #ffffff;
         font-weight: 700;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-        transition: transform 0.15s ease;
+        font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        box-shadow: 0 4px 14px rgba(30, 77, 62, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
         will-change: transform;
     }
     .custom-cluster-marker:hover .cluster-inner {
         transform: scale(1.12);
+        box-shadow: 0 6px 20px rgba(30, 77, 62, 0.45);
     }
     .marker-cluster-small .cluster-inner {
         width: 38px;
         height: 38px;
-        background: linear-gradient(135deg, #10B981, #059669);
-        border: 3px solid rgba(255, 255, 255, 0.9);
+        background: linear-gradient(135deg, var(--theme-color-2, #32745E), var(--theme-color-1, #1E4D3E)) !important;
+        border: 3px solid rgba(255, 255, 255, 0.95) !important;
         font-size: 13px;
     }
     .marker-cluster-medium .cluster-inner {
-        width: 44px;
-        height: 44px;
-        background: linear-gradient(135deg, #1E4D3E, #14352B);
-        border: 3px solid rgba(255, 255, 255, 0.95);
+        width: 46px;
+        height: 46px;
+        background: linear-gradient(135deg, var(--theme-color-1, #1E4D3E), var(--theme-color-2, #32745E)) !important;
+        border: 3px solid rgba(255, 255, 255, 0.95) !important;
         font-size: 14px;
     }
     .marker-cluster-large .cluster-inner {
-        width: 52px;
-        height: 52px;
-        background: linear-gradient(135deg, #F59E0B, #D97706);
-        border: 3px solid rgba(255, 255, 255, 0.95);
+        width: 54px;
+        height: 54px;
+        background: linear-gradient(135deg, var(--theme-color-1, #1E4D3E), #0D241C) !important;
+        border: 3.5px solid rgba(255, 255, 255, 0.98) !important;
         font-size: 15px;
+        box-shadow: 0 4px 18px rgba(var(--bs-primary-rgb), 0.5) !important;
     }
 
     /* Individual Marker Styling (GPU accelerated & lightweight) */
@@ -76,7 +81,7 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        border: 2.5px solid #1E4D3E;
+        border: 2.5px solid var(--theme-color-1, #1E4D3E);
         background: #ffffff;
         box-shadow: 0 3px 10px rgba(0,0,0,0.22);
         display: flex;
@@ -221,7 +226,7 @@
                     <!-- Quick Stats Chips -->
                     <div class="stats-chips">
                         <div class="stat-chip">
-                            <div class="stat-chip-icon" style="background: rgba(30, 77, 62, 0.1); color: #1E4D3E;">
+                            <div class="stat-chip-icon" style="background: rgba(var(--bs-primary-rgb), 0.1); color: var(--theme-color-1, #1E4D3E);">
                                 <i class="ti ti-users"></i>
                             </div>
                             <div>
@@ -251,37 +256,37 @@
                 </div>
             </div>
             <div class="card-body">
-                <!-- Filter Form -->
-                <div class="row g-3 mb-3">
-                    <div class="col-md-3">
-                        <label for="tanggal" class="form-label fw-semibold text-muted small">Tanggal Presensi</label>
-                        <div class="input-group input-group-merge">
+                <!-- Filter Form (Responsive Auto-Fit) -->
+                <div class="row g-2 align-items-end mb-3">
+                    <div class="col-lg-3 col-md-4 col-sm-6 col-12">
+                        <label for="tanggal" class="form-label fw-semibold text-muted small mb-1">Tanggal Presensi</label>
+                        <div class="input-group input-group-merge" style="height: 38px;">
                             <span class="input-group-text bg-light border-end-0"><i class="ti ti-calendar text-muted"></i></span>
                             <input type="text" class="form-control flatpickr-date bg-light border-start-0" id="tanggal" name="tanggal"
-                                value="{{ $tanggal }}" placeholder="Pilih tanggal">
+                                value="{{ $tanggal }}" placeholder="Pilih tanggal" style="height: 38px;">
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <label for="kode_cabang" class="form-label fw-semibold text-muted small">Filter Cabang</label>
-                        <select class="form-select bg-light" id="kode_cabang" name="kode_cabang">
+                    <div class="col-lg col-md col-sm-6 col-12">
+                        <label for="kode_cabang" class="form-label fw-semibold text-muted small mb-1">Filter Cabang</label>
+                        <select class="form-select bg-light" id="kode_cabang" name="kode_cabang" style="height: 38px;">
                             <option value="">Semua Cabang</option>
                             @foreach ($cabangs as $cabang)
                                 <option value="{{ $cabang->kode_cabang }}">{{ $cabang->nama_cabang }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-5 d-flex align-items-end">
-                        <div class="d-flex gap-2 w-100 flex-wrap">
-                            <button type="button" class="btn text-white d-inline-flex align-items-center gap-1 shadow-sm px-3" id="btn-filter"
-                                style="background-color: #1E4D3E !important; border-color: #1E4D3E !important; border-radius: 8px; font-weight: 600;">
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-2 flex-wrap" style="height: 38px;">
+                            <button type="button" class="btn text-white d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-filter"
+                                style="background-color: var(--theme-color-1, #1E4D3E) !important; border-color: var(--theme-color-1, #1E4D3E) !important; border-radius: 8px; font-weight: 600; height: 38px;">
                                 <i class="ti ti-filter me-1"></i><span>Terapkan</span>
                             </button>
-                            <button type="button" class="btn text-white d-inline-flex align-items-center gap-1 shadow-sm px-3" id="btn-reset"
-                                style="background-color: #64748B !important; border-color: #64748B !important; border-radius: 8px; font-weight: 600;">
+                            <button type="button" class="btn text-white d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-reset"
+                                style="background-color: #64748B !important; border-color: #64748B !important; border-radius: 8px; font-weight: 600; height: 38px;">
                                 <i class="ti ti-refresh me-1"></i><span>Reset</span>
                             </button>
-                            <button type="button" class="btn text-white d-inline-flex align-items-center gap-1 shadow-sm px-3 ms-auto" id="btn-toggle-radius"
-                                style="background-color: #0284C7 !important; border-color: #0284C7 !important; border-radius: 8px; font-weight: 600;">
+                            <button type="button" class="btn text-white d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-toggle-radius"
+                                style="background-color: #0284C7 !important; border-color: #0284C7 !important; border-radius: 8px; font-weight: 600; height: 38px;">
                                 <i class="ti ti-circle me-1"></i><span>Radius Kantor</span>
                             </button>
                         </div>
@@ -304,10 +309,6 @@
                     <div>
                         <i class="ti ti-bulb text-warning me-1"></i> <strong>Tips:</strong> Klik angka cluster untuk memperbesar area kelompok presensi. Klik marker untuk rincian presensi & foto.
                     </div>
-                    <div>
-                        <span class="badge bg-label-success me-1"><i class="ti ti-circle-filled me-1" style="font-size: 8px;"></i> Cluster Cepat Aktif</span>
-                        <span class="badge bg-label-primary"><i class="ti ti-sparkles me-1"></i> GPU Virtualized</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -318,7 +319,7 @@
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
-            <div class="modal-header py-3" style="background: #1E4D3E; color: white;">
+            <div class="modal-header py-3" style="background: var(--theme-color-1, #1E4D3E); color: white;">
                 <h6 class="modal-title text-white fw-bold mb-0" id="imageModalTitle"><i class="ti ti-photo me-2"></i>Foto Presensi</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -328,7 +329,7 @@
             </div>
             <div class="modal-footer py-2 bg-white">
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
-                <a id="downloadImage" href="" download class="btn btn-sm text-white" style="background: #1E4D3E;">
+                <a id="downloadImage" href="" download class="btn btn-sm text-white" style="background: var(--theme-color-1, #1E4D3E);">
                     <i class="ti ti-download me-1"></i>Download Foto
                 </a>
             </div>
@@ -342,39 +343,55 @@
 <script src="{{ asset('assets/vendor/js/leaflet.markercluster.js') }}"></script>
 <script>
     $(document).ready(function() {
+        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#1E4D3E';
+        var themeSecondary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '#32745E';
+
         // Initialize flatpickr for date input
         $('.flatpickr-date').flatpickr({
             dateFormat: 'Y-m-d',
             defaultDate: '{{ $tanggal }}'
         });
 
-        // Initialize map with smooth panning
+        // Initialize map with smooth panning and strictly 1 world bounds
+        var worldBounds = L.latLngBounds([[-85.05112878, -180], [85.05112878, 180]]);
         var map = L.map('map', {
             zoomControl: false,
-            preferCanvas: true
-        }).setView([-6.2088, 106.8456], 10);
+            preferCanvas: true,
+            minZoom: 3,
+            maxBounds: worldBounds,
+            maxBoundsViscosity: 1.0,
+            worldCopyJump: false
+        }).setView([-6.2088, 106.8456], 12);
 
         // Position zoom control on top right
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // Define base tile layers
+        // Define base tile layers with noWrap: true to prevent repeating worlds
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
+            noWrap: true,
+            bounds: worldBounds,
             attribution: '© OpenStreetMap contributors'
         });
 
         var googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
             maxZoom: 20,
+            noWrap: true,
+            bounds: worldBounds,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
 
         var googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
             maxZoom: 20,
+            noWrap: true,
+            bounds: worldBounds,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
 
         var googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             maxZoom: 20,
+            noWrap: true,
+            bounds: worldBounds,
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
 
@@ -400,6 +417,18 @@
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true,
             disableClusteringAtZoom: 18,
+            polygonOptions: {
+                fillColor: themePrimary,
+                color: themePrimary,
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0.18
+            },
+            spiderLegPolylineOptions: {
+                weight: 1.5,
+                color: themePrimary,
+                opacity: 0.6
+            },
             iconCreateFunction: function(cluster) {
                 var count = cluster.getChildCount();
                 var c = 'marker-cluster-small';
@@ -611,7 +640,11 @@
 
             // Fit map
             if (markersToAdd.length > 0 && bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                if (bounds.getNorthEast().distanceTo(bounds.getSouthWest()) < 500) {
+                    map.setView(bounds.getCenter(), 14);
+                } else {
+                    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                }
             }
         }
 
@@ -628,7 +661,13 @@
                     cabangData.forEach(function(c) {
                         if (c.latitude && c.longitude) b.extend([c.latitude, c.longitude]);
                     });
-                    if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
+                    if (b.isValid()) {
+                        if (b.getNorthEast().distanceTo(b.getSouthWest()) < 500) {
+                            map.setView(b.getCenter(), 14);
+                        } else {
+                            map.fitBounds(b, { padding: [30, 30], maxZoom: 15 });
+                        }
+                    }
                 }
             }
         }

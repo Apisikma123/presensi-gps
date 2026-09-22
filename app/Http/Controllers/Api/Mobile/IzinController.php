@@ -53,9 +53,9 @@ class IzinController extends Controller
             ->orderBy('tanggal', 'desc')
             ->get()
             ->map(function ($item) {
-                // Add absolute URL for attachment if it exists
+                // Add protected URL for attachment if it exists
                 if ($item->doc_sid) {
-                    $item->doc_sid_url = asset('storage/uploads/sid/' . $item->doc_sid);
+                    $item->doc_sid_url = route('file.sid', ['filename' => $item->doc_sid]);
                 } else {
                     $item->doc_sid_url = null;
                 }
@@ -88,7 +88,7 @@ class IzinController extends Controller
             'dari' => 'required|date_format:Y-m-d',
             'sampai' => 'required|date_format:Y-m-d|after_or_equal:dari',
             'keterangan' => 'required|string',
-            'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // for sickness
+            'sid' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // for sickness
         ]);
 
         if ($validator->fails()) {
@@ -141,8 +141,8 @@ class IzinController extends Controller
             if ($jenis == 'i') {
                 // Izin Absen
                 $lastizin = Izinabsen::select('kode_izin')
-                    ->whereRaw('YEAR(dari)="' . date('Y', strtotime($dari)) . '"')
-                    ->whereRaw('MONTH(dari)="' . date('m', strtotime($dari)) . '"')
+                    ->whereRaw('YEAR(dari) = ?', [date('Y', strtotime($dari))])
+                    ->whereRaw('MONTH(dari) = ?', [date('m', strtotime($dari))])
                     ->orderBy("kode_izin", "desc")
                     ->first();
                 $last_kode = $lastizin ? $lastizin->kode_izin : '';
@@ -162,16 +162,23 @@ class IzinController extends Controller
             } elseif ($jenis == 's') {
                 // Izin Sakit
                 $lastizinsakit = Izinsakit::select('kode_izin_sakit')
-                    ->whereRaw('YEAR(tanggal)="' . date('Y', strtotime($dari)) . '"')
-                    ->whereRaw('MONTH(tanggal)="' . date('m', strtotime($dari)) . '"')
+                    ->whereRaw('YEAR(tanggal) = ?', [date('Y', strtotime($dari))])
+                    ->whereRaw('MONTH(tanggal) = ?', [date('m', strtotime($dari))])
                     ->orderBy("kode_izin_sakit", "desc")
                     ->first();
                 $last_kode = $lastizinsakit ? $lastizinsakit->kode_izin_sakit : '';
                 $kode = buatkode($last_kode, "IS" . date('ym', strtotime($dari)), 4);
 
                 $sid_name = null;
-                if ($request->hasfile('sid')) {
-                    $sid_name = $kode . ".jpg";
+                if ($request->hasFile('sid')) {
+                    $sid_name = \App\Helpers\ImageOptimizer::saveAsWebp(
+                        $request->file('sid'),
+                        'uploads/sid',
+                        $kode . "_" . \Illuminate\Support\Str::random(24),
+                        80,
+                        1280,
+                        'private'
+                    );
                 }
 
                 $sakit = new Izinsakit();
@@ -189,19 +196,11 @@ class IzinController extends Controller
                 }
                 $sakit->save();
 
-                if ($request->hasfile('sid') && $sid_name) {
-                    $destination_sid_path = "/public/uploads/sid";
-                    $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-                    $image = $manager->read($request->file('sid'));
-                    $encodedImage = (string) $image->toJpeg(75);
-                    Storage::put($destination_sid_path . "/" . $sid_name, $encodedImage);
-                }
-
             } elseif ($jenis == 'c') {
                 // Izin Cuti
                 $lastizincuti = Izincuti::select('kode_izin_cuti')
-                    ->whereRaw('YEAR(dari)="' . date('Y', strtotime($dari)) . '"')
-                    ->whereRaw('MONTH(dari)="' . date('m', strtotime($dari)) . '"')
+                    ->whereRaw('YEAR(dari) = ?', [date('Y', strtotime($dari))])
+                    ->whereRaw('MONTH(dari) = ?', [date('m', strtotime($dari))])
                     ->orderBy("kode_izin_cuti", "desc")
                     ->first();
                 $last_kode = $lastizincuti ? $lastizincuti->kode_izin_cuti : '';
@@ -221,8 +220,8 @@ class IzinController extends Controller
             } elseif ($jenis == 'd') {
                 // Izin Dinas
                 $lastizindinas = Izindinas::select('kode_izin_dinas')
-                    ->whereRaw('YEAR(dari)="' . date('Y', strtotime($dari)) . '"')
-                    ->whereRaw('MONTH(dari)="' . date('m', strtotime($dari)) . '"')
+                    ->whereRaw('YEAR(dari) = ?', [date('Y', strtotime($dari))])
+                    ->whereRaw('MONTH(dari) = ?', [date('m', strtotime($dari))])
                     ->orderBy("kode_izin_dinas", "desc")
                     ->first();
                 $last_kode = $lastizindinas ? $lastizindinas->kode_izin_dinas : '';
@@ -300,9 +299,11 @@ class IzinController extends Controller
 
         // If it's sickness and has SID document, delete the file
         if ($prefix === 'IS' && $record->doc_sid) {
-            $sid_path = "/public/uploads/sid/" . $record->doc_sid;
-            if (Storage::exists($sid_path)) {
-                Storage::delete($sid_path);
+            if (Storage::disk('private')->exists("uploads/sid/" . $record->doc_sid)) {
+                Storage::disk('private')->delete("uploads/sid/" . $record->doc_sid);
+            }
+            if (Storage::disk('public')->exists("uploads/sid/" . $record->doc_sid)) {
+                Storage::disk('public')->delete("uploads/sid/" . $record->doc_sid);
             }
         }
 

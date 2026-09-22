@@ -7,6 +7,7 @@ use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\DispensasiController;
 use App\Http\Controllers\FacerecognitionController;
 use App\Http\Controllers\GeneralsettingController;
+use App\Http\Controllers\HariliburController;
 use App\Http\Controllers\PengajuanizinController;
 use App\Http\Controllers\IzinabsenController;
 use App\Http\Controllers\IzincutiController;
@@ -21,7 +22,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrackingPresensiController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\BackupController;
+use App\Http\Controllers\IconGeneratorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,10 +33,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', function () {
-        $agent = new \Jenssegers\Agent\Agent();
-        if ($agent->isMobile()) {
-            return view('auth.loginusermobile');
-        }
         return view('auth.loginuser');
     })->name('loginuser');
 
@@ -57,8 +54,8 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard.index');
-        Route::post('/dashboard/get-karyawan-presensi', 'getKaryawanPresensi')->name('dashboard.get.karyawan.presensi');
-        Route::get('/dashboard/global-search', 'globalSearch')->name('dashboard.global-search');
+        Route::post('/dashboard/get-karyawan-presensi', 'getKaryawanPresensi')->name('dashboard.get.karyawan.presensi')->can('presensi.index');
+        Route::get('/dashboard/global-search', 'globalSearch')->name('dashboard.global-search')->middleware('throttle:global-search');
     });
 
     // Manajemen Karyawan (Attendance Focused)
@@ -66,20 +63,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/karyawan', 'index')->name('karyawan.index')->can('karyawan.index');
         Route::get('/karyawan/create', 'create')->name('karyawan.create')->can('karyawan.create');
         Route::post('/karyawan', 'store')->name('karyawan.store')->can('karyawan.create');
-        Route::get('/karyawan/import', 'import')->name('karyawan.import')->can('karyawan.create');
-        Route::get('/karyawan/download-template', 'download_template')->name('karyawan.download_template')->can('karyawan.create');
         Route::get('/karyawan/export', 'export')->name('karyawan.export')->can('karyawan.index');
-        Route::post('/karyawan/import', 'import_proses')->name('karyawan.import_proses')->can('karyawan.create');
         Route::get('/karyawan/{nik}/edit', 'edit')->name('karyawan.edit')->can('karyawan.edit');
         Route::put('/karyawan/{nik}', 'update')->name('karyawan.update')->can('karyawan.edit');
         Route::delete('/karyawan/{nik}', 'destroy')->name('karyawan.delete')->can('karyawan.delete');
         Route::get('/karyawan/{nik}/show', 'show')->name('karyawan.show')->can('karyawan.show');
 
-        // Akun & Security
-        Route::get('/karyawan/{nik}/createuser', 'createuser')->name('karyawan.createuser')->can('users.create');
-        Route::get('/karyawan/{nik}/deleteuser', 'deleteuser')->name('karyawan.deleteuser')->can('users.create');
-        Route::get('/karyawan/{nik}/lockunlocklocation', 'lockunlocklocation')->name('karyawan.lockunlocklocation')->can('karyawan.edit');
-        Route::get('/karyawan/{nik}/lockunlockjamkerja', 'lockunlockjamkerja')->name('karyawan.lockunlockjamkerja')->can('karyawan.edit');
+        // Akun & Security (CSRF & Method Safe)
+        Route::post('/karyawan/{nik}/createuser', 'createuser')->name('karyawan.createuser')->can('users.create');
+        Route::match(['post', 'delete'], '/karyawan/{nik}/deleteuser', 'deleteuser')->name('karyawan.deleteuser')->can('users.create');
+        Route::post('/karyawan/{nik}/lockunlocklocation', 'lockunlocklocation')->name('karyawan.lockunlocklocation')->can('karyawan.edit');
+        Route::post('/karyawan/{nik}/lockunlockjamkerja', 'lockunlockjamkerja')->name('karyawan.lockunlockjamkerja')->can('karyawan.edit');
+
+        // Pengaturan Jam Kerja / Roster Karyawan (By Day & By Date)
+        Route::get('/karyawan/{nik}/setjamkerja', 'setjamkerja')->name('karyawan.setjamkerja')->can('karyawan.edit');
+        Route::post('/karyawan/{nik}/storejamkerjabyday', 'storejamkerjabyday')->name('karyawan.storejamkerjabyday')->can('karyawan.edit');
+        Route::post('/karyawan/storejamkerjabydate', 'storejamkerjabydate')->name('karyawan.storejamkerjabydate')->can('karyawan.edit');
+        Route::post('/karyawan/getjamkerjabydate', 'getjamkerjabydate')->name('karyawan.getjamkerjabydate')->can('karyawan.edit');
+        Route::post('/karyawan/deletejamkerjabydate', 'deletejamkerjabydate')->name('karyawan.deletejamkerjabydate')->can('karyawan.edit');
 
         Route::get('/karyawan/getkaryawan', 'getkaryawan')->name('karyawan.getkaryawan');
         Route::get('/karyawan/getkaryawantable', 'getkaryawantable')->name('karyawan.getkaryawantable');
@@ -145,6 +146,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/presensi/update', 'update')->name('presensi.update')->can('presensi.edit');
         Route::delete('/presensi/{id}/delete', 'destroy')->name('presensi.delete')->can('presensi.delete');
         Route::get('/presensi/{id}/{status}/show', 'show')->name('presensi.show');
+        Route::post('/presensi/auto-alpha', 'generateAutoAlpha')->name('presensi.auto-alpha')->can('presensi.edit');
     });
 
     // Tracking Presensi GPS
@@ -161,8 +163,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/karyawan/preview-wajah', 'previewKaryawan')->name('facerecognition.karyawan.preview');
         Route::post('/karyawan/hapus-wajah', 'destroyAllKaryawan')->name('facerecognition.karyawan.destroyAll');
         Route::post('/facerecognition/store', 'store')->name('facerecognition.store');
+        Route::post('/facerecognition/sync-descriptors', 'syncDescriptors')->name('facerecognition.syncDescriptors');
         Route::delete('/facerecognition/{id}/delete', 'destroy')->name('facerecognition.delete');
         Route::get('/facerecognition/getwajah', 'getWajah')->name('facerecognition.getwajah');
+    });
+
+    // Protected Storage File Access (Biometrics, Medical SIDs & Attendance Archives)
+    Route::controller(\App\Http\Controllers\ProtectedFileController::class)->group(function () {
+        Route::get('/files/sid/{filename}', 'streamSid')->name('file.sid');
+        Route::get('/files/facerecognition/{folder}/{filename}', 'streamFace')->name('file.face');
+        Route::get('/files/attendance-archive/{month}', 'downloadAttendanceArchive')->name('file.attendance-archive');
     });
 
     // Pengajuan Izin Absen
@@ -208,6 +218,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/izincuti/{kode_izin_cuti}/cancelapprove', 'cancelapprove')->name('izincuti.cancelapprove')->can('izincuti.approve');
         Route::post('/izincuti/{kode_izin_cuti}/storeapprove', 'storeapprove')->name('izincuti.storeapprove')->can('izincuti.approve');
         Route::get('/izincuti/getsisaharicuti', 'getsisaharicuti')->name('izincuti.getsisaharicuti');
+        Route::get('/cuti/hitung-hari', 'hitungHariAjax')->name('cuti.hitungHariAjax');
+        Route::get('/izincuti/hitung-hari', 'hitungHariAjax')->name('izincuti.hitungHariAjax');
     });
 
     // Dispensasi Keterlambatan
@@ -219,6 +231,24 @@ Route::middleware('auth')->group(function () {
         Route::post('/dispensasi/{id}/storeapprove', 'storeApprove')->name('dispensasi.storeApprove');
         Route::delete('/dispensasi/{id}/cancelapprove', 'cancelApprove')->name('dispensasi.cancelApprove');
         Route::delete('/dispensasi/{id}', 'destroy')->name('dispensasi.destroy');
+    });
+
+    // Hari Libur / Tanggal Merah
+    Route::controller(HariliburController::class)->group(function () {
+        Route::get('/harilibur', 'index')->name('harilibur.index')->can('harilibur.index');
+        Route::get('/harilibur/create', 'create')->name('harilibur.create')->can('harilibur.create');
+        Route::post('/harilibur', 'store')->name('harilibur.store')->can('harilibur.create');
+        Route::get('/harilibur/{kode_libur}/edit', 'edit')->name('harilibur.edit')->can('harilibur.edit');
+        Route::put('/harilibur/{kode_libur}', 'update')->name('harilibur.update')->can('harilibur.edit');
+        Route::delete('/harilibur/{kode_libur}/delete', 'destroy')->name('harilibur.delete')->can('harilibur.delete');
+        Route::get('/harilibur/{kode_libur}/aturharilibur', 'aturharilibur')->name('harilibur.aturharilibur')->can('harilibur.setharilibur');
+        Route::get('/harilibur/{kode_libur}/getkaryawanlibur', 'getkaryawanlibur')->name('harilibur.getkaryawanlibur')->can('harilibur.setharilibur');
+        Route::get('/harilibur/{kode_libur}/aturkaryawan', 'aturkaryawan')->name('harilibur.aturkaryawan')->can('harilibur.setharilibur');
+        Route::post('/harilibur/getkaryawan', 'getkaryawan')->name('harilibur.getkaryawan')->can('harilibur.setharilibur');
+        Route::post('/harilibur/updateliburkaryawan', 'updateliburkaryawan')->name('harilibur.updateliburkaryawan')->can('harilibur.setharilibur');
+        Route::post('/harilibur/deletekaryawanlibur', 'deletekaryawanlibur')->name('harilibur.deletekaryawanlibur')->can('harilibur.setharilibur');
+        Route::post('/harilibur/tambahkansemua', 'tambahkansemua')->name('harilibur.tambahkansemua')->can('harilibur.setharilibur');
+        Route::post('/harilibur/batalkansemua', 'batalkansemua')->name('harilibur.batalkansemua')->can('harilibur.setharilibur');
     });
 
     // Mobile Shortcut Menu & Hub Pengajuan Izin
@@ -239,6 +269,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/generalsetting', 'index')->name('generalsetting.index')->can('generalsetting.index');
             Route::put('/generalsetting/{id}', 'update')->name('generalsetting.update')->can('generalsetting.edit');
             Route::post('/generalsetting/fix-permissions', 'fixPermissions')->name('generalsetting.fix-permissions');
+        });
+
+        Route::controller(IconGeneratorController::class)->group(function () {
+            Route::post('/pwa/generate-icons', 'generate')->name('pwa.generate-icons');
+            Route::get('/pwa/preview-icons', 'preview')->name('pwa.preview-icons');
         });
 
         Route::controller(UserController::class)->group(function () {
@@ -269,16 +304,10 @@ Route::middleware('auth')->group(function () {
             Route::put('/permissions/{id}/update', 'update')->name('permissions.update');
             Route::delete('/permissions/{id}/delete', 'destroy')->name('permissions.delete');
         });
-
-        Route::controller(BackupController::class)->group(function () {
-            Route::get('/backup', 'index')->name('backup.index');
-            Route::get('/backup/download', 'download')->name('backup.download');
-            Route::post('/backup/restore', 'restore')->name('backup.restore');
-        });
     });
 });
 
-// Fast caching route for face recognition model files
+// Scoped caching route fallback for face recognition model files
 Route::get('/models/{file}', function ($file) {
     $baseDir = realpath(public_path('models'));
     $targetPath = realpath(public_path('models/' . $file));
@@ -286,10 +315,16 @@ Route::get('/models/{file}', function ($file) {
     if (!$baseDir || !$targetPath || !str_starts_with($targetPath, $baseDir) || !file_exists($targetPath)) {
         abort(404);
     }
-    $mime = str_ends_with($file, '.json') ? 'application/json' : 'application/octet-stream';
+    $isJson = str_ends_with($file, '.json');
+    $mime = $isJson ? 'application/json' : 'application/octet-stream';
+    // Shards: 30 days; JSON manifests: 1 day with must-revalidate so updates propagate promptly
+    $cacheControl = $isJson
+        ? 'public, max-age=86400, must-revalidate'
+        : (preg_match('/-shard[0-9]+$/', $file) ? 'public, max-age=2592000' : 'public, max-age=86400');
+
     return response()->file($targetPath, [
         'Content-Type' => $mime,
-        'Cache-Control' => 'public, max-age=31536000, immutable',
+        'Cache-Control' => $cacheControl,
         'Access-Control-Allow-Origin' => '*',
     ]);
 })->where('file', '[a-zA-Z0-9_\-\.]+');

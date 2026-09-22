@@ -80,28 +80,30 @@ class JabatanController extends Controller
                 'nama_jabatan' => $nama_jabatan
             ]);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Berhasil Disimpan'
+                ]);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan'));
         } catch (\Illuminate\Database\QueryException $e) {
-            // Tangani error database khusus
             $errorMessage = $e->getMessage();
-
+            $msg = 'Terjadi kesalahan: ' . $errorMessage;
             if (str_contains($errorMessage, 'Duplicate entry')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Kode Jabatan sudah digunakan, silakan gunakan kode lain'));
+                $msg = 'Kode Jabatan sudah digunakan, silakan gunakan kode lain';
             } elseif (str_contains($errorMessage, 'Data too long')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Data yang dimasukkan terlalu panjang. Kode maksimal 3 karakter, Nama maksimal 30 karakter'));
-            } else {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Terjadi kesalahan: ' . $errorMessage));
+                $msg = 'Data yang dimasukkan terlalu panjang. Kode maksimal 3 karakter, Nama maksimal 30 karakter';
             }
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($msg));
         } catch (\Exception $e) {
-            return Redirect::back()
-                ->withInput()
-                ->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
         }
     }
 
@@ -172,28 +174,30 @@ class JabatanController extends Controller
                 'nama_jabatan' => $nama_jabatan
             ]);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Berhasil Diupdate'
+                ]);
+            }
             return Redirect::back()->with(messageSuccess('Data Berhasil Diupdate'));
         } catch (\Illuminate\Database\QueryException $e) {
-            // Tangani error database khusus
             $errorMessage = $e->getMessage();
-
+            $msg = 'Terjadi kesalahan: ' . $errorMessage;
             if (str_contains($errorMessage, 'Duplicate entry')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Kode Jabatan sudah digunakan, silakan gunakan kode lain'));
+                $msg = 'Kode Jabatan sudah digunakan, silakan gunakan kode lain';
             } elseif (str_contains($errorMessage, 'Data too long')) {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Data yang dimasukkan terlalu panjang. Kode maksimal 3 karakter, Nama maksimal 30 karakter'));
-            } else {
-                return Redirect::back()
-                    ->withInput()
-                    ->with(messageError('Terjadi kesalahan: ' . $errorMessage));
+                $msg = 'Data yang dimasukkan terlalu panjang. Kode maksimal 3 karakter, Nama maksimal 30 karakter';
             }
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError($msg));
         } catch (\Exception $e) {
-            return Redirect::back()
-                ->withInput()
-                ->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 422);
+            }
+            return Redirect::back()->withInput()->with(messageError('Terjadi kesalahan: ' . $e->getMessage()));
         }
     }
 

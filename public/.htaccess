@@ -53,3 +53,38 @@
     ExpiresByType font/woff2 "access plus 1 year"
     ExpiresByType font/woff "access plus 1 year"
 </IfModule>
+
+# Static Asset Cache-Control Headers (Vite Hashed Assets Immutable)
+<IfModule mod_headers.c>
+    # 1 Year Immutable cache for Vite fingerprinted assets
+    <FilesMatch "\.(css|js|woff2?|webp|png|jpg|jpeg|gif|ico|svg)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    
+    # Hashed build files can be cached permanently and immutably
+    <If "%{REQUEST_URI} =~ m#^/build/assets/#">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+
+    # Security Headers for Shared Hosting
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Security: Block hidden files and sensitive extensions
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(?i)\.(env|sql|lock|git|sh|bat|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(?i)^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

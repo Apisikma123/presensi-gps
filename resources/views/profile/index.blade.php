@@ -3,15 +3,302 @@
 @section('title', 'Profile')
 
 @section('header_left')
-    <a href="{{ route('dashboard.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white active:scale-95 transition-all"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-lg"></ion-icon>
     </a>
 @endsection
 
 @push('mystyle')
+    <link rel="stylesheet" href="{{ asset('assets/external/css/cropper.min.css') }}">
     <style>
+        /* ===== CROPPER MODAL DEDICATED STYLES (ANTISLOP-UI & DESIGN.MD) ===== */
+        #cropperModal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999999 !important;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        @media (min-width: 640px) {
+            #cropperModal {
+                align-items: center !important;
+                padding: 16px !important;
+            }
+        }
+        #cropperModal.active {
+            display: flex !important;
+        }
+
+        .cropper-custom-backdrop {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(15, 23, 42, 0.85) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+            backdrop-filter: blur(6px) !important;
+            z-index: 1 !important;
+        }
+
+        .cropper-modal-dialog {
+            position: relative !important;
+            z-index: 2 !important;
+            width: 100% !important;
+            max-width: 420px !important;
+            background: #ffffff !important;
+            border-top-left-radius: 24px !important;
+            border-top-right-radius: 24px !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            max-height: 90vh !important;
+            overflow: hidden !important;
+            animation: cropperSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @media (min-width: 640px) {
+            .cropper-modal-dialog {
+                border-radius: 24px !important;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4) !important;
+                animation: cropperScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+        }
+        @keyframes cropperSlideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes cropperScaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .cropper-modal-header {
+            padding: 14px 16px !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+        .cropper-header-title-box {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+        .cropper-header-icon {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 10px !important;
+            background: rgba(30, 77, 62, 0.08) !important;
+            color: #1E4D3E !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 18px !important;
+            flex-shrink: 0 !important;
+        }
+        .cropper-title {
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+        }
+        .cropper-subtitle {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            color: #64748b !important;
+            display: block !important;
+            margin-top: 2px !important;
+            line-height: 1.2 !important;
+        }
+        .cropper-close-btn {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            background: #f1f5f9 !important;
+            color: #64748b !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 20px !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        .cropper-close-btn:active {
+            transform: scale(0.92) !important;
+            background: #e2e8f0 !important;
+        }
+
+        .cropper-canvas-box {
+            position: relative !important;
+            width: 100% !important;
+            height: 250px !important;
+            background: #0f172a !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+        }
+        @media (min-height: 700px) {
+            .cropper-canvas-box {
+                height: 275px !important;
+            }
+        }
+        .cropper-bg {
+            background: #0f172a !important;
+        }
+
+        .cropper-avatar-mask .cropper-view-box,
+        .cropper-avatar-mask .cropper-face {
+            border-radius: 50% !important;
+        }
+        .cropper-avatar-mask .cropper-view-box {
+            outline: 2px solid rgba(255, 255, 255, 0.95) !important;
+            outline-offset: -1px !important;
+            box-shadow: 0 0 0 1000px rgba(15, 23, 42, 0.8) !important;
+        }
+        .cropper-avatar-mask .cropper-line,
+        .cropper-avatar-mask .cropper-point {
+            background-color: #1E4D3E !important;
+        }
+        .cropper-avatar-mask .cropper-modal {
+            background-color: transparent !important;
+        }
+
+        .cropper-toolbar-row {
+            padding: 8px 16px !important;
+            background: #f8fafc !important;
+            border-top: 1px solid #e2e8f0 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+        .cropper-toolbar-label {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            color: #64748b !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+        }
+        .cropper-toolbar-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        .cropper-tool-btn {
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 16px !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        .cropper-tool-btn:active {
+            transform: scale(0.92) !important;
+            background: #f1f5f9 !important;
+            border-color: #94a3b8 !important;
+        }
+
+        .cropper-modal-footer {
+            padding: 12px 16px !important;
+            padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+            background: #ffffff !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            box-sizing: border-box !important;
+        }
+        .cropper-btn-cancel {
+            flex: 1 !important;
+            height: 44px !important;
+            min-height: 44px !important;
+            max-height: 44px !important;
+            background: #f8fafc !important;
+            color: #475569 !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 12px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            white-space: nowrap !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        .cropper-btn-cancel:active {
+            transform: translateY(1px) scale(0.98) !important;
+            background: #f1f5f9 !important;
+        }
+        .cropper-btn-apply {
+            flex: 1.3 !important;
+            height: 44px !important;
+            min-height: 44px !important;
+            max-height: 44px !important;
+            background: #1E4D3E !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            display: inline-flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            cursor: pointer !important;
+            box-shadow: 0 2px 8px rgba(30, 77, 62, 0.25) !important;
+            transition: all 0.15s ease !important;
+            white-space: nowrap !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+        .cropper-btn-apply ion-icon {
+            font-size: 18px !important;
+            display: inline-block !important;
+            margin: 0 !important;
+            color: #ffffff !important;
+        }
+        .cropper-btn-apply span {
+            display: inline-block !important;
+            line-height: 1 !important;
+            color: #ffffff !important;
+        }
+        .cropper-btn-apply:active {
+            transform: translateY(1px) scale(0.98) !important;
+            background: #16382E !important;
+        }
+
         .form-container {
-            padding: 12px 6px;
+            padding: 12px 6px calc(110px + env(safe-area-inset-bottom, 0px)) !important;
         }
 
         .profile-card-surface {
@@ -150,9 +437,9 @@
         .btn-submit-modern {
             width: 100%;
             height: 50px;
-            background: #1E4D3E;
-            color: #ffffff;
-            border: none;
+            background: #1E4D3E !important;
+            color: #ffffff !important;
+            border: none !important;
             border-radius: 14px;
             font-size: 14px;
             font-weight: 700;
@@ -167,7 +454,7 @@
 
         .btn-submit-modern:active {
             transform: scale(0.98);
-            background: #16382E;
+            background: #16382E !important;
         }
     </style>
 @endpush
@@ -196,6 +483,11 @@
                 <span class="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200/80 shadow-xs">
                     NIK: {{ $karyawan->nik ?? '-' }}
                 </span>
+                <button type="button" onclick="document.getElementById('foto').click()" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200/80 active:scale-95 text-slate-700 text-[11px] font-medium transition-all cursor-pointer border border-slate-200/70 shadow-2xs">
+                    <ion-icon name="camera-outline" class="text-xs text-slate-500"></ion-icon>
+                    <span>Ganti Foto <span class="opt-tag font-normal">(Opsional, Maks. 2MB)</span></span>
+                </button>
+                <span class="text-[10px] text-slate-400 mt-1">Format: WebP, PNG, JPG • Auto Kompres</span>
             </div>
 
             {{-- Hidden Input Foto --}}
@@ -205,86 +497,294 @@
             <div class="form-label-group">
                 <ion-icon name="person-outline" class="input-icon"></ion-icon>
                 <input type="text" name="nama_karyawan" id="nama_karyawan" placeholder=" " value="{{ $karyawan->nama_karyawan ?? '' }}" required>
-                <label for="nama_karyawan">Nama Lengkap</label>
-            </div>
-
-            {{-- No. KTP --}}
-            <div class="form-label-group">
-                <ion-icon name="card-outline" class="input-icon"></ion-icon>
-                <input type="text" name="no_ktp" id="no_ktp" placeholder=" " value="{{ $karyawan->no_ktp ?? '' }}" required>
-                <label for="no_ktp">No. KTP</label>
+                <label for="nama_karyawan">Nama Lengkap <span class="req-star">*</span></label>
             </div>
 
             {{-- No. HP --}}
             <div class="form-label-group">
                 <ion-icon name="call-outline" class="input-icon"></ion-icon>
                 <input type="text" name="no_hp" id="no_hp" placeholder=" " value="{{ $karyawan->no_hp ?? '' }}" required>
-                <label for="no_hp">No. HP</label>
+                <label for="no_hp">No. HP <span class="req-star">*</span></label>
             </div>
 
             {{-- Alamat --}}
             <div class="form-label-group">
                 <ion-icon name="location-outline" class="input-icon"></ion-icon>
                 <textarea name="alamat" id="alamat" placeholder=" " required>{{ $karyawan->alamat ?? '' }}</textarea>
-                <label for="alamat">Alamat</label>
+                <label for="alamat">Alamat Domisili <span class="req-star">*</span></label>
             </div>
 
             {{-- Username --}}
             <div class="form-label-group">
                 <ion-icon name="at-outline" class="input-icon"></ion-icon>
                 <input type="text" name="username" id="username" placeholder=" " value="{{ $user->username }}" required>
-                <label for="username">Username</label>
+                <label for="username">Username <span class="req-star">*</span></label>
             </div>
 
             {{-- Email --}}
             <div class="form-label-group">
                 <ion-icon name="mail-outline" class="input-icon"></ion-icon>
                 <input type="email" name="email" id="email" placeholder=" " value="{{ $user->email }}" required>
-                <label for="email">Email</label>
+                <label for="email">Email <span class="req-star">*</span></label>
             </div>
 
 
 
             {{-- Submit Button --}}
-            <button type="submit" class="btn-submit-modern" id="btnSimpan">
+            <button type="submit" class="btn btn-submit-modern" id="btnSimpan" style="margin-bottom: 12px;">
                 <ion-icon name="save-outline" style="font-size:18px;"></ion-icon>
                 <span>Update Profile</span>
             </button>
+
+            {{-- Safe Area Bottom Spacer --}}
+            <div style="height: calc(85px + env(safe-area-inset-bottom, 0px)); width: 100%;"></div>
         </form>
+
+        {{-- ===== CROPPER MODAL (ANTISLOP-UI & DESIGN.MD) ===== --}}
+        <div id="cropperModal">
+            {{-- Backdrop --}}
+            <div id="cropperBackdrop" class="cropper-custom-backdrop"></div>
+
+            {{-- Modal Sheet / Card --}}
+            <div class="cropper-modal-dialog" id="cropperDialog">
+                {{-- Header --}}
+                <div class="cropper-modal-header">
+                    <div class="cropper-header-title-box">
+                        <div class="cropper-header-icon">
+                            <ion-icon name="crop-outline"></ion-icon>
+                        </div>
+                        <div>
+                            <h3 class="cropper-title">Sesuaikan Foto Profil</h3>
+                            <span class="cropper-subtitle">Geser, putar, atau cubit untuk memperbesar</span>
+                        </div>
+                    </div>
+                    <button type="button" id="btnCropperCancelTop" class="cropper-close-btn" aria-label="Tutup">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                </div>
+
+                {{-- Cropper Viewport Container --}}
+                <div class="cropper-canvas-box">
+                    <img id="cropperImage" src="" alt="Source" style="display: block; max-width: 100%;">
+                </div>
+
+                {{-- Toolbar Controls --}}
+                <div class="cropper-toolbar-row">
+                    <span class="cropper-toolbar-label">Atur Posisi</span>
+                    <div class="cropper-toolbar-actions">
+                        <button type="button" id="btnCropRotateLeft" class="cropper-tool-btn" title="Putar Kiri (-90°)">
+                            <ion-icon name="arrow-undo-outline"></ion-icon>
+                        </button>
+                        <button type="button" id="btnCropRotateRight" class="cropper-tool-btn" title="Putar Kanan (+90°)">
+                            <ion-icon name="arrow-redo-outline"></ion-icon>
+                        </button>
+                        <button type="button" id="btnCropZoomIn" class="cropper-tool-btn" title="Perbesar (+)">
+                            <ion-icon name="add-outline"></ion-icon>
+                        </button>
+                        <button type="button" id="btnCropZoomOut" class="cropper-tool-btn" title="Perkecil (-)">
+                            <ion-icon name="remove-outline"></ion-icon>
+                        </button>
+                        <button type="button" id="btnCropReset" class="cropper-tool-btn" title="Reset Ukuran">
+                            <ion-icon name="refresh-outline"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Footer Action Buttons --}}
+                <div class="cropper-modal-footer">
+                    <button type="button" id="btnCropperCancel" class="cropper-btn-cancel">
+                        Batal
+                    </button>
+                    <button type="button" id="btnCropperApply" class="cropper-btn-apply">
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                        <span>Gunakan Foto</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('myscript')
+    <script src="{{ asset('assets/external/js/cropper.min.js') }}"></script>
     <script>
-        // Instant Avatar Preview on Photo Select
-        document.getElementById('foto').addEventListener('change', function() {
-            let file = this.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let box = document.querySelector('.profile-photo-box');
-                    let placeholder = box.querySelector('.photo-placeholder');
-                    let img = box.querySelector('img');
-                    if (placeholder) {
-                        placeholder.style.backgroundImage = 'url(' + e.target.result + ')';
-                    } else if (img) {
-                        img.src = e.target.result;
-                    }
-                };
-                reader.readAsDataURL(file);
+        let cropperInstance = null;
+        let originalFileName = 'profile.jpg';
+        const fotoInput = document.getElementById('foto');
+        const cropperModal = document.getElementById('cropperModal');
+        const cropperImage = document.getElementById('cropperImage');
+        const maxCropSizeMb = 2;
+
+        function openCropperModal(imageSrc) {
+            // Escape any parent stacking context by appending directly to document.body
+            if (cropperModal.parentElement !== document.body) {
+                document.body.appendChild(cropperModal);
             }
+
+            cropperImage.src = imageSrc;
+            cropperModal.classList.add('active');
+
+            if (cropperInstance) {
+                cropperInstance.destroy();
+                cropperInstance = null;
+            }
+
+            cropperInstance = new Cropper(cropperImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.9,
+                responsive: true,
+                restore: false,
+                guides: false,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                ready: function() {
+                    const container = cropperImage.closest('.cropper-container') || document.querySelector('.cropper-container');
+                    if (container) {
+                        container.classList.add('cropper-avatar-mask');
+                    }
+                }
+            });
+        }
+
+        function closeCropperModal(resetInput = false) {
+            cropperModal.classList.remove('active');
+            if (cropperInstance) {
+                cropperInstance.destroy();
+                cropperInstance = null;
+            }
+            if (resetInput && !fotoInput.hasAttribute('data-has-cropped')) {
+                fotoInput.value = '';
+            }
+        }
+
+        // Event listener for foto input change
+        fotoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                Swal.fire({
+                    title: "Format Tidak Sesuai",
+                    text: "Silakan pilih file gambar (JPG, PNG, atau WEBP)!",
+                    icon: "warning"
+                });
+                this.value = '';
+                return;
+            }
+
+            if (file.size > maxCropSizeMb * 1024 * 1024) {
+                Swal.fire({
+                    title: "Ukuran Terlalu Besar",
+                    text: "Ukuran foto maksimal adalah " + maxCropSizeMb + "MB! (" + (file.size / (1024 * 1024)).toFixed(2) + " MB)",
+                    icon: "warning"
+                });
+                this.value = '';
+                return;
+            }
+
+            originalFileName = file.name || 'profile.jpg';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                openCropperModal(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Cropper toolbar actions
+        document.getElementById('btnCropRotateLeft').addEventListener('click', function() {
+            if (cropperInstance) cropperInstance.rotate(-90);
+        });
+        document.getElementById('btnCropRotateRight').addEventListener('click', function() {
+            if (cropperInstance) cropperInstance.rotate(90);
+        });
+        document.getElementById('btnCropZoomIn').addEventListener('click', function() {
+            if (cropperInstance) cropperInstance.zoom(0.1);
+        });
+        document.getElementById('btnCropZoomOut').addEventListener('click', function() {
+            if (cropperInstance) cropperInstance.zoom(-0.1);
+        });
+        document.getElementById('btnCropReset').addEventListener('click', function() {
+            if (cropperInstance) cropperInstance.reset();
+        });
+
+        // Cancel actions
+        document.getElementById('btnCropperCancel').addEventListener('click', function() {
+            closeCropperModal(true);
+        });
+        document.getElementById('btnCropperCancelTop').addEventListener('click', function() {
+            closeCropperModal(true);
+        });
+        document.getElementById('cropperBackdrop').addEventListener('click', function() {
+            closeCropperModal(true);
+        });
+
+        // Apply Cropped Image
+        document.getElementById('btnCropperApply').addEventListener('click', function() {
+            if (!cropperInstance) return;
+
+            // Fill transparent backgrounds with white to prevent black background artifacts on transparent PNGs
+            const canvas = cropperInstance.getCroppedCanvas({
+                width: 800,
+                height: 800,
+                fillColor: '#ffffff',
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+
+            if (!canvas) {
+                closeCropperModal(true);
+                return;
+            }
+
+            canvas.toBlob(function(blob) {
+                if (!blob) return;
+
+                const safeName = originalFileName.replace(/\.[^/.]+$/, "") + "_cropped.jpg";
+                const croppedFile = new File([blob], safeName, { type: 'image/jpeg', lastModified: Date.now() });
+
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(croppedFile);
+                    fotoInput.files = dt.files;
+                    fotoInput.setAttribute('data-has-cropped', 'true');
+                } catch (err) {
+                    console.error('DataTransfer error:', err);
+                }
+
+                // Update Avatar Preview
+                const box = document.querySelector('.profile-photo-box');
+                const placeholder = box ? box.querySelector('.photo-placeholder') : null;
+                const img = box ? box.querySelector('img') : null;
+                const previewUrl = URL.createObjectURL(blob);
+
+                if (placeholder) {
+                    placeholder.style.backgroundImage = 'url(' + previewUrl + ')';
+                } else if (img) {
+                    img.src = previewUrl;
+                }
+
+                closeCropperModal(false);
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Foto berhasil dipotong & disesuaikan!');
+                }
+            }, 'image/jpeg', 0.9);
         });
 
         $(function() {
             $("#formProfile").submit(function(e) {
                 let nama_karyawan = $('input[name="nama_karyawan"]').val();
-                let no_ktp = $('input[name="no_ktp"]').val();
                 let no_hp = $('input[name="no_hp"]').val();
                 let alamat = $('textarea[name="alamat"]').val();
                 let username = $('input[name="username"]').val();
                 let email = $('input[name="email"]').val();
 
-                if (nama_karyawan == "" || no_ktp == "" || no_hp == "" || alamat == "" || username == "" || email == "") {
+                if (nama_karyawan == "" || no_hp == "" || alamat == "" || username == "" || email == "") {
                     e.preventDefault();
                     Swal.fire({title: "Oops!", text: 'Semua Bidang Harus Diisi !', icon: "warning"});
                     return false;
@@ -294,8 +794,6 @@
                 btn.disabled = true;
                 btn.innerHTML = `<ion-icon name="sync-outline" class="animate-spin"></ion-icon><span>Menyimpan...</span>`;
             });
-
-
         });
     </script>
 @endpush

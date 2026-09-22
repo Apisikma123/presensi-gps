@@ -4,10 +4,76 @@
 @section('title', 'Histori Presensi')
 
 @section('header_left')
-    <a href="{{ route('dashboard.index') }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform">
+    <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
+        onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
 @endsection
+
+@push('mystyle')
+    <style>
+        /* Antislop-layoutmobile: ensure attendance list scrolls cleanly past bottom navigation */
+        #data-container {
+            padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+
+        /* Pagination Mobile per DESIGN.md & antislop-layoutmobile */
+        .pagination-mobile-wrap {
+            padding-top: 16px;
+            padding-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .pagination-pill-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+        }
+        .pagination-btn {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            box-sizing: border-box;
+        }
+        .pagination-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .pagination-btn:active {
+            transform: scale(0.92);
+        }
+        .pagination-btn-active {
+            background: #1E4D3E !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            box-shadow: 0 2px 8px rgba(30, 77, 62, 0.25) !important;
+        }
+        .pagination-btn-disabled {
+            color: #cbd5e1 !important;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
+    </style>
+@endpush
 
 @section('content')
 
@@ -106,7 +172,8 @@
                             $menit_telat = floor($sisa / 60);
                         }
 
-                        $pulangcepat = hitungpulangcepat($d->tanggal, $d->jam_out, $d->jam_pulang, $d->istirahat, $d->jam_awal_istirahat, $d->jam_akhir_istirahat, $d->lintashari);
+                        $is_archived = !empty($d->is_archived);
+                        $archive_month = \Carbon\Carbon::parse($d->tanggal)->translatedFormat('F Y');
                     }
                 @endphp
 
@@ -114,8 +181,12 @@
                      data-tanggal="{{ DateToIndo($d->tanggal) }}"
                      data-jam-in="{{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '-' }}"
                      data-jam-out="{{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '-' }}"
-                     data-foto-in="{{ !empty($d->foto_in) ? url('/storage/uploads/absensi/' . $d->foto_in) : '' }}"
-                     data-foto-out="{{ !empty($d->foto_out) ? url('/storage/uploads/absensi/' . $d->foto_out) : '' }}"
+                     data-is-archived="{{ $is_archived ? '1' : '0' }}"
+                     data-archive-month="{{ $archive_month }}"
+                     data-has-foto-in="{{ !empty($d->foto_in) ? '1' : '0' }}"
+                     data-has-foto-out="{{ !empty($d->foto_out) ? '1' : '0' }}"
+                     data-foto-in="{{ (!$is_archived && !empty($d->foto_in)) ? url('/storage/uploads/absensi/' . $d->foto_in) : '' }}"
+                     data-foto-out="{{ (!$is_archived && !empty($d->foto_out)) ? url('/storage/uploads/absensi/' . $d->foto_out) : '' }}"
                      data-status="{{ $d->status }}"
                      data-jam-kerja="{{ $d->nama_jam_kerja }}"
                      data-keterangan="{{ $d->status == 'h' ? 'Hadir' : ($d->status == 'i' ? 'Izin: ' . $d->keterangan_izin : ($d->status == 's' ? 'Sakit: ' . $d->keterangan_izin_sakit : ($d->status == 'c' ? 'Cuti: ' . $d->keterangan_izin_cuti : 'Alpha'))) }}"
@@ -224,8 +295,8 @@
                                         <span class="truncate">Tanpa Keterangan</span>
                                     </div>
                                     <div class="flex items-center gap-1 flex-wrap">
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f8fafc] text-[#475569] border border-[#e2e8f0]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#64748b]"></span>
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#dc2626]"></span>
                                             ALPHA
                                         </span>
                                     </div>
@@ -243,7 +314,62 @@
                     </div>
                     <h3 class="text-[14px] font-bold mb-1" style="color: #334155;">Tidak Ada Data</h3>
                     <p class="text-[12px] leading-relaxed max-w-[220px]" style="color: #94a3b8;">Pilih rentang tanggal untuk melihat histori presensi Anda.</p>
+                </div>
+            @endif
 
+            {{-- ===== PAGINATION (JIKA DATA LEBIH DARI 10) ===== --}}
+            @if ($datapresensi->hasPages())
+                <div class="pagination-mobile-wrap">
+                    <span class="text-[11.5px] font-medium text-slate-500 font-sans">
+                        Menampilkan <span class="font-bold text-slate-700 font-mono">{{ $datapresensi->firstItem() }}</span> - <span class="font-bold text-slate-700 font-mono">{{ $datapresensi->lastItem() }}</span> dari <span class="font-bold text-slate-700 font-mono">{{ $datapresensi->total() }}</span> riwayat
+                    </span>
+
+                    <nav class="pagination-pill-nav" aria-label="Navigasi Halaman">
+                        {{-- Tombol Sebelumnya --}}
+                        @if ($datapresensi->onFirstPage())
+                            <span class="pagination-btn pagination-btn-disabled" aria-disabled="true">
+                                <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
+                            </span>
+                        @else
+                            <a href="{{ $datapresensi->previousPageUrl() }}" class="pagination-btn" title="Halaman Sebelumnya">
+                                <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
+                            </a>
+                        @endif
+
+                        {{-- Nomor Halaman (Maksimal 3 Nomor di Mobile) --}}
+                        @php
+                            $start = max(1, $datapresensi->currentPage() - 1);
+                            $end = min($datapresensi->lastPage(), $datapresensi->currentPage() + 1);
+                            if ($datapresensi->currentPage() == 1) {
+                                $end = min($datapresensi->lastPage(), 3);
+                            } elseif ($datapresensi->currentPage() == $datapresensi->lastPage()) {
+                                $start = max(1, $datapresensi->lastPage() - 2);
+                            }
+                        @endphp
+
+                        @for ($page = $start; $page <= $end; $page++)
+                            @if ($page == $datapresensi->currentPage())
+                                <span class="pagination-btn pagination-btn-active" aria-current="page">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="{{ $datapresensi->url($page) }}" class="pagination-btn">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endfor
+
+                        {{-- Tombol Berikutnya --}}
+                        @if ($datapresensi->hasMorePages())
+                            <a href="{{ $datapresensi->nextPageUrl() }}" class="pagination-btn" title="Halaman Berikutnya">
+                                <ion-icon name="chevron-forward-outline" class="text-base"></ion-icon>
+                            </a>
+                        @else
+                            <span class="pagination-btn pagination-btn-disabled" aria-disabled="true">
+                                <ion-icon name="chevron-forward-outline" class="text-base"></ion-icon>
+                            </span>
+                        @endif
+                    </nav>
                 </div>
             @endif
         </div>
@@ -271,14 +397,14 @@
                         <p id="modalKeterangan" class="text-sm text-gray-500 mt-1"></p>
                     </div>
 
-                    <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-indigo-50 border border-indigo-100 hidden">
+                    <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 hidden">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-[#1E4D3E] flex items-center justify-center text-white shrink-0">
                                 <ion-icon name="finger-print" style="font-size:20px;"></ion-icon>
                             </div>
                             <div>
-                                <span class="block text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Fingerprint Machine</span>
-                                <span id="modalNamaMesin" class="text-sm font-bold text-indigo-900"></span>
+                                <span class="block text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Fingerprint Machine</span>
+                                <span id="modalNamaMesin" class="text-sm font-bold text-slate-900"></span>
                             </div>
                         </div>
                     </div>
@@ -379,23 +505,41 @@
                 var status = statusMap[data.status] || { text: 'Alpha', color: 'bg-slate-500' };
                 $("#modalStatus").text(status.text).removeClass().addClass('px-3 py-1 rounded-full text-xs font-bold text-white ' + status.color);
 
+                var isAdmin = {{ auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('presensi.index')) ? 'true' : 'false' }};
+                var archiveLabel = data.archiveMonth ? ' (Arsip: ' + data.archiveMonth + ')' : '';
+
                 // Photo In
-                if (data.fotoIn) {
+                if (data.isArchived == 1 && data.hasFotoIn == 1) {
+                    $("#modalImgIn").hide();
+                    $("#modalNoImgIn").show().find('span').text('Foto telah diarsipkan' + (isAdmin ? archiveLabel : ''));
+                } else if (data.fotoIn) {
                     $("#modalImgIn").attr('src', data.fotoIn).show();
                     $("#modalNoImgIn").hide();
                 } else {
                     $("#modalImgIn").hide();
-                    $("#modalNoImgIn").show();
+                    $("#modalNoImgIn").show().find('span').text('Tidak ada foto');
                 }
 
                 // Photo Out
-                if (data.fotoOut) {
+                if (data.isArchived == 1 && data.hasFotoOut == 1) {
+                    $("#modalImgOut").hide();
+                    $("#modalNoImgOut").show().find('span').text('Foto telah diarsipkan' + (isAdmin ? archiveLabel : ''));
+                } else if (data.fotoOut) {
                     $("#modalImgOut").attr('src', data.fotoOut).show();
                     $("#modalNoImgOut").hide();
                 } else {
                     $("#modalImgOut").hide();
-                    $("#modalNoImgOut").show();
+                    $("#modalNoImgOut").show().find('span').text('Tidak ada foto');
                 }
+
+                $("#modalImgIn").off('error').on('error', function() {
+                    $(this).hide();
+                    $("#modalNoImgIn").show().find('span').text('Foto telah diarsipkan' + (isAdmin && data.archiveMonth ? ' (Arsip: ' + data.archiveMonth + ')' : ''));
+                });
+                $("#modalImgOut").off('error').on('error', function() {
+                    $(this).hide();
+                    $("#modalNoImgOut").show().find('span').text('Foto telah diarsipkan' + (isAdmin && data.archiveMonth ? ' (Arsip: ' + data.archiveMonth + ')' : ''));
+                });
 
                 $("#detailPresensiModal").fadeIn(300);
             });

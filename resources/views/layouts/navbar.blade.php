@@ -27,7 +27,7 @@
                 'name' => 'Karyawan & Wajah',
                 'url' => route('karyawan.index'),
                 'icon' => 'ti-users',
-                'category' => 'Data Karyawan',
+                'category' => 'Data Master',
                 'desc' => 'Master data karyawan & pendaftaran biometric wajah AI',
                 'keywords' => 'karyawan pegawai staff biometric wajah face data nik biodata'
             ];
@@ -38,7 +38,7 @@
                 'name' => 'Shift Kerja (Pagi & Siang)',
                 'url' => route('jamkerja.index'),
                 'icon' => 'ti-clock',
-                'category' => 'Data Karyawan',
+                'category' => 'Data Master',
                 'desc' => 'Atur jadwal shift kerja (pagi/siang/malam)',
                 'keywords' => 'shift jam kerja jadwal roster pagi siang malam jam masuk jam pulang'
             ];
@@ -49,7 +49,7 @@
                 'name' => 'Outlet / Cabang',
                 'url' => route('cabang.index'),
                 'icon' => 'ti-coffee',
-                'category' => 'Data Karyawan',
+                'category' => 'Data Master',
                 'desc' => 'Master data outlet & radius GPS presensi',
                 'keywords' => 'cabang outlet toko store coffee shop lokasi branch radius koordinat'
             ];
@@ -60,7 +60,7 @@
                 'name' => 'Departemen',
                 'url' => route('departemen.index'),
                 'icon' => 'ti-building',
-                'category' => 'Data Karyawan',
+                'category' => 'Data Master',
                 'desc' => 'Manajemen divisi & struktur departemen',
                 'keywords' => 'departemen divisi bagian section unit department divisi kerja'
             ];
@@ -71,7 +71,7 @@
                 'name' => 'Jabatan / Posisi',
                 'url' => route('jabatan.index'),
                 'icon' => 'ti-id',
-                'category' => 'Data Karyawan',
+                'category' => 'Data Master',
                 'desc' => 'Struktur tingkatan posisi & jabatan',
                 'keywords' => 'jabatan posisi role pangkat title occupation hierarki'
             ];
@@ -82,7 +82,7 @@
                 'name' => 'Jenis Cuti',
                 'url' => route('cuti.index'),
                 'icon' => 'ti-calendar-off',
-                'category' => 'Data Karyawan',
+                'category' => 'Data Master',
                 'desc' => 'Master kategori cuti & kuota tahunan',
                 'keywords' => 'jenis cuti tahunan libur kuota annual leave aturan hak cuti'
             ];
@@ -202,27 +202,27 @@
     <!-- Topbar Center/Left: Global Feature Search -->
     <div class="navbar-nav-right d-flex align-items-center justify-content-between flex-grow-1" id="navbar-collapse" style="min-width: 0; height: 38px; overflow: visible !important;">
         
-        <div class="d-flex align-items-center" style="flex: 1; max-width: 440px; min-width: 0;">
-            <!-- ADMIN FEATURE SEARCH -->
-            <div class="navbar-search-wrapper position-relative flex-grow-1" id="navbarSearchWrapper" style="max-width: 440px; min-width: 140px;">
+        <!-- Search Bar (Visible on All Devices: Desktop, Tablet & Mobile) -->
+        <div class="d-flex align-items-center flex-grow-1 me-2" style="max-width: 480px; min-width: 0;">
+            <div class="navbar-search-wrapper position-relative flex-grow-1" id="navbarSearchWrapper" style="min-width: 80px;">
                 <div class="input-group input-group-merge" style="height: 38px;">
-                    <span class="input-group-text bg-white border-end-0 py-0 ps-3" style="border-color: #E2E8F0; border-radius: 10px 0 0 10px;">
+                    <span class="input-group-text bg-white border-end-0 py-0 ps-2.5 ps-sm-3" style="border-color: #E2E8F0; border-radius: 10px 0 0 10px;">
                         <i class="ti ti-search text-muted" style="font-size: 15px;"></i>
                     </span>
                     <input type="text" class="form-control border-start-0 border-end-0 py-0 text-dark bg-white font-sans" id="navbarSearchInput"
                         placeholder="Cari fitur..." autocomplete="off"
                         style="height: 38px; border-color: #E2E8F0; font-size: 13px; font-weight: 500; box-shadow: none;" />
-                    <span class="input-group-text bg-white border-start-0 py-0 pe-2.5" style="border-color: #E2E8F0; border-radius: 0 10px 10px 0;">
-                        <button type="button" class="btn btn-sm p-0 border-0 text-muted d-none me-1" id="navbarSearchClear" aria-label="Clear Search" style="line-height: 1;">
-                            <i class="ti ti-x" style="font-size: 14px;"></i>
+                    <span class="input-group-text bg-white border-start-0 py-0 pe-2" style="border-color: #E2E8F0; border-radius: 0 10px 10px 0;">
+                        <button type="button" class="p-0 border-0 text-muted d-none me-1" id="navbarSearchClear" aria-label="Clear Search" style="line-height: 1; background: transparent !important; background-color: transparent !important; box-shadow: none !important; outline: none !important; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                            <i class="ti ti-x" style="font-size: 14px; color: #94A3B8;"></i>
                         </button>
                         <kbd class="navbar-search-kbd d-none d-sm-inline-block font-mono" style="font-size: 10px; padding: 2px 5px; background: #F1F5F9; color: #64748B; border: 1px solid #CBD5E1; border-radius: 5px; font-weight: 600;">Ctrl K</kbd>
                     </span>
                 </div>
 
-                <!-- Floating Search Results Dropdown -->
+                <!-- Floating Search Results Dropdown (Shared for Desktop & Mobile) -->
                 <div class="navbar-search-results shadow-lg" id="navbarSearchResults"
-                    style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; min-width: 320px; max-width: 440px; max-height: 400px; overflow-y: auto; background: #FFFFFF; border: 1px solid rgba(15,23,42,0.1); border-radius: 14px; z-index: 1090;">
+                    style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; min-width: 320px; max-width: 480px; max-height: 400px; overflow-y: auto; background: #FFFFFF; border: 1px solid rgba(15,23,42,0.1); border-radius: 14px; z-index: 1090;">
                     
                     <!-- Search Header / Query Info -->
                     <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" style="background: #F8FAF8;">
@@ -237,7 +237,7 @@
                                 data-name="{{ strtolower($f['name']) }}"
                                 data-keywords="{{ strtolower($f['keywords']) }}"
                                 data-category="{{ strtolower($f['category']) }}">
-                                <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 32px; height: 32px; background: #EEF2F0; color: #1E4D3E;">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 32px; height: 32px; background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #1E4D3E);">
                                     <i class="ti {{ $f['icon'] }}" style="font-size: 16px;"></i>
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
@@ -250,6 +250,7 @@
                                 <i class="ti ti-chevron-right text-muted ms-auto" style="font-size: 14px;"></i>
                             </a>
                         @endforeach
+                        <div id="navbarSearchDynamic" style="display: none;"></div>
                     </div>
 
                     <!-- Search Empty State -->
@@ -262,13 +263,27 @@
             </div>
         </div>
 
-        <!-- Topbar Right: Notification -->
-        <ul class="navbar-nav flex-row align-items-center ms-auto gap-2 m-0 p-0" style="flex-shrink: 0;">
+        <!-- Topbar Right: Help & Notification -->
+        <ul class="navbar-nav flex-row align-items-center ms-auto gap-1 gap-sm-2 m-0 p-0" style="flex-shrink: 0;">
+
+            <!-- Global Help Button -->
+            @if(auth()->check() && !auth()->user()->hasRole('karyawan') && (auth()->user()->hasAnyRole(['admin', 'super admin', 'gm administrasi', 'admin pusat']) || auth()->user()->can('dashboard.index')))
+            <li class="nav-item d-flex align-items-center justify-content-center">
+                <button type="button" class="btn btn-help-navbar d-flex align-items-center justify-content-center gap-1.5 m-0"
+                    data-bs-toggle="offcanvas" data-bs-target="#offcanvasHelp" aria-controls="offcanvasHelp"
+                    title="Bantuan halaman ini" aria-label="Bantuan Halaman Ini"
+                    style="background: #F8FAFC; border: 1px solid #E2E8F0; height: 38px; border-radius: 10px; transition: all 0.2s ease; padding: 0 12px;">
+                    <i class="ti ti-help-circle" style="font-size: 18px; color: var(--theme-color-1, #1E4D3E);"></i>
+                    <span class="navbar-btn-label d-none d-md-inline fw-semibold" style="font-size: 12.5px; color: #1E293B; letter-spacing: -0.01em;">Bantuan</span>
+                </button>
+            </li>
+            @endif
+
             <!-- Notification Dropdown -->
             @php
                 $total_notif = ($notifikasi_ajuan_absen ?? 0);
             @endphp
-            <li class="nav-item dropdown-notifications navbar-dropdown dropdown d-flex align-items-center justify-content-center">
+            <li class="nav-item dropdown-notifications navbar-dropdown dropdown d-flex align-items-center justify-content-center me-1">
                 <a class="nav-link dropdown-toggle hide-arrow position-relative d-flex align-items-center justify-content-center p-0 m-0" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
                     aria-expanded="false" title="Notifikasi Pengajuan" style="background: #F8FAFC; border: 1px solid #E2E8F0; width: 38px; height: 38px; border-radius: 10px; transition: all 0.2s ease;">
                     <i class="ti ti-bell" style="font-size: 18px; color: #475569;"></i>
@@ -339,7 +354,7 @@
                     </li>
                     <li class="dropdown-menu-footer border-top" style="background: #F8FAF8; border-color: #E2E8F0 !important;">
                         <a href="{{ route('izinabsen.index') }}"
-                            class="dropdown-item d-flex justify-content-center p-2.5 h-px-40 align-items-center fw-semibold text-decoration-none" style="font-size: 12.5px; color: #1E4D3E !important;">
+                            class="dropdown-item d-flex justify-content-center p-2.5 h-px-40 align-items-center fw-semibold text-decoration-none" style="font-size: 12.5px; color: var(--theme-color-1, #1E4D3E) !important;">
                             Buka Halaman Persetujuan <i class="ti ti-arrow-right ms-1"></i>
                         </a>
                     </li>
@@ -371,13 +386,26 @@
         max-width: none !important;
     }
     .navbar-search-wrapper .input-group:focus-within {
-        border-color: #1E4D3E !important;
-        box-shadow: 0 0 0 2px rgba(30, 77, 62, 0.15) !important;
+        border-color: var(--theme-color-1, #1E4D3E) !important;
+        box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.15) !important;
         border-radius: 10px;
     }
     .navbar-search-wrapper .input-group:focus-within .input-group-text,
     .navbar-search-wrapper .input-group:focus-within input {
-        border-color: #1E4D3E !important;
+        border-color: var(--theme-color-1, #1E4D3E) !important;
+    }
+    #navbarSearchClear,
+    #navbarSearchClear:hover,
+    #navbarSearchClear:focus,
+    #navbarSearchClear:active {
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+    }
+    #navbarSearchClear:hover i {
+        color: #0F172A !important;
     }
     .navbar-search-item {
         display: flex;
@@ -391,10 +419,10 @@
     }
     .navbar-search-item:hover, .navbar-search-item.active-item {
         background: #F1F5F9;
-        color: #1E4D3E;
+        color: var(--theme-color-1, #1E4D3E);
     }
     .navbar-search-item:hover .item-title, .navbar-search-item.active-item .item-title {
-        color: #1E4D3E !important;
+        color: var(--theme-color-1, #1E4D3E) !important;
     }
     @media (max-width: 1199.98px) {
         .layout-navbar-fixed #layout-navbar,
@@ -410,12 +438,63 @@
     @media (max-width: 767.98px) {
         .layout-navbar-fixed #layout-navbar,
         #layout-navbar {
-            left: 12px !important;
-            right: 12px !important;
+            left: 10px !important;
+            right: 10px !important;
             width: auto !important;
             max-width: none !important;
-            margin: 12px 0 0 0 !important;
-            padding: 0 12px !important;
+            margin: 8px 0 0 0 !important;
+            padding: 0 10px !important;
+            height: 56px !important;
+            min-height: 56px !important;
+        }
+        .btn-help-navbar {
+            width: 38px !important;
+            min-width: 38px !important;
+            height: 38px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .btn-help-navbar .navbar-btn-label {
+            display: none !important;
+        }
+        #navbarSearchWrapper {
+            margin: 0 2px !important;
+            min-width: 100px !important;
+        }
+        #navbarSearchWrapper .input-group {
+            height: 36px !important;
+        }
+        #navbarSearchInput {
+            height: 36px !important;
+            font-size: 12px !important;
+            padding: 0 4px !important;
+        }
+        #navbarSearchWrapper .input-group-text {
+            padding: 0 8px !important;
+        }
+        .navbar-search-results {
+            position: fixed !important;
+            top: 68px !important;
+            left: 10px !important;
+            right: 10px !important;
+            width: calc(100% - 20px) !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            z-index: 1099 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16) !important;
+        }
+        .dropdown-notifications .dropdown-menu {
+            position: fixed !important;
+            top: 68px !important;
+            left: 10px !important;
+            right: 10px !important;
+            width: calc(100% - 20px) !important;
+            max-width: 360px !important;
+            margin-left: auto !important;
+            z-index: 1099 !important;
         }
     }
 </style>
@@ -431,7 +510,7 @@
         const empty = document.getElementById('navbarSearchEmpty');
         const countBadge = document.getElementById('navbarSearchCount');
 
-        if (!input || !dropdown || !list) return;
+        if (!dropdown || !list) return;
 
         let activeIndex = -1;
 
@@ -478,26 +557,147 @@
             }
         }
 
-        input.addEventListener('input', function() {
-            dropdown.style.display = 'block';
-            filterFeatures(this.value);
-        });
+        let searchAbortController = null;
+        let searchDebounceTimer = null;
 
-        input.addEventListener('focus', function() {
-            dropdown.style.display = 'block';
-            filterFeatures(this.value);
-        });
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
 
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function() {
-                input.value = '';
-                filterFeatures('');
-                input.focus();
+        async function fetchRemoteSearch(query) {
+            if (searchAbortController) {
+                searchAbortController.abort();
+            }
+            searchAbortController = new AbortController();
+
+            const dynamicContainer = document.getElementById('navbarSearchDynamic');
+            if (!dynamicContainer) return;
+
+            query = (query || '').trim();
+            if (query.length < 2) {
+                dynamicContainer.innerHTML = '';
+                dynamicContainer.style.display = 'none';
+                return;
+            }
+
+            try {
+                const res = await fetch(`{{ route('dashboard.global-search') }}?q=${encodeURIComponent(query)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: searchAbortController.signal
+                });
+
+                if (res.status === 429) {
+                    console.warn('[GlobalSearch] Rate limit reached (429). Keeping current search view intact.');
+                    return;
+                }
+
+                if (!res.ok) return;
+
+                const data = await res.json();
+                renderDynamicResults(data, dynamicContainer);
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+                console.warn('[GlobalSearch] Error fetching results:', err);
+            }
+        }
+
+        function renderDynamicResults(data, container) {
+            let html = '';
+
+            // Render Karyawan Results
+            if (data && data.karyawan && data.karyawan.length > 0) {
+                html += '<div class="px-3 py-1.5 border-top border-bottom text-muted font-mono" style="font-size: 10.5px; background: #F8FAF8;"><i class="ti ti-users me-1"></i>Data Karyawan</div>';
+                data.karyawan.forEach(k => {
+                    html += `<a href="${escapeHtml(k.url)}" class="navbar-search-item" data-name="${escapeHtml(k.nama.toLowerCase())}" data-keywords="${escapeHtml(k.nik.toLowerCase())}" data-category="karyawan">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 30px; height: 30px; background: #E0F2FE; color: #0284C7;">
+                            <i class="ti ti-user" style="font-size: 15px;"></i>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="item-title text-truncate" style="font-size: 12.5px; font-weight: 600; color: #1E293B;">${escapeHtml(k.nama)}</span>
+                                <span class="badge font-mono" style="font-size: 9px; background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7;">${escapeHtml(k.nik)}</span>
+                            </div>
+                            <small class="text-muted d-block text-truncate" style="font-size: 10.5px;">${escapeHtml(k.dept)} • ${escapeHtml(k.jabatan)}</small>
+                        </div>
+                        <i class="ti ti-chevron-right text-muted ms-auto" style="font-size: 13px;"></i>
+                    </a>`;
+                });
+            }
+
+            // Render Presensi Results
+            if (data && data.presensi && data.presensi.length > 0) {
+                html += '<div class="px-3 py-1.5 border-top border-bottom text-muted font-mono" style="font-size: 10.5px; background: #F8FAF8;"><i class="ti ti-calendar-check me-1"></i>Monitoring Presensi</div>';
+                data.presensi.forEach(p => {
+                    html += `<a href="${escapeHtml(p.url)}" class="navbar-search-item" data-name="${escapeHtml(p.nama.toLowerCase())}" data-keywords="${escapeHtml(p.tanggal.toLowerCase())}" data-category="presensi">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 30px; height: 30px; background: #FEF3C7; color: #D97706;">
+                            <i class="ti ti-clock" style="font-size: 15px;"></i>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="item-title text-truncate" style="font-size: 12.5px; font-weight: 600; color: #1E293B;">${escapeHtml(p.nama)}</span>
+                                <span class="badge font-mono" style="font-size: 9px; background: #FEF3C7; color: #92400E;">${escapeHtml(p.status_label)}</span>
+                            </div>
+                            <small class="text-muted d-block text-truncate" style="font-size: 10.5px;">${escapeHtml(p.tanggal)} • Masuk: ${escapeHtml(p.jam_in)}</small>
+                        </div>
+                        <i class="ti ti-chevron-right text-muted ms-auto" style="font-size: 13px;"></i>
+                    </a>`;
+                });
+            }
+
+            if (html) {
+                container.innerHTML = html;
+                container.style.display = 'block';
+                if (empty) empty.style.display = 'none';
+            } else {
+                container.innerHTML = '';
+                container.style.display = 'none';
+            }
+        }
+
+        // Desktop Search Events
+        if (input) {
+            input.addEventListener('input', function() {
+                dropdown.style.display = 'block';
+                filterFeatures(this.value);
+
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => {
+                    fetchRemoteSearch(this.value);
+                }, 300);
+            });
+
+            input.addEventListener('focus', function() {
+                dropdown.style.display = 'block';
+                filterFeatures(this.value);
+                if (this.value && this.value.trim().length >= 2) {
+                    fetchRemoteSearch(this.value);
+                }
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    input.value = '';
+                    if (searchAbortController) searchAbortController.abort();
+                    const dynamicContainer = document.getElementById('navbarSearchDynamic');
+                    if (dynamicContainer) {
+                        dynamicContainer.innerHTML = '';
+                        dynamicContainer.style.display = 'none';
+                    }
+                    filterFeatures('');
+                    input.focus();
+                });
+            }
+
+            input.addEventListener('keydown', function(e) {
+                handleKeydown(e, input);
             });
         }
 
-        // Keyboard Navigation in Search Results
-        input.addEventListener('keydown', function(e) {
+        // Shared Keydown Handler
+        function handleKeydown(e, sourceInput) {
             const items = getVisibleItems();
 
             if (e.key === 'ArrowDown') {
@@ -528,14 +728,14 @@
                 }
                 if (targetUrl) {
                     dropdown.style.display = 'none';
-                    input.blur();
+                    sourceInput.blur();
                     window.location.href = targetUrl;
                 }
             } else if (e.key === 'Escape') {
                 dropdown.style.display = 'none';
-                input.blur();
+                sourceInput.blur();
             }
-        });
+        }
 
         // Click on Item: Direct Navigation
         list.addEventListener('click', function(e) {
@@ -543,7 +743,7 @@
             if (a) {
                 const url = a.getAttribute('href');
                 dropdown.style.display = 'none';
-                input.value = '';
+                if (input) input.value = '';
                 if (clearBtn) clearBtn.classList.add('d-none');
                 if (url && url !== '#' && !url.startsWith('javascript:')) {
                     window.location.href = url;
@@ -553,13 +753,15 @@
 
         // Click outside closes dropdown
         document.addEventListener('click', function(e) {
-            if (!wrapper.contains(e.target)) {
+            if (wrapper && !wrapper.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = 'none';
             }
         });
 
         // Global Keyboard Shortcut (Ctrl+K or ⌘K or /)
         document.addEventListener('keydown', function(e) {
+            if (!input) return;
+
             if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
                 e.preventDefault();
                 input.focus();

@@ -37,6 +37,18 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(1000)->by($key);
         });
 
+        // Rate limiter untuk live global search (60 request per menit per user/IP)
+        RateLimiter::for('global-search', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Rate limiter untuk reset password (5 percobaan per menit per IP + email)
+        RateLimiter::for('reset-password', function (Request $request) {
+            $email = strtolower(trim((string) $request->input('email', '')));
+            $key = $email ? ($request->ip() . '|' . $email) : $request->ip();
+            return Limit::perMinute(5)->by($key);
+        });
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')

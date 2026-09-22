@@ -38,61 +38,56 @@
             </div>
         </div>
 
-        <!-- Search & Filter Bar (Standardized Admin Filter Toolbar) -->
+        <!-- Search & Filter Bar (Standardized Compact Admin Filter Toolbar) -->
         <div class="card admin-filter-toolbar mb-3">
-            <div class="card-body p-3">
-                <form action="{{ route('izincuti.index') }}" method="GET" id="formFilterCuti">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-lg-2 col-md-3 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Dari Tanggal</label>
-                            <x-input-with-icon label="" value="{{ Request('dari') }}" name="dari" icon="ti ti-calendar"
-                                datepicker="flatpickr-date" placeholder="Dari Tanggal" hideLabel="true" />
-                        </div>
-                        <div class="col-lg-2 col-md-3 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Sampai Tanggal</label>
-                            <x-input-with-icon label="" value="{{ Request('sampai') }}" name="sampai" icon="ti ti-calendar"
-                                datepicker="flatpickr-date" placeholder="Sampai Tanggal" hideLabel="true" />
-                        </div>
-                        <div class="col-lg-2 col-md-3 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Status Approval</label>
-                            <select name="status" id="status" class="form-select">
-                                <option value="">Semua Status</option>
-                                <option value="0" {{ Request('status') === '0' ? 'selected' : '' }}>Pending</option>
-                                <option value="1" {{ Request('status') == '1' ? 'selected' : '' }}>Disetujui</option>
-                                <option value="2" {{ Request('status') == '2' ? 'selected' : '' }}>Ditolak</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-3 col-6">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Outlet / Cabang</label>
-                            <select name="kode_cabang" id="kode_cabang" class="form-select">
-                                <option value="">Semua Outlet</option>
-                                @foreach ($cabang as $d)
-                                    <option value="{{ $d->kode_cabang }}" {{ Request('kode_cabang') == $d->kode_cabang ? 'selected' : '' }}>
-                                        {{ textUpperCase($d->nama_cabang) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-8 col-12">
-                            <label class="form-label text-xs fw-bold text-muted mb-1 d-block">Cari Karyawan</label>
-                            <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan"
-                                icon="ti ti-search" placeholder="Nama karyawan..." hideLabel="true" />
-                        </div>
-                        <div class="col-lg-2 col-md-4 col-12 d-flex align-items-end gap-1.5 pt-lg-4">
-                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1 flex-grow-1" style="height: 38px;">
-                                <i class="ti ti-search" style="font-size: 15px;"></i>
+            <form action="{{ route('izincuti.index') }}" method="GET" id="formFilterCuti" class="m-0">
+                <div class="row g-2 align-items-center">
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-6">
+                        <x-input-with-icon label="" value="{{ Request('dari') }}" name="dari" icon="ti ti-calendar"
+                            datepicker="flatpickr-date" placeholder="Dari Tanggal" hideLabel="true" />
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-6">
+                        <x-input-with-icon label="" value="{{ Request('sampai') }}" name="sampai" icon="ti ti-calendar"
+                            datepicker="flatpickr-date" placeholder="Sampai Tanggal" hideLabel="true" />
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-6">
+                        <select name="status" id="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="0" {{ Request('status') === '0' ? 'selected' : '' }}>Pending</option>
+                            <option value="1" {{ Request('status') == '1' ? 'selected' : '' }}>Disetujui</option>
+                            <option value="2" {{ Request('status') == '2' ? 'selected' : '' }}>Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-xl-2 col-lg-2 col-md-3 col-6">
+                        <select name="kode_cabang" id="kode_cabang" class="form-select">
+                            <option value="">Semua Outlet</option>
+                            @foreach ($cabang as $d)
+                                <option value="{{ $d->kode_cabang }}" {{ Request('kode_cabang') == $d->kode_cabang ? 'selected' : '' }}>
+                                    {{ textUpperCase($d->nama_cabang) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-xl col-lg col-md-6 col-12">
+                        <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan"
+                            icon="ti ti-search" placeholder="Cari nama karyawan..." hideLabel="true" />
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5">
+                                <i class="ti ti-search" style="font-size: 14px;"></i>
                                 <span>Cari</span>
                             </button>
                             @if (Request('dari') || Request('sampai') || Request('nama_karyawan') || Request('status') !== null || Request('kode_cabang'))
-                                <a href="{{ route('izincuti.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" style="height: 38px; padding: 0 10px;" title="Reset Filter">
+                                <a href="{{ route('izincuti.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1" title="Reset Filter">
                                     <i class="ti ti-refresh" style="font-size: 14px;"></i>
                                     <span>Reset</span>
                                 </a>
                             @endif
                         </div>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
 
         <!-- Table Card -->
@@ -168,18 +163,31 @@
                                 </td>
                                 <td class="text-center">
                                     @if ($d->status == 0)
-                                        <span class="badge badge-status-pending">Pending</span>
+                                        <span class="badge-status badge-status-pending">
+                                            <span class="badge-status-dot"></span>Pending
+                                        </span>
                                     @elseif ($d->status == 1)
-                                        <span class="badge badge-status-approved">Disetujui</span>
+                                        <span class="badge-status badge-status-approved">
+                                            <span class="badge-status-dot"></span>Disetujui
+                                        </span>
                                     @elseif ($d->status == 2)
-                                        <span class="badge badge-status-rejected">Ditolak</span>
+                                        <span class="badge-status badge-status-rejected">
+                                            <span class="badge-status-dot"></span>Ditolak
+                                        </span>
                                     @endif
                                 </td>
                                 <td class="text-end">
                                     <div class="d-inline-flex align-items-center gap-1.5">
                                         @can('izincuti.approve')
-                                            @if ($d->status == 0)
-                                                <button type="button" class="btnApprove" kode_izin_cuti="{{ Crypt::encrypt($d->kode_izin_cuti) }}" style="color: #059669; border-color: #A7F3D0;" title="Persetujuan Izin Cuti">
+                                            @php
+                                                $isSelf = (auth()->user()->userkaryawan?->nik === $d->nik) || (auth()->user()->username === $d->nik);
+                                            @endphp
+                                            @if ($isSelf)
+                                                <span class="badge bg-secondary-subtle text-secondary py-1 px-2" style="font-size: 11px;" title="Pengajuan Anda sendiri (Self-approval dilarang)">
+                                                    <i class="ti ti-user-x me-1"></i>Self
+                                                </span>
+                                            @elseif ($d->status == 0)
+                                                <button type="button" class="btnApprove btn-action-tbl btn-action-approve" kode_izin_cuti="{{ Crypt::encrypt($d->kode_izin_cuti) }}" title="Persetujuan Izin Cuti">
                                                     <i class="ti ti-check"></i>
                                                 </button>
                                             @elseif ($d->status == 1 || $d->status == 2)
@@ -187,7 +195,7 @@
                                                     action="{{ route('izincuti.cancelapprove', Crypt::encrypt($d->kode_izin_cuti)) }}">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="delete-confirm" title="Batalkan Persetujuan">
+                                                    <button type="submit" class="delete-confirm btn-action-tbl btn-action-cancel" title="Batalkan Persetujuan">
                                                         <i class="ti ti-circle-minus"></i>
                                                     </button>
                                                 </form>
@@ -195,14 +203,14 @@
                                         @endcan
 
                                         @can('izincuti.index')
-                                            <button type="button" class="btnShow" kode_izin_cuti="{{ Crypt::encrypt($d->kode_izin_cuti) }}" title="Detail Izin Cuti">
+                                            <button type="button" class="btnShow btn-action-tbl btn-action-detail" kode_izin_cuti="{{ Crypt::encrypt($d->kode_izin_cuti) }}" title="Detail Izin Cuti">
                                                 <i class="ti ti-file-description"></i>
                                             </button>
                                         @endcan
 
                                         @can('izincuti.edit')
                                             @if ($d->status == 0)
-                                                <button type="button" class="btnEdit" kode_izin_cuti="{{ Crypt::encrypt($d->kode_izin_cuti) }}" title="Edit Izin Cuti">
+                                                <button type="button" class="btnEdit btn-action-tbl btn-action-edit" kode_izin_cuti="{{ Crypt::encrypt($d->kode_izin_cuti) }}" title="Edit Izin Cuti">
                                                     <i class="ti ti-edit"></i>
                                                 </button>
                                             @endif
@@ -214,7 +222,7 @@
                                                     action="{{ route('izincuti.delete', Crypt::encrypt($d->kode_izin_cuti)) }}">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="delete-confirm" title="Hapus Izin Cuti">
+                                                    <button type="submit" class="delete-confirm btn-action-tbl btn-action-delete" title="Hapus Izin Cuti">
                                                         <i class="ti ti-trash"></i>
                                                     </button>
                                                 </form>

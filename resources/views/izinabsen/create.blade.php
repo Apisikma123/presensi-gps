@@ -1,145 +1,25 @@
-<form action="{{ route('izinabsen.store') }}" method="POST" id="formIzin">
-    @csrf
-    <x-input-with-icon icon="ti ti-barcode" label="Auto" name="kode_izin" disabled="true" />
-    <div class="form-group">
-        <select name="nik" id="nik" class="form-select select2Nik">
-            <option value="">Pilih Karyawan</option>
-            @foreach ($karyawan as $d)
-                <option value="{{ $d->nik }}">{{ $d->nik_show ?? $d->nik }} - {{ $d->nama_karyawan }}</option>
-            @endforeach
-        </select>
-    </div>
-    <div class="row">
-        <div class="col-lg-6 col-sm-12 col-md-12">
-            <x-input-with-icon icon="ti ti-calendar" label="Dari" name="dari" datepicker="flatpickr-date" />
-        </div>
-        <div class="col-lg-6 col-sm-12 col-md-12">
-            <x-input-with-icon icon="ti ti-calendar" label="Sampai" name="sampai" datepicker="flatpickr-date" />
-        </div>
-    </div>
-    <x-input-with-icon icon="ti ti-sun" label="Jumlah Hari" name="jml_hari" disabled="true" />
-    <x-textarea label="Keterangan" name="keterangan" />
-    <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
-        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4" id="btnSimpan">
-            <i class="ti ti-device-floppy"></i>
-            <span>Simpan Pengajuan Izin</span>
-        </button>
-    </div>
-</form>
-<script>
-    $(function() {
-        const form = $('#formIzin');
-        const batasi_hari_izin = "{{ $general_setting->batasi_hari_izin }}";
-        //alert(batasi_hari_izin);
-        const jml_hari_izin_max = "{{ $general_setting->jml_hari_izin_max }}";
-        $(".flatpickr-date").flatpickr();
-        const select2Nik = $('.select2Nik');
-        if (select2Nik.length) {
-            select2Nik.each(function() {
-                var $this = $(this);
-                $this.wrap('<div class="position-relative"></div>').select2({
-                    placeholder: 'Pilih Karyawan',
-                    allowClear: true,
-                    dropdownParent: $this.parent()
-                });
-            });
-        }
+@extends('layouts.app')
+@section('titlepage', 'Buat Izin Absen')
+@section('navigasi')
+    <span><a href="{{ route('izinabsen.index') }}">Izin Absen</a></span> / <span>Buat Izin Absen</span>
+@endsection
 
-        function hitungHari(startDate, endDate) {
-            if (startDate && endDate) {
-                var start = new Date(startDate);
-                var end = new Date(endDate);
-
-                // Tambahkan 1 hari agar penghitungan inklusif
-                var timeDifference = end - start + (1000 * 3600 * 24);
-                var dayDifference = timeDifference / (1000 * 3600 * 24);
-
-                return dayDifference;
-            } else {
-                return 0;
-            }
-        }
-
-        $("#dari,#sampai").on("change", function() {
-            const dari = form.find("#dari").val();
-            const sampai = form.find("#sampai").val();
-            $("#jml_hari").val(hitungHari(dari, sampai));
-        });
-
-        function buttonDisabled() {
-            $("#btnSimpan").prop('disabled', true);
-            $("#btnSimpan").html(`
-            <div class="spinner-border spinner-border-sm text-white me-2" role="status">
-                <span class="visually-hidden">Loading...</span>
+@section('content')
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 col-12">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-transparent border-bottom d-flex align-items-center justify-content-between py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('izinabsen.index') }}" class="btn btn-sm btn-icon btn-outline-secondary">
+                        <i class="ti ti-arrow-left"></i>
+                    </a>
+                    <h5 class="card-title mb-0 fw-bold">Buat Izin Absen Karyawan</h5>
+                </div>
             </div>
-            Loading..`);
-        }
-
-        form.submit(function(e) {
-            const nik = form.find("#nik").val();
-            const dari = form.find("#dari").val();
-            const sampai = form.find("#sampai").val();
-            const keterangan = form.find("#keterangan").val();
-            if (nik == '') {
-                Swal.fire({
-                    title: "Oops!",
-                    text: "Karyawan harus diisi !",
-                    icon: "warning",
-                    showConfirmButton: true,
-                    didClose: (e) => {
-                        form.find("#nik").focus();
-                    },
-                });
-                return false;
-            } else if (dari == '' || sampai == '') {
-                Swal.fire({
-                    title: "Oops!",
-                    text: 'Periode Izin Harus Diisi !',
-                    icon: "warning",
-                    showConfirmButton: true,
-                    didClose: () => {
-                        form.find("#dari").focus();
-                    }
-                });
-                return false;
-            } else if (sampai < dari) {
-                Swal.fire({
-                    title: "Oops!",
-                    text: 'Periode Izin Harus Sesuai !',
-                    icon: "warning",
-                    showConfirmButton: true,
-                    didClose: () => {
-                        form.find("#sampai").focus();
-                    }
-                });
-                return false;
-            } else if (hitungHari(dari, sampai) > parseInt(jml_hari_izin_max) && batasi_hari_izin == 1) {
-                Swal.fire({
-                    title: "Oops!",
-                    text: 'Periode Izin Tidak Boleh Lebih Dari ' + jml_hari_izin_max + ' Hari !',
-                    icon: "warning",
-                    showConfirmButton: true,
-                    didClose: () => {
-                        form.find("#sampai").focus();
-                    }
-                });
-                return false;
-            } else if (keterangan == '') {
-                Swal.fire({
-                    title: "Oops!",
-                    text: 'Keterangan Harus Diisi !',
-                    icon: "warning",
-                    showConfirmButton: true,
-                    didClose: () => {
-                        form.find("#keterangan").focus();
-                    }
-                });
-                return false;
-            } else {
-                buttonDisabled();
-            }
-        });
-
-    });
-</script>
+            <div class="card-body p-4">
+                @include('izinabsen.create-modal')
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

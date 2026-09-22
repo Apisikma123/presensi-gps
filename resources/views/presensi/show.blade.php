@@ -87,8 +87,33 @@
                     <i class="ti ti-camera"></i> Foto Presensi {{ $in_out }}
                 </div>
                 <div class="p-3 text-center">
-                    @if (!empty($foto) && Storage::disk('public')->exists('/uploads/absensi/' . $foto))
+                    @php
+                        $photoExists = !empty($foto) && Storage::disk('public')->exists('/uploads/absensi/' . $foto);
+                        $isArchived = !empty($presensi->is_archived) || (!empty($foto) && !$photoExists);
+                        $archiveMonthLabel = \Carbon\Carbon::parse($presensi->tanggal)->translatedFormat('F Y');
+                        $archiveMonthCode = \Carbon\Carbon::parse($presensi->tanggal)->format('Y-m');
+                        $isAdmin = auth()->check() && (auth()->user()->isSuperAdmin() || auth()->user()->can('presensi.index'));
+                    @endphp
+
+                    @if ($photoExists && !$isArchived)
                         <img src="{{ url('/storage/uploads/absensi/' . $foto) }}" class="attendance-img" alt="Foto Presensi">
+                    @elseif (!empty($foto) && $isArchived)
+                        <div class="py-5 bg-light rounded d-flex flex-column align-items-center justify-content-center border">
+                            <i class="ti ti-archive text-warning fs-1 mb-2"></i>
+                            <span class="text-dark fw-bold small">Foto telah diarsipkan</span>
+                            @if ($isAdmin)
+                                <div class="mt-2 text-primary fw-semibold small">
+                                    <i class="ti ti-package me-1"></i>Arsip: {{ $archiveMonthLabel }}
+                                </div>
+                                @if (file_exists(storage_path('app/private/attendance-archive/' . $archiveMonthCode . '.zip')))
+                                    <div class="mt-2">
+                                        <a href="{{ route('file.attendance-archive', ['month' => $archiveMonthCode]) }}" class="btn btn-sm btn-outline-primary py-1 px-2" style="font-size: 11px;">
+                                            <i class="ti ti-download me-1"></i>Unduh ZIP Arsip
+                                        </a>
+                                    </div>
+                                @endif
+                            @endif
+                        </div>
                     @else
                         <div class="py-5 bg-light rounded d-flex flex-column align-items-center justify-content-center border">
                             <i class="ti ti-camera-off text-muted fs-1 mb-2"></i>
@@ -191,11 +216,15 @@
     
     var {{ $map_id }} = L.map('{{ $map_id }}', {
         center: [latitude_user, longitude_user],
-        zoom: 17
+        zoom: 17,
+        minZoom: 3,
+        maxBounds: [[-85.05112878, -180], [85.05112878, 180]],
+        maxBoundsViscosity: 1.0
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
+        noWrap: true,
         attribution: '© OpenStreetMap'
     }).addTo({{ $map_id }});
 
@@ -234,8 +263,8 @@
         opacity: 0.7
     }).addTo({{ $map_id }});
 
-    setInterval(function() {
+    setTimeout(function() {
         {{ $map_id }}.invalidateSize();
-    }, 500);
+    }, 300);
 </script>
 @endif

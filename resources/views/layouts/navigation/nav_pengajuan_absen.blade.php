@@ -1,37 +1,42 @@
 @if (auth()->user()->hasAnyPermission(['izinabsen.index', 'izinsakit.index', 'izincuti.index', 'dispensasi.index']) || auth()->user()->hasRole('super admin'))
-    <ul class="nav nav-tabs border-bottom mb-3" id="izinTabs" data-no-spa="true" style="gap: 4px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
-
-        @can('izinabsen.index')
+    <div class="nav-segment-container mb-3">
+        <ul class="nav nav-segment" id="izinTabs" data-no-spa="true">
+            @can('izinabsen.index')
+                <li class="nav-item">
+                    <a href="{{ route('izinabsen.index') }}" data-tab="izinabsen" data-url="{{ route('izinabsen.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinabsen', 'izinabsen/*']) ? 'active' : '' }}">
+                        <i class="tf-icons ti ti-file-description"></i>
+                        <span>Izin Absen</span>
+                        <span class="tab-counter-badge badge-izin" data-badge-for="izinabsen" style="{{ empty($notifikasi_izinabsen) ? 'display: none;' : '' }}">{{ $notifikasi_izinabsen ?? '' }}</span>
+                    </a>
+                </li>
+            @endcan
+            @can('izinsakit.index')
+                <li class="nav-item">
+                    <a href="{{ route('izinsakit.index') }}" data-tab="izinsakit" data-url="{{ route('izinsakit.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinsakit', 'izinsakit/*']) ? 'active' : '' }}">
+                        <i class="tf-icons ti ti-file-text"></i>
+                        <span>Izin Sakit</span>
+                        <span class="tab-counter-badge badge-izin" data-badge-for="izinsakit" style="{{ empty($notifikasi_izinsakit) ? 'display: none;' : '' }}">{{ $notifikasi_izinsakit ?? '' }}</span>
+                    </a>
+                </li>
+            @endcan
+            @can('izincuti.index')
+                <li class="nav-item">
+                    <a href="{{ route('izincuti.index') }}" data-tab="izincuti" data-url="{{ route('izincuti.index') }}" class="nav-link tab-izin-link {{ request()->is(['izincuti', 'izincuti/*']) ? 'active' : '' }}">
+                        <i class="tf-icons ti ti-calendar-event"></i>
+                        <span>Izin Cuti</span>
+                        <span class="tab-counter-badge badge-izin" data-badge-for="izincuti" style="{{ empty($notifikasi_izincuti) ? 'display: none;' : '' }}">{{ $notifikasi_izincuti ?? '' }}</span>
+                    </a>
+                </li>
+            @endcan
             <li class="nav-item">
-                <a href="{{ route('izinabsen.index') }}" data-tab="izinabsen" data-url="{{ route('izinabsen.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinabsen', 'izinabsen/*']) ? 'active' : '' }}">
-                    <i class="tf-icons ti ti-file-description ti-md me-1"></i> Izin Absen
-                    <span class="badge bg-danger rounded-pill ms-2 badge-izin" data-badge-for="izinabsen" style="{{ empty($notifikasi_izinabsen) ? 'display: none;' : '' }}">{{ $notifikasi_izinabsen ?? '' }}</span>
+                <a href="{{ route('dispensasi.index') }}" data-tab="dispensasi" data-url="{{ route('dispensasi.index') }}" class="nav-link tab-izin-link {{ request()->is(['dispensasi', 'dispensasi/*']) ? 'active' : '' }}">
+                    <i class="tf-icons ti ti-clock-check"></i>
+                    <span>Dispensasi Terlambat</span>
+                    <span class="tab-counter-badge badge-izin" data-badge-for="dispensasi" style="{{ empty($notifikasi_dispensasi) ? 'display: none;' : '' }}">{{ $notifikasi_dispensasi ?? '' }}</span>
                 </a>
             </li>
-        @endcan
-        @can('izinsakit.index')
-            <li class="nav-item">
-                <a href="{{ route('izinsakit.index') }}" data-tab="izinsakit" data-url="{{ route('izinsakit.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinsakit', 'izinsakit/*']) ? 'active' : '' }}">
-                    <i class="tf-icons ti ti-file-description ti-md me-1"></i> Izin Sakit
-                    <span class="badge bg-danger rounded-pill ms-2 badge-izin" data-badge-for="izinsakit" style="{{ empty($notifikasi_izinsakit) ? 'display: none;' : '' }}">{{ $notifikasi_izinsakit ?? '' }}</span>
-                </a>
-            </li>
-        @endcan
-        @can('izincuti.index')
-            <li class="nav-item">
-                <a href="{{ route('izincuti.index') }}" data-tab="izincuti" data-url="{{ route('izincuti.index') }}" class="nav-link tab-izin-link {{ request()->is(['izincuti', 'izincuti/*']) ? 'active' : '' }}">
-                    <i class="tf-icons ti ti-file-description ti-md me-1"></i> Izin Cuti
-                    <span class="badge bg-danger rounded-pill ms-2 badge-izin" data-badge-for="izincuti" style="{{ empty($notifikasi_izincuti) ? 'display: none;' : '' }}">{{ $notifikasi_izincuti ?? '' }}</span>
-                </a>
-            </li>
-        @endcan
-        <li class="nav-item">
-            <a href="{{ route('dispensasi.index') }}" data-tab="dispensasi" data-url="{{ route('dispensasi.index') }}" class="nav-link tab-izin-link {{ request()->is(['dispensasi', 'dispensasi/*']) ? 'active' : '' }}">
-                <i class="tf-icons ti ti-clock-check ti-md me-1"></i> Dispensasi Terlambat
-                <span class="badge bg-danger rounded-pill ms-2 badge-izin" data-badge-for="dispensasi" style="{{ empty($notifikasi_dispensasi) ? 'display: none;' : '' }}">{{ $notifikasi_dispensasi ?? '' }}</span>
-            </a>
-        </li>
-    </ul>
+        </ul>
+    </div>
 @endif
 
 <x-modal-form id="modal" size="" show="loadmodal" title="" />
@@ -40,27 +45,17 @@
 @push('myscript')
 <script>
     $(function() {
-        // Universal Modal Helpers & Listeners
-        function loadingModal() {
-            $("#loadmodal").html(
-                `<div class="sk-wave sk-primary" style="margin:auto">
-                    <div class="sk-wave-rect"></div>
-                    <div class="sk-wave-rect"></div>
-                    <div class="sk-wave-rect"></div>
-                    <div class="sk-wave-rect"></div>
-                    <div class="sk-wave-rect"></div>
-                </div>`
-            );
+        // Universal Modal Helper (Delegates to Global Instant Modal Engine)
+        function loadModalContent(url) {
+            $("#loadmodal").load(url);
         }
 
-        function loadModalContent(url) {
-            loadingModal();
-            $("#loadmodal").load(url, function() {
-                if (typeof initGlobalFlatpickr === 'function') {
-                    initGlobalFlatpickr('#loadmodal');
-                }
-            });
-        }
+        // Prefetch active create form instantly on load (0ms delay)
+        ['/dispensasi/create', '/izinabsen/create', '/izinsakit/create', '/izincuti/create'].forEach(function(u) {
+            if (typeof window.prefetchModal === 'function') {
+                window.prefetchModal(u);
+            }
+        });
 
         // Create buttons
         $(document).on('click', '#btnCreateIzinAbsen', function(e) {
@@ -87,7 +82,7 @@
         $(document).on('click', '#btnCreateDispensasi', function(e) {
             e.preventDefault();
             $("#modal").modal("show");
-            $("#modal").find(".modal-title").text("Buat Dispensasi Keterlambatan");
+            $("#modal").find(".modal-title").text("Tambah Dispensasi Keterlambatan");
             loadModalContent("/dispensasi/create");
         });
 

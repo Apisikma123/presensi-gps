@@ -39,7 +39,7 @@ class GajipokokImport implements ToCollection, WithStartRow
             // Generate Kode Gaji
             $tahun_gaji = date('Y', strtotime($tanggal_berlaku));
             $last_gaji = Gajipokok::orderBy('kode_gaji', 'desc')
-                ->whereRaw('YEAR(tanggal_berlaku) = ' . $tahun_gaji)
+                ->whereYear('tanggal_berlaku', $tahun_gaji)
                 ->first();
             
             $last_kode_gaji = $last_gaji != null ? $last_gaji->kode_gaji : '';

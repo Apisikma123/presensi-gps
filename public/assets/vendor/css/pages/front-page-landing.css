@@ -222,7 +222,7 @@
 }
 
 .light-style .landing-hero {
-  background: linear-gradient(138.18deg, #eae8fd 0%, #fce5e6 94.44%);
+  background: linear-gradient(138.18deg, #e2ece8 0%, #fce5e6 94.44%);
 }
 .light-style .landing-hero::after {
   background-color: #fff;

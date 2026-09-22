@@ -4,6 +4,9 @@
 @section('navigasi')
     <span>Laporan Cuti</span>
 @endsection
+@push('mystyle')
+<link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
+@endpush
 <!-- Page Header -->
 <div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div>
@@ -76,7 +79,7 @@
                         </div>
                         <div class="col-lg-6 col-md-6 col-sm-12 mb-2">
                             <button type="submit" name="exportButton" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center gap-1.5"
-                                style="background-color: #059669; border-color: #059669; height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
+                                style="background-color: var(--theme-color-2, #32745E); border-color: var(--theme-color-2, #32745E); height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
                                 <i class="ti ti-download"></i>
                                 <span>Export Excel</span>
                             </button>
@@ -89,6 +92,7 @@
 </div>
 @endsection
 @push('myscript')
+<script src="{{ asset('assets/vendor/libs/select2/select2.js') }}"></script>
 <script>
     $(function() {
         $(".select2").select2({

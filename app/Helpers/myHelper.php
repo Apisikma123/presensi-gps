@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Pengaturanumum;
+use App\Models\Detailharilibur;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Redirect;
@@ -303,26 +304,72 @@ function hitungjarak($lat1, $lon1, $lat2, $lon2)
 }
 
 
-function hitungHari($startDate, $endDate)
+function hitungHari($startDate, $endDate, ?string $nik = null)
 {
-    if ($startDate && $endDate) {
+    if (empty($startDate) || empty($endDate)) {
+        return 0;
+    }
+
+    try {
         $start = new DateTime($startDate);
         $end = new DateTime($endDate);
 
-        // Tambahkan 1 hari agar penghitungan inklusif
-        $interval = $start->diff($end);
-        $dayDifference = $interval->days + 1;
+        if ($end < $start) {
+            return 0;
+        }
 
-        return  $dayDifference;
-    } else {
+        // Jika NIK disediakan, hitung berdasarkan jadwal kerja efektif individu (Roster / Shift / Off Day)
+        if (!empty($nik) && class_exists(\App\Services\AttendanceService::class)) {
+            $schedules = \App\Services\AttendanceService::getEffectiveSchedulesBatch([$nik], $startDate, $endDate);
+            $workingDays = 0;
+            $curr = clone $start;
+            while ($curr <= $end) {
+                $tglStr = $curr->format('Y-m-d');
+                $isOff = $schedules[$nik][$tglStr]['is_off'] ?? false;
+                if (!$isOff) {
+                    $workingDays++;
+                }
+                $curr->modify('+1 day');
+            }
+            return $workingDays;
+        }
+
+        // Fallback default jika NIK tidak tersedia
+        $setting = \App\Models\Pengaturanumum::first();
+        $sistem = $setting->sistem_hari_kerja ?? '6';
+
+        $hariLiburList = [];
+        if (class_exists(\App\Models\Harilibur::class)) {
+            $hariLiburList = \App\Models\Harilibur::whereBetween('tanggal', [$startDate, $endDate])
+                ->pluck('tanggal')
+                ->toArray();
+        }
+
+        $workingDays = 0;
+        $curr = clone $start;
+        while ($curr <= $end) {
+            $w = (int)$curr->format('w'); // 0: Minggu, 6: Sabtu
+            $tglStr = $curr->format('Y-m-d');
+
+            $isLibur = ($w === 0) || ($sistem === '5' && $w === 6) || in_array($tglStr, $hariLiburList);
+            if (!$isLibur) {
+                $workingDays++;
+            }
+            $curr->modify('+1 day');
+        }
+
+        return $workingDays;
+    } catch (\Exception $e) {
         return 0;
     }
 }
 
 function getSid($file)
 {
-    $url = url('/storage/uploads/sid/' . $file);
-    return $url;
+    if (empty($file)) {
+        return null;
+    }
+    return route('file.sid', ['filename' => $file]);
 }
 
 function hitungpulangcepat($tanggal_presensi, $jam_out, $jam_pulang, $istirahat, $jam_awal_istirahat, $jam_akhir_istirahat, $lintashari)

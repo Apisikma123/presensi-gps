@@ -45,6 +45,7 @@
                                 <tr>
                                     <th>Hari</th>
                                     <th>Jam Kerja</th>
+                                    <th>Cabang Penugasan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -52,35 +53,42 @@
                                     $nama_hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
                                 @endphp
                                 @foreach ($nama_hari as $hari)
+                                    @php
+                                        $rowJk = isset($jamkerjabyday[$hari]) ? $jamkerjabyday[$hari] : null;
+                                        $curJkCode = is_object($rowJk) ? $rowJk->kode_jam_kerja : (is_string($rowJk) ? $rowJk : '');
+                                        $curCabangCode = is_object($rowJk) ? $rowJk->kode_cabang : '';
+                                    @endphp
                                     <tr>
-                                        <td class="text-capitalize" style="width: 10%">
+                                        <td class="text-capitalize" style="width: 15%">
                                             <input type="hidden" name="hari[]" value="{{ $hari }}">
-                                            {{ $hari }}
+                                            <strong>{{ $hari }}</strong>
                                         </td>
                                         <td>
                                             <div class="form-group p-0" style="margin-bottom: 0px !important">
-                                                <select name="kode_jam_kerja[]" id="kode_jam_kerja" class="form-select">
-                                                    <option value="">Pilih Jam Kerja</option>
+                                                <select name="kode_jam_kerja[]" class="form-select">
+                                                    <option value="">Libur (OFF)</option>
                                                     @foreach ($jamkerja as $d)
-                                                        @if (array_key_exists($hari, $jamkerjabyday) && $jamkerjabyday[$hari] == $d->kode_jam_kerja)
-                                                            <option value="{{ $d->kode_jam_kerja }}" selected>{{ $d->nama_jam_kerja }}
-                                                                ({{ $d->jam_masuk }} -
-                                                                {{ $d->jam_pulang }})
-                                                            </option>
-                                                        @else
-                                                            <option value="{{ $d->kode_jam_kerja }}">{{ $d->nama_jam_kerja }}
-                                                                ({{ $d->jam_masuk }} -
-                                                                {{ $d->jam_pulang }})
-                                                            </option>
-                                                        @endif
+                                                        <option value="{{ $d->kode_jam_kerja }}" {{ $curJkCode == $d->kode_jam_kerja ? 'selected' : '' }}>
+                                                            {{ $d->nama_jam_kerja }} ({{ $d->jam_masuk }} - {{ $d->jam_pulang }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </td>
+                                        <td style="width: 35%">
+                                            <div class="form-group p-0" style="margin-bottom: 0px !important">
+                                                <select name="kode_cabang[]" class="form-select">
+                                                    <option value="">Default (Cabang Home: {{ $karyawan->nama_cabang ?? 'Pusat' }})</option>
+                                                    @foreach ($cabang as $cb)
+                                                        <option value="{{ $cb->kode_cabang }}" {{ $curCabangCode == $cb->kode_cabang ? 'selected' : '' }}>
+                                                            {{ $cb->nama_cabang }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                             </div>
                                         </td>
                                     </tr>
                                 @endforeach
-
-
                             </tbody>
                         </table>
                         <div class="form-group mt-3">
@@ -92,8 +100,9 @@
                 <div class="tab-pane fade" id="navs-top-profile" role="tabpanel">
                     <!-- Calendar View -->
                     <div class="row mb-4">
-                        <div class="col-lg-6 col-md-6 col-sm-12">
+                        <div class="col-lg-4 col-md-4 col-sm-12">
                             <div class="form-group mb-3">
+                                <label class="form-label text-xs fw-bold text-muted">Bulan</label>
                                 <select name="bulan" id="bulan" class="form-select">
                                     <option value="">Bulan</option>
                                     @foreach ($list_bulan as $d)
@@ -103,8 +112,9 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-md-6 col-sm-12">
+                        <div class="col-lg-4 col-md-4 col-sm-12">
                             <div class="form-group mb-3">
+                                <label class="form-label text-xs fw-bold text-muted">Tahun</label>
                                 <select name="tahun" id="tahun" class="form-select">
                                     <option value="">Tahun</option>
                                     @for ($t = $start_year; $t <= date('Y'); $t++)
@@ -113,7 +123,17 @@
                                 </select>
                             </div>
                         </div>
-
+                        <div class="col-lg-4 col-md-4 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label class="form-label text-xs fw-bold text-muted">Cabang Penugasan</label>
+                                <select name="select_cabang_bydate" id="select-cabang-bydate" class="form-select">
+                                    <option value="">Default (Cabang Home: {{ $karyawan->nama_cabang ?? 'Pusat' }})</option>
+                                    @foreach ($cabang as $cb)
+                                        <option value="{{ $cb->kode_cabang }}">{{ $cb->nama_cabang }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Jam Kerja Templates (Draggable) -->
@@ -481,11 +501,12 @@
                     const jamMasuk = jk.jam_masuk || '';
                     const jamPulang = jk.jam_pulang || '';
                     const namaJamKerja = jk.nama_jam_kerja || 'Jam Kerja';
+                    const branchTag = jk.nama_cabang ? `<br><span class="badge bg-dark" style="font-size: 9px; padding: 2px 4px;">${jk.nama_cabang}</span>` : '';
 
                     jamKerjaHTML += `
                         <div class="jam-kerja-badge" data-kode="${jk.kode_jam_kerja}" data-tanggal="${dateString}">
                             <button class="delete-jam-kerja" type="button">&times;</button>
-                            ${namaJamKerja}
+                            ${namaJamKerja} ${branchTag}
                             <br><small>${jamMasuk} - ${jamPulang}</small>
                         </div>
                     `;
@@ -587,14 +608,10 @@
                 $(this).addClass('selected-template');
                 selectedTemplate = $(this);
 
-                // Show instruction
-                Swal.fire({
-                    title: "Template Dipilih",
-                    text: "Sekarang klik pada tanggal di kalender untuk menambahkan jam kerja",
-                    icon: "info",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                // Show non-blocking instruction toast
+                if (typeof toastr !== 'undefined') {
+                    toastr.info("Klik tanggal di kalender untuk menambahkan jam kerja", "Template Dipilih");
+                }
             });
 
             $('.calendar-day').off('click').on('click', function() {
@@ -646,6 +663,8 @@
 
         function addJamKerja(tanggal, kodeJamKerja, namaJamKerja, jamKerja) {
             const jamKerjaInfo = jamKerja.split(' - ');
+            const selectedCabang = $('#select-cabang-bydate').val();
+            const namaCabang = $('#select-cabang-bydate option:selected').text();
 
             $.ajax({
                 type: 'POST',
@@ -654,7 +673,8 @@
                     _token: "{{ csrf_token() }}",
                     nik: "{{ $karyawan->nik }}",
                     tanggal: tanggal,
-                    kode_jam_kerja: kodeJamKerja
+                    kode_jam_kerja: kodeJamKerja,
+                    kode_cabang: selectedCabang
                 },
                 success: function(response) {
                     if (response.success) {
@@ -664,7 +684,9 @@
                             kode_jam_kerja: kodeJamKerja,
                             nama_jam_kerja: namaJamKerja,
                             jam_masuk: jamKerjaInfo[0],
-                            jam_pulang: jamKerjaInfo[1]
+                            jam_pulang: jamKerjaInfo[1],
+                            kode_cabang: selectedCabang,
+                            nama_cabang: selectedCabang ? namaCabang : null
                         });
 
                         // Re-render calendar
@@ -701,6 +723,8 @@
 
         function replaceJamKerja(tanggal, kodeJamKerja, namaJamKerja, jamKerja) {
             const jamKerjaInfo = jamKerja.split(' - ');
+            const selectedCabang = $('#select-cabang-bydate').val();
+            const namaCabang = $('#select-cabang-bydate option:selected').text();
 
             // First, delete existing jam kerja for this date
             const existingJamKerja = jamKerjaData.find(jk => {
@@ -729,7 +753,8 @@
                                     _token: "{{ csrf_token() }}",
                                     nik: "{{ $karyawan->nik }}",
                                     tanggal: tanggal,
-                                    kode_jam_kerja: kodeJamKerja
+                                    kode_jam_kerja: kodeJamKerja,
+                                    kode_cabang: selectedCabang
                                 },
                                 success: function(response) {
                                     if (response.success) {
@@ -744,7 +769,9 @@
                                             kode_jam_kerja: kodeJamKerja,
                                             nama_jam_kerja: namaJamKerja,
                                             jam_masuk: jamKerjaInfo[0],
-                                            jam_pulang: jamKerjaInfo[1]
+                                            jam_pulang: jamKerjaInfo[1],
+                                            kode_cabang: selectedCabang,
+                                            nama_cabang: selectedCabang ? namaCabang : null
                                         });
 
                                         // Re-render calendar
@@ -834,13 +861,9 @@
                                     loadjamkerjabydate();
                                 }
 
-                                Swal.fire({
-                                    title: "Berhasil !",
-                                    text: response.message,
-                                    icon: "success",
-                                    timer: 1500,
-                                    showConfirmButton: false
-                                });
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.success(response.message, "Berhasil");
+                                }
                             } else {
                                 Swal.fire({
                                     title: "Oops!",
@@ -1019,6 +1042,7 @@
 
         function applyJamKerjaToSelectedDates(kodeJamKerja) {
             const datesArray = Array.from(selectedDates);
+            const selectedCabang = $('#select-cabang-bydate').val();
             let completed = 0;
             let successCount = 0;
 
@@ -1037,7 +1061,8 @@
                         _token: "{{ csrf_token() }}",
                         nik: "{{ $karyawan->nik }}",
                         tanggal: date,
-                        kode_jam_kerja: kodeJamKerja
+                        kode_jam_kerja: kodeJamKerja,
+                        kode_cabang: selectedCabang
                     },
                     success: function() {
                         successCount++;
@@ -1045,13 +1070,9 @@
                     complete: function() {
                         completed++;
                         if (completed === datesArray.length) {
-                            Swal.fire({
-                                title: 'Selesai!',
-                                text: `Jam kerja berhasil diterapkan ke ${successCount} tanggal`,
-                                icon: 'success',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(`Jam kerja berhasil diterapkan ke ${successCount} tanggal`, 'Selesai');
+                            }
                             selectedDates.clear();
                             updateSelectionUI();
                             loadJamKerjaData();

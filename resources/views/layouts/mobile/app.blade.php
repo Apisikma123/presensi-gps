@@ -3,14 +3,16 @@
 
 @php
     $scheme = $general_setting->mobile_theme_scheme ?? 'green';
+    $theme1 = $general_setting->theme_color_1 ?? '#32745e';
+    $theme2 = $general_setting->theme_color_2 ?? '#58907D';
     $colors = [
         'green' => [
             'bg_body' => '#dff9fb',
             'bg_nav' => '#ffffff',
-            'color_nav' => '#32745e',
-            'color_nav_active' => '#58907D',
-            'bg_indicator' => '#32745e',
-            'color_nav_hover' => '#3ab58c',
+            'color_nav' => $theme1,
+            'color_nav_active' => $theme2,
+            'bg_indicator' => $theme1,
+            'color_nav_hover' => $theme2,
         ],
         'blue' => [
             'bg_body' => '#e3f2fd',
@@ -98,8 +100,9 @@
     <link rel="dns-prefetch" href="https://unpkg.com">
     <link rel="dns-prefetch" href="https://cdn.amcharts.com">
 
-    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}" sizes="32x32">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}" sizes="32x32">
+    <link rel="shortcut icon" href="{{ $app_logo_url ?? asset('favicon.ico') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
 
     <link rel="manifest" href="{{ asset('manifest.json') }}?v={{ file_exists(public_path('manifest.json')) ? filemtime(public_path('manifest.json')) : time() }}">
@@ -129,6 +132,16 @@
             height: calc(100vh - 70px - 80px);
             overflow-y: auto;
             overflow-x: hidden;
+        }
+
+        /* App Capsule Base & Bottom Clearance (antislop-layoutmobile R-03, R-35) */
+        #appCapsule {
+            padding-top: calc(56px + env(safe-area-inset-top, 0px) + 14px) !important;
+            padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+            min-height: 100vh;
+            box-sizing: border-box !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
         }
 
         /* Dynamic Theme Overrides */
