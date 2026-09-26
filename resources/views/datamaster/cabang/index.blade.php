@@ -1,21 +1,28 @@
 @extends('layouts.app')
 @section('titlepage', 'Cabang / Outlet')
 
-@section('content')
 @section('navigasi')
-    <span>Cabang & Outlet</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Cabang & Outlet</li>
 @endsection
+
+@section('content')
 
 <!-- Page Header -->
 <div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-    <div>
-        <h4 class="page-title mb-1">Cabang / Outlet Coffee</h4>
+    <div class="header-title-group">
+        <h4 class="page-title mb-1 d-flex align-items-center gap-2">
+            <span>Cabang / Outlet Coffee</span>
+            <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+                {{ number_format($cabang->total()) }} Total
+            </span>
+        </h4>
         <p class="page-subtitle text-muted mb-0">Manajemen data multi-outlet cabang, radius presensi, dan titik koordinat GPS.</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="header-action-group d-flex align-items-center gap-2 flex-wrap">
         @can('cabang.create')
-            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btncreateCabang">
-                <i class="ti ti-plus"></i>
+            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btncreateCabang" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+                <i class="ti ti-plus" style="font-size: 16px;"></i>
                 <span>Tambah Cabang</span>
             </a>
         @endcan
@@ -47,9 +54,9 @@
 </div>
 
 <!-- Table Card -->
-<div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+<div class="table-karyawan-wrapper mb-3 w-100 max-w-full">
+    <div class="table-responsive w-100 max-w-full" style="overflow-x: auto;">
+        <table class="table table-hover table-karyawan align-middle w-100 mb-0">
             <thead>
                 <tr>
                     <th style="width: 50px;" class="text-center">NO</th>
@@ -70,7 +77,7 @@
                         <td>
                             <div class="d-flex align-items-center gap-2.5">
                                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                                    style="width: 32px; height: 32px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                                    style="width: 32px; height: 32px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);">
                                     <i class="ti ti-building-community fs-6"></i>
                                 </div>
                                 <div>
@@ -154,6 +161,42 @@
 @push('mystyle')
 <link rel="stylesheet" href="{{ asset('assets/vendor/libs/leaflet/leaflet.css') }}" />
 <style>
+    /* Table Animations & Clean Design (Harmonized with Karyawan Page) */
+    .table-karyawan-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #E2E8F0;
+        background: #FFFFFF !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .table-karyawan thead th {
+        background: #F8FAFC;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 12px 16px;
+        border-bottom: 1px solid #E2E8F0;
+        white-space: nowrap;
+    }
+    .table-karyawan tbody tr {
+        transition: all 0.15s ease;
+        background: #FFFFFF !important;
+    }
+    .table-karyawan tbody tr:hover {
+        background-color: #F8FAFC !important;
+    }
+    .table-karyawan tbody td {
+        padding: 12px 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        font-size: 13px;
+        background: #FFFFFF;
+    }
+    .table-karyawan tbody tr:hover td {
+        background-color: #F8FAFC !important;
+    }
     #map {
         height: 380px !important;
         width: 100% !important;

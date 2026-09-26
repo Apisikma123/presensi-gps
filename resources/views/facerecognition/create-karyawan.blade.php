@@ -87,15 +87,14 @@
         /* Status & Instructions */
         .status-badge {
             align-self: center;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 30px;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 8px 16px;
+            border-radius: 10px;
             color: #fff;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             text-align: center;
             display: flex;
             align-items: center;

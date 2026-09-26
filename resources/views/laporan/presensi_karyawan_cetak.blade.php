@@ -1,3 +1,10 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $theme['primary'] ?? '#3C2A21';
+    $secondaryColor = $theme['secondary'] ?? '#634832';
+    $primaryHover = $theme['primary_hover'] ?? '#2A1D17';
+    $primaryContrast = $theme['primary_contrast'] ?? '#FFFFFF';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,6 +13,13 @@
     <title>Laporan Presensi - {{ $karyawan->nama_karyawan }} ({{ $karyawan->nik }})</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        :root {
+            --theme-color-1: {{ $primaryColor }};
+            --theme-color-2: {{ $secondaryColor }};
+            --color-primary-hover: {{ $primaryHover }};
+            --theme-primary-contrast: {{ $primaryContrast }};
+        }
 
         * {
             box-sizing: border-box;
@@ -17,7 +31,7 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 11px;
             color: #0F172A;
-            background: #F8FAF8;
+            background: #FAF9F8;
             margin: 0;
             padding: 20px;
         }
@@ -49,7 +63,7 @@
             gap: 8px;
             font-size: 11.5px;
             font-weight: 600;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
         .toolbar-info .badge-mode {
             padding: 2px 7px;
@@ -69,8 +83,8 @@
         }
         .btn-print {
             padding: 7px 16px;
-            background: #1E4D3E;
-            color: #FFFFFF;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             border: none;
             border-radius: 4px;
             font-size: 11.5px;
@@ -81,7 +95,7 @@
             gap: 6px;
         }
         .btn-print:hover {
-            background: #32745E;
+            background: var(--color-primary-hover, var(--theme-color-2, #634832));
         }
         .btn-close-view {
             padding: 7px 14px;
@@ -117,8 +131,8 @@
         .kop-logo-monogram {
             width: 44px;
             height: 44px;
-            background: #1E4D3E;
-            color: #FFFFFF;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -138,7 +152,7 @@
             margin: 2px 0 0 0;
             font-size: 10px;
             font-weight: 600;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
         .kop-company-meta {
             margin: 3px 0 0 0;
@@ -170,7 +184,7 @@
 
         .kop-divider-primary {
             height: 2px;
-            background: #1E4D3E;
+            background: var(--theme-color-1, #3C2A21);
             margin-bottom: 2px;
         }
         .kop-divider-secondary {
@@ -205,7 +219,7 @@
             align-items: center;
             gap: 14px;
             padding: 10px 14px;
-            background: #F8FAF8;
+            background: #F4F3F2;
             border: 1px solid #E2E8F0;
             border-radius: 4px;
             margin-bottom: 10px;
@@ -263,7 +277,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #F8FAF8;
+            background: #F4F3F2;
             border: 1px solid #E2E8F0;
             border-radius: 4px;
             padding: 8px 14px;
@@ -306,14 +320,14 @@
             font-size: 10px;
         }
         table.grid th {
-            background-color: #1E4D3E;
-            color: #FFFFFF;
+            background-color: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             font-weight: 700;
             font-size: 9px;
             letter-spacing: 0.3px;
             text-transform: uppercase;
             padding: 7px 5px;
-            border: 1px solid #163B2F;
+            border: 1px solid var(--theme-color-1, #3C2A21);
             text-align: center;
         }
         table.grid td {
@@ -323,7 +337,7 @@
             color: #1E293B;
         }
         table.grid tbody tr:nth-child(even) {
-            background-color: #F8FAF8;
+            background-color: #F4F3F2;
         }
         .num-code {
             font-family: 'JetBrains Mono', monospace;
@@ -459,7 +473,7 @@
 
                 <div>
                     <h1 class="kop-company-title">{{ $generalsetting->nama_perusahaan ?? 'PERUSAHAAN' }}</h1>
-                    <div class="kop-company-sub">SISTEM INFORMASI MANAJEMEN PRESENSI & OPERASIONAL OUTLET</div>
+                    <div class="kop-company-sub">{{ strtoupper(company_setting('app_tagline') ?: 'Sistem Informasi Manajemen SDM & Presensi') }}</div>
                     <div class="kop-company-meta">
                         {{ $generalsetting->alamat ?? 'Alamat Kantor Pusat' }}
                         @if(!empty($generalsetting->telepon)) &bull; Telp: {{ $generalsetting->telepon }} @endif
@@ -567,7 +581,7 @@
                 if ($pres) {
                     if ($pres->status === 'h') {
                         $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
-                        $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : '07:05:00';
+                        $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : ($jk && $jk->jam_masuk ? date('H:i:s', strtotime($jk->jam_masuk)) : '08:00:00');
                         $actualIn = date('H:i:s', strtotime($pres->jam_in));
 
                         if ($disp && $actualIn <= $disp->batas_dispensasi) {
@@ -674,7 +688,7 @@
                             if ($pres->status === 'h') {
                                 $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
                                 $namaShift = $jk->nama_jam_kerja ?? $namaShift;
-                                $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : '07:05:00';
+                                $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : ($jk && $jk->jam_masuk ? date('H:i:s', strtotime($jk->jam_masuk)) : '08:00:00');
                                 $actualIn = date('H:i:s', strtotime($pres->jam_in));
 
                                 if ($isOff) {

@@ -1,10 +1,10 @@
 <!-- Employee Identity Card (Brew & Beam Minimalist Architecture) -->
-<div class="card mb-3 shadow-none" style="background: #F8FAF8; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 14px;">
+<div class="card mb-3 shadow-none" style="background: #FAF9F8; border: 1px solid rgba(60, 42, 33, 0.08); border-radius: 14px;">
     <div class="card-body p-3">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-3">
                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                    style="width: 44px; height: 44px; background: rgba(var(--bs-primary-rgb), 0.1); color: var(--theme-color-1, #1E4D3E); font-size: 15px; border: 1.5px solid rgba(var(--bs-primary-rgb), 0.2);">
+                    style="width: 44px; height: 44px; background: rgba(var(--bs-primary-rgb), 0.1); color: var(--theme-color-1, #3C2A21); font-size: 15px; border: 1.5px solid rgba(var(--bs-primary-rgb), 0.2);">
                     {{ strtoupper(substr($karyawan->nama_karyawan, 0, 2)) }}
                 </div>
                 <div>
@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="text-end">
-                <span class="badge font-mono" style="background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #1E4D3E); border: 1px solid rgba(var(--bs-primary-rgb), 0.15); font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 8px;">
+                <span class="badge font-mono" style="background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #3C2A21); border: 1px solid rgba(var(--bs-primary-rgb), 0.15); font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 8px;">
                     <i class="ti ti-calendar me-1"></i>{{ date('d M Y', strtotime($tanggal)) }}
                 </span>
             </div>
@@ -127,7 +127,7 @@
             let kode_jam_kerja = $('#kode_jam_kerja').val();
             let alasan = ($('#alasan_koreksi').val() || '').trim();
 
-            var themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#1E4D3E';
+            var themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
             if (!status) {
                 e.preventDefault();
                 Swal.fire({

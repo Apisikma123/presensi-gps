@@ -321,7 +321,7 @@
                         title: 'Oops!',
                         text: error.message,
                         icon: 'error',
-                        confirmButtonColor: '{{ $t['primary'] ?? '#1E4D3E' }}'
+                        confirmButtonColor: '{{ $t['primary'] ?? '#3C2A21' }}'
                     });
                 });
             });

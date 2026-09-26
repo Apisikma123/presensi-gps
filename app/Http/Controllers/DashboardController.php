@@ -158,8 +158,8 @@ class DashboardController extends Controller
         }
 
         $summary = $summaryQuery->select(
-            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND (presensi.is_dispensasi = 1 OR TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, '07:05:00')) THEN 1 ELSE 0 END) as jml_hadir"),
-            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi != 1 AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, '07:05:00') THEN 1 ELSE 0 END) as jml_telat"),
+            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
+            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_telat"),
             DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi = 1 THEN 1 ELSE 0 END) as jml_dispensasi"),
             DB::raw("SUM(CASE WHEN presensi.status = 'i' THEN 1 ELSE 0 END) as jml_izin"),
             DB::raw("SUM(CASE WHEN presensi.status = 's' THEN 1 ELSE 0 END) as jml_sakit"),
@@ -218,33 +218,37 @@ class DashboardController extends Controller
             $dateLabels[] = $currDate->translatedFormat('d M');
         }
 
-        $trendQuery = Presensi::leftJoin('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-            ->whereBetween('presensi.tanggal', [$startDate, $tglPresensi])
-            ->where('presensi.status', 'h');
+        $trend7dCacheKey = 'dashboard_trend_7d_' . ($user->isSuperAdmin() ? 'all' : implode('_', $targetCabangs) . '_' . implode('_', $targetDepartemens)) . '_' . $tglPresensi;
+        [$chart1Hadir, $chart1Telat] = Cache::remember($trend7dCacheKey, 60, function () use ($startDate, $tglPresensi, $needsKaryawanJoin, $targetCabangs, $targetDepartemens, $datePeriod) {
+            $trendQuery = Presensi::leftJoin('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+                ->whereBetween('presensi.tanggal', [$startDate, $tglPresensi])
+                ->where('presensi.status', 'h');
 
-        if ($needsKaryawanJoin) {
-            $trendQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
-            if (!empty($targetCabangs)) {
-                $trendQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+            if ($needsKaryawanJoin) {
+                $trendQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
+                if (!empty($targetCabangs)) {
+                    $trendQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+                }
+                if (!empty($targetDepartemens)) {
+                    $trendQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+                }
             }
-            if (!empty($targetDepartemens)) {
-                $trendQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+
+            $trendAgg = $trendQuery->select(
+                'presensi.tanggal',
+                DB::raw("SUM(CASE WHEN (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
+                DB::raw("SUM(CASE WHEN (presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00')))) THEN 1 ELSE 0 END) as jml_telat")
+            )->groupBy('presensi.tanggal')->get()->keyBy('tanggal');
+
+            $hadir = [];
+            $telat = [];
+            foreach ($datePeriod as $dStr) {
+                $row = $trendAgg->get($dStr);
+                $hadir[] = $row ? (int) $row->jml_hadir : 0;
+                $telat[] = $row ? (int) $row->jml_telat : 0;
             }
-        }
-
-        $trendAgg = $trendQuery->select(
-            'presensi.tanggal',
-            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi = 1 OR TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, '07:05:00')) THEN 1 ELSE 0 END) as jml_hadir"),
-            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi != 1 AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, '07:05:00')) THEN 1 ELSE 0 END) as jml_telat")
-        )->groupBy('presensi.tanggal')->get()->keyBy('tanggal');
-
-        $chart1Hadir = [];
-        $chart1Telat = [];
-        foreach ($datePeriod as $dStr) {
-            $row = $trendAgg->get($dStr);
-            $chart1Hadir[] = $row ? (int) $row->jml_hadir : 0;
-            $chart1Telat[] = $row ? (int) $row->jml_telat : 0;
-        }
+            return [$hadir, $telat];
+        });
 
         // 5. CHART 2: STATUS ABSENSI HARI INI (Donut)
         $chart2Labels = ['Hadir Tepat Waktu', 'Terlambat', 'Izin', 'Sakit', 'Cuti', 'Tidak Hadir'];
@@ -267,8 +271,8 @@ class DashboardController extends Controller
 
         $shiftAgg = $shiftQuery->select(
             'presensi_jamkerja.nama_jam_kerja',
-            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi = 1 OR TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, '07:05:00')) THEN 1 ELSE 0 END) as jml_hadir"),
-            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi != 1 AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, '07:05:00')) THEN 1 ELSE 0 END) as jml_telat")
+            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
+            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00')))) THEN 1 ELSE 0 END) as jml_telat")
         )->groupBy('presensi_jamkerja.nama_jam_kerja')->get();
 
         $chart3Categories = [];
@@ -289,36 +293,39 @@ class DashboardController extends Controller
             }
         }
 
-        // 7. CHART 4: IZIN, SAKIT & CUTI (7 Hari Terakhir - conditional join)
-        $leaveQuery = Presensi::whereBetween('presensi.tanggal', [$startDate, $tglPresensi])
-            ->whereIn('presensi.status', ['i', 's', 'c']);
+        $leave7dCacheKey = 'dashboard_leave_7d_' . ($user->isSuperAdmin() ? 'all' : implode('_', $targetCabangs) . '_' . implode('_', $targetDepartemens)) . '_' . $tglPresensi;
+        [$chart4Izin, $chart4Sakit, $chart4Cuti] = Cache::remember($leave7dCacheKey, 60, function () use ($startDate, $tglPresensi, $needsKaryawanJoin, $targetCabangs, $targetDepartemens, $datePeriod) {
+            $leaveQuery = Presensi::whereBetween('presensi.tanggal', [$startDate, $tglPresensi])
+                ->whereIn('presensi.status', ['i', 's', 'c']);
 
-        if ($needsKaryawanJoin) {
-            $leaveQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
-            if (!empty($targetCabangs)) {
-                $leaveQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+            if ($needsKaryawanJoin) {
+                $leaveQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
+                if (!empty($targetCabangs)) {
+                    $leaveQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+                }
+                if (!empty($targetDepartemens)) {
+                    $leaveQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+                }
             }
-            if (!empty($targetDepartemens)) {
-                $leaveQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+
+            $leaveAgg = $leaveQuery->select(
+                'presensi.tanggal',
+                DB::raw("SUM(CASE WHEN presensi.status = 'i' THEN 1 ELSE 0 END) as jml_izin"),
+                DB::raw("SUM(CASE WHEN presensi.status = 's' THEN 1 ELSE 0 END) as jml_sakit"),
+                DB::raw("SUM(CASE WHEN presensi.status = 'c' THEN 1 ELSE 0 END) as jml_cuti")
+            )->groupBy('presensi.tanggal')->get()->keyBy('tanggal');
+
+            $izin = [];
+            $sakit = [];
+            $cuti = [];
+            foreach ($datePeriod as $dStr) {
+                $row = $leaveAgg->get($dStr);
+                $izin[] = $row ? (int) $row->jml_izin : 0;
+                $sakit[] = $row ? (int) $row->jml_sakit : 0;
+                $cuti[] = $row ? (int) $row->jml_cuti : 0;
             }
-        }
-
-        $leaveAgg = $leaveQuery->select(
-            'presensi.tanggal',
-            DB::raw("SUM(CASE WHEN presensi.status = 'i' THEN 1 ELSE 0 END) as jml_izin"),
-            DB::raw("SUM(CASE WHEN presensi.status = 's' THEN 1 ELSE 0 END) as jml_sakit"),
-            DB::raw("SUM(CASE WHEN presensi.status = 'c' THEN 1 ELSE 0 END) as jml_cuti")
-        )->groupBy('presensi.tanggal')->get()->keyBy('tanggal');
-
-        $chart4Izin = [];
-        $chart4Sakit = [];
-        $chart4Cuti = [];
-        foreach ($datePeriod as $dStr) {
-            $row = $leaveAgg->get($dStr);
-            $chart4Izin[] = $row ? (int) $row->jml_izin : 0;
-            $chart4Sakit[] = $row ? (int) $row->jml_sakit : 0;
-            $chart4Cuti[] = $row ? (int) $row->jml_cuti : 0;
-        }
+            return [$izin, $sakit, $cuti];
+        });
 
         // 8. OPERATIONAL OVERVIEW: PENGAJUAN TERBARU (Pending Approvals - Cached 30s)
         $cacheKeyFeeds = 'dashboard_recent_pending_' . ($user->isSuperAdmin() ? 'all' : implode('_', $targetCabangs) . '_' . implode('_', $targetDepartemens));

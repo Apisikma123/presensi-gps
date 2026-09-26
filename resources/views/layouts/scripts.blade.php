@@ -11,12 +11,11 @@
         const OrigMenu = window.Menu;
         window.Menu = function(el, config, ps) {
             config = config || {};
-            config.accordion = false; // Force accordion false globally
+            config.accordion = true; // Accordion: only 1 dropdown submenu open at a time (/ponytail)
             return new OrigMenu(el, config, ps);
         };
         window.Menu.prototype = OrigMenu.prototype;
         Object.assign(window.Menu, OrigMenu);
-        window.Menu.prototype._closeOther = function() {};
     }
  </script>
 
@@ -28,6 +27,79 @@
  <script src="{{ asset('assets/external/js/cropper.min.js') }}"></script>
 
  <script>
+    // Global SweetAlert2 Anti-Slop System & Brand Theme Colors
+    window.GlobalSwal = {
+        toast: function(icon, message, title) {
+            Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3500,
+                timerProgressBar: true,
+                didOpen: function(toast) {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            }).fire({
+                icon: icon || 'success',
+                title: title ? (title + ': ' + message) : message
+            });
+        },
+        success: function(message, title) {
+            var p = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+            Swal.fire({
+                icon: 'success',
+                title: title || 'Berhasil!',
+                text: message,
+                confirmButtonColor: p,
+                confirmButtonText: 'Selesai',
+                timer: 3500,
+                timerProgressBar: true
+            });
+        },
+        error: function(message, title) {
+            var p = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+            Swal.fire({
+                icon: 'error',
+                title: title || 'Gagal Memproses Data',
+                html: message,
+                confirmButtonColor: p,
+                confirmButtonText: 'Tutup'
+            });
+        },
+        warning: function(message, title) {
+            var p = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+            Swal.fire({
+                icon: 'warning',
+                title: title || 'Peringatan',
+                text: message,
+                confirmButtonColor: p,
+                confirmButtonText: 'Mengerti'
+            });
+        }
+    };
+
+    // Universal Toastr Bridge (Routes any legacy toastr calls into SweetAlert2)
+    window.toastr = {
+        options: {},
+        success: function(msg, title) {
+            var text = (typeof msg === 'object') ? JSON.stringify(msg) : String(msg || '');
+            window.GlobalSwal.toast('success', text, title);
+        },
+        error: function(msg, title) {
+            var text = (typeof msg === 'object') ? JSON.stringify(msg) : String(msg || '');
+            window.GlobalSwal.error(text, title);
+        },
+        warning: function(msg, title) {
+            var text = (typeof msg === 'object') ? JSON.stringify(msg) : String(msg || '');
+            window.GlobalSwal.toast('warning', text, title);
+        },
+        info: function(msg, title) {
+            var text = (typeof msg === 'object') ? JSON.stringify(msg) : String(msg || '');
+            window.GlobalSwal.toast('info', text, title);
+        }
+    };
+
     // Lightweight Inlined Popover Initializer (Zero extra HTTP request)
     document.addEventListener('DOMContentLoaded', function() {
         // Instant flash notification from previous AJAX submission
@@ -37,10 +109,8 @@
                 sessionStorage.removeItem('flash_success');
                 if (_flash.indexOf('Password sementara:') !== -1 && typeof showTempPasswordPopup === 'function') {
                     showTempPasswordPopup(_flash);
-                } else if (typeof toastr !== 'undefined') {
-                    toastr.options.progressBar = true;
-                    toastr.options.timeOut = 3000;
-                    toastr.success(_flash, 'Berhasil');
+                } else if (typeof Swal !== 'undefined') {
+                    window.GlobalSwal.success(_flash);
                 }
             }
         } catch(e) {}
@@ -63,13 +133,18 @@
 
  <script>
        // Ensure jQuery.fn.flatpickr is universally defined for all Blade scripts and plugins
-    if (typeof window.flatpickr !== 'undefined' && window.jQuery && !window.jQuery.fn.flatpickr) {
+    if (typeof window.flatpickr !== 'undefined' && window.jQuery) {
         window.jQuery.fn.flatpickr = function(config) {
             return this.each(function() {
                 if (this._flatpickr) {
                     try { this._flatpickr.destroy(); } catch(e) {}
                 }
                 var finalConfig = config || {};
+                finalConfig.allowInput = false;
+                finalConfig.clickOpens = true;
+                this.readOnly = true;
+                this.style.cursor = 'pointer';
+                this.style.backgroundColor = '#ffffff';
                 var group = this.closest('.input-group');
                 if (group && !finalConfig.ignoredFocusElements) {
                     finalConfig.ignoredFocusElements = [group];
@@ -112,19 +187,23 @@
         if (input.tagName !== 'INPUT') return null;
         if (input.closest && input.closest('.flatpickr-calendar')) return null;
 
-        // If already initialized, return existing instance directly (never duplicate)
+        // Force readonly & pointer cursor on all date & time pickers (no manual typing)
+        input.readOnly = true;
+        input.style.cursor = 'pointer';
+        input.style.backgroundColor = '#ffffff';
+
+        // Self-healing check: if instance exists, ensure its calendar container is still alive in DOM
         if (input._flatpickr) {
-            return input._flatpickr;
+            if (input._flatpickr.calendarContainer && document.body.contains(input._flatpickr.calendarContainer)) {
+                return input._flatpickr;
+            }
+            try { input._flatpickr.destroy(); } catch(e) {}
+            delete input._flatpickr;
         }
 
         var isTime = input.classList.contains('flatpickr-time') || 
                      input.getAttribute('datepicker') === 'flatpickr-time' || 
                      input.getAttribute('datepicker') === 'time';
-
-        if (isTime) {
-            input.readOnly = true;
-            input.style.cursor = 'pointer';
-        }
 
         var config = isTime ? {
             enableTime: true,
@@ -132,7 +211,7 @@
             dateFormat: 'H:i',
             time_24hr: true,
             allowInput: false,
-            clickOpens: false, // controlled explicitly on click
+            clickOpens: true,
             minuteIncrement: 5,
             static: false,
             position: positionFixedFlatpickr,
@@ -171,7 +250,8 @@
         } : {
             dateFormat: 'Y-m-d',
             monthSelectorType: 'static',
-            allowInput: true,
+            allowInput: false, // Disallow keyboard typing
+            clickOpens: true,  // Native reliable click-to-open
             static: false,
             onChange: function(selectedDates, dateStr, instance) {
                 if (instance && instance.input) {
@@ -224,10 +304,11 @@
             this.classList.add('flatpickr-time');
         });
 
-        // Ensure time inputs are readonly and non-typeable
-        ctx.find('input.flatpickr-time, input[datepicker="flatpickr-time"], input[datepicker="time"]').each(function() {
+        // Ensure all date and time inputs are strictly readonly and non-typeable
+        ctx.find('input.flatpickr-time, input[datepicker="flatpickr-time"], input[datepicker="time"], input.flatpickr-date, input[datepicker="flatpickr-date"]').each(function() {
             this.readOnly = true;
             this.style.cursor = 'pointer';
+            this.style.backgroundColor = '#ffffff';
         });
 
         // Strictly target INPUT elements to prevent matching flatpickr's own div.flatpickr-time container
@@ -240,22 +321,14 @@
         });
     }
 
-    // Toggle on click of input or calendar/clock icon
-    $(document).on('click', '.input-group', function(e) {
-        if (e.target.closest && e.target.closest('.flatpickr-calendar')) return;
-        var input = this.querySelector('input.flatpickr-time, input[datepicker="flatpickr-time"], input[datepicker="time"], input.flatpickr-date, input[datepicker="flatpickr-date"]');
+    // Toggle on click of calendar or clock icon
+    $(document).on('click', '.input-group-text', function(e) {
+        var group = this.closest('.input-group');
+        if (!group) return;
+        var input = group.querySelector('input.flatpickr-time, input[datepicker="flatpickr-time"], input[datepicker="time"], input.flatpickr-date, input[datepicker="flatpickr-date"]');
         if (!input) return;
         var fp = ensureFlatpickrInstance(input);
-        if (!fp) return;
-
-        var isTime = input.classList.contains('flatpickr-time') || 
-                     input.getAttribute('datepicker') === 'flatpickr-time' || 
-                     input.getAttribute('datepicker') === 'time';
-
-        var isIcon = !!e.target.closest('.input-group-text');
-        var isInput = e.target === input;
-
-        if (isTime && (isIcon || isInput)) {
+        if (fp) {
             e.preventDefault();
             e.stopPropagation();
             if (fp.isOpen) {
@@ -263,12 +336,23 @@
             } else {
                 fp.open();
             }
-        } else if (!isTime && isIcon) {
+        }
+    });
+
+    // Ensure clicking directly on the input opens the picker seamlessly
+    $(document).on('click', 'input.flatpickr-date, input.flatpickr-time, input[datepicker="flatpickr-date"], input[datepicker="flatpickr-time"], input[datepicker="time"]', function(e) {
+        var fp = ensureFlatpickrInstance(this);
+        if (fp && !fp.isOpen) {
+            fp.open();
+        }
+    });
+
+    // Block keyboard typing on date and time inputs globally
+    $(document).on('keydown', 'input.flatpickr-date, input.flatpickr-time, input[datepicker="flatpickr-date"], input[datepicker="flatpickr-time"], input[datepicker="time"]', function(e) {
+        if (e.key !== 'Tab' && e.key !== 'Escape') {
             e.preventDefault();
-            e.stopPropagation();
-            if (fp.isOpen) {
-                fp.close();
-            } else {
+            var fp = ensureFlatpickrInstance(this);
+            if (fp && !fp.isOpen) {
                 fp.open();
             }
         }
@@ -297,7 +381,7 @@
             initGlobalFlatpickr();
         });
 
-        // Clean modal flatpickr instances when modal closes
+        // Clean modal-specific flatpickr instances when a modal closes WITHOUT removing page calendars
         $(document).on('hidden.bs.modal', '.modal', function() {
             $(this).find('input').each(function() {
                 if (this._flatpickr) {
@@ -308,7 +392,8 @@
                     delete this._flatpickr;
                 }
             });
-            $('.flatpickr-calendar').remove();
+            // Re-verify page-level pickers so they remain 100% active and responsive
+            initGlobalFlatpickr(document);
         });
 
         // Re-init flatpickr when modal is shown
@@ -329,31 +414,76 @@
  </script>
  <!-- Main JS -->
  <script>
+     /**
+      * Global Destructive Action Handler — 3 Risk Levels
+      *
+      * Usage via data-* attributes on .delete-confirm buttons:
+      *   Level 1 (default): class="delete-confirm"
+      *   Level 2 (type HAPUS): class="delete-confirm" data-level="2" data-label="Dataset Wajah"
+      *   Level 3 (type custom): class="delete-confirm" data-level="3" data-label="User" data-keyword="user@email"
+      */
      $(document).on('click', '.delete-confirm', function(event) {
-         var form = $(this).closest("form");
-         var name = $(this).data("name");
          event.preventDefault();
+         var form = $(this).closest("form");
+         var btn = $(this);
+         var level = parseInt(btn.data("level")) || 1;
+         var label = btn.data("label") || "Data Terpilih";
+         var keyword = btn.data("keyword") || "HAPUS";
+
+         if (level === 1) {
+             Swal.fire({
+                 title: "Hapus " + label + "?",
+                 text: "Data yang dihapus tidak dapat dikembalikan.",
+                 icon: "warning",
+                 showCancelButton: true,
+                 confirmButtonColor: "#DC2626",
+                 cancelButtonColor: "#64748B",
+                 confirmButtonText: "Ya, Hapus",
+                 cancelButtonText: "Batal",
+                 reverseButtons: true
+             }).then(function(result) {
+                 if (result.isConfirmed) {
+                     btn.prop('disabled', true);
+                     form.submit();
+                 }
+             });
+             return;
+         }
+
          Swal.fire({
-             title: "Hapus Data Terpilih?",
-             text: "Data yang sudah dihapus tidak dapat dikembalikan lagi. Lanjutkan penghapusan?",
+             title: "Hapus " + label + "?",
+             html: '<p style="margin-bottom:12px;color:#64748b;font-size:14px;">Ketik <b style="color:#DC2626;">' + keyword + '</b> untuk konfirmasi penghapusan.</p>' +
+                   '<input id="swal-confirm-input" class="swal2-input" placeholder="Ketik di sini..." autocomplete="off" style="margin:0;font-size:14px;">',
              icon: "warning",
              showCancelButton: true,
              confirmButtonColor: "#DC2626",
              cancelButtonColor: "#64748B",
-             confirmButtonText: "Ya, Hapus Data",
+             confirmButtonText: "Hapus Permanen",
              cancelButtonText: "Batal",
-             reverseButtons: true
-         }).then((result) => {
+             reverseButtons: true,
+             preConfirm: function() {
+                 var val = document.getElementById('swal-confirm-input').value.trim();
+                 if (val !== keyword) {
+                     Swal.showValidationMessage('Ketik "<b>' + keyword + '</b>" untuk konfirmasi.');
+                     return false;
+                 }
+                 return true;
+             },
+             didOpen: function() {
+                 var input = document.getElementById('swal-confirm-input');
+                 if (input) input.focus();
+             }
+         }).then(function(result) {
              if (result.isConfirmed) {
+                 btn.prop('disabled', true);
                  form.submit();
              }
          });
      });
 
      $(document).on('click', '.cancel-confirm', function(event) {
-         var form = $(this).closest("form");
-         var name = $(this).data("name");
          event.preventDefault();
+         var form = $(this).closest("form");
          Swal.fire({
              title: "Batalkan Persetujuan?",
              text: "Status persetujuan data ini akan dibatalkan dan dikembalikan ke status sebelumnya.",
@@ -364,8 +494,7 @@
              confirmButtonText: "Ya, Batalkan",
              cancelButtonText: "Kembali",
              reverseButtons: true
-         }).then((result) => {
-             /* Read more about isConfirmed, isDenied below */
+         }).then(function(result) {
              if (result.isConfirmed) {
                  form.submit();
              }
@@ -430,10 +559,20 @@
                     new Menu(menuEl, {
                         orientation: 'vertical',
                         closeChildren: false,
-                        accordion: false
+                        accordion: true
                     });
                 } catch(err) {
                     console.warn('Sidebar Menu initialization fallback:', err);
+                }
+            }
+            var inner = menuEl.querySelector('.menu-inner');
+            if (inner) {
+                var savedPos = sessionStorage.getItem('sidebar_scroll_pos');
+                if (savedPos !== null) {
+                    inner.scrollTop = parseInt(savedPos, 10);
+                    if (window.Helpers && window.Helpers.menuPsScroll) {
+                        try { window.Helpers.menuPsScroll.update(); } catch(e) {}
+                    }
                 }
             }
         }
@@ -444,40 +583,15 @@
             ensureMenuInitialized();
         }
 
-        // Direct fallback: if menuInstance is ever missing or detached, handle toggle smoothly
+        // Direct fallback: if menuInstance is ever missing or detached, handle toggle smoothly with accordion
         $(document).on('click', '#layout-menu .menu-item > .menu-link.menu-toggle', function(e) {
             var menuEl = document.getElementById('layout-menu');
             if (!menuEl || !menuEl.menuInstance) {
                 e.preventDefault();
                 var $item = $(this).closest('.menu-item');
-                $item.toggleClass('open');
-            }
-        });
-
-        // Smoothly ensure bottom menu items and logout are fully visible when expanded
-        $(document).on('click', '#layout-menu .menu-item > .menu-link.menu-toggle', function() {
-            var $item = $(this).closest('.menu-item');
-            var menuInner = document.querySelector('#layout-menu .menu-inner');
-            if (!menuInner) return;
-
-            var willOpen = !$item.hasClass('open');
-            if (willOpen) {
-                setTimeout(function() {
-                    try {
-                        var innerRect = menuInner.getBoundingClientRect();
-                        var subMenu = $item.find('.menu-sub')[0];
-                        var targetEl = subMenu || $item[0];
-                        var targetRect = targetEl.getBoundingClientRect();
-
-                        if (targetRect.bottom > innerRect.bottom) {
-                            var overflow = Math.round(targetRect.bottom - innerRect.bottom) + 36;
-                            menuInner.scrollTop += overflow;
-                            if (window.Helpers && window.Helpers.menuPsScroll) {
-                                try { window.Helpers.menuPsScroll.update(); } catch(e) {}
-                            }
-                        }
-                    } catch(err) {}
-                }, 280);
+                var wasOpen = $item.hasClass('open');
+                $item.siblings('.menu-item.open').removeClass('open');
+                $item.toggleClass('open', !wasOpen);
             }
         });
 
@@ -504,10 +618,12 @@
         });
     })();
 
-    // Global double-submit guard for all standard forms
+    // Global double-submit guard for all standard forms (POST, PUT, DELETE)
     $(document).on('submit', 'form:not(.no-double-submit)', function(e) {
         var $form = $(this);
         if ($form.closest('.modal').length) return; // Modal forms handled by modal AJAX handler
+        var method = ($form.attr('method') || 'GET').toUpperCase();
+        if (method === 'GET') return; // GET search/filter queries must never be locked
         if ($form.data('submitting')) {
             e.preventDefault();
             return false;
@@ -540,7 +656,7 @@
                       '<i class="ti ti-copy" style="font-size: 16px;"></i> <span id="btnCopyTempPwGlobalText">Salin Password</span>' +
                       '</button>' +
                       '</div>',
-                confirmButtonColor: '#1E4D3E',
+                confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
                 confirmButtonText: 'Selesai',
                 didOpen: function() {
                     var copyBtn = document.getElementById('btnCopyTempPwGlobal');
@@ -584,8 +700,8 @@
             return;
         }
 
-        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '{{ $general_setting->theme_color_1 ?? "#1E4D3E" }}';
-        var themeSecondary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '{{ $general_setting->theme_color_2 ?? "#32745E" }}';
+        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '{{ $general_setting->theme_color_1 ?? "#3C2A21" }}';
+        var themeSecondary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '{{ $general_setting->theme_color_2 ?? "#634832" }}';
 
         Swal.fire({
             title: 'Menyiapkan File Excel...',
@@ -639,7 +755,7 @@
                 title: 'Export Excel Berhasil!',
                 html: '<div class="text-start fs-6 mt-2">' +
                       '  <p class="text-muted mb-2" style="font-size: 13.5px;">File Excel berhasil diunduh dan tersimpan di folder unduhan perangkat Anda:</p>' +
-                      '  <div class="p-2.5 rounded export-file-badge text-center font-mono fw-bold mb-1" style="font-size: 13px; background-color: rgba(30, 77, 62, 0.05); border: 1px dashed ' + themeSecondary + '; color: ' + themePrimary + ';">' +
+                      '  <div class="p-2.5 rounded export-file-badge text-center font-mono fw-bold mb-1" style="font-size: 13px; background-color: rgba(60, 42, 33, 0.05); border: 1px dashed ' + themeSecondary + '; color: ' + themePrimary + ';">' +
                       '    <i class="ti ti-file-spreadsheet me-1.5" style="color: ' + themeSecondary + '; font-size: 17px;"></i> ' + res.filename +
                       '  </div>' +
                       '</div>',
@@ -658,6 +774,104 @@
             });
         });
     });
+
+    /**
+     * Global Form & Action Confirmation Handler (antislop-ui Compliant)
+     * Handles .form-confirm, .btn-confirm-action, and [data-confirm]
+     */
+    $(document).on('submit', 'form.form-confirm', function(event) {
+        var form = $(this);
+        if (form.data('swal-approved') === true) {
+            form.removeData('swal-approved');
+            return true;
+        }
+        event.preventDefault();
+        var message = form.data('message') || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+        var title = form.data('title') || 'Konfirmasi Tindakan';
+        var isDanger = form.hasClass('form-danger') || /hapus|delete|tolak|batal/i.test(message);
+        var p = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+
+        Swal.fire({
+            title: title,
+            text: message,
+            icon: isDanger ? "warning" : "question",
+            showCancelButton: true,
+            confirmButtonColor: isDanger ? "#DC2626" : p,
+            cancelButtonColor: "#64748B",
+            confirmButtonText: form.data('confirm-text') || (isDanger ? "Ya, Lanjutkan" : "Ya, Konfirmasi"),
+            cancelButtonText: "Batal",
+            reverseButtons: true
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                form.data('swal-approved', true);
+                form.submit();
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-confirm-action, [data-confirm]', function(event) {
+        event.preventDefault();
+        var btn = $(this);
+        var form = btn.closest('form');
+        var message = btn.data('confirm') || btn.data('message') || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+        var title = btn.data('title') || 'Konfirmasi Tindakan';
+        var isDanger = btn.data('destructive') || btn.hasClass('btn-danger') || btn.hasClass('text-danger') || /hapus|delete|tolak|batal/i.test(message);
+        var p = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+
+        Swal.fire({
+            title: title,
+            text: message,
+            icon: isDanger ? "warning" : "question",
+            showCancelButton: true,
+            confirmButtonColor: isDanger ? "#DC2626" : p,
+            cancelButtonColor: "#64748B",
+            confirmButtonText: btn.data('confirm-text') || (isDanger ? "Ya, Lanjutkan" : "Ya, Konfirmasi"),
+            cancelButtonText: "Batal",
+            reverseButtons: true
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                if (btn.is('a') && btn.attr('href') && btn.attr('href') !== '#') {
+                    window.location.href = btn.attr('href');
+                } else if (form.length) {
+                    form.submit();
+                }
+            }
+        });
+    });
+
+    /**
+     * Universal Native Confirm Auto-Interceptor (antislop-ui Compliant)
+     * Sweeps and neutralizes any legacy inline onsubmit="return confirm(...)"
+     * and onclick="return confirm(...)" in any rendered view or dynamic DOM.
+     */
+    function sanitizeNativeConfirms() {
+        document.querySelectorAll('form[onsubmit*="confirm("]').forEach(function(form) {
+            var rawOnsubmit = form.getAttribute('onsubmit');
+            var match = rawOnsubmit ? rawOnsubmit.match(/confirm\s*\(\s*(['"`])(.*?)\1\s*\)/) : null;
+            if (match && match[2]) {
+                var confirmText = match[2];
+                form.removeAttribute('onsubmit');
+                form.setAttribute('data-message', confirmText);
+                form.classList.add('form-confirm');
+            }
+        });
+
+        document.querySelectorAll('button[onclick*="confirm("], a[onclick*="confirm("], input[type="submit"][onclick*="confirm("]').forEach(function(el) {
+            var rawOnclick = el.getAttribute('onclick');
+            var match = rawOnclick ? rawOnclick.match(/confirm\s*\(\s*(['"`])(.*?)\1\s*\)/) : null;
+            if (match && match[2]) {
+                var confirmText = match[2];
+                el.removeAttribute('onclick');
+                el.setAttribute('data-message', confirmText);
+                el.classList.add('btn-confirm-action');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', sanitizeNativeConfirms);
+    if (window.MutationObserver) {
+        new MutationObserver(function() { sanitizeNativeConfirms(); }).observe(document.body, { childList: true, subtree: true });
+    }
 </script>
 
 @if ($message = Session::get('success'))
@@ -665,16 +879,20 @@
         (function() {
             var fullMsg = @json($message);
             if (fullMsg && fullMsg.indexOf('Password sementara:') !== -1) {
-                if (showTempPasswordPopup(fullMsg)) {
+                if (typeof showTempPasswordPopup === 'function' && showTempPasswordPopup(fullMsg)) {
                     return;
                 }
             }
-            if (typeof toastr !== 'undefined') {
-                toastr.options.showEasing = 'swing';
-                toastr.options.hideEasing = 'linear';
-                toastr.options.progressBar = true;
-                toastr.success("Berhasil", fullMsg, {
-                    timeOut: 3000
+            if (typeof Swal !== 'undefined') {
+                var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: fullMsg,
+                    confirmButtonColor: themePrimary,
+                    confirmButtonText: 'Selesai',
+                    timer: 3500,
+                    timerProgressBar: true
                 });
             }
         })();
@@ -683,42 +901,48 @@
 
 @if ($message = Session::get('error'))
     <script>
-        toastr.options.showEasing = 'swing';
-        toastr.options.hideEasing = 'linear';
-        toastr.options.progressBar = true;
-        toastr.error("Gagal", "{{ $message }}", {
-            timeOut: 3000
-        });
+        if (typeof Swal !== 'undefined') {
+            var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Memproses Permintaan',
+                text: @json($message),
+                confirmButtonColor: themePrimary,
+                confirmButtonText: 'Tutup'
+            });
+        }
     </script>
 @endif
 
 @if ($message = Session::get('warning'))
     <script>
-        toastr.options.showEasing = 'swing';
-        toastr.options.hideEasing = 'linear';
-        toastr.options.progressBar = true;
-        toastr.warning("Warning", "{{ $message }}", {
-            timeOut: 3000
-        });
+        if (typeof Swal !== 'undefined') {
+            var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+            Swal.fire({
+                icon: 'warning',
+                title: 'Perhatian',
+                text: @json($message),
+                confirmButtonColor: themePrimary,
+                confirmButtonText: 'Mengerti'
+            });
+        }
     </script>
 @endif
 
 @if (isset($errors) && $errors->any())
-    @php
-        $err = '';
-    @endphp
-    @foreach ($errors->all() as $error)
-        @php
-            $err .= $error . ' ';
-        @endphp
-    @endforeach
     <script>
-        toastr.options.showEasing = 'swing';
-        toastr.options.hideEasing = 'linear';
-        toastr.options.progressBar = true;
-        toastr.error(" Gagal", "{{ addslashes(trim($err)) }}", {
-            timeOut: 3000
-        });
+        if (typeof Swal !== 'undefined') {
+            var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+            Swal.fire({
+                icon: 'error',
+                title: 'Terdapat Kesalahan Input',
+                html: '<div class="text-start small text-muted"><ul class="mb-0 ps-3">' +
+                    @json($errors->all()).map(function(e) { return '<li>' + e + '</li>'; }).join('') +
+                    '</ul></div>',
+                confirmButtonColor: themePrimary,
+                confirmButtonText: 'Perbaiki'
+            });
+        }
     </script>
 @endif
 
@@ -785,7 +1009,7 @@
                           missing.slice(0, 6).map(function(m) { return '<li><strong>' + m + '</strong></li>'; }).join('') +
                           (missing.length > 6 ? '<li>...dan kolom lainnya</li>' : '') +
                           '</ul></div>',
-                    confirmButtonColor: '#1E4D3E',
+                    confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
                     confirmButtonText: 'Lengkapi Sekarang'
                 });
                 return false;
@@ -841,7 +1065,7 @@
                         icon: 'error',
                         title: 'Gagal Menyimpan',
                         html: errorMsg,
-                        confirmButtonColor: '#1E4D3E'
+                        confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21')
                     });
                 }
             });
@@ -866,7 +1090,7 @@
 
     window.getModalSkeletonHtml = function() {
         return '<div class="d-flex flex-column align-items-center justify-content-center py-5">' +
-            '<div class="spinner-border mb-3" role="status" style="width: 2.2rem; height: 2.2rem; color: #1E4D3E;">' +
+            '<div class="spinner-border mb-3" role="status" style="width: 2.2rem; height: 2.2rem; color: #3C2A21;">' +
             '<span class="visually-hidden">Loading...</span>' +
             '</div>' +
             '<span class="text-muted fw-semibold" style="font-size: 13px;">Memuat formulir...</span>' +
@@ -993,24 +1217,7 @@
                     try { if (!el._popover) el._popover = new bootstrap.Popover(el); } catch(e) {}
                 });
             }
-    // Global Table Search: Prevent Enter key from submitting/triggering search since live filtering is automatic
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            var target = e.target;
-            if (!target || target.tagName !== 'INPUT') return;
-
-            var isTableSearch = target.type === 'search' ||
-                target.closest('.admin-filter-toolbar, form[id*="filter" i], .table-search, .admin-table-search') ||
-                (target.name && /nama|search|cari/i.test(target.name)) ||
-                (target.placeholder && /search|cari/i.test(target.placeholder));
-
-            if (isTableSearch) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }
         }
-    }, true);
     };
 </script>
 

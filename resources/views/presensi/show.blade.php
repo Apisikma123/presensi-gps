@@ -96,7 +96,7 @@
                     @endphp
 
                     @if ($photoExists && !$isArchived)
-                        <img src="{{ url('/storage/uploads/absensi/' . $foto) }}" class="attendance-img" alt="Foto Presensi">
+                        <img src="{{ route('file.absensi', $foto) }}" class="attendance-img" alt="Foto Presensi">
                     @elseif (!empty($foto) && $isArchived)
                         <div class="py-5 bg-light rounded d-flex flex-column align-items-center justify-content-center border">
                             <i class="ti ti-archive text-warning fs-1 mb-2"></i>
@@ -228,8 +228,16 @@
         attribution: '© OpenStreetMap'
     }).addTo({{ $map_id }});
 
-    // Marker karyawan (biru default)
-    var marker = L.marker([latitude_user, longitude_user]).addTo({{ $map_id }});
+    // Marker karyawan (biru)
+    var userIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+    var marker = L.marker([latitude_user, longitude_user], { icon: userIcon }).addTo({{ $map_id }});
     marker.bindPopup("<b>Lokasi Karyawan</b>").openPopup();
 
     // Marker kantor (merah)
@@ -257,10 +265,10 @@
         [latitude_user, longitude_user],
         [latitude_kantor, longitude_kantor]
     ], {
-        color: '#3b82f6',
+        color: '#634832',
         weight: 2,
         dashArray: '8, 8',
-        opacity: 0.7
+        opacity: 0.8
     }).addTo({{ $map_id }});
 
     setTimeout(function() {

@@ -1,8 +1,9 @@
 @php
     $companyName = $general_setting->nama_perusahaan ?? $general_setting->nama_aplikasi ?? config('app.name', 'E-Presensi');
     $companyLogo = $app_logo_url ?? asset('assets/login/images/logoweb-1.png');
-    $primaryColor = $general_setting->theme_color_1 ?? '#1E4D3E';
-    $secondaryColor = $general_setting->theme_color_2 ?? '#32745E';
+    $themeData = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $themeData['primary'] ?? '#3C2A21';
+    $secondaryColor = $themeData['secondary'] ?? '#634832';
 @endphp
 
 <!-- Global Server-Wait Action Loading Overlay (Full Pure White, Zero Card, High Performance) -->

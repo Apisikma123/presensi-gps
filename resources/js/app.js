@@ -1,6 +1,5 @@
 import './bootstrap';
 import './navigator';
-import './table-live-search';
 
 import Alpine from 'alpinejs';
 

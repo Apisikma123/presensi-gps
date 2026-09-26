@@ -88,13 +88,12 @@ class GeneralsettingController extends Controller
                 'jml_hari_izin_max' => $request->jml_hari_izin_max,
                 'batas_presensi_lintashari' => $request->batas_presensi_lintashari,
                 'timezone' => $request->timezone,
-                'theme_color_1' => $request->theme_color_1,
-                'theme_color_2' => $request->theme_color_2,
-                'mobile_theme_scheme' => $request->mobile_theme_scheme,
                 'session_time' => $request->session_time,
                 'sistem_hari_kerja' => $request->sistem_hari_kerja,
                 'monthly_leave_quota' => $request->filled('monthly_leave_quota') ? (int)$request->monthly_leave_quota : 0,
                 'global_jamkerja_aktif' => $request->has('global_jamkerja_aktif') ? 1 : 0,
+                'theme_color_1' => $request->filled('theme_color_1') ? $request->theme_color_1 : ($setting->theme_color_1 ?? '#3C2A21'),
+                'theme_color_2' => $request->filled('theme_color_2') ? $request->theme_color_2 : ($setting->theme_color_2 ?? '#634832'),
             ];
 
             if (auth()->user()->hasRole('master admin')) {
@@ -139,6 +138,8 @@ class GeneralsettingController extends Controller
             $oldSessionTime = $setting->session_time;
             $setting->update($data);
             \Illuminate\Support\Facades\Cache::forget('global_app_logo_relative_path');
+            \Illuminate\Support\Facades\Cache::forget('pengaturan_umum_first');
+            \App\Services\ThemeResolver::forgetCache();
 
             // Update jadwal kerja global per hari
             if ($request->has('global_jamkerja')) {

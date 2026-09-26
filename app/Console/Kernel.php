@@ -12,6 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // P2-2: Lightweight Scheduler Heartbeat (timestamp recorded in cache on every cron run)
+        $schedule->call(function () {
+            \Illuminate\Support\Facades\Cache::forever('scheduler_last_heartbeat', now()->timestamp);
+        })->name('scheduler-heartbeat')->everyMinute();
+
         // Jalankan worker queue untuk memproses job antrian sesuai interval cron shared hosting
         $schedule->command('queue:work --queue=default --sleep=3 --tries=3 --stop-when-empty')
             ->everyThirtyMinutes()

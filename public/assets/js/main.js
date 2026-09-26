@@ -35,7 +35,7 @@ if (document.getElementById('layout-menu')) {
         menu = new Menu(element, {
             orientation: isHorizontalLayout ? 'horizontal' : 'vertical',
             closeChildren: false,
-            accordion: false, // CRITICAL: NEVER auto-collapse other menus when toggling any menu
+            accordion: true, // Accordion: only 1 dropdown submenu open at a time (/ponytail)
             // ? This option only works with Horizontal menu
             showDropdownOnHover: localStorage.getItem('templateCustomizer-' + templateName + '--ShowDropdownOnHover') // If value(showDropdownOnHover) is set in local storage
                 ? localStorage.getItem('templateCustomizer-' + templateName + '--ShowDropdownOnHover') === 'true' // Use the local storage value
@@ -49,76 +49,19 @@ if (document.getElementById('layout-menu')) {
         window.Helpers._scrollToActive = function () {};
         window.Helpers.mainMenu = menu;
 
-        // Route-aware sidebar scroll restoration
+        // Strictly preserve sidebar scroll position across navigation & refresh (/ponytail)
         const menuInner = element.querySelector('.menu-inner');
         if (menuInner) {
-            const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
-            const lastPath = sessionStorage.getItem('sidebar_last_path');
-            const isSamePage = (lastPath === currentPath);
             const savedPos = sessionStorage.getItem('sidebar_scroll_pos');
-
-            if (isSamePage && savedPos !== null) {
-                // Same route navigation (e.g. search, pagination, filter) -> exact pixel restore
+            if (savedPos !== null) {
                 menuInner.scrollTop = parseInt(savedPos, 10);
-            } else {
-                // Different route navigation: ensure active menu item is comfortably visible
-                const activeItem = menuInner.querySelector('.menu-item.active');
-                if (activeItem) {
-                    const isNearTop = activeItem.offsetTop < 240;
-                    if (isNearTop) {
-                        menuInner.scrollTop = 0;
-                    } else {
-                        const targetScroll = Math.max(0, activeItem.offsetTop - Math.round(menuInner.clientHeight / 3));
-                        menuInner.scrollTop = targetScroll;
-                    }
-                } else {
-                    menuInner.scrollTop = 0;
+                if (window.Helpers && window.Helpers.menuPsScroll) {
+                    try { window.Helpers.menuPsScroll.update(); } catch(e) {}
                 }
             }
-
-            sessionStorage.setItem('sidebar_last_path', currentPath);
-            sessionStorage.setItem('sidebar_scroll_pos', menuInner.scrollTop);
-
-            if (window.Helpers.menuPsScroll) {
-                try { window.Helpers.menuPsScroll.update(); } catch (e) {}
-            }
-
-            menuInner.addEventListener('scroll', function () {
+            menuInner.addEventListener('scroll', function() {
                 sessionStorage.setItem('sidebar_scroll_pos', menuInner.scrollTop);
-                sessionStorage.setItem('sidebar_last_path', window.location.pathname.replace(/\/$/, '') || '/');
             }, { passive: true });
-        }
-    });
-
-    // Smoothly reveal submenus when clicked at the bottom of the sidebar
-    document.addEventListener('click', function(e) {
-        const toggle = e.target.closest ? e.target.closest('#layout-menu .menu-item > .menu-link.menu-toggle') : null;
-        if (!toggle) return;
-        const item = toggle.closest('.menu-item');
-        const menuInner = document.querySelector('#layout-menu .menu-inner');
-        if (!item || !menuInner) return;
-
-        const willOpen = !item.classList.contains('open');
-        if (willOpen) {
-            setTimeout(function() {
-                try {
-                    const innerRect = menuInner.getBoundingClientRect();
-                    const subMenu = item.querySelector('.menu-sub');
-                    const targetEl = subMenu || item;
-                    const targetRect = targetEl.getBoundingClientRect();
-
-                    if (targetRect.bottom > innerRect.bottom) {
-                        const overflow = targetRect.bottom - innerRect.bottom + 24;
-                        menuInner.scrollBy({
-                            top: overflow,
-                            behavior: 'smooth'
-                        });
-                        if (window.Helpers && window.Helpers.menuPsScroll) {
-                            try { window.Helpers.menuPsScroll.update(); } catch(e) {}
-                        }
-                    }
-                } catch(err) {}
-            }, 260);
         }
     });
 

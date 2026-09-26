@@ -294,8 +294,8 @@
                 const radius = radiusInput ? parseInt(radiusInput.value) || 30 : 30;
                 if (radius > 0) {
                     circle = L.circle([lat, lng], {
-                        color: '#1E4D3E',
-                        fillColor: '#1E4D3E',
+                        color: '#3C2A21',
+                        fillColor: '#3C2A21',
                         fillOpacity: 0.15,
                         radius: radius
                     }).addTo(map);
@@ -334,8 +334,8 @@
                             map.removeLayer(circle);
                         }
                         circle = L.circle([position.lat, position.lng], {
-                            color: '#1E4D3E',
-                            fillColor: '#1E4D3E',
+                            color: '#3C2A21',
+                            fillColor: '#3C2A21',
                             fillOpacity: 0.15,
                             radius: radius
                         }).addTo(map);

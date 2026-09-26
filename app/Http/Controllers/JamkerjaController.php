@@ -372,11 +372,23 @@ class JamkerjaController extends Controller
     public function destroy($kode_jam_kerja)
     {
         $kode_jam_kerja = Crypt::decrypt($kode_jam_kerja);
+        // P2-3: Friendly dependency checks before destructive action
+        $hasKaryawan = \App\Models\Karyawan::where('kode_jam_kerja', $kode_jam_kerja)->exists();
+        $hasRoster = \App\Models\Setjamkerjabyday::where('kode_jam_kerja', $kode_jam_kerja)->exists()
+            || \App\Models\Setjamkerjabydate::where('kode_jam_kerja', $kode_jam_kerja)->exists();
+        $hasPresensi = \App\Models\Presensi::where('kode_jam_kerja', $kode_jam_kerja)->exists();
+
+        if ($hasKaryawan || $hasRoster || $hasPresensi) {
+            return Redirect::back()->with(messageError('Shift jam kerja tidak dapat dihapus karena masih digunakan oleh data karyawan atau jadwal roster.'));
+        }
+
         try {
             Jamkerja::where('kode_jam_kerja', $kode_jam_kerja)->delete();
-            return Redirect::back()->with(messageSuccess('Data Berhasil Dihapus'));
+            return Redirect::back()->with(messageSuccess('Data Jam Kerja Berhasil Dihapus'));
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Redirect::back()->with(messageError('Shift jam kerja tidak dapat dihapus karena masih terkait dengan data lain di sistem.'));
         } catch (\Exception $e) {
-            return Redirect::back()->with(messageError($e->getMessage()));
+            return Redirect::back()->with(messageError('Gagal menghapus jam kerja: ' . $e->getMessage()));
         }
     }
 }

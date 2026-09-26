@@ -2,68 +2,18 @@
 <html lang="en">
 
 @php
-    $scheme = $general_setting->mobile_theme_scheme ?? 'green';
-    $theme1 = $general_setting->theme_color_1 ?? '#32745e';
-    $theme2 = $general_setting->theme_color_2 ?? '#58907D';
-    $colors = [
-        'green' => [
-            'bg_body' => '#dff9fb',
-            'bg_nav' => '#ffffff',
-            'color_nav' => $theme1,
-            'color_nav_active' => $theme2,
-            'bg_indicator' => $theme1,
-            'color_nav_hover' => $theme2,
-        ],
-        'blue' => [
-            'bg_body' => '#e3f2fd',
-            'bg_nav' => '#ffffff',
-            'color_nav' => '#0d47a1',
-            'color_nav_active' => '#1976d2',
-            'bg_indicator' => '#0d47a1',
-            'color_nav_hover' => '#2196f3',
-        ],
-        'red' => [
-            'bg_body' => '#ffebee',
-            'bg_nav' => '#ffffff',
-            'color_nav' => '#b71c1c',
-            'color_nav_active' => '#d32f2f',
-            'bg_indicator' => '#b71c1c',
-            'color_nav_hover' => '#ef5350',
-        ],
-        'purple' => [
-            'bg_body' => '#f3e5f5',
-            'bg_nav' => '#ffffff',
-            'color_nav' => '#4a148c',
-            'color_nav_active' => '#7b1fa2',
-            'bg_indicator' => '#4a148c',
-            'color_nav_hover' => '#ab47bc',
-        ],
-        'orange' => [
-            'bg_body' => '#fff3e0',
-            'bg_nav' => '#ffffff',
-            'color_nav' => '#e65100',
-            'color_nav_active' => '#f57c00',
-            'bg_indicator' => '#e65100',
-            'color_nav_hover' => '#ff9800',
-        ],
-        'rose' => [
-            'bg_body' => '#fff5f7',
-            'bg_nav' => '#ffffff',
-            'color_nav' => '#ce8291',
-            'color_nav_active' => '#ef95a6',
-            'bg_indicator' => '#ce8291',
-            'color_nav_hover' => '#ef95a6',
-        ],
-        'dark' => [
-            'bg_body' => '#121212',
-            'bg_nav' => '#1e1e1e',
-            'color_nav' => '#e0e0e0', // Light text
-            'color_nav_active' => '#bb86fc', // Purple accent
-            'bg_indicator' => '#bb86fc',
-            'color_nav_hover' => '#cf6679',
-        ],
+    $themeObj = \App\Services\ThemeResolver::resolve();
+    $theme1 = $themeObj['primary'];
+    $theme2 = $themeObj['secondary'];
+    $c = [
+        'bg_body' => $themeObj['canvas'],
+        'bg_nav' => '#FFFFFF',
+        'color_nav' => $theme1,
+        'color_nav_active' => $theme2,
+        'bg_indicator' => $theme1,
+        'color_nav_hover' => $theme2,
+        'color_contrast' => $themeObj['primary_contrast'],
     ];
-    $c = $colors[$scheme] ?? $colors['green'];
 
     if (!function_exists('hexToRgb')) {
         function hexToRgb($hex)
@@ -106,8 +56,7 @@
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
 
     <link rel="manifest" href="{{ asset('manifest.json') }}?v={{ file_exists(public_path('manifest.json')) ? filemtime(public_path('manifest.json')) : time() }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ file_exists(public_path('assets/css/theme-custom.css')) ? filemtime(public_path('assets/css/theme-custom.css')) : time() }}" />
 
 
     <style>
@@ -241,15 +190,14 @@
         /* SweetAlert2 Unified Cohesive Theme */
         .swal2-container {
             z-index: 99999 !important;
-            backdrop-filter: blur(4px) !important;
-            -webkit-backdrop-filter: blur(4px) !important;
+            background-color: rgba(15, 23, 42, 0.45) !important;
         }
 
         .swal2-popup {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif !important;
-            border-radius: 20px !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            border-radius: 16px !important;
             padding: 24px 20px !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+            box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.15) !important;
             background: #ffffff !important;
             border: 1px solid rgba(0, 0, 0, 0.05) !important;
         }
@@ -273,19 +221,22 @@
         }
 
         .swal2-confirm {
-            background-color: #32745e !important;
-            border-color: #32745e !important;
-            border-radius: 12px !important;
+            background-color: var(--theme-color-1, #3C2A21) !important;
+            border-color: var(--theme-color-1, #3C2A21) !important;
+            color: var(--theme-primary-contrast, #FFFFFF) !important;
+            border-radius: 10px !important;
             font-weight: 600 !important;
             font-size: 14px !important;
             padding: 10px 24px !important;
-            box-shadow: 0 4px 14px rgba(50, 116, 94, 0.35) !important;
-            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 2px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08) !important;
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
         }
 
         .swal2-confirm:hover, .swal2-confirm:focus {
-            background-color: #265a49 !important;
-            border-color: #265a49 !important;
+            background-color: var(--color-primary-hover, var(--theme-color-2, #634832)) !important;
+            border-color: var(--color-primary-hover, var(--theme-color-2, #634832)) !important;
+            color: var(--theme-primary-contrast, #FFFFFF) !important;
+            box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.35) !important;
             transform: translateY(-1px) !important;
         }
 
@@ -317,16 +268,16 @@
         }
 
         .swal2-icon.swal2-success {
-            border-color: #32745e !important;
-            color: #32745e !important;
+            border-color: var(--theme-color-accent, #4A6741) !important;
+            color: var(--theme-color-accent, #4A6741) !important;
         }
 
         .swal2-icon.swal2-success [class^='swal2-success-line'] {
-            background-color: #32745e !important;
+            background-color: var(--theme-color-accent, #4A6741) !important;
         }
 
         .swal2-icon.swal2-success .swal2-success-ring {
-            border-color: rgba(50, 116, 94, 0.3) !important;
+            border-color: rgba(74, 103, 65, 0.3) !important;
         }
     </style>
     {{-- <style>

@@ -1,10 +1,13 @@
 @extends('layouts.app')
 @section('titlepage', 'Atur Karyawan Libur')
 
-@section('content')
 @section('navigasi')
-    <span>Atur Karyawan Libur</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('harilibur.index') }}">Hari Libur</a></li>
+    <li class="breadcrumb-item active">Atur Karyawan Libur</li>
 @endsection
+
+@section('content')
 
 <!-- Page Header -->
 <div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
@@ -31,14 +34,14 @@
     <!-- Left Column: Holiday Metadata Card -->
     <div class="col-xl-4 col-lg-5 col-md-12">
         <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
-            <div class="card-header py-3 px-3.5 border-bottom d-flex align-items-center gap-2" style="background: rgba(30, 77, 62, 0.03);">
+            <div class="card-header py-3 px-3.5 border-bottom d-flex align-items-center gap-2" style="background: rgba(60, 42, 33, 0.03);">
                 <i class="ti ti-calendar-event fs-5 text-primary"></i>
                 <h6 class="mb-0 fw-bold text-dark" style="font-size: 13.5px;">Informasi Hari Libur</h6>
             </div>
             <div class="card-body p-3.5">
-                <div class="mb-3 p-2.5 rounded-2 d-flex align-items-center gap-3" style="background: rgba(30, 77, 62, 0.06); border: 1px solid rgba(30, 77, 62, 0.12);">
+                <div class="mb-3 p-2.5 rounded-2 d-flex align-items-center gap-3" style="background: rgba(60, 42, 33, 0.06); border: 1px solid rgba(60, 42, 33, 0.12);">
                     <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                        style="width: 42px; height: 42px; background: #1E4D3E; color: #FFFFFF;">
+                        style="width: 42px; height: 42px; background: #3C2A21; color: #FFFFFF;">
                         <i class="ti ti-calendar-off fs-4"></i>
                     </div>
                     <div>
@@ -61,7 +64,7 @@
                                 <td class="text-muted py-2 ps-0" style="font-size: 12.5px;">Outlet / Cabang</td>
                                 <td class="text-end py-2 pe-0">
                                     @if ($harilibur->kode_cabang === 'ALL')
-                                        <span class="badge font-mono" style="background: rgba(30, 77, 62, 0.1); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.2); font-size: 11px;">
+                                        <span class="badge font-mono" style="background: rgba(60, 42, 33, 0.1); color: #3C2A21; border: 1px solid rgba(60, 42, 33, 0.2); font-size: 11px;">
                                             SEMUA CABANG
                                         </span>
                                     @else
@@ -167,7 +170,7 @@
                 text: "Karyawan ini akan dilepas dari hari libur (diwajibkan masuk/absen).",
                 icon: "question",
                 showCancelButton: true,
-                confirmButtonColor: "#1E4D3E",
+                confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
                 cancelButtonColor: "#64748B",
                 confirmButtonText: "Ya, Batalkan Libur",
                 cancelButtonText: "Kembali"

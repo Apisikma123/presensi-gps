@@ -21,6 +21,8 @@ class Presensi extends Model
         'lokasi_in',
         'lokasi_out',
         'status',
+        'is_terlambat',
+        'menit_terlambat',
         'kode_jam_kerja',
         'keterangan',
         'is_dispensasi',

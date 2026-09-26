@@ -13,15 +13,40 @@
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
 
-    {{-- Template CSS --}}
+    {{-- Template CSS & Theme --}}
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/css/toastr.min.css') }}" />
-    <script src="{{ asset('assets/vendor/libs/toastr/toastr.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ file_exists(public_path('assets/css/theme-custom.css')) ? filemtime(public_path('assets/css/theme-custom.css')) : time() }}" />
+    <script src="{{ asset('assets/external/js/sweetalert2@11.js') }}"></script>
 
     {{-- Tailwind & App CSS --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        :root {
+            --color-primary: {{ $t['primary'] ?? '#3C2A21' }};
+            --color-primary-hover: {{ $theme['primary_hover'] ?? '#2A1D17' }};
+            --color-primary-soft: {{ $theme['primary_soft'] ?? 'rgba(60, 42, 33, 0.08)' }};
+            --color-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
+            --color-primary-rgb: {{ $theme['primary_rgb'] ?? '60, 42, 33' }};
+            --theme-color-1: {{ $t['primary'] ?? '#3C2A21' }};
+            --theme-color-2: {{ $t['primary_light'] ?? $theme['secondary'] ?? '#634832' }};
+            --theme-color-accent: {{ $theme['accent'] ?? '#4A6741' }};
+            --theme-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
+            --bs-primary: var(--theme-color-1);
+            --bs-primary-rgb: {{ $theme['primary_rgb'] ?? '60, 42, 33' }};
+            --theme-color-2-rgb: {{ $theme['secondary_rgb'] ?? '99, 72, 50' }};
+        }
+        .swal2-confirm:not(.btn-danger):not(.bg-danger) {
+            background-color: var(--theme-color-1) !important;
+            border-color: var(--theme-color-1) !important;
+            color: var(--theme-primary-contrast, #FFFFFF) !important;
+        }
+        .swal2-confirm:not(.btn-danger):not(.bg-danger):hover,
+        .swal2-confirm:not(.btn-danger):not(.bg-danger):focus {
+            background-color: var(--color-primary-hover, var(--theme-color-2)) !important;
+            border-color: var(--color-primary-hover, var(--theme-color-2)) !important;
+            color: var(--theme-primary-contrast, #FFFFFF) !important;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         a, a:visited {
             color: inherit;
@@ -41,7 +66,7 @@
         }
         @media (min-width: 481px) {
             body {
-                background-color: #f1f5f3 !important;
+                background-color: #FAF9F8 !important;
             }
         }
         #appCapsule {
@@ -54,11 +79,11 @@
             position: relative;
         }
         .hero-bg {
-            background-color: {{ $t['primary'] ?? '#2d5a4c' }};
-            border-bottom-left-radius: 32px;
-            border-bottom-right-radius: 32px;
+            background-color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});
+            border-bottom-left-radius: 22px;
+            border-bottom-right-radius: 22px;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
             color: #ffffff !important;
         }
         .hero-bg h1,
@@ -74,25 +99,23 @@
             color: #ffffff !important;
         }
         .glass-icon, .glass-icon:visited {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.14);
             border-radius: 12px;
             width: 44px;
             height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             color: #ffffff !important;
         }
         .glass-icon ion-icon {
             color: #ffffff !important;
         }
-        .glass-icon:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.2); }
+        .glass-icon:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.22); }
         #jam {
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            letter-spacing: -0.02em;
         }
         .fade-in {
             animation: fadeIn 0.4s ease-out forwards;
@@ -106,7 +129,7 @@
         /* Mobile Header Consistency */
         header, .appHeader-modern {
             padding-top: env(safe-area-inset-top) !important;
-            background: {{ $t['primary'] ?? '#1E4D3E' }} !important;
+            background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}) !important;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -165,8 +188,8 @@
         .alert-cream  { background-color: #fff3cd; border: 1px solid #ffeeba; }
         .alert-danger  { background-color: #f8d7da; border: 1px solid #f5c6cb; }
         .alert-info    { background-color: #e3f2fd; border: 1px solid #b8daff; }
-        .dot { height: 6px; width: 6px; background: {{ ($t['primary'] ?? '#2d5a4c') }}33; border-radius: 50%; display: inline-block; margin: 0 4px; transition: all .3s; }
-        .dot.active { width: 18px; border-radius: 10px; background: {{ $t['primary'] ?? '#2d5a4c' }}; }
+        .dot { height: 6px; width: 6px; background: rgba(var(--color-primary-rgb, 60, 42, 33), 0.2); border-radius: 50%; display: inline-block; margin: 0 4px; transition: all .3s; }
+        .dot.active { width: 18px; border-radius: 10px; background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}); }
 
         /* Slide carousel */
         .carousel-wrapper { width: 100%; overflow: hidden; position: relative; border-radius: 15px; }
@@ -194,7 +217,7 @@
             padding: 14px !important;
         }
         .card:hover, .presensi-card:hover {
-            border-color: rgba(30, 77, 62, 0.35) !important;
+            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.35) !important;
         }
         .press { transition: transform 0.15s ease; }
         .press:active { transform: scale(0.97); }
@@ -240,11 +263,11 @@
            DASHBOARD SPACING & CARD RHYTHM (DESIGN.md Anti-Slop)
            ========================================================= */
         .dashboard-hero-bg {
-            background-color: {{ $t['primary'] ?? '#1E4D3E' }};
-            border-bottom-left-radius: 32px;
-            border-bottom-right-radius: 32px;
+            background-color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});
+            border-bottom-left-radius: 22px;
+            border-bottom-right-radius: 22px;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
             color: #ffffff !important;
             padding-bottom: 50px !important;
         }
@@ -288,7 +311,7 @@
             transition: all 0.15s ease !important;
         }
         .attendance-card:hover {
-            border-color: rgba(30, 77, 62, 0.3) !important;
+            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.3) !important;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
         }
         .attendance-card-icon {
@@ -378,7 +401,7 @@
         }
         .rekap-metric-card:hover {
             background: #ffffff;
-            border-color: rgba(30, 77, 62, 0.2);
+            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.2);
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
         }
         .rekap-metric-val {
@@ -419,7 +442,7 @@
             text-decoration: none !important;
         }
         .dashboard-menu-card:hover {
-            border-color: rgba(30, 77, 62, 0.25);
+            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.25);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
         }
@@ -441,7 +464,7 @@
         .dashboard-menu-card ion-icon {
             font-size: 32px;
             margin: 0 auto 5px auto;
-            color: #1E4D3E;
+            color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});
         }
         .dashboard-menu-card span {
             font-family: 'Inter', sans-serif;
@@ -462,12 +485,17 @@
                 <a href="{{ route('shortcut.index') }}" class="glass-icon relative" title="Menu Cepat">
                     <ion-icon name="grid-outline" style="font-size:22px;"></ion-icon>
                 </a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="glass-icon" title="Keluar">
-                        <ion-icon name="exit-outline" style="font-size:22px;"></ion-icon>
-                    </a>
-                </form>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="openHelpDrawer('panduan_karyawan')" class="glass-icon" title="Pusat Bantuan">
+                        <ion-icon name="help-circle-outline" style="font-size:22px;"></ion-icon>
+                    </button>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="glass-icon" title="Keluar">
+                            <ion-icon name="exit-outline" style="font-size:22px;"></ion-icon>
+                        </a>
+                    </form>
+                </div>
             </div>
 
             {{-- User Row (Spacious & Cleanly Aligned) --}}
@@ -498,7 +526,7 @@
             <div class="text-center mt-2 mb-2 pb-0 fade-in relative z-10" style="animation-delay:.15s">
                 <h2 id="jam" style="font-family: 'JetBrains Mono', monospace; font-size: 38px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 10px; color: #ffffff !important; font-variant-numeric: tabular-nums;">0:00:00</h2>
                 <div style="display: inline-flex; align-items: center; justify-content: center;">
-                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 9999px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 9999px; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);">
                         <ion-icon name="calendar-outline" style="font-size: 13px; opacity: 0.9; color: #ffffff;"></ion-icon>
                         <span style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: #ffffff !important; letter-spacing: 0.15px;">
                             {{ getNamaHari(date('D')) }}, {{ DateToIndo(date('Y-m-d')) }}
@@ -513,14 +541,15 @@
             </div>
         </div>
 
+        @if(module_enabled('attendance'))
         {{-- ===== SHIFT / SCHEDULE CARD (STANDALONE) ===== --}}
         <div class="px-4 dashboard-card-hero-overlap fade-in" style="animation-delay:.15s">
             <div class="dashboard-surface-card p-3.5 flex items-center justify-between gap-3">
                 @if (!empty($hari_libur_hari_ini))
                     {{-- Operational Holiday Header --}}
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: #ECFDF5; border: 1px solid #A7F3D0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <ion-icon name="calendar-outline" style="font-size: 20px; color: #047857;"></ion-icon>
+                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: #F0FDF4; border: 1px solid #BBF7D0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <ion-icon name="calendar-outline" style="font-size: 20px; color: #15803D;"></ion-icon>
                         </div>
                         <div class="min-w-0">
                             <span class="block text-[10px] font-bold uppercase tracking-wider text-emerald-800 font-sans leading-none">Hari Libur / OFF</span>
@@ -534,7 +563,7 @@
                 @else
                     {{-- Normal Shift Header (P1-3: Shift + Cabang Tugas) --}}
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: {{ $t['primary'] ?? '#1E4D3E' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;">
+                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: {{ $t['primary'] ?? '#3C2A21' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;">
                             <ion-icon name="time-outline" style="font-size: 20px; color: #ffffff;"></ion-icon>
                         </div>
                         <div class="min-w-0">
@@ -559,11 +588,11 @@
 
         {{-- ===== ATTENDANCE CLOCK IN / OUT CARDS (STANDALONE 2-CARD BENTO GRID) ===== --}}
         <div class="px-4 dashboard-section-gap attendance-grid-wrap fade-in" style="animation-delay:.18s">
-            {{-- Jam Masuk Card --}}
-            <div class="dashboard-surface-card attendance-card">
+            {{-- Jam Masuk Card (Interactive Action Surface) --}}
+            <a href="{{ route('presensi.create') }}" class="dashboard-surface-card attendance-card cursor-pointer active:scale-[0.98] transition-all text-decoration-none" title="Klik untuk Presensi Masuk">
                 <div class="attendance-card-icon attendance-card-icon-in">
-                    @if (!empty($presensi->foto_in) && Storage::disk('public')->exists('/uploads/absensi/' . $presensi->foto_in))
-                        <img src="{{ url('/storage/uploads/absensi/' . $presensi->foto_in) }}" alt="Foto Masuk">
+                    @if (!empty($presensi->foto_in))
+                        <img src="{{ route('file.absensi', $presensi->foto_in) }}" alt="Foto Masuk">
                     @else
                         <ion-icon name="log-in-outline"></ion-icon>
                     @endif
@@ -579,13 +608,13 @@
                         @endif
                     </div>
                 </div>
-            </div>
+            </a>
 
-            {{-- Jam Pulang Card --}}
-            <div class="dashboard-surface-card attendance-card">
+            {{-- Jam Pulang Card (Interactive Action Surface) --}}
+            <a href="{{ route('presensi.create') }}" class="dashboard-surface-card attendance-card cursor-pointer active:scale-[0.98] transition-all text-decoration-none" title="Klik untuk Presensi Pulang">
                 <div class="attendance-card-icon attendance-card-icon-out">
-                    @if (!empty($presensi->foto_out) && Storage::disk('public')->exists('/uploads/absensi/' . $presensi->foto_out))
-                        <img src="{{ url('/storage/uploads/absensi/' . $presensi->foto_out) }}" alt="Foto Pulang">
+                    @if (!empty($presensi->foto_out))
+                        <img src="{{ route('file.absensi', $presensi->foto_out) }}" alt="Foto Pulang">
                     @else
                         <ion-icon name="log-out-outline"></ion-icon>
                     @endif
@@ -601,7 +630,7 @@
                         @endif
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         {{-- ===== REKAP PRESENSI BULAN INI ===== --}}
@@ -620,13 +649,14 @@
                 </div>
 
                 {{-- DESIGN.md Tactile Bento Metric Cells (100% Centered & Responsive) --}}
-                <div class="grid grid-cols-4 gap-2">
+                <div class="grid {{ module_enabled('leave') ? 'grid-cols-4' : 'grid-cols-2' }} gap-2">
                     {{-- Hadir --}}
                     <div class="rekap-metric-card">
                         <span class="rekap-metric-val text-emerald-700">{{ $rekappresensi->hadir ?? 0 }}</span>
                         <span class="rekap-metric-lbl">Hadir</span>
                     </div>
 
+                    @if(module_enabled('leave'))
                     {{-- Sakit --}}
                     <div class="rekap-metric-card">
                         <span class="rekap-metric-val text-amber-600">{{ $rekappresensi->sakit ?? 0 }}</span>
@@ -644,42 +674,183 @@
                         <span class="rekap-metric-val text-rose-600">{{ $rekappresensi->cuti ?? 0 }}</span>
                         <span class="rekap-metric-lbl">Cuti</span>
                     </div>
+                    @else
+                    {{-- Terlambat / Alpha jika Leave OFF --}}
+                    <div class="rekap-metric-card">
+                        <span class="rekap-metric-val text-amber-600">{{ $rekappresensi->terlambat ?? 0 }}</span>
+                        <span class="rekap-metric-lbl">Terlambat</span>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
+        @else
+        {{-- ===== HR OVERVIEW CARD (When Attendance Module is Disabled) ===== --}}
+        <div class="px-4 dashboard-card-hero-overlap fade-in" style="animation-delay:.15s">
+            <div class="dashboard-surface-card p-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}); display: flex; align-items: center; justify-content: center; color: var(--theme-primary-contrast, #fff);">
+                            <ion-icon name="briefcase-outline" style="font-size: 22px; color: var(--theme-primary-contrast, #fff);"></ion-icon>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Portal Karyawan</span>
+                            <span class="block text-[14px] font-bold text-slate-800" style="font-family: 'Outfit', sans-serif;">{{ $company_setting->company_name ?? ($general_setting->nama_perusahaan ?? 'Universal HR') }}</span>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Aktif
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5 mt-3 text-xs">
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase">Departemen</span>
+                        <span class="block font-bold text-slate-700 mt-0.5 truncate">{{ $karyawan->nama_dept ?? 'Divisi Umum' }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase">Cabang / Penempatan</span>
+                        <span class="block font-bold text-slate-700 mt-0.5 truncate">{{ $karyawan->nama_cabang ?? 'Kantor Pusat' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
 
         @php
-            $quickMenus = [
-                [
+            $quickMenus = [];
+
+            // 1. Wajah / Face Enrollment (Only when Face Recognition module is enabled & active)
+            if (module_enabled('face_recognition') && ($general_setting->face_recognition ?? 0) == 1 && Route::has('facerecognition.karyawan.create')) {
+                $quickMenus[] = [
                     'href' => route('facerecognition.karyawan.create'),
                     'img' => 'assets/template/img/3d/scanwajah.png',
                     'icon' => 'scan-outline',
+                    'color' => '#6366F1',
                     'title' => 'Wajah',
                     'id' => 'btnDaftarkanWajah',
-                ],
-                [
+                ];
+            }
+
+            // 2. Izin & Cuti
+            if (module_enabled('leave') && Route::has('pengajuanizin.index')) {
+                $quickMenus[] = [
                     'href' => route('pengajuanizin.index'),
                     'img' => 'assets/template/img/3d/activity.png',
                     'icon' => 'calendar-outline',
+                    'color' => '#10B981',
                     'title' => 'Izin/Cuti',
                     'id' => null,
-                ],
-                [
-                    'href' => route('dispensasi.index'),
-                    'img' => 'assets/template/img/3d/clock.png',
+                ];
+            }
+
+            // 3. Lembur / Overtime
+            if (module_enabled('overtime') && Route::has('overtime.index')) {
+                $quickMenus[] = [
+                    'href' => route('overtime.index'),
+                    'img' => null,
                     'icon' => 'time-outline',
-                    'title' => 'Dispensasi',
+                    'color' => '#F59E0B',
+                    'title' => 'Lembur',
                     'id' => null,
-                ],
-                [
-                    'href' => route('presensi.histori'),
-                    'img' => 'assets/template/img/3d/maps.png',
-                    'icon' => 'finger-print-outline',
-                    'title' => 'Riwayat',
+                ];
+            }
+
+            // 4. Slip Gaji / Payslip
+            if (module_enabled('payroll') && Route::has('payslip.my_payslips')) {
+                $quickMenus[] = [
+                    'href' => route('payslip.my_payslips'),
+                    'img' => null,
+                    'icon' => 'cash-outline',
+                    'color' => '#059669',
+                    'title' => 'Slip Gaji',
                     'id' => null,
-                ],
-            ];
+                ];
+            }
+
+            // 5. Reimbursement
+            if (module_enabled('reimbursement') && Route::has('reimbursement.index')) {
+                $quickMenus[] = [
+                    'href' => route('reimbursement.index'),
+                    'img' => null,
+                    'icon' => 'receipt-outline',
+                    'color' => '#2563EB',
+                    'title' => 'Klaim',
+                    'id' => null,
+                ];
+            }
+
+            // 6. Pinjaman / Loans
+            if (module_enabled('loans') && Route::has('loan.index')) {
+                $quickMenus[] = [
+                    'href' => route('loan.index'),
+                    'img' => null,
+                    'icon' => 'wallet-outline',
+                    'color' => '#7C3AED',
+                    'title' => 'Pinjaman',
+                    'id' => null,
+                ];
+            }
+
+            // 7. Core Attendance Items
+            if (module_enabled('attendance')) {
+                if (Route::has('dispensasi.index')) {
+                    $quickMenus[] = [
+                        'href' => route('dispensasi.index'),
+                        'img' => 'assets/template/img/3d/clock.png',
+                        'icon' => 'hourglass-outline',
+                        'color' => '#D97706',
+                        'title' => 'Dispensasi',
+                        'id' => null,
+                    ];
+                }
+                if (Route::has('presensi.histori')) {
+                    $quickMenus[] = [
+                        'href' => route('presensi.histori'),
+                        'img' => 'assets/template/img/3d/maps.png',
+                        'icon' => 'finger-print-outline',
+                        'color' => '#3B82F6',
+                        'title' => 'Riwayat',
+                        'id' => null,
+                    ];
+                }
+            }
+
+            // 8. Peraturan Perusahaan (Policy)
+            if (module_enabled('policy') && Route::has('policy.index')) {
+                $quickMenus[] = [
+                    'href' => route('policy.index'),
+                    'img' => null,
+                    'icon' => 'shield-checkmark-outline',
+                    'color' => '#0D9488',
+                    'title' => 'Peraturan',
+                    'id' => null,
+                ];
+            }
+
+            // 9. Pengumuman Internal (Announcement)
+            if (module_enabled('announcements') && Route::has('announcement.index')) {
+                $quickMenus[] = [
+                    'href' => route('announcement.index'),
+                    'img' => null,
+                    'icon' => 'megaphone-outline',
+                    'color' => '#0284C7',
+                    'title' => 'Pengumuman',
+                    'id' => null,
+                ];
+            }
+
+            // 10. Brankas Dokumen (Document)
+            if (module_enabled('documents') && Route::has('document.index')) {
+                $quickMenus[] = [
+                    'href' => route('document.index'),
+                    'img' => null,
+                    'icon' => 'folder-outline',
+                    'color' => '#475569',
+                    'title' => 'Dokumen',
+                    'id' => null,
+                ];
+            }
         @endphp
         {{-- ===== MENU GRID ===== --}}
         <div class="px-4 dashboard-menu-gap fade-in" style="animation-delay:.25s">
@@ -689,7 +860,9 @@
                         @if (!empty($menu['img']))
                             <img src="{{ asset($menu['img']) }}" alt="{{ $menu['title'] }}">
                         @else
-                            <ion-icon name="{{ $menu['icon'] }}"></ion-icon>
+                            <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 3px auto;">
+                                <ion-icon name="{{ $menu['icon'] }}" style="font-size: 24px; color: {{ $menu['color'] ?? '#64748B' }};"></ion-icon>
+                            </div>
                         @endif
                         <span>{{ $menu['title'] }}</span>
                     </a>
@@ -697,6 +870,7 @@
             </div>
         </div>
 
+        @if(module_enabled('attendance'))
         {{-- ===== HISTORY LIST ===== --}}
         <div class="px-3 dashboard-history-gap">
             <div class="flex items-center justify-between mb-3 px-1">
@@ -722,8 +896,12 @@
                         $is_dispensasi = !empty($d->is_dispensasi);
                         $is_late = false;
                         if ($d->status == 'h' && !$is_dispensasi && !empty($d->jam_in)) {
-                            $batas = !empty($d->batas_toleransi) ? $d->batas_toleransi : '07:05:00';
-                            $is_late = date('H:i:s', strtotime($d->jam_in)) > date('H:i:s', strtotime($batas));
+                            if (isset($d->is_terlambat)) {
+                                $is_late = (bool) $d->is_terlambat;
+                            } else {
+                                $batas = !empty($d->batas_toleransi) ? $d->batas_toleransi : (!empty($d->jam_masuk) ? $d->jam_masuk : '08:00:00');
+                                $is_late = date('H:i:s', strtotime($d->jam_in)) > date('H:i:s', strtotime($batas));
+                            }
                         }
                     @endphp
 
@@ -731,8 +909,8 @@
                          data-tanggal="{{ DateToIndo($d->tanggal) }}"
                          data-jam-in="{{ $d->jam_in != null ? date('H:i', strtotime($d->jam_in)) : '-' }}"
                          data-jam-out="{{ $d->jam_out != null ? date('H:i', strtotime($d->jam_out)) : '-' }}"
-                         data-foto-in="{{ !empty($d->foto_in) ? url('/storage/uploads/absensi/' . $d->foto_in) : '' }}"
-                         data-foto-out="{{ !empty($d->foto_out) ? url('/storage/uploads/absensi/' . $d->foto_out) : '' }}"
+                         data-foto-in="{{ !empty($d->foto_in) ? route('file.absensi', $d->foto_in) : '' }}"
+                         data-foto-out="{{ !empty($d->foto_out) ? route('file.absensi', $d->foto_out) : '' }}"
                          data-status="{{ $d->status }}"
                          data-jam-kerja="{{ $d->nama_jam_kerja }}"
                          data-keterangan="{{ $d->status == 'h' ? ($is_dispensasi ? 'Dispensasi' : ($is_late ? 'Telat' : 'Hadir')) : ($d->status == 'i' ? 'Izin: ' . $d->keterangan_izin : ($d->status == 's' ? 'Sakit: ' . $d->keterangan_izin_sakit : ($d->status == 'c' ? 'Cuti: ' . $d->keterangan_izin_cuti : 'Alpha'))) }}"
@@ -850,6 +1028,10 @@
             {{-- Extra spacer so the last card is never hidden behind bottom nav --}}
             <div style="height: calc(100px + env(safe-area-inset-bottom, 0px)); width: 100%;"></div>
         </div>
+        @else
+            {{-- Spacer when attendance history is not displayed --}}
+            <div style="height: calc(80px + env(safe-area-inset-bottom, 0px)); width: 100%;"></div>
+        @endif
 
         </div>
     </div>
@@ -859,7 +1041,7 @@
         @if (isset($is_birthday) && $is_birthday)
             <div id="birthdayModal" class="fixed inset-0 z-[1000] flex items-center justify-center p-4" style="display:none;">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-                <div class="relative rounded-[30px] w-full max-w-[340px] overflow-hidden shadow-2xl animate-bounce-in" style="background:{{ $t['primary'] ?? '#2d5a4c' }};">
+                <div class="relative rounded-[30px] w-full max-w-[340px] overflow-hidden shadow-2xl animate-bounce-in" style="background:{{ $t['primary'] ?? '#3C2A21' }};">
                     <div id="confetti-container" class="absolute inset-0 pointer-events-none"></div>
                     <div class="p-8 text-center relative z-10">
                         <button onclick="hideBirthday()" class="absolute top-4 right-4 text-white/50 hover:text-white">
@@ -930,7 +1112,7 @@
 
                         <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 hidden">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-[#1E4D3E] flex items-center justify-center text-white shrink-0">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0" style="background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});">
                                     <ion-icon name="finger-print" style="font-size:20px;"></ion-icon>
                                 </div>
                                 <div>
@@ -1059,14 +1241,14 @@
 
             // Status Badge
             const statusMap = {
-                'h': { text: 'Hadir', color: 'bg-emerald-500' },
-                'i': { text: 'Izin', color: 'bg-blue-500' },
-                's': { text: 'Sakit', color: 'bg-rose-500' },
-                'c': { text: 'Cuti', color: 'bg-orange-500' },
-                'a': { text: 'Alpha', color: 'bg-slate-500' }
+                'h': { text: 'Hadir', color: 'bg-[#4A6741]' },
+                'i': { text: 'Izin', color: 'bg-[#0284C7]' },
+                's': { text: 'Sakit', color: 'bg-[#BA1A1A]' },
+                'c': { text: 'Cuti', color: 'bg-[#B45309]' },
+                'a': { text: 'Alpha', color: 'bg-[#755841]' }
             };
             
-            const status = statusMap[data.status] || { text: 'Alpha', color: 'bg-slate-500' };
+            const status = statusMap[data.status] || { text: 'Alpha', color: 'bg-[#755841]' };
             $("#modalStatus").text(status.text).removeClass().addClass('px-3 py-1 rounded-full text-xs font-bold text-white ' + status.color);
 
             // Photo In
@@ -1096,35 +1278,98 @@
     </script>
 
     <script>
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "timeOut": "3000"
+        // Universal GlobalSwal Helper for Employee Dashboard (antislop-ui Compliant)
+        window.GlobalSwal = {
+            toast: function(icon, message, title) {
+                Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: function(toast) {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                }).fire({
+                    icon: icon || 'success',
+                    title: title ? (title + ': ' + message) : message
+                });
+            },
+            success: function(message, title) {
+                Swal.fire({
+                    icon: 'success',
+                    title: title || 'Berhasil!',
+                    text: message,
+                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonText: 'Selesai',
+                    timer: 2500,
+                    timerProgressBar: true
+                });
+            },
+            error: function(message, title) {
+                Swal.fire({
+                    icon: 'error',
+                    title: title || 'Gagal',
+                    html: message,
+                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonText: 'Tutup'
+                });
+            },
+            warning: function(message, title) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: title || 'Peringatan',
+                    text: message,
+                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonText: 'Mengerti'
+                });
+            }
+        };
+
+        // Universal Toastr Bridge
+        window.toastr = {
+            options: {},
+            success: function(msg, title) { window.GlobalSwal.toast('success', msg, title); },
+            error: function(msg, title) { window.GlobalSwal.error(msg, title); },
+            warning: function(msg, title) { window.GlobalSwal.toast('warning', msg, title); },
+            info: function(msg, title) { window.GlobalSwal.toast('info', msg, title); }
         };
     </script>
 
     @if ($message = Session::get('success'))
-        <script>toastr.success("{{ $message }}");</script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.GlobalSwal.success(@json($message));
+            });
+        </script>
     @endif
 
     @if ($message = Session::get('error'))
-        <script>toastr.error("{{ $message }}");</script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.GlobalSwal.error(@json($message));
+            });
+        </script>
     @endif
 
     @if ($message = Session::get('warning'))
-        <script>toastr.warning("{{ $message }}");</script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.GlobalSwal.warning(@json($message));
+            });
+        </script>
     @endif
 
     @if (isset($errors) && $errors->any())
         <script>
-            @foreach ($errors->all() as $error)
-                toastr.error("{{ addslashes($error) }}");
-            @endforeach
+            document.addEventListener('DOMContentLoaded', function() {
+                window.GlobalSwal.warning(@json(implode("\n", $errors->all())), 'Periksa Formulir');
+            });
         </script>
     @endif
 
-    @if (($general_setting->face_recognition ?? 0) == 1)
+    @if (module_enabled('face_recognition') && ($general_setting->face_recognition ?? 0) == 1)
         <!-- Face Model Background Preloader for Instant Attendance Load -->
         <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ file_exists(public_path('assets/external/js/face-model-cache.js')) ? filemtime(public_path('assets/external/js/face-model-cache.js')) : time() }}"></script>
         <script>
@@ -1139,6 +1384,8 @@
     @endif
 
     </div>
+
+    @include('layouts.help_drawer')
 </body>
 </html>
 

@@ -8,7 +8,7 @@
             <label for="kode_cabang" class="form-label" style="font-weight: 600; font-size: 13px;">Cabang / Outlet</label>
             <select name="kode_cabang" id="kode_cabang" class="form-select select2Kodecabang">
                 <option value="">Pilih Cabang / Cakupan</option>
-                <option value="ALL" {{ $harilibur->kode_cabang == 'ALL' ? 'selected' : '' }} style="font-weight: 700; color: #1E4D3E;">
+                <option value="ALL" {{ $harilibur->kode_cabang == 'ALL' ? 'selected' : '' }} style="font-weight: 700; color: #3C2A21;">
                     SEMUA CABANG (LIBUR NASIONAL / BERSAMA)
                 </option>
                 @foreach ($cabang as $c)

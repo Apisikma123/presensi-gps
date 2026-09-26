@@ -18,4 +18,19 @@ class Departemen extends Model
     {
         return $this->belongsToMany(User::class, 'user_departemen_access', 'kode_dept', 'user_id', 'kode_dept', 'id');
     }
+
+    public function divisions()
+    {
+        return $this->hasMany(Division::class, 'kode_dept', 'kode_dept');
+    }
+
+    public function divisi()
+    {
+        return $this->hasMany(Division::class, 'kode_dept', 'kode_dept');
+    }
+
+    public function karyawan()
+    {
+        return $this->hasMany(Karyawan::class, 'kode_dept', 'kode_dept');
+    }
 }

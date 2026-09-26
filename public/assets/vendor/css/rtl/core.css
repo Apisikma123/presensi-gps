@@ -32,7 +32,7 @@
     --bs-light: #dfdfe3;
     --bs-dark: #4b4b4b;
     --bs-gray: rgba(75, 70, 92, 0.05);
-    --bs-primary-rgb: 30, 77, 62;
+    --bs-primary-rgb: 60, 42, 33;
     --bs-secondary-rgb: 168, 170, 174;
     --bs-success-rgb: 40, 199, 111;
     --bs-info-rgb: 0, 207, 232;
@@ -91,7 +91,7 @@
     --bs-tertiary-bg-rgb: 75, 70, 92;
     --bs-heading-color: #5d596c;
     --bs-link-color: #1a6bd1;
-    --bs-link-color-rgb: 30, 77, 62;
+    --bs-link-color-rgb: 60, 42, 33;
     --bs-link-decoration: none;
     --bs-link-hover-color: #1a6bd1;
     --bs-link-hover-color-rgb: 22, 58, 47;
@@ -2106,7 +2106,7 @@ progress {
     --bs-table-striped-color: var(--bs-body-color);
     --bs-table-striped-bg: #fbfbfc;
     --bs-table-active-color: var(--bs-body-color);
-    --bs-table-active-bg: rgba(30, 77, 62, 0.08);
+    --bs-table-active-bg: rgba(60, 42, 33, 0.08);
     --bs-table-hover-color: var(--bs-body-color);
     --bs-table-hover-bg: rgba(75, 70, 92, 0.04);
     width: 100%;
@@ -3274,7 +3274,7 @@ fieldset:disabled .btn {
     --bs-dropdown-box-shadow: 0 0.25rem 1rem rgba(165, 163, 174, 0.45);
     --bs-dropdown-link-color: #5d596c;
     --bs-dropdown-link-hover-color: #1a6bd1;
-    --bs-dropdown-link-hover-bg: rgba(30, 77, 62, 0.08);
+    --bs-dropdown-link-hover-bg: rgba(60, 42, 33, 0.08);
     --bs-dropdown-link-active-color: #fff;
     --bs-dropdown-link-active-bg: #1a6bd1;
     --bs-dropdown-link-disabled-color: #c9c8ce;
@@ -10133,7 +10133,7 @@ html:not([dir=rtl]) .input-group>.btn-group:last-child>.btn:not([class*=btn-outl
 }
 
 .nav-tabs.widget-nav-tabs .nav-link.active .badge {
-    background-color: rgba(30, 77, 62, 0.08) !important;
+    background-color: rgba(60, 42, 33, 0.08) !important;
     color: #1a6bd1 !important;
 }
 
@@ -26486,7 +26486,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-secondary.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #a8aaae;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-success.switch .switch-input:checked~.switch-toggle-slider {
@@ -26501,7 +26501,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-success.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #28c76f;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-info.switch .switch-input:checked~.switch-toggle-slider {
@@ -26516,7 +26516,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-info.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #00cfe8;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-warning.switch .switch-input:checked~.switch-toggle-slider {
@@ -26531,7 +26531,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-warning.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #ff9f43;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-danger.switch .switch-input:checked~.switch-toggle-slider {
@@ -26546,7 +26546,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-danger.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #ea5455;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-dark.switch .switch-input:checked~.switch-toggle-slider {
@@ -26561,7 +26561,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-dark.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #4b4b4b;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-gray.switch .switch-input:checked~.switch-toggle-slider {
@@ -26576,7 +26576,7 @@ html:not([dir=rtl]) .switches-stacked .switch {
 
 .switch-gray.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid rgba(75, 70, 92, 0.05);
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch .valid-feedback,

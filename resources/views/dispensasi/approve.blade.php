@@ -33,7 +33,7 @@
                 </tr>
                 <tr>
                     <th>Batas Toleransi</th>
-                    <td class="text-end font-mono fw-bold" style="color: #1E4D3E;">{{ $dispensasi->batas_dispensasi }}</td>
+                    <td class="text-end font-mono fw-bold" style="color: #3C2A21;">{{ $dispensasi->batas_dispensasi }}</td>
                 </tr>
                 <tr>
                     <th>Alasan</th>
@@ -56,7 +56,7 @@
     </div>
     <div class="row mt-3">
         <div class="col">
-            <button class="btn w-100 text-white fw-bold shadow-sm" name="approve" type="submit" value="approve" style="background-color: #1E4D3E; border: 1px solid #163C30; border-radius: 10px; height: 42px;">
+            <button class="btn w-100 text-white fw-bold shadow-sm" name="approve" type="submit" value="approve" style="background-color: #3C2A21; border: 1px solid #25160E; border-radius: 10px; height: 42px;">
                 <i class="ti ti-thumb-up me-1"></i> Approve
             </button>
         </div>

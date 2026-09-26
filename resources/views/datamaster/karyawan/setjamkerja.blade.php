@@ -256,23 +256,23 @@
     }
 
     .calendar-day:hover {
-        background-color: #f9fafb;
-        border-color: #3b82f6;
+        background-color: #F4F3F2;
+        border-color: #3C2A21;
     }
 
     .calendar-day.other-month {
-        background-color: #f9fafb;
+        background-color: #F4F3F2;
         color: #9ca3af;
     }
 
     .calendar-day.today {
-        background-color: #dbeafe;
-        border-color: #3b82f6;
+        background-color: #F4F3F2;
+        border-color: #3C2A21;
         font-weight: 600;
     }
 
     .calendar-day.selected {
-        background-color: #3b82f6;
+        background-color: #3C2A21;
         color: white;
     }
 
@@ -281,8 +281,8 @@
     }
 
     .calendar-day.selection-active {
-        background-color: #bfdbfe !important;
-        border-color: #3b82f6 !important;
+        background-color: #DEC1B3 !important;
+        border-color: #3C2A21 !important;
         border-width: 2px !important;
     }
 
@@ -292,13 +292,13 @@
     }
 
     .calendar-day.has-jam-kerja {
-        background-color: #f0f9ff;
-        border-color: #3b82f6;
+        background-color: #F4F3F2;
+        border-color: #3C2A21;
         border-width: 2px;
     }
 
     .calendar-day.has-jam-kerja:hover {
-        background-color: #e0f2fe;
+        background-color: #DEC1B3;
     }
 
     .day-number {
@@ -609,7 +609,9 @@
                 selectedTemplate = $(this);
 
                 // Show non-blocking instruction toast
-                if (typeof toastr !== 'undefined') {
+                if (typeof GlobalSwal !== 'undefined') {
+                    GlobalSwal.toast('info', "Klik tanggal di kalender untuk menambahkan jam kerja", "Template Dipilih");
+                } else if (typeof toastr !== 'undefined') {
                     toastr.info("Klik tanggal di kalender untuk menambahkan jam kerja", "Template Dipilih");
                 }
             });
@@ -861,7 +863,9 @@
                                     loadjamkerjabydate();
                                 }
 
-                                if (typeof toastr !== 'undefined') {
+                                if (typeof GlobalSwal !== 'undefined') {
+                                    GlobalSwal.toast('success', response.message, "Berhasil");
+                                } else if (typeof toastr !== 'undefined') {
                                     toastr.success(response.message, "Berhasil");
                                 }
                             } else {
@@ -1070,7 +1074,9 @@
                     complete: function() {
                         completed++;
                         if (completed === datesArray.length) {
-                            if (typeof toastr !== 'undefined') {
+                            if (typeof GlobalSwal !== 'undefined') {
+                                GlobalSwal.toast('success', `Jam kerja berhasil diterapkan ke ${successCount} tanggal`, 'Selesai');
+                            } else if (typeof toastr !== 'undefined') {
                                 toastr.success(`Jam kerja berhasil diterapkan ke ${successCount} tanggal`, 'Selesai');
                             }
                             selectedDates.clear();

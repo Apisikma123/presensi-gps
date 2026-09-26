@@ -1,7 +1,7 @@
 <table>
     <thead>
         <tr>
-            <th colspan="8" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #1E4D3E; text-align: center;">
+            <th colspan="8" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #3C2A21; text-align: center;">
                 {{ strtoupper($generalsetting->nama_perusahaan ?? 'PERUSAHAAN') }}
             </th>
         </tr>
@@ -34,14 +34,14 @@
         </tr>
         <tr></tr>
         <tr>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Tanggal</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hari</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Masuk</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Pulang</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Status Kehadiran</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Keterangan / Audit Presensi</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Tanggal</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hari</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Masuk</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Pulang</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Status Kehadiran</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Keterangan / Audit Presensi</th>
         </tr>
     </thead>
     <tbody>
@@ -77,7 +77,7 @@
                     if ($pres->status === 'h') {
                         $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
                         $namaShift = $jk->nama_jam_kerja ?? $namaShift;
-                        $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : '07:05:00';
+                        $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : ($jk && $jk->jam_masuk ? date('H:i:s', strtotime($jk->jam_masuk)) : '08:00:00');
                         $actualIn = date('H:i:s', strtotime($pres->jam_in));
 
                         if ($isOff) {
@@ -141,7 +141,7 @@
                     }
                 }
 
-                $bg = ($no % 2 == 0) ? '#F8FAF8' : '#FFFFFF';
+                $bg = ($no % 2 == 0) ? '#F4F3F2' : '#FFFFFF';
             @endphp
             <tr style="background-color: {{ $bg }};">
                 <td style="border: 1px solid #CBD5E1; text-align: center; vertical-align: middle;">{{ $no++ }}</td>

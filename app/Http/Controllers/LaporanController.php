@@ -192,9 +192,21 @@ class LaporanController extends Controller
         // Query Master Jam Kerja (hanya 2 shift: JK01 & JK02)
         $jamkerja_map = Jamkerja::all()->keyBy('kode_jam_kerja');
 
-        // Query Karyawan
+        // Query Karyawan (P1-2: Include active employees, employees resigned during/after period start, or having attendance in period)
         $queryKaryawan = Karyawan::with(['cabang', 'departemen', 'jabatan', 'jamkerja'])
-            ->where('status_aktif_karyawan', '1');
+            ->where(function ($q) use ($periode_dari, $periode_sampai) {
+                $q->where('status_aktif_karyawan', '1')
+                  ->orWhere(function ($sub) use ($periode_dari) {
+                      $sub->whereNotNull('tanggal_nonaktif')
+                          ->where('tanggal_nonaktif', '>=', $periode_dari);
+                  })
+                  ->orWhereExists(function ($sub) use ($periode_dari, $periode_sampai) {
+                      $sub->select(DB::raw(1))
+                          ->from('presensi')
+                          ->whereColumn('presensi.nik', 'karyawan.nik')
+                          ->whereBetween('presensi.tanggal', [$periode_dari, $periode_sampai]);
+                  });
+            });
 
         /** @var \App\Models\User $user */
         $user = auth()->user();

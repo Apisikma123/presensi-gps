@@ -29,16 +29,20 @@ class Globalprovider extends ServiceProvider
     public function boot(Guard $auth): void
     {
         try {
+            $companySetting = \App\Models\CompanySetting::getSetting();
+            View::share('company_setting', $companySetting);
+
             $settings = Pengaturanumum::getSetting();
             View::share('general_setting', $settings);
 
-            $logoPath = Cache::remember('global_app_logo_relative_path', 3600, function () use ($settings) {
-                if (!empty($settings?->logo)) {
-                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists('logo/' . $settings->logo)) {
-                        return 'storage/logo/' . $settings->logo;
+            $logoPath = Cache::remember('global_app_logo_relative_path', 3600, function () use ($settings, $companySetting) {
+                $logoFile = $companySetting?->logo ?: $settings?->logo;
+                if (!empty($logoFile)) {
+                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists('logo/' . $logoFile)) {
+                        return 'storage/logo/' . $logoFile;
                     }
-                    if (file_exists(public_path($settings->logo))) {
-                        return $settings->logo;
+                    if (file_exists(public_path($logoFile))) {
+                        return $logoFile;
                     }
                 }
                 if (file_exists(public_path('assets/login/images/logoweb-1.png'))) {
@@ -51,36 +55,66 @@ class Globalprovider extends ServiceProvider
             });
             View::share('app_logo_url', $logoPath ? asset($logoPath) : null);
 
-            $themePrimary = !empty($settings?->theme_color_1) ? $settings->theme_color_1 : '#1E4D3E';
-            $themeSecondary = !empty($settings?->theme_color_2) ? $settings->theme_color_2 : '#32745E';
+            // Dynamic Brand Palette via ThemeResolver with auto-contrast
+            $theme = \App\Services\ThemeResolver::resolve();
+            View::share('theme', $theme);
 
             $t = [
-                'primary' => $themePrimary,
-                'primary_light' => $themeSecondary,
-                'bg_body' => '#F8FAF8',
-                'surface' => '#FFFFFF',
-                'text_primary' => '#0F172A',
-                'text_secondary' => '#64748B',
-                'border' => 'rgba(15, 23, 42, 0.08)',
-                'amber' => '#D97706',
-                'crimson' => '#DC2626',
-                'matcha' => '#059669',
+                'primary' => $theme['primary'],
+                'primary_light' => $theme['secondary'],
+                'bg_body' => $theme['canvas'],
+                'surface' => $theme['surface'],
+                'text_primary' => $theme['text_primary'],
+                'text_secondary' => $theme['text_secondary'],
+                'border' => $theme['border'],
+                'amber' => $theme['warning'],
+                'crimson' => $theme['danger'],
+                'matcha' => $theme['accent'],
+                'primary_contrast' => $theme['primary_contrast'],
             ];
             View::share('t', $t);
             View::share('isDark', false);
         } catch (\Exception $e) {
+            View::share('company_setting', null);
             View::share('general_setting', null);
-            View::share('t', [
-                'primary' => '#1E4D3E',
-                'primary_light' => '#32745E',
-                'bg_body' => '#F8FAF8',
+            $defaultTheme = [
+                'primary' => '#3C2A21',
+                'primary_rgb' => '60, 42, 33',
+                'primary_contrast' => '#FFFFFF',
+                'primary_hover' => '#2A1D17',
+                'primary_soft' => 'rgba(60, 42, 33, 0.08)',
+                'primary_border' => 'rgba(60, 42, 33, 0.18)',
+                'secondary' => '#634832',
+                'secondary_rgb' => '99, 72, 50',
+                'secondary_contrast' => '#FFFFFF',
+                'secondary_hover' => '#4D3827',
+                'secondary_soft' => 'rgba(99, 72, 50, 0.08)',
+                'accent' => '#4A6741',
+                'accent_rgb' => '74, 103, 65',
+                'success' => '#4A6741',
+                'danger' => '#BA1A1A',
+                'warning' => '#B45309',
+                'info' => '#2563EB',
+                'canvas' => '#FAF9F8',
                 'surface' => '#FFFFFF',
-                'text_primary' => '#0F172A',
-                'text_secondary' => '#64748B',
-                'border' => 'rgba(15, 23, 42, 0.08)',
-                'amber' => '#D97706',
-                'crimson' => '#DC2626',
-                'matcha' => '#059669',
+                'text_primary' => '#1A1C1C',
+                'text_secondary' => '#755841',
+                'border' => 'rgba(60, 42, 33, 0.08)',
+                'border_hover' => 'rgba(60, 42, 33, 0.16)',
+            ];
+            View::share('theme', $defaultTheme);
+            View::share('t', [
+                'primary' => '#3C2A21',
+                'primary_light' => '#634832',
+                'bg_body' => '#FAF9F8',
+                'surface' => '#FFFFFF',
+                'text_primary' => '#1A1C1C',
+                'text_secondary' => '#755841',
+                'border' => 'rgba(60, 42, 33, 0.08)',
+                'amber' => '#B45309',
+                'crimson' => '#BA1A1A',
+                'matcha' => '#4A6741',
+                'primary_contrast' => '#FFFFFF',
             ]);
             View::share('isDark', false);
         }
@@ -95,6 +129,23 @@ class Globalprovider extends ServiceProvider
             if ($auth->check()) {
                 /** @var \App\Models\User $user */
                 $user = $auth->user();
+
+                if ($user->hasRole('karyawan')) {
+                    $shareddata = [
+                        'notifikasi_izinabsen' => 0,
+                        'notifikasi_izinsakit' => 0,
+                        'notifikasi_izincuti' => 0,
+                        'notifikasi_dispensasi' => 0,
+                        'notifikasi_ajuan_absen' => 0,
+                        'notifikasi_unread' => 0,
+                        'notifications_list' => collect([]),
+                        'data_izin' => collect([]),
+                        'data_reimbursement_pending' => collect([]),
+                    ];
+                    View::share($shareddata);
+                    return;
+                }
+
                 $cacheKey = 'user_global_notif_' . $user->id;
 
                 $shareddata = Cache::remember($cacheKey, 60, function () use ($user) {

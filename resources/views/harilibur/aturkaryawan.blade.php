@@ -1,5 +1,5 @@
 <form action="#" id="frmKaryawan">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 p-2.5 rounded-2" style="background: rgba(30, 77, 62, 0.04); border: 1px solid rgba(30, 77, 62, 0.1);">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 p-2.5 rounded-2" style="background: rgba(60, 42, 33, 0.04); border: 1px solid rgba(60, 42, 33, 0.1);">
         <div>
             <span class="fw-bold text-dark d-block" style="font-size: 13px;">Aksi Cepat Massal</span>
             <span class="text-muted" style="font-size: 11px;">Terapkan penugasan libur ke seluruh karyawan yang tampil.</span>

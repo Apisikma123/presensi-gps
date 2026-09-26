@@ -28,7 +28,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Alex+Brush&display=swap');
 
         @php
-            $primaryColor = $t['primary'] ?? '#32745e';
+            $primaryColor = $t['primary'] ?? '#634832';
             $primaryLight = $t['primary_light'] ?? '#e8f0ed';
             $bgBody = $t['bg_body'] ?? '#f8fafc';
         @endphp

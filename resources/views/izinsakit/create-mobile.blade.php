@@ -88,7 +88,7 @@
 
         /* Modern Mobile File Upload (DESIGN.md Compliant) */
         .mobile-upload-box {
-            border: 1.5px dashed rgba(30, 77, 62, 0.28);
+            border: 1.5px dashed rgba(60, 42, 33, 0.28);
             border-radius: 14px;
             background: #ffffff;
             padding: 16px;
@@ -106,16 +106,16 @@
 
         .mobile-upload-box:active {
             transform: scale(0.99);
-            background: rgba(30, 77, 62, 0.04);
-            border-color: {{ $t['primary'] ?? '#1E4D3E' }};
+            background: rgba(60, 42, 33, 0.04);
+            border-color: {{ $t['primary'] ?? '#3C2A21' }};
         }
 
         .mobile-upload-icon {
             width: 42px;
             height: 42px;
             border-radius: 12px;
-            background: rgba(30, 77, 62, 0.08);
-            color: {{ $t['primary'] ?? '#1E4D3E' }};
+            background: rgba(60, 42, 33, 0.08);
+            color: {{ $t['primary'] ?? '#3C2A21' }};
             display: flex;
             align-items: center;
             justify-content: center;
@@ -203,8 +203,8 @@
         .btn-change-photo {
             font-size: 11px;
             font-weight: 600;
-            color: {{ $t['primary'] ?? '#1E4D3E' }};
-            background: rgba(30, 77, 62, 0.08);
+            color: {{ $t['primary'] ?? '#3C2A21' }};
+            background: rgba(60, 42, 33, 0.08);
             border: none;
             border-radius: 8px;
             padding: 4px 10px;
@@ -563,7 +563,7 @@
                         title: 'Oops!',
                         text: error.message,
                         icon: 'error',
-                        confirmButtonColor: '{{ $t['primary'] ?? '#1E4D3E' }}'
+                        confirmButtonColor: '{{ $t['primary'] ?? '#3C2A21' }}'
                     });
                 });
             });

@@ -1,7 +1,7 @@
 <table>
     <thead>
         <tr>
-            <th colspan="14" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #1E4D3E; text-align: center;">
+            <th colspan="14" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #3C2A21; text-align: center;">
                 {{ strtoupper($generalsetting->nama_perusahaan ?? 'PERUSAHAAN') }}
             </th>
         </tr>
@@ -17,20 +17,20 @@
         </tr>
         <tr></tr>
         <tr>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">NIK</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Nama Karyawan</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Outlet / Cabang</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift Penugasan</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hadir Tepat</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Dispensasi</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Terlambat</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Izin</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Sakit</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Cuti</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #1E4D3E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Alfa</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #163B2F; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Total Hadir</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #163B2F; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">% Hadir</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">NIK</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Nama Karyawan</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Outlet / Cabang</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift Penugasan</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hadir Tepat</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Dispensasi</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Terlambat</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Izin</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Sakit</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Cuti</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Alfa</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #25160E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Total Hadir</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #25160E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">% Hadir</th>
         </tr>
     </thead>
     <tbody>
@@ -71,28 +71,41 @@
                     $isOff = $eff ? $eff['is_off'] : false;
                     $effCabang = $eff['kode_cabang'] ?? $k->kode_cabang;
                     $isPastOrToday = ($curr <= $today);
+                    $isResigned = ($k->status_aktif_karyawan == 0 || $k->status_aktif_karyawan === '0')
+                        && !empty($k->tanggal_nonaktif)
+                        && $curr > $k->tanggal_nonaktif;
 
                     if (!empty($kode_cabang) && $effCabang !== $kode_cabang && !$pres) {
                         $curr = date('Y-m-d', strtotime('+1 day', strtotime($curr)));
                         continue;
                     }
 
-                    if (!$isOff && $curr <= $effectiveEnd) {
+                    if (!$isOff && $curr <= $effectiveEnd && !$isResigned) {
                         $empWorkDays++;
                     }
 
                     if ($pres) {
                         if ($pres->status === 'h') {
-                            $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
-                            $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : '07:05:00';
                             $actualIn = date('H:i:s', strtotime($pres->jam_in));
 
                             if ($disp && $actualIn <= $disp->batas_dispensasi) {
                                 $totDispensasi++;
-                            } elseif ($actualIn <= $batas) {
-                                $totHadirNormal++;
+                            } elseif (isset($pres->is_terlambat) && $pres->is_terlambat !== null) {
+                                // P1-4: Snapshot immutability from attendance record
+                                if ($pres->is_terlambat == 1) {
+                                    $totTelat++;
+                                } else {
+                                    $totHadirNormal++;
+                                }
                             } else {
-                                $totTelat++;
+                                // Legacy fallback
+                                $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
+                                $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : ($jk && $jk->jam_masuk ? date('H:i:s', strtotime($jk->jam_masuk)) : '08:00:00');
+                                if ($actualIn <= $batas) {
+                                    $totHadirNormal++;
+                                } else {
+                                    $totTelat++;
+                                }
                             }
                         } elseif ($pres->status === 'i') {
                             $totIzin++;
@@ -104,7 +117,8 @@
                             $totAlfa++;
                         }
                     } else {
-                        if (!$isOff && $isPastOrToday) {
+                        // Only count as Alfa if date is scheduled work day, date has already elapsed, and employee had not resigned
+                        if (!$isOff && $isPastOrToday && !$isResigned) {
                             $totAlfa++;
                         }
                     }
@@ -125,7 +139,7 @@
                 $sumTotalHadir += $rowTotalHadir;
                 $grandExpected += $effectiveWorkDays;
 
-                $bg = ($loop->iteration % 2 == 0) ? '#F8FAF8' : '#FFFFFF';
+                $bg = ($loop->iteration % 2 == 0) ? '#F4F3F2' : '#FFFFFF';
             @endphp
             <tr style="background-color: {{ $bg }};">
                 <td style="border: 1px solid #CBD5E1; text-align: center; vertical-align: middle;">{{ $loop->iteration }}</td>
@@ -158,7 +172,7 @@
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #F1F5F9; text-align: center; vertical-align: middle;">{{ $sumSakit }}</td>
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #F1F5F9; text-align: center; vertical-align: middle;">{{ $sumCuti }}</td>
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #F1F5F9; text-align: center; vertical-align: middle; color: #DC2626;">{{ $sumAlfa }}</td>
-            <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #E2E8F0; text-align: center; vertical-align: middle; color: #1E4D3E;">{{ $sumTotalHadir }}</td>
+            <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #E2E8F0; text-align: center; vertical-align: middle; color: #3C2A21;">{{ $sumTotalHadir }}</td>
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #E2E8F0; text-align: center; vertical-align: middle;">{{ $grandRate }}%</td>
         </tr>
         <tr></tr>

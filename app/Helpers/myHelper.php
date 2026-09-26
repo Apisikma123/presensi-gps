@@ -335,15 +335,27 @@ function hitungHari($startDate, $endDate, ?string $nik = null)
         }
 
         // Fallback default jika NIK tidak tersedia
-        $setting = \App\Models\Pengaturanumum::first();
-        $sistem = $setting->sistem_hari_kerja ?? '6';
+        static $cachedSistem = null;
+        static $cachedHolidays = null;
 
-        $hariLiburList = [];
-        if (class_exists(\App\Models\Harilibur::class)) {
-            $hariLiburList = \App\Models\Harilibur::whereBetween('tanggal', [$startDate, $endDate])
-                ->pluck('tanggal')
-                ->toArray();
+        if ($cachedSistem === null) {
+            $setting = class_exists(\App\Models\Pengaturanumum::class) 
+                ? \App\Models\Pengaturanumum::getSetting() 
+                : null;
+            $cachedSistem = $setting->sistem_hari_kerja ?? '6';
         }
+        $sistem = $cachedSistem;
+
+        if ($cachedHolidays === null) {
+            if (class_exists(\App\Models\Harilibur::class)) {
+                $cachedHolidays = \Illuminate\Support\Facades\Cache::remember('all_holidays_array', 3600, function () {
+                    return \App\Models\Harilibur::pluck('tanggal')->toArray();
+                });
+            } else {
+                $cachedHolidays = [];
+            }
+        }
+        $hariLiburList = $cachedHolidays;
 
         $workingDays = 0;
         $curr = clone $start;
@@ -749,5 +761,30 @@ function hitungPotonganIstirahat($start_break, $end_break, $jam_awal_istirahat, 
     return 0;
 }
 
+/**
+ * Get active CompanySetting instance or specific property
+ */
+function company_setting(?string $key = null, $default = null)
+{
+    $setting = \App\Models\CompanySetting::getSetting();
+    if ($key === null) {
+        return $setting;
+    }
+    return data_get($setting, $key, $default);
+}
 
+/**
+ * Check if a module feature is enabled
+ */
+function is_module_enabled(string $moduleCode, bool $default = false): bool
+{
+    return \App\Models\ModuleFeature::isEnabled($moduleCode, $default);
+}
 
+/**
+ * Convenient alias for is_module_enabled
+ */
+function module_enabled(string $moduleCode, bool $default = false): bool
+{
+    return is_module_enabled($moduleCode, $default);
+}

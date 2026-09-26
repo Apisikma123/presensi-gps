@@ -1,6 +1,6 @@
 @if (auth()->user()->hasAnyPermission(['izinabsen.index', 'izinsakit.index', 'izincuti.index', 'dispensasi.index']) || auth()->user()->hasRole('super admin'))
     <div class="nav-segment-container mb-3">
-        <ul class="nav nav-segment" id="izinTabs" data-no-spa="true">
+        <ul class="nav nav-segment" id="izinTabs">
             @can('izinabsen.index')
                 <li class="nav-item">
                     <a href="{{ route('izinabsen.index') }}" data-tab="izinabsen" data-url="{{ route('izinabsen.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinabsen', 'izinabsen/*']) ? 'active' : '' }}">
@@ -55,6 +55,96 @@
             if (typeof window.prefetchModal === 'function') {
                 window.prefetchModal(u);
             }
+        });
+
+        // Instant 1-Page Tab Switching for Persetujuan Izin
+        $(document).on('click', '.tab-izin-link', function(e) {
+            e.preventDefault();
+            const targetUrl = $(this).attr('href');
+            if ($(this).hasClass('active')) return;
+
+            $('.tab-izin-link').removeClass('active');
+            $(this).addClass('active');
+
+            const pane = $('#izin-tab-pane');
+            if (pane.length) {
+                pane.css('opacity', '0.35');
+                $.get(targetUrl, function(html) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newPane = doc.querySelector('#izin-tab-pane');
+                    if (newPane) {
+                        pane.html(newPane.innerHTML);
+                        if (window.flatpickr) {
+                            $(".flatpickr-date").flatpickr({ dateFormat: "Y-m-d" });
+                        }
+                    } else {
+                        window.location.href = targetUrl;
+                        return;
+                    }
+                    pane.css('opacity', '1');
+                    window.history.pushState(null, '', targetUrl);
+                }).fail(function() {
+                    window.location.href = targetUrl;
+                });
+            } else {
+                window.location.href = targetUrl;
+            }
+        });
+
+        // Seamless pagination within #izin-tab-pane
+        $(document).on('click', '#izin-tab-pane .pagination a', function(e) {
+            e.preventDefault();
+            const pageUrl = $(this).attr('href');
+            if (!pageUrl) return;
+
+            const pane = $('#izin-tab-pane');
+            pane.css('opacity', '0.35');
+            $.get(pageUrl, function(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newPane = doc.querySelector('#izin-tab-pane');
+                if (newPane) {
+                    pane.html(newPane.innerHTML);
+                    if (window.flatpickr) $(".flatpickr-date").flatpickr({ dateFormat: "Y-m-d" });
+                } else {
+                    window.location.href = pageUrl;
+                    return;
+                }
+                pane.css('opacity', '1');
+                window.history.pushState(null, '', pageUrl);
+                $('html, body').animate({ scrollTop: $('#izinTabs').offset().top - 20 }, 200);
+            }).fail(function() {
+                window.location.href = pageUrl;
+            });
+        });
+
+        // Seamless filter form submission within #izin-tab-pane
+        $(document).on('submit', '#izin-tab-pane form', function(e) {
+            const form = $(this);
+            if (form.hasClass('deleteform') || form.attr('target') === '_blank') {
+                return;
+            }
+            e.preventDefault();
+            const targetUrl = form.attr('action') + '?' + form.serialize();
+            const pane = $('#izin-tab-pane');
+            pane.css('opacity', '0.35');
+            $.get(targetUrl, function(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newPane = doc.querySelector('#izin-tab-pane');
+                if (newPane) {
+                    pane.html(newPane.innerHTML);
+                    if (window.flatpickr) $(".flatpickr-date").flatpickr({ dateFormat: "Y-m-d" });
+                } else {
+                    form.off('submit').submit();
+                    return;
+                }
+                pane.css('opacity', '1');
+                window.history.pushState(null, '', targetUrl);
+            }).fail(function() {
+                form.off('submit').submit();
+            });
         });
 
         // Create buttons

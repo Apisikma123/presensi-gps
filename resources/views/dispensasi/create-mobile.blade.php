@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/air-datepicker@3.5.0/air-datepicker.min.css" rel="stylesheet">
     <style>
         body {
-            background: {{ $t['bg_body'] ?? '#F8FAF8' }} !important;
+            background: {{ $t['bg_body'] ?? '#FAF9F8' }} !important;
         }
 
         .form-container {
@@ -33,8 +33,8 @@
         }
 
         .form-label-group:focus-within {
-            border-color: {{ $t['primary'] ?? '#1E4D3E' }};
-            box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.1);
+            border-color: {{ $t['primary'] ?? '#3C2A21' }};
+            box-shadow: 0 0 0 3px rgba(60, 42, 33, 0.1);
         }
 
         .form-label-group .input-icon {
@@ -42,7 +42,7 @@
             left: 14px;
             top: 13px;
             font-size: 20px;
-            color: {{ $t['primary'] ?? '#1E4D3E' }};
+            color: {{ $t['primary'] ?? '#3C2A21' }};
             z-index: 10;
             pointer-events: none;
         }
@@ -88,13 +88,13 @@
             left: 44px;
             font-size: 10px;
             font-weight: 600;
-            color: {{ $t['primary'] ?? '#1E4D3E' }};
+            color: {{ $t['primary'] ?? '#3C2A21' }};
         }
 
         .btn-submit-modern {
             width: 100%;
             height: 48px;
-            background: {{ $t['primary'] ?? '#1E4D3E' }};
+            background: {{ $t['primary'] ?? '#3C2A21' }};
             color: #ffffff;
             border: none;
             border-radius: 12px;
@@ -106,7 +106,7 @@
             gap: 10px;
             margin-top: 10px;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(30, 77, 62, 0.25);
+            box-shadow: 0 4px 12px rgba(60, 42, 33, 0.25);
         }
 
         .btn-submit-modern:active {
@@ -120,7 +120,7 @@
     <div class="fade-up form-container pt-2 pb-24">
         {{-- Info Banner --}}
         <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 mb-3 flex items-start gap-3">
-            <ion-icon name="information-circle-outline" class="text-xl text-[#1E4D3E] shrink-0 mt-0.5"></ion-icon>
+            <ion-icon name="information-circle-outline" class="text-xl text-[#3C2A21] shrink-0 mt-0.5"></ion-icon>
             <div class="text-[12px] text-emerald-900 leading-relaxed">
                 Dispensasi digunakan apabila Anda mengalami kendala perjalanan atau instruksi outlet sehingga memerlukan penyesuaian batas jam absensi masuk.
             </div>

@@ -13,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\ModuleFeatureService::class);
     }
 
     /**
@@ -25,5 +25,9 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
         Paginator::useBootstrapFive();
+
+        \Illuminate\Support\Facades\Blade::if('module', function ($code) {
+            return is_module_enabled($code);
+        });
     }
 }

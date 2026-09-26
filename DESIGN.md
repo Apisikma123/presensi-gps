@@ -1,5 +1,5 @@
 ---
-name: BrewSync Enterprise
+name: Presence Universal HR
 colors:
   surface: '#faf9f8'
   surface-dim: '#dadad9'

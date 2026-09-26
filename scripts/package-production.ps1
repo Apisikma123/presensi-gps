@@ -61,6 +61,12 @@ foreach ($folder in $includeFolders) {
     }
 }
 
+# Ensure local test uploads / symlink in public/storage are excluded from production build
+$stagingPublicStorage = Join-Path $StagingPath "public/storage"
+if (Test-Path $stagingPublicStorage) {
+    Remove-Item $stagingPublicStorage -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 # Clean storage skeleton (directories only, no runtime files/logs)
 $stagingStorage = Join-Path $StagingPath "storage"
 New-Item -ItemType Directory -Path (Join-Path $stagingStorage "app/public/uploads/absensi") -Force | Out-Null
@@ -71,6 +77,11 @@ New-Item -ItemType Directory -Path (Join-Path $stagingStorage "framework/cache/d
 New-Item -ItemType Directory -Path (Join-Path $stagingStorage "framework/sessions") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stagingStorage "framework/views") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stagingStorage "logs") -Force | Out-Null
+
+# Preserve security .htaccess in private photo upload folder
+if (Test-Path "storage/app/public/uploads/absensi/.htaccess") {
+    Copy-Item "storage/app/public/uploads/absensi/.htaccess" -Destination (Join-Path $stagingStorage "app/public/uploads/absensi/.htaccess") -Force
+}
 
 # Copy essential root files
 $includeFiles = @(
@@ -87,8 +98,29 @@ foreach ($file in $includeFiles) {
     }
 }
 
-# 5. Create ZIP Archive
-Write-Host "`n[Step 4/5] Creating release ZIP archive: $ArchiveName..." -ForegroundColor Yellow
+# 5. Calculate Metrics & Breakdown
+Write-Host "`n[Step 4/6] Auditing production staging payload..." -ForegroundColor Yellow
+$allFiles = Get-ChildItem -Path $StagingPath -Recurse -File
+$allDirs = Get-ChildItem -Path $StagingPath -Recurse -Directory
+$totalFileCount = $allFiles.Count
+$totalDirCount = $allDirs.Count
+
+$vendorFiles = (Get-ChildItem -Path (Join-Path $StagingPath "vendor") -Recurse -File -ErrorAction SilentlyContinue).Count
+$appFiles = (Get-ChildItem -Path (Join-Path $StagingPath "app") -Recurse -File -ErrorAction SilentlyContinue).Count
+$publicFiles = (Get-ChildItem -Path (Join-Path $StagingPath "public") -Recurse -File -ErrorAction SilentlyContinue).Count
+$storageFiles = (Get-ChildItem -Path (Join-Path $StagingPath "storage") -Recurse -File -ErrorAction SilentlyContinue).Count
+$otherFiles = $totalFileCount - ($vendorFiles + $appFiles + $publicFiles + $storageFiles)
+
+Write-Host "Total Files       : $totalFileCount" -ForegroundColor White
+Write-Host "Total Directories : $totalDirCount" -ForegroundColor White
+Write-Host "  - vendor        : $vendorFiles files" -ForegroundColor Gray
+Write-Host "  - app           : $appFiles files" -ForegroundColor Gray
+Write-Host "  - public        : $publicFiles files" -ForegroundColor Gray
+Write-Host "  - storage skel  : $storageFiles files" -ForegroundColor Gray
+Write-Host "  - other         : $otherFiles files" -ForegroundColor Gray
+
+# 6. Create ZIP Archive
+Write-Host "`n[Step 5/6] Creating release ZIP archive: $ArchiveName..." -ForegroundColor Yellow
 $ZipDestination = Join-Path $ProjectRoot $ArchiveName
 if (Test-Path $ZipDestination) {
     Remove-Item $ZipDestination -Force
@@ -96,7 +128,8 @@ if (Test-Path $ZipDestination) {
 
 Compress-Archive -Path "$StagingPath/*" -DestinationPath $ZipDestination -CompressionLevel Optimal
 
-# 6. Summary & Cleanup Staging
+# 7. Summary & Cleanup Staging
+Write-Host "`n[Step 6/6] Cleaning up staging directory..." -ForegroundColor Yellow
 Remove-Item $StagingPath -Recurse -Force
 
 $zipItem = Get-Item $ZipDestination
@@ -104,7 +137,17 @@ $zipSizeMb = [math]::Round($zipItem.Length / 1MB, 2)
 
 Write-Host "`n======================================================================" -ForegroundColor Cyan
 Write-Host " PRODUCTION PACKAGE READY!" -ForegroundColor Green
-Write-Host " Archive File : $ZipDestination" -ForegroundColor White
-Write-Host " Package Size : $zipSizeMb MB" -ForegroundColor White
-Write-Host " Excluded     : node_modules, .git, tests, debug scripts, local logs, .env" -ForegroundColor Gray
+Write-Host " Archive File       : $ZipDestination" -ForegroundColor White
+Write-Host " Package Size       : $zipSizeMb MB" -ForegroundColor White
+Write-Host " Total File Count   : $totalFileCount" -ForegroundColor White
+Write-Host " Total Dir Count    : $totalDirCount" -ForegroundColor White
+Write-Host " Inode Budget (250k): $([math]::Round(($totalFileCount + $totalDirCount) / 250000 * 100, 2))% used" -ForegroundColor Green
+Write-Host " Breakdown:" -ForegroundColor Cyan
+Write-Host "   vendor           : $vendorFiles files" -ForegroundColor White
+Write-Host "   app              : $appFiles files" -ForegroundColor White
+Write-Host "   public           : $publicFiles files" -ForegroundColor White
+Write-Host "   storage skeleton : $storageFiles files" -ForegroundColor White
+Write-Host "   other            : $otherFiles files" -ForegroundColor White
+Write-Host " Excluded           : node_modules, .git, tests, debug scripts, local logs, .env" -ForegroundColor Gray
+Write-Host " Tests in Package   : ZERO (0)" -ForegroundColor Green
 Write-Host "======================================================================" -ForegroundColor Cyan

@@ -210,7 +210,7 @@
     <div class="d-flex align-items-stretch align-items-md-center justify-content-between flex-column flex-md-row gap-2 gap-md-3">
         <div class="d-flex align-items-center gap-2.5 gap-md-3" style="min-width: 0; max-width: 100%;">
             <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                style="background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #1E4D3E); width: 42px; height: 42px; border: 1px solid rgba(var(--bs-primary-rgb), 0.15);">
+                style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); width: 42px; height: 42px; border: 1px solid rgba(var(--color-primary-rgb, 60, 42, 33), 0.15);">
                 <i class="ti ti-layout-dashboard fs-3"></i>
             </div>
             <div style="min-width: 0; flex: 1;">
@@ -282,7 +282,7 @@
 </div>
 
 <!-- Pending Approval Banner (Alert if pending items exist) -->
-@if ($pending_approval > 0)
+@if ($pending_approval > 0 && module_enabled('leave'))
     <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 p-3 rounded-3 border" style="background: #FFFBEB; border-color: #FDE68A !important;">
         <div class="d-flex align-items-center gap-2.5">
             <div class="rounded-circle d-flex align-items-center justify-content-center bg-warning text-dark flex-shrink-0" style="width: 36px; height: 36px;">
@@ -319,59 +319,114 @@
         </div>
     </div>
 
-    <!-- 2. Hadir Tepat Waktu -->
-    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'h']) }}'" title="Klik untuk lihat monitoring presensi hadir">
-        <div class="d-flex justify-content-between align-items-start gap-2">
-            <div style="min-width: 0;">
-                <div class="stat-label text-truncate">Hadir Hari Ini</div>
-                <h3 class="stat-value" style="color: #059669;">{{ $hadir_hari_ini }}</h3>
+    @if(module_enabled('attendance'))
+        <!-- 2. Hadir Tepat Waktu -->
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'h']) }}'" title="Klik untuk lihat monitoring presensi hadir">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div style="min-width: 0;">
+                    <div class="stat-label text-truncate">Hadir Hari Ini</div>
+                    <h3 class="stat-value" style="color: #059669;">{{ $hadir_hari_ini }}</h3>
+                </div>
+                <div class="stat-icon-wrapper" style="background: #ECFDF5; color: #059669;">
+                    <i class="ti ti-user-check"></i>
+                </div>
             </div>
-            <div class="stat-icon-wrapper" style="background: #ECFDF5; color: #059669;">
-                <i class="ti ti-user-check"></i>
+            <div class="stat-subtext">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669; flex-shrink: 0;"></span>
+                <span class="text-wrap">Tepat waktu / Dispensasi</span>
             </div>
         </div>
-        <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669; flex-shrink: 0;"></span>
-            <span class="text-wrap">Tepat waktu &le; 07:05 / Dispensasi</span>
-        </div>
-    </div>
 
-    <!-- 3. Telat Hari Ini -->
-    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'telat']) }}'" title="Klik untuk lihat monitoring presensi terlambat">
-        <div class="d-flex justify-content-between align-items-start gap-2">
-            <div style="min-width: 0;">
-                <div class="stat-label text-truncate">Telat Hari Ini</div>
-                <h3 class="stat-value" style="color: #D97706;">{{ $telat_hari_ini }}</h3>
+        <!-- 3. Telat Hari Ini -->
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'telat']) }}'" title="Klik untuk lihat monitoring presensi terlambat">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div style="min-width: 0;">
+                    <div class="stat-label text-truncate">Telat Hari Ini</div>
+                    <h3 class="stat-value" style="color: #D97706;">{{ $telat_hari_ini }}</h3>
+                </div>
+                <div class="stat-icon-wrapper" style="background: #FFFBEB; color: #D97706;">
+                    <i class="ti ti-clock-exclamation"></i>
+                </div>
             </div>
-            <div class="stat-icon-wrapper" style="background: #FFFBEB; color: #D97706;">
-                <i class="ti ti-clock-exclamation"></i>
+            <div class="stat-subtext">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; flex-shrink: 0;"></span>
+                <span class="text-wrap">Masuk melebihi jam toleransi</span>
             </div>
         </div>
-        <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; flex-shrink: 0;"></span>
-            <span class="text-wrap">Masuk melebihi jam toleransi</span>
+    @else
+        <!-- 2. Total Departemen (When Attendance Disabled) -->
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('departemen.index') }}'" title="Klik untuk lihat data departemen">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div style="min-width: 0;">
+                    <div class="stat-label text-truncate">Departemen</div>
+                    <h3 class="stat-value" style="color: #2563EB;">{{ count($departemen) }}</h3>
+                </div>
+                <div class="stat-icon-wrapper" style="background: #EFF6FF; color: #2563EB;">
+                    <i class="ti ti-building-community"></i>
+                </div>
+            </div>
+            <div class="stat-subtext">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #2563EB; flex-shrink: 0;"></span>
+                <span class="text-wrap">Struktur divisi operasional</span>
+            </div>
         </div>
-    </div>
 
-    <!-- 4. Pengajuan Pending -->
-    <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('izinabsen.index') }}'" title="Klik untuk buka persetujuan pengajuan">
-        <div class="d-flex justify-content-between align-items-start gap-2">
-            <div style="min-width: 0;">
-                <div class="stat-label text-truncate">Pengajuan Pending</div>
-                <h3 class="stat-value" style="color: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};">{{ $pending_approval }}</h3>
+        <!-- 3. Total Cabang (When Attendance Disabled) -->
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('cabang.index') }}'" title="Klik untuk lihat data cabang">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div style="min-width: 0;">
+                    <div class="stat-label text-truncate">Cabang / Outlet</div>
+                    <h3 class="stat-value" style="color: #7C3AED;">{{ count($cabang) }}</h3>
+                </div>
+                <div class="stat-icon-wrapper" style="background: #F5F3FF; color: #7C3AED;">
+                    <i class="ti ti-map-pin"></i>
+                </div>
             </div>
-            <div class="stat-icon-wrapper" style="background: {{ $pending_approval > 0 ? '#FEF2F2' : '#F8FAFC' }}; color: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};">
-                <i class="ti ti-file-certificate"></i>
+            <div class="stat-subtext">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #7C3AED; flex-shrink: 0;"></span>
+                <span class="text-wrap">Lokasi penempatan kerja</span>
             </div>
         </div>
-        <div class="stat-subtext">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }}; flex-shrink: 0;"></span>
-            <span class="text-wrap">Izin, sakit, cuti, dispensasi</span>
+    @endif
+
+    <!-- 4. Pengajuan Pending / Status Preset -->
+    @if(module_enabled('leave'))
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('izinabsen.index') }}'" title="Klik untuk buka persetujuan pengajuan">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div style="min-width: 0;">
+                    <div class="stat-label text-truncate">Pengajuan Pending</div>
+                    <h3 class="stat-value" style="color: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};">{{ $pending_approval }}</h3>
+                </div>
+                <div class="stat-icon-wrapper" style="background: {{ $pending_approval > 0 ? '#FEF2F2' : '#F8FAFC' }}; color: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }};">
+                    <i class="ti ti-file-certificate"></i>
+                </div>
+            </div>
+            <div class="stat-subtext">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $pending_approval > 0 ? '#DC2626' : '#64748B' }}; flex-shrink: 0;"></span>
+                <span class="text-wrap">Izin, sakit, cuti, dispensasi</span>
+            </div>
         </div>
-    </div>
+    @else
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('settings.presets.index') }}'" title="Klik untuk kelola modul & preset">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div style="min-width: 0;">
+                    <div class="stat-label text-truncate">Preset Modul</div>
+                    <h3 class="stat-value" style="color: var(--color-primary, #3C2A21); font-size: 1.6rem; margin-top: 4px;">AKTIF</h3>
+                </div>
+                <div class="stat-icon-wrapper" style="background: var(--color-primary-soft, #FAF9F8); color: var(--color-primary, #3C2A21);">
+                    <i class="ti ti-adjustments-alt"></i>
+                </div>
+            </div>
+            <div class="stat-subtext">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary, #3C2A21); flex-shrink: 0;"></span>
+                <span class="text-wrap">Konfigurasi fitur universal</span>
+            </div>
+        </div>
+    @endif
 </div>
 
-<!-- Sub-metrics Operational Strip (Izin, Sakit, Cuti, Alpa, Dispensasi) -->
+<!-- Sub-metrics Operational Strip (Only if Leave or Attendance Enabled) -->
+@if(module_enabled('leave') || module_enabled('attendance'))
 <div class="operational-sub-strip mb-4">
     <div class="d-flex align-items-center justify-content-between flex-column flex-md-row gap-2">
         <div class="d-flex align-items-center justify-content-between w-100 d-md-none mb-0.5">
@@ -383,30 +438,34 @@
         <div class="operational-pills-scroll-track d-flex align-items-center gap-2 w-100" style="overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
             <span class="text-muted fw-bold small text-uppercase flex-shrink-0 d-none d-md-inline" style="font-size: 11px; letter-spacing: 0.05em;">Rincian Status:</span>
             
-            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izinabsen.index') }}'" title="Klik untuk kelola daftar permohonan izin absen">
-                <div class="sub-metric-value" style="color: #2563EB;">{{ $izin_hari_ini }}</div>
-                <div class="sub-metric-label">Izin Absen</div>
-            </div>
+            @if(module_enabled('leave'))
+                <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izinabsen.index') }}'" title="Klik untuk kelola daftar permohonan izin absen">
+                    <div class="sub-metric-value" style="color: #0284C7;">{{ $izin_hari_ini }}</div>
+                    <div class="sub-metric-label">Izin Absen</div>
+                </div>
 
-            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izinsakit.index') }}'" title="Klik untuk kelola daftar permohonan izin sakit">
-                <div class="sub-metric-value" style="color: #EA580C;">{{ $sakit_hari_ini }}</div>
-                <div class="sub-metric-label">Izin Sakit</div>
-            </div>
+                <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izinsakit.index') }}'" title="Klik untuk kelola daftar permohonan izin sakit">
+                    <div class="sub-metric-value" style="color: #EA580C;">{{ $sakit_hari_ini }}</div>
+                    <div class="sub-metric-label">Izin Sakit</div>
+                </div>
 
-            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izincuti.index') }}'" title="Klik untuk kelola daftar permohonan cuti">
-                <div class="sub-metric-value" style="color: #0D9488;">{{ $cuti_hari_ini }}</div>
-                <div class="sub-metric-label">Cuti</div>
-            </div>
+                <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izincuti.index') }}'" title="Klik untuk kelola daftar permohonan cuti">
+                    <div class="sub-metric-value" style="color: #755841;">{{ $cuti_hari_ini }}</div>
+                    <div class="sub-metric-label">Cuti</div>
+                </div>
+            @endif
 
-            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'alpa']) }}'" title="Klik untuk lihat daftar karyawan tidak hadir">
-                <div class="sub-metric-value text-danger">{{ $tidak_hadir }}</div>
-                <div class="sub-metric-label">Tidak Hadir (Alpa)</div>
-            </div>
+            @if(module_enabled('attendance'))
+                <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('presensi.index', ['tanggal' => $tanggal, 'status' => 'alpa']) }}'" title="Klik untuk lihat daftar karyawan tidak hadir">
+                    <div class="sub-metric-value text-danger">{{ $tidak_hadir }}</div>
+                    <div class="sub-metric-label">Tidak Hadir (Alpa)</div>
+                </div>
 
-            <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('dispensasi.index') }}'" title="Klik untuk kelola dispensasi keterlambatan">
-                <div class="sub-metric-value" style="color: #0284C7;">{{ $dispensasi_hari_ini }}</div>
-                <div class="sub-metric-label">Dispensasi Disetujui</div>
-            </div>
+                <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('dispensasi.index') }}'" title="Klik untuk kelola dispensasi keterlambatan">
+                    <div class="sub-metric-value" style="color: #0284C7;">{{ $dispensasi_hari_ini }}</div>
+                    <div class="sub-metric-label">Dispensasi Disetujui</div>
+                </div>
+            @endif
         </div>
 
         <small class="text-muted font-mono flex-shrink-0 d-none d-md-inline" style="font-size: 11.5px;">
@@ -414,78 +473,92 @@
         </small>
     </div>
 </div>
+@endif
 
-<!-- Exactly 4 Meaningful Chart Sections (2-Column Desktop Grid) -->
+<!-- Chart Sections -->
+@if(module_enabled('attendance') || module_enabled('leave'))
 <div class="row g-3 mb-4">
-    <!-- CHART 1: Tren Kehadiran (Line Chart) -->
-    <div class="col-lg-6 col-12">
-        <div class="dashboard-chart-card">
-            <div class="card-header-clean d-flex align-items-center justify-content-between">
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Tren Kehadiran</h6>
-                    <small class="text-muted" style="font-size: 12px;">Perkembangan hadir tepat waktu vs terlambat 7 hari terakhir</small>
+    @if(module_enabled('attendance'))
+        <!-- CHART 1: Tren Kehadiran (Line Chart) -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-chart-card">
+                <div class="card-header-clean d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Tren Kehadiran</h6>
+                        <small class="text-muted" style="font-size: 12px;">Perkembangan hadir tepat waktu vs terlambat 7 hari terakhir</small>
+                    </div>
+                    <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">7 Hari</span>
                 </div>
-                <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">7 Hari</span>
-            </div>
-            <div class="card-body-chart">
-                <div id="chartTrenKehadiran" style="min-height: 280px;"></div>
+                <div class="card-body-chart">
+                    <div id="chartTrenKehadiran" style="min-height: 280px;"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- CHART 2: Status Kehadiran Hari Ini (Donut Chart) -->
-    <div class="col-lg-6 col-12">
-        <div class="dashboard-chart-card">
-            <div class="card-header-clean d-flex align-items-center justify-content-between">
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Status Kehadiran Hari Ini</h6>
-                    <small class="text-muted" style="font-size: 12px;">Komposisi status absensi seluruh karyawan</small>
+        <!-- CHART 2: Status Kehadiran Hari Ini (Donut Chart) -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-chart-card">
+                <div class="card-header-clean d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Status Kehadiran Hari Ini</h6>
+                        <small class="text-muted" style="font-size: 12px;">Komposisi status absensi seluruh karyawan</small>
+                    </div>
+                    <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">Hari Ini</span>
                 </div>
-                <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">Hari Ini</span>
-            </div>
-            <div class="card-body-chart d-flex align-items-center justify-content-center">
-                <div id="chartStatusHariIni" style="width: 100%; min-height: 280px;"></div>
+                <div class="card-body-chart d-flex align-items-center justify-content-center">
+                    <div id="chartStatusHariIni" style="width: 100%; min-height: 280px;"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- CHART 3: Kehadiran per Shift (Grouped Bar Chart) -->
-    <div class="col-lg-6 col-12">
-        <div class="dashboard-chart-card">
-            <div class="card-header-clean d-flex align-items-center justify-content-between">
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Kehadiran per Shift</h6>
-                    <small class="text-muted" style="font-size: 12px;">Perbandingan hadir vs telat berdasarkan jadwal shift</small>
+        <!-- CHART 3: Kehadiran per Shift (Grouped Bar Chart) -->
+        <div class="col-lg-6 col-12">
+            <div class="dashboard-chart-card">
+                <div class="card-header-clean d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Kehadiran per Shift</h6>
+                        <small class="text-muted" style="font-size: 12px;">Perbandingan hadir vs telat berdasarkan jadwal shift</small>
+                    </div>
+                    <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">Shift</span>
                 </div>
-                <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">Shift</span>
-            </div>
-            <div class="card-body-chart">
-                <div id="chartKehadiranShift" style="min-height: 280px;"></div>
+                <div class="card-body-chart">
+                    <div id="chartKehadiranShift" style="min-height: 280px;"></div>
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
-    <!-- CHART 4: Izin, Sakit & Cuti (Bar / Area Chart) -->
-    <div class="col-lg-6 col-12">
-        <div class="dashboard-chart-card">
-            <div class="card-header-clean d-flex align-items-center justify-content-between">
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Izin, Sakit & Cuti</h6>
-                    <small class="text-muted" style="font-size: 12px;">Tren permohonan ketidakhadiran karyawan 7 hari terakhir</small>
+    @if(module_enabled('leave'))
+        <!-- CHART 4: Izin, Sakit & Cuti (Bar / Area Chart) -->
+        <div class="{{ module_enabled('attendance') ? 'col-lg-6 col-12' : 'col-12' }}">
+            <div class="dashboard-chart-card">
+                <div class="card-header-clean d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 14px;">Izin, Sakit & Cuti</h6>
+                        <small class="text-muted" style="font-size: 12px;">Tren permohonan ketidakhadiran karyawan 7 hari terakhir</small>
+                    </div>
+                    <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">Permohonan</span>
                 </div>
-                <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">Permohonan</span>
-            </div>
-            <div class="card-body-chart">
-                <div id="chartIzinSakitCuti" style="min-height: 280px;"></div>
+                <div class="card-body-chart">
+                    <div id="chartIzinSakitCuti" style="min-height: 280px;"></div>
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 </div>
+@endif
 
-<!-- 2 Operational Feeds: Pengajuan Terbaru & Aktivitas Kehadiran Terbaru -->
+<!-- Operational Feeds (Guarded per Module) -->
+@php
+    $showFeedLeave = module_enabled('leave');
+    $showFeedAttendance = module_enabled('attendance');
+@endphp
+
+@if($showFeedLeave || $showFeedAttendance)
 <div class="row g-3 mb-4">
+    @if($showFeedLeave)
     <!-- Feed 1: Pengajuan Terbaru -->
-    <div class="col-lg-6 col-12">
+    <div class="{{ $showFeedAttendance ? 'col-lg-6 col-12' : 'col-12' }}">
         <div class="operational-feed-card h-100">
             <div class="feed-header">
                 <div>
@@ -557,9 +630,11 @@
             </div>
         </div>
     </div>
+    @endif
 
+    @if($showFeedAttendance)
     <!-- Feed 2: Aktivitas Presensi Hari Ini -->
-    <div class="col-lg-6 col-12">
+    <div class="{{ $showFeedLeave ? 'col-lg-6 col-12' : 'col-12' }}">
         <div class="operational-feed-card h-100">
             <div class="feed-header">
                 <div>
@@ -585,9 +660,9 @@
                             <tbody>
                                 @foreach($aktivitasTerbaru as $a)
                                     @php
-                                        $batas = $a->batas_toleransi ? date('H:i:s', strtotime($a->batas_toleransi)) : '07:05:00';
+                                        $batas = $a->batas_toleransi ? date('H:i:s', strtotime($a->batas_toleransi)) : (!empty($a->jam_masuk) ? date('H:i:s', strtotime($a->jam_masuk)) : '08:00:00');
                                         $jamMasuk = date('H:i:s', strtotime($a->jam_in));
-                                        $isTepatWaktu = ($a->is_dispensasi == 1) || ($jamMasuk <= $batas);
+                                        $isTepatWaktu = ($a->is_dispensasi == 1) || (isset($a->is_terlambat) ? $a->is_terlambat == 0 : $jamMasuk <= $batas);
                                     @endphp
                                     <tr>
                                         <td class="py-2.5 px-3">
@@ -634,7 +709,9 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
+@endif
 
 <!-- Modal Detail Karyawan (Klik Card) -->
 <x-modal-form id="modalKaryawanList" size="modal-lg" title="Daftar Karyawan" />
@@ -757,7 +834,7 @@
                             type: 'donut',
                             height: 280
                         },
-                        colors: ['#059669', '#D97706', '#2563EB', '#EA580C', '#0D9488', '#DC2626'],
+                        colors: ['#4A6741', '#D97706', '#0284C7', '#EA580C', '#755841', '#BA1A1A'],
                         dataLabels: { enabled: false },
                         legend: {
                             position: 'bottom',
@@ -867,7 +944,7 @@
                         stacked: true,
                         toolbar: { show: false }
                     },
-                    colors: ['#2563EB', '#EA580C', '#0D9488'],
+                    colors: ['#0284C7', '#EA580C', '#755841'],
                     plotOptions: {
                         bar: {
                             borderRadius: 3,

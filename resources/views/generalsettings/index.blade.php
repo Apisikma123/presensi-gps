@@ -1,10 +1,13 @@
 @extends('layouts.app')
 @section('titlepage', 'General Settings')
 
-@section('content')
 @section('navigasi')
-    <span>General Settings</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('settings.hub') }}">Pengaturan Sistem</a></li>
+    <li class="breadcrumb-item active">General Settings</li>
 @endsection
+
+@section('content')
 @php
     use Illuminate\Support\Facades\Storage;
 @endphp
@@ -302,49 +305,6 @@
                             </div>
                             @endif
                         </div>
-                    </div>
-                </div>
-                <!-- Tema -->
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">Pengaturan Tema Aplikasi</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="theme_color_1" class="form-label" style="font-weight: 600">Warna Utama (Sidebar/Primary)</label>
-                                    <input type="color" class="form-control form-control-color w-100" id="theme_color_1" name="theme_color_1" 
-                                        value="{{ $setting->theme_color_1 ?? '#053b22' }}" title="Choose your color">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="theme_color_2" class="form-label" style="font-weight: 600">Warna Sekunder (Gradient/Hover)</label>
-                                    <input type="color" class="form-control form-control-color w-100" id="theme_color_2" name="theme_color_2"
-                                        value="{{ $setting->theme_color_2 ?? '#0b6a3a' }}" title="Choose your color">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-12">
-                                <div class="form-group mb-3">
-                                    <label for="mobile_theme_scheme" class="form-label" style="font-weight: 600">Tema Aplikasi Mobile</label>
-                                    <select name="mobile_theme_scheme" id="mobile_theme_scheme" class="form-select">
-                                        <option value="green" @selected(($setting->mobile_theme_scheme ?? 'green') == 'green')>Green (Default)</option>
-                                        <option value="blue" @selected(($setting->mobile_theme_scheme ?? 'green') == 'blue')>Blue (Ocean)</option>
-                                        <option value="red" @selected(($setting->mobile_theme_scheme ?? 'green') == 'red')>Red (Passion)</option>
-                                        <option value="orange" @selected(($setting->mobile_theme_scheme ?? 'green') == 'orange')>Orange (Sunset)</option>
-                                        <option value="purple" @selected(($setting->mobile_theme_scheme ?? 'green') == 'purple')>Purple (Royal)</option>
-                                        <option value="rose" @selected(($setting->mobile_theme_scheme ?? 'green') == 'rose')>Rose (Elegant)</option>
-                                        <option value="dark" @selected(($setting->mobile_theme_scheme ?? 'green') == 'dark')>Dark (Night)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <small class="text-muted">
-                            Warna ini akan mengubah tampilan Sidebar, Tombol Primary, dan elemen utama lainnya.
-                        </small>
                     </div>
                 </div>
                 <!-- Presensi -->
@@ -724,8 +684,8 @@
                 text: "Sistem akan mengatur ulang permission folder storage menjadi 775 secara rekursif agar dapat diakses/ditulisi oleh aplikasi.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
+                cancelButtonColor: '#BA1A1A',
                 confirmButtonText: 'Ya, Perbaiki!',
                 cancelButtonText: 'Batal'
             }).then((result) => {

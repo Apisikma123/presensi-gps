@@ -37,25 +37,26 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 8px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 600;
+            padding: 2.5px 7px;
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
         .status-pending {
-            background-color: #FEF3C7;
-            color: #D97706;
+            background-color: #FFFBEB;
+            color: #B45309;
             border: 1px solid #FDE68A;
         }
         .status-approved {
-            background-color: #D1FAE5;
-            color: #059669;
-            border: 1px solid #A7F3D0;
+            background-color: #F0FDF4;
+            color: #15803D;
+            border: 1px solid #BBF7D0;
         }
         .status-rejected {
-            background-color: #FEE2E2;
-            color: #DC2626;
-            border: 1px solid #FECACA;
+            background-color: #FEF2F2;
+            color: #B91C1C;
+            border: 1px solid #FECDD3;
         }
     </style>
 @endpush
@@ -65,7 +66,7 @@
         {{-- Banner Info --}}
         <div class="bg-white rounded-2xl p-4 mb-4 border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(30, 77, 62, 0.1); color: #1E4D3E;">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(60, 42, 33, 0.1); color: #3C2A21;">
                     <ion-icon name="time-outline" class="text-2xl"></ion-icon>
                 </div>
                 <div>
@@ -75,7 +76,7 @@
             </div>
             <a href="{{ route('dispensasi.create') }}"
                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-[12px] font-bold shadow-xs active:scale-95 transition-transform"
-               style="background: #1E4D3E;">
+               style="background: #3C2A21;">
                 <ion-icon name="add-outline" class="text-base"></ion-icon>
                 <span>Ajukan</span>
             </a>
@@ -123,10 +124,10 @@
                     <div class="flex items-center justify-between text-[11px] text-slate-400">
                         <span>Diajukan: {{ \Carbon\Carbon::parse($d->created_at)->diffForHumans() }}</span>
                         @if ($d->status === 'PENDING')
-                            <form action="{{ route('dispensasi.destroy', $d->id) }}" method="POST" onsubmit="return confirm('Batalkan pengajuan dispensasi ini?');" class="inline">
+                            <form action="{{ route('dispensasi.destroy', $d->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-rose-600 hover:text-rose-700 font-semibold text-[11px] flex items-center gap-1">
+                                <button type="submit" class="delete-confirm text-rose-600 hover:text-rose-700 font-semibold text-[11px] flex items-center gap-1" data-label="Pengajuan Dispensasi">
                                     <ion-icon name="trash-outline"></ion-icon>
                                     <span>Batalkan</span>
                                 </button>
@@ -136,14 +137,14 @@
                 </div>
             @empty
                 <div class="bg-white rounded-2xl p-8 text-center border border-slate-100 shadow-xs mt-4">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style="background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);">
                         <ion-icon name="calendar-outline" class="text-3xl"></ion-icon>
                     </div>
                     <h4 class="text-[14px] font-bold text-slate-800 mb-1">Belum Ada Pengajuan</h4>
                     <p class="text-[12px] text-slate-500 mb-4 max-w-xs mx-auto">Anda belum pernah mengajukan dispensasi keterlambatan presensi.</p>
                     <a href="{{ route('dispensasi.create') }}"
                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-[13px] font-bold shadow-xs active:scale-95 transition-transform"
-                       style="background: #1E4D3E;">
+                       style="background: #3C2A21;">
                         <ion-icon name="add-outline" class="text-lg"></ion-icon>
                         <span>Ajukan Dispensasi Sekarang</span>
                     </a>

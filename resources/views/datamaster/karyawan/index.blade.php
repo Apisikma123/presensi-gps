@@ -74,7 +74,7 @@
     }
 
     .page-slider-range {
-        accent-color: #1E4D3E;
+        accent-color: var(--color-primary);
         cursor: pointer;
         height: 5px;
         width: 120px;
@@ -84,7 +84,7 @@
         font-family: 'JetBrains Mono', monospace;
         font-size: 11px;
         font-weight: 700;
-        color: #1E4D3E;
+        color: var(--color-primary);
         background: #ECFDF5;
         border: 1px solid #A7F3D0;
         padding: 2px 8px;
@@ -141,8 +141,8 @@
     }
 
     .dropdown-menu-karyawan .dropdown-item:hover {
-        background-color: #F8FAF8;
-        color: #1E4D3E;
+        background-color: #FAF9F8;
+        color: var(--color-primary);
     }
 
     .dropdown-menu-karyawan .dropdown-item.text-danger:hover {
@@ -170,44 +170,22 @@
         border-top-color: #F1F5F9;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #1E4D3E !important;
-        box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.12) !important;
-    }
     .input-group .form-control:focus {
         box-shadow: none !important;
         border-left: 0 !important;
     }
 
-    .btn-primary {
-        background-color: #1E4D3E !important;
-        border-color: #1E4D3E !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
-        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    .btn-primary:hover {
-        background-color: #163A2F !important;
-        border-color: #163A2F !important;
-        transform: translateY(-1px);
-    }
-
-    .btn-primary:active {
-        transform: scale(0.98);
-    }
-
     .btn-outline-success {
-        border-color: #10B981 !important;
-        color: #047857 !important;
+        border-color: #4A6741 !important;
+        color: #4A6741 !important;
         background-color: #FFFFFF !important;
         transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     .btn-outline-success:hover {
-        background-color: #ECFDF5 !important;
-        border-color: #059669 !important;
-        color: #047857 !important;
+        background-color: rgba(74, 103, 65, 0.08) !important;
+        border-color: #4A6741 !important;
+        color: #4A6741 !important;
         transform: translateY(-1px);
     }
 
@@ -227,6 +205,11 @@
 </style>
 @endpush
 
+@section('navigasi')
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Data Karyawan</li>
+@endsection
+
 @section('content')
 
 <!-- Standard Page Header -->
@@ -234,7 +217,7 @@
     <div class="header-title-group">
         <h4 class="page-title mb-1 d-flex align-items-center gap-2">
             <span>Data Karyawan</span>
-            <span class="badge" style="background: rgba(30, 77, 62, 0.08); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.15); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+            <span class="badge" style="background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
                 {{ number_format($karyawan->total(), 0, ',', '.') }} Total
             </span>
         </h4>
@@ -371,12 +354,12 @@
                                         style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #E2E8F0;"
                                         onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
                                     <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
-                                        style="display: none; width: 38px; height: 38px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; font-size: 12.5px; border: 1px solid rgba(30, 77, 62, 0.15);">
+                                        style="display: none; width: 38px; height: 38px; background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15));">
                                         {{ $initials }}
                                     </div>
                                 @else
                                     <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                        style="width: 38px; height: 38px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; font-size: 12.5px; border: 1px solid rgba(30, 77, 62, 0.15);">
+                                        style="width: 38px; height: 38px; background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15));">
                                         {{ $initials }}
                                     </div>
                                 @endif
@@ -515,7 +498,7 @@
                 text: "Semua User dengan Role Karyawan akan dihapus!",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: "#1E4D3E",
+                confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
                 cancelButtonColor: "#DC2626",
                 confirmButtonText: "Ya, Hapus Semua!",
                 cancelButtonText: "Batal"

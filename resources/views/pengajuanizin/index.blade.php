@@ -43,8 +43,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(30, 77, 62, 0.08);
-            color: #1E4D3E;
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+            color: var(--color-primary);
             font-size: 18px;
             flex-shrink: 0;
         }
@@ -56,10 +56,10 @@
             font-weight: 700;
             padding: 6px 12px;
             border-radius: 10px;
-            background: #1E4D3E;
-            color: #ffffff !important;
+            background: var(--theme-color-1);
+            color: var(--theme-primary-contrast, #ffffff) !important;
             text-decoration: none !important;
-            box-shadow: 0 2px 6px rgba(30, 77, 62, 0.2);
+            box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb), 0.2);
             transition: all 0.15s ease;
         }
         .bento-btn-ajukan:active {
@@ -135,7 +135,7 @@
         }
         .bento-progress-fill {
             height: 100%;
-            background: #1E4D3E;
+            background: var(--theme-color-1);
             border-radius: 9999px;
             transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -150,8 +150,6 @@
             justify-content: center;
             padding: 16px;
             background: rgba(15, 23, 42, 0.45) !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
@@ -223,14 +221,14 @@
             gap: 6px !important;
             padding: 8px 16px !important;
             border-radius: 12px !important;
-            background: var(--color-nav, #1E4D3E) !important;
+            background: var(--color-nav, #3C2A21) !important;
             color: #ffffff !important;
             font-size: 12px !important;
             font-weight: 600 !important;
-            border: 1px solid var(--color-nav, #1E4D3E) !important;
+            border: 1px solid var(--color-nav, #3C2A21) !important;
             cursor: pointer !important;
             transition: all 0.15s ease !important;
-            box-shadow: 0 2px 6px rgba(30, 77, 62, 0.15) !important;
+            box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb), 0.15) !important;
             outline: none !important;
         }
         .btn-tactile-edit:hover {
@@ -310,10 +308,10 @@
             transform: scale(0.92);
         }
         .pagination-btn-active {
-            background: #1E4D3E !important;
-            color: #ffffff !important;
+            background: var(--theme-color-1) !important;
+            color: var(--theme-primary-contrast, #ffffff) !important;
             font-weight: 700 !important;
-            box-shadow: 0 2px 8px rgba(30, 77, 62, 0.25) !important;
+            box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), 0.25) !important;
         }
         .pagination-btn-disabled {
             color: #cbd5e1 !important;
@@ -359,7 +357,7 @@
             <div class="bento-cuti-col">
                 <span class="bento-label-micro">Sisa Cuti</span>
                 <div style="display:flex; align-items:baseline; gap:2px;">
-                    <span class="bento-digit" style="font-size:24px; color:#1E4D3E;">{{ $infoCuti['sisa'] }}</span>
+                    <span class="bento-digit" style="font-size:24px; color:var(--theme-color-1);">{{ $infoCuti['sisa'] }}</span>
                     <span style="font-size:10px; font-weight:600; color:#64748B;">Hr</span>
                 </div>
                 <span class="bento-tag-status" style="background:#D1FAE5; color:#065F46;">Tersedia</span>
@@ -653,7 +651,7 @@
             {{-- Main Toggle Button (Squircle 12px) --}}
             <button id="fab-main"
                 class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md active:scale-90 transition-all duration-200"
-                style="background: {{ $t['primary'] ?? '#1E4D3E' }};">
+                style="background: {{ $t['primary'] ?? '#3C2A21' }};">
                 <ion-icon name="add-outline" id="fab-icon" class="text-2xl transition-transform duration-200"></ion-icon>
             </button>
         </div>
@@ -939,7 +937,7 @@
                     text: 'Pengajuan yang masih pending akan dibatalkan, dan form baru akan langsung dibuka.',
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '{{ $t['primary'] ?? '#1E4D3E' }}',
+                    confirmButtonColor: '{{ $t['primary'] ?? '#3C2A21' }}',
                     cancelButtonColor: '#64748b',
                     confirmButtonText: 'Ya, Lanjutkan',
                     cancelButtonText: 'Batal',

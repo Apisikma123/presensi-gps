@@ -10,7 +10,7 @@
 // JS global variables
 let config = {
   colors: {
-    primary: '#1E4D3E',
+    primary: '#3C2A21',
     secondary: '#a8aaae',
     success: '#28c76f',
     info: '#00cfe8',
@@ -27,7 +27,7 @@ let config = {
     borderColor: '#dbdade'
   },
   colors_label: {
-    primary: '#1e4d3e29',
+    primary: '#3c2a2129',
     secondary: '#a8aaae29',
     success: '#28c76f29',
     info: '#00cfe829',

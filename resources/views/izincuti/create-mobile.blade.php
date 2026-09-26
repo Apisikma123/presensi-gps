@@ -160,8 +160,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(30, 77, 62, 0.08);
-            color: #1E4D3E;
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);
             font-size: 18px;
             flex-shrink: 0;
         }
@@ -173,9 +172,7 @@
             letter-spacing: 0.05em;
             padding: 4px 8px;
             border-radius: 6px;
-            background: rgba(30, 77, 62, 0.08);
-            color: #1E4D3E;
-            border: 1px solid rgba(30, 77, 62, 0.15);
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15));
             max-width: 140px;
             white-space: nowrap;
             overflow: hidden;
@@ -261,7 +258,7 @@
 
         .bento-progress-fill {
             height: 100%;
-            background: #1E4D3E;
+            background: #3C2A21;
             border-radius: 9999px;
             transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -307,7 +304,7 @@
                 <div class="bento-cuti-col">
                     <span class="bento-label-micro">Sisa Cuti</span>
                     <div style="display:flex; align-items:baseline; gap:2px;">
-                        <span id="val-sisa-cuti" class="bento-digit" style="font-size:24px; color:#1E4D3E;">{{ $infoCuti['sisa'] }}</span>
+                        <span id="val-sisa-cuti" class="bento-digit" style="font-size:24px; color:#3C2A21;">{{ $infoCuti['sisa'] }}</span>
                         <span style="font-size:10px; font-weight:600; color:#64748B;">Hr</span>
                     </div>
                     <span class="bento-tag-status" style="background:#D1FAE5; color:#065F46;">Tersedia</span>
@@ -370,7 +367,7 @@
             </div>
             
             {{-- Info Sisa Cuti Alert Banner --}}
-            <div id="info-sisa-cuti" class="mb-3 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2" style="background: rgba(30, 77, 62, 0.08); border: 1px solid rgba(30, 77, 62, 0.15); color: #1E4D3E;">
+            <div id="info-sisa-cuti" class="mb-3 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2" style="background: rgba(60, 42, 33, 0.08); border: 1px solid rgba(60, 42, 33, 0.15); color: #3C2A21;">
                 <ion-icon name="information-circle-outline" class="text-base shrink-0"></ion-icon>
                 <span id="label-sisa-cuti">Sisa {{ $infoCuti['jenis_cuti_nama'] }} Anda adalah {{ $infoCuti['sisa'] }} Hari</span>
             </div>
@@ -647,7 +644,7 @@
                         title: 'Oops!',
                         text: error.message,
                         icon: 'error',
-                        confirmButtonColor: '{{ $t['primary'] ?? '#1E4D3E' }}'
+                        confirmButtonColor: '{{ $t['primary'] ?? '#3C2A21' }}'
                     });
                 });
             });

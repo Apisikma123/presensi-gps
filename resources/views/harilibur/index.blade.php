@@ -1,21 +1,69 @@
 @extends('layouts.app')
 @section('titlepage', 'Hari Libur & Tanggal Merah')
 
-@section('content')
+@push('mystyle')
+<style>
+    /* Table Animations & Clean Design (Harmonized with Karyawan Page) */
+    .table-karyawan-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #E2E8F0;
+        background: #FFFFFF !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .table-karyawan thead th {
+        background: #F8FAFC;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 12px 16px;
+        border-bottom: 1px solid #E2E8F0;
+        white-space: nowrap;
+    }
+    .table-karyawan tbody tr {
+        transition: all 0.15s ease;
+        background: #FFFFFF !important;
+    }
+    .table-karyawan tbody tr:hover {
+        background-color: #F8FAFC !important;
+    }
+    .table-karyawan tbody td {
+        padding: 12px 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+        font-size: 13px;
+        background: #FFFFFF;
+    }
+    .table-karyawan tbody tr:hover td {
+        background-color: #F8FAFC !important;
+    }
+</style>
+@endpush
+
 @section('navigasi')
-    <span>Hari Libur & Tanggal Merah</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Hari Libur</li>
 @endsection
+
+@section('content')
 
 <!-- Page Header -->
 <div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-    <div>
-        <h4 class="page-title mb-1">Hari Libur & Tanggal Merah</h4>
+    <div class="header-title-group">
+        <h4 class="page-title mb-1 d-flex align-items-center gap-2">
+            <span>Hari Libur & Tanggal Merah</span>
+            <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+                {{ number_format($harilibur->total()) }} Total
+            </span>
+        </h4>
         <p class="page-subtitle text-muted mb-0">Manajemen hari libur nasional, cuti bersama, dan hari operasional khusus outlet cabang.</p>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="header-action-group d-flex align-items-center gap-2 flex-wrap">
         @can('harilibur.create')
-            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate">
-                <i class="ti ti-plus"></i>
+            <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btnCreate" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+                <i class="ti ti-plus" style="font-size: 16px;"></i>
                 <span>Tambah Hari Libur</span>
             </a>
         @endcan
@@ -66,9 +114,9 @@
 </div>
 
 <!-- Table Card -->
-<div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+<div class="table-karyawan-wrapper mb-3 w-100 max-w-full">
+    <div class="table-responsive w-100 max-w-full" style="overflow-x: auto;">
+        <table class="table table-hover table-karyawan align-middle w-100 mb-0">
             <thead>
                 <tr>
                     <th style="width: 50px;" class="text-center">NO</th>
@@ -93,7 +141,7 @@
                         <td>
                             <div class="d-flex align-items-center gap-2.5">
                                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                                    style="width: 34px; height: 34px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                                    style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);">
                                     <i class="ti ti-calendar-event fs-5"></i>
                                 </div>
                                 <div>
@@ -104,7 +152,7 @@
                         </td>
                         <td>
                             @if ($d->kode_cabang === 'ALL')
-                                <span class="badge font-mono" style="background: rgba(30, 77, 62, 0.1); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.2); font-size: 11px;">
+                                <span class="badge font-mono" style="background: rgba(60, 42, 33, 0.1); color: #3C2A21; border: 1px solid rgba(60, 42, 33, 0.2); font-size: 11px;">
                                     <i class="ti ti-world me-1"></i> SEMUA CABANG (NASIONAL)
                                 </span>
                             @else

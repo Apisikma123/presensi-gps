@@ -30,7 +30,8 @@
     }
 
     .appBottomMenu .item {
-        width: 20%;
+        flex: 1 1 0% !important;
+        max-width: 96px !important;
         height: 56px;
         display: flex;
         align-items: center;
@@ -71,7 +72,7 @@
     /* Active State */
     .appBottomMenu .item.active ion-icon, 
     .appBottomMenu .item.active strong {
-        color: {{ $t['primary'] ?? '#2d5a4c' }} !important;
+        color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}) !important;
         font-weight: 700 !important;
     }
 
@@ -86,14 +87,14 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: {{ $t['primary'] ?? '#2d5a4c' }} !important;
-        box-shadow: 0 4px 12px {{ ($t['primary'] ?? '#2d5a4c') }}4d !important;
+        background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}) !important;
+        box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 60, 42, 33), 0.3) !important;
         position: relative !important;
         top: -10px !important;
         transition: transform 0.1s ease-in-out, box-shadow 0.2s !important;
     }
     .appBottomMenu .item .action-button.large ion-icon {
-        color: #ffffff !important;
+        color: var(--theme-primary-contrast, #ffffff) !important;
         font-size: 32px !important;
         margin-bottom: 0 !important;
     }
@@ -114,26 +115,49 @@
             <strong>Home</strong>
         </div>
     </a>
-    <a href="{{ route('presensi.histori') }}" class="item {{ request()->is('presensi/histori') ? 'active' : '' }}">
-        <div class="col">
-            <ion-icon name="document-text-outline" role="img" class="md hydrated" aria-label="document text outline"></ion-icon>
-            <strong>Histori</strong>
-        </div>
-    </a>
 
-    <a href="/presensi/create" class="item ">
-        <div class="col">
-            <div class="action-button large">
-                <ion-icon name="finger-print-outline"></ion-icon>
+    @if(module_enabled('attendance'))
+        <a href="{{ route('presensi.histori') }}" class="item {{ request()->is('presensi/histori') ? 'active' : '' }}">
+            <div class="col">
+                <ion-icon name="document-text-outline" role="img" class="md hydrated" aria-label="document text outline"></ion-icon>
+                <strong>Histori</strong>
             </div>
-        </div>
-    </a>
-    <a href="{{ route('pengajuanizin.index') }}" class="item {{ request()->is('pengajuanizin') ? 'active' : '' }}">
-        <div class="col">
-            <ion-icon name="calendar-outline"></ion-icon>
-            <strong>Ajuan Izin</strong>
-        </div>
-    </a>
+        </a>
+
+        <a href="/presensi/create" class="item ">
+            <div class="col">
+                <div class="action-button large">
+                    <ion-icon name="finger-print-outline"></ion-icon>
+                </div>
+            </div>
+        </a>
+    @endif
+
+    @if(module_enabled('leave'))
+        <a href="{{ route('pengajuanizin.index') }}" class="item {{ request()->is('pengajuanizin') ? 'active' : '' }}">
+            <div class="col">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <strong>Izin/Cuti</strong>
+            </div>
+        </a>
+    @endif
+
+    @if(!module_enabled('attendance') && module_enabled('payroll') && Route::has('payslip.my_payslips'))
+        <a href="{{ route('payslip.my_payslips') }}" class="item {{ request()->is('my-payslips') ? 'active' : '' }}">
+            <div class="col">
+                <ion-icon name="cash-outline"></ion-icon>
+                <strong>Slip Gaji</strong>
+            </div>
+        </a>
+    @elseif(!module_enabled('attendance') && Route::has('shortcut.index'))
+        <a href="{{ route('shortcut.index') }}" class="item {{ request()->is('shortcut') ? 'active' : '' }}">
+            <div class="col">
+                <ion-icon name="grid-outline"></ion-icon>
+                <strong>Menu</strong>
+            </div>
+        </a>
+    @endif
+
     <a href="{{ route('profile.index') }}"
         class="item {{ request()->is(['profile', 'profile/*']) ? 'active' : '' }}">
         <div class="col">

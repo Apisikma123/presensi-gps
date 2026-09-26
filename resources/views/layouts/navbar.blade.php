@@ -11,192 +11,7 @@
     </div>
 
     @php
-        $searchFeatures = [
-            [
-                'name' => 'Dashboard',
-                'url' => route('dashboard.index'),
-                'icon' => 'ti-home',
-                'category' => 'Utama',
-                'desc' => 'Ringkasan presensi & analitik operasional',
-                'keywords' => 'dashboard beranda home utama monitoring ringkasan statistik analitik'
-            ],
-        ];
-
-        if (auth()->user()->can('karyawan.index')) {
-            $searchFeatures[] = [
-                'name' => 'Karyawan & Wajah',
-                'url' => route('karyawan.index'),
-                'icon' => 'ti-users',
-                'category' => 'Data Master',
-                'desc' => 'Master data karyawan & pendaftaran biometric wajah AI',
-                'keywords' => 'karyawan pegawai staff biometric wajah face data nik biodata'
-            ];
-        }
-
-        if (auth()->user()->can('jamkerja.index')) {
-            $searchFeatures[] = [
-                'name' => 'Shift Kerja (Pagi & Siang)',
-                'url' => route('jamkerja.index'),
-                'icon' => 'ti-clock',
-                'category' => 'Data Master',
-                'desc' => 'Atur jadwal shift kerja (pagi/siang/malam)',
-                'keywords' => 'shift jam kerja jadwal roster pagi siang malam jam masuk jam pulang'
-            ];
-        }
-
-        if (auth()->user()->can('cabang.index')) {
-            $searchFeatures[] = [
-                'name' => 'Outlet / Cabang',
-                'url' => route('cabang.index'),
-                'icon' => 'ti-coffee',
-                'category' => 'Data Master',
-                'desc' => 'Master data outlet & radius GPS presensi',
-                'keywords' => 'cabang outlet toko store coffee shop lokasi branch radius koordinat'
-            ];
-        }
-
-        if (auth()->user()->can('departemen.index')) {
-            $searchFeatures[] = [
-                'name' => 'Departemen',
-                'url' => route('departemen.index'),
-                'icon' => 'ti-building',
-                'category' => 'Data Master',
-                'desc' => 'Manajemen divisi & struktur departemen',
-                'keywords' => 'departemen divisi bagian section unit department divisi kerja'
-            ];
-        }
-
-        if (auth()->user()->can('jabatan.index')) {
-            $searchFeatures[] = [
-                'name' => 'Jabatan / Posisi',
-                'url' => route('jabatan.index'),
-                'icon' => 'ti-id',
-                'category' => 'Data Master',
-                'desc' => 'Struktur tingkatan posisi & jabatan',
-                'keywords' => 'jabatan posisi role pangkat title occupation hierarki'
-            ];
-        }
-
-        if (auth()->user()->can('cuti.index')) {
-            $searchFeatures[] = [
-                'name' => 'Jenis Cuti',
-                'url' => route('cuti.index'),
-                'icon' => 'ti-calendar-off',
-                'category' => 'Data Master',
-                'desc' => 'Master kategori cuti & kuota tahunan',
-                'keywords' => 'jenis cuti tahunan libur kuota annual leave aturan hak cuti'
-            ];
-        }
-
-        if (auth()->user()->can('presensi.index')) {
-            $searchFeatures[] = [
-                'name' => 'Monitoring Presensi',
-                'url' => route('presensi.index'),
-                'icon' => 'ti-map-pin-check',
-                'category' => 'Kehadiran & Absensi',
-                'desc' => 'Pantau absensi harian & foto presensi realtime',
-                'keywords' => 'monitoring presensi absensi absen hari ini kehadiran checkin checkout foto'
-            ];
-        }
-
-        if (auth()->user()->can('trackingpresensi.index')) {
-            $searchFeatures[] = [
-                'name' => 'Live Tracking GPS',
-                'url' => route('trackingpresensi.index'),
-                'icon' => 'ti-radar',
-                'category' => 'Kehadiran & Absensi',
-                'desc' => 'Pelacakan koordinat GPS & riwayat rute presensi',
-                'keywords' => 'live tracking gps peta maps lokasi lacak rute real-time koordinat'
-            ];
-        }
-
-        $searchFeatures[] = [
-            'name' => 'Dispensasi Terlambat',
-            'url' => route('dispensasi.index'),
-            'icon' => 'ti-clock-edit',
-            'category' => 'Kehadiran & Absensi',
-            'desc' => 'Kompensasi & batas toleransi keterlambatan',
-            'keywords' => 'dispensasi terlambat telat late kompensasi waktu batas toleransi'
-        ];
-
-        if (auth()->user()->hasAnyPermission(['izinabsen.index', 'izinsakit.index', 'izincuti.index'])) {
-            $searchFeatures[] = [
-                'name' => 'Persetujuan Izin',
-                'url' => route('izinabsen.index'),
-                'icon' => 'ti-calendar-event',
-                'category' => 'Persetujuan',
-                'desc' => 'Persetujuan permohonan izin absen biasa',
-                'keywords' => 'persetujuan izin absen permohonan dispensasi approval verifikasi'
-            ];
-            $searchFeatures[] = [
-                'name' => 'Persetujuan Izin Sakit',
-                'url' => route('izinsakit.index'),
-                'icon' => 'ti-file-certificate',
-                'category' => 'Persetujuan',
-                'desc' => 'Verifikasi izin sakit & surat dokter',
-                'keywords' => 'persetujuan izin sakit dokter bukti surat sakit verifikasi medis'
-            ];
-            $searchFeatures[] = [
-                'name' => 'Persetujuan Cuti Karyawan',
-                'url' => route('izincuti.index'),
-                'icon' => 'ti-calendar-time',
-                'category' => 'Persetujuan',
-                'desc' => 'Konfirmasi & verifikasi pengajuan cuti',
-                'keywords' => 'persetujuan cuti tahunan izin cuti verifikasi sisa kuota'
-            ];
-        }
-
-        if (auth()->user()->can('laporan.presensi')) {
-            $searchFeatures[] = [
-                'name' => 'Laporan Presensi (Excel)',
-                'url' => route('laporan.presensi'),
-                'icon' => 'ti-file-analytics',
-                'category' => 'Rekap & Laporan',
-                'desc' => 'Cetak & unduh format rekap absensi kehadiran',
-                'keywords' => 'laporan presensi excel rekap cetak download unduh format absensi'
-            ];
-        }
-
-        if (auth()->user()->can('laporan.cuti')) {
-            $searchFeatures[] = [
-                'name' => 'Rekap Cuti Karyawan',
-                'url' => route('laporan.cuti'),
-                'icon' => 'ti-file-report',
-                'category' => 'Rekap & Laporan',
-                'desc' => 'Rekap penggunaan saldo & sisa cuti karyawan',
-                'keywords' => 'rekap cuti sisa saldo laporan periode karyawan'
-            ];
-        }
-
-        if (auth()->user()->hasRole('super admin')) {
-            if (auth()->user()->can('generalsetting.index')) {
-                $searchFeatures[] = [
-                    'name' => 'Pengaturan Umum & GPS',
-                    'url' => route('generalsetting.index'),
-                    'icon' => 'ti-settings',
-                    'category' => 'Pengaturan Sistem',
-                    'desc' => 'Konfigurasi sistem, radius GPS outlet, & jam toleransi',
-                    'keywords' => 'pengaturan umum gps setting radius lokasi outlet konfigurasi aplikasi'
-                ];
-            }
-            $searchFeatures[] = [
-                'name' => 'Manajemen Akun User',
-                'url' => route('users.index'),
-                'icon' => 'ti-user-cog',
-                'category' => 'Pengaturan Sistem',
-                'desc' => 'Kelola akun login admin, hak akses, & role',
-                'keywords' => 'manajemen akun user data pengguna admin akses password role'
-            ];
-        }
-
-        $searchFeatures[] = [
-            'name' => 'Pengaturan Profil Saya',
-            'url' => route('profile.editprofile'),
-            'icon' => 'ti-user-check',
-            'category' => 'Akun Saya',
-            'desc' => 'Ubah data profil akun, email, & ganti kata sandi',
-            'keywords' => 'profil ubah ganti password kata sandi akun saya user update'
-        ];
+        $searchFeatures = \App\Services\NavigationService::getSearchableFeatures();
     @endphp
 
     <!-- Topbar Center/Left: Global Feature Search -->
@@ -225,7 +40,7 @@
                     style="display: none; position: absolute; top: calc(100% + 8px); left: 0; width: 100%; min-width: 320px; max-width: 480px; max-height: 400px; overflow-y: auto; background: #FFFFFF; border: 1px solid rgba(15,23,42,0.1); border-radius: 14px; z-index: 1090;">
                     
                     <!-- Search Header / Query Info -->
-                    <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" style="background: #F8FAF8;">
+                    <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" style="background: #FAF9F8;">
                         <span class="text-muted font-mono" style="font-size: 11px;"><i class="ti ti-layout-grid me-1"></i>Fitur & Menu Sistem</span>
                         <span class="badge rounded-pill bg-label-primary font-mono" style="font-size: 10px;" id="navbarSearchCount">{{ count($searchFeatures) }} Menu</span>
                     </div>
@@ -237,7 +52,7 @@
                                 data-name="{{ strtolower($f['name']) }}"
                                 data-keywords="{{ strtolower($f['keywords']) }}"
                                 data-category="{{ strtolower($f['category']) }}">
-                                <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 32px; height: 32px; background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #1E4D3E);">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 32px; height: 32px; background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #3C2A21);">
                                     <i class="ti {{ $f['icon'] }}" style="font-size: 16px;"></i>
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
@@ -267,19 +82,20 @@
         <ul class="navbar-nav flex-row align-items-center ms-auto gap-1 gap-sm-2 m-0 p-0" style="flex-shrink: 0;">
 
             <!-- Global Help Button -->
-            @if(auth()->check() && !auth()->user()->hasRole('karyawan') && (auth()->user()->hasAnyRole(['admin', 'super admin', 'gm administrasi', 'admin pusat']) || auth()->user()->can('dashboard.index')))
+            @if(auth()->check() && (auth()->user()->hasAnyRole(['admin', 'super admin', 'gm administrasi', 'admin pusat']) || auth()->user()->can('dashboard.index')))
             <li class="nav-item d-flex align-items-center justify-content-center">
                 <button type="button" class="btn btn-help-navbar d-flex align-items-center justify-content-center gap-1.5 m-0"
                     data-bs-toggle="offcanvas" data-bs-target="#offcanvasHelp" aria-controls="offcanvasHelp"
                     title="Bantuan halaman ini" aria-label="Bantuan Halaman Ini"
                     style="background: #F8FAFC; border: 1px solid #E2E8F0; height: 38px; border-radius: 10px; transition: all 0.2s ease; padding: 0 12px;">
-                    <i class="ti ti-help-circle" style="font-size: 18px; color: var(--theme-color-1, #1E4D3E);"></i>
+                    <i class="ti ti-help-circle" style="font-size: 18px; color: var(--theme-color-1, #3C2A21);"></i>
                     <span class="navbar-btn-label d-none d-md-inline fw-semibold" style="font-size: 12.5px; color: #1E293B; letter-spacing: -0.01em;">Bantuan</span>
                 </button>
             </li>
             @endif
 
             <!-- Notification Dropdown -->
+            @if(module_enabled('leave'))
             @php
                 $total_notif = ($notifikasi_ajuan_absen ?? 0);
             @endphp
@@ -352,14 +168,15 @@
                             @endif
                         </ul>
                     </li>
-                    <li class="dropdown-menu-footer border-top" style="background: #F8FAF8; border-color: #E2E8F0 !important;">
+                    <li class="dropdown-menu-footer border-top" style="background: #FAF9F8; border-color: #E2E8F0 !important;">
                         <a href="{{ route('izinabsen.index') }}"
-                            class="dropdown-item d-flex justify-content-center p-2.5 h-px-40 align-items-center fw-semibold text-decoration-none" style="font-size: 12.5px; color: var(--theme-color-1, #1E4D3E) !important;">
+                            class="dropdown-item d-flex justify-content-center p-2.5 h-px-40 align-items-center fw-semibold text-decoration-none" style="font-size: 12.5px; color: var(--theme-color-1, #3C2A21) !important;">
                             Buka Halaman Persetujuan <i class="ti ti-arrow-right ms-1"></i>
                         </a>
                     </li>
                 </ul>
             </li>
+            @endif
             <!--/ Notification -->
         </ul>
     </div>
@@ -386,13 +203,13 @@
         max-width: none !important;
     }
     .navbar-search-wrapper .input-group:focus-within {
-        border-color: var(--theme-color-1, #1E4D3E) !important;
+        border-color: var(--theme-color-1, #3C2A21) !important;
         box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb), 0.15) !important;
         border-radius: 10px;
     }
     .navbar-search-wrapper .input-group:focus-within .input-group-text,
     .navbar-search-wrapper .input-group:focus-within input {
-        border-color: var(--theme-color-1, #1E4D3E) !important;
+        border-color: var(--theme-color-1, #3C2A21) !important;
     }
     #navbarSearchClear,
     #navbarSearchClear:hover,
@@ -419,10 +236,10 @@
     }
     .navbar-search-item:hover, .navbar-search-item.active-item {
         background: #F1F5F9;
-        color: var(--theme-color-1, #1E4D3E);
+        color: var(--theme-color-1, #3C2A21);
     }
     .navbar-search-item:hover .item-title, .navbar-search-item.active-item .item-title {
-        color: var(--theme-color-1, #1E4D3E) !important;
+        color: var(--theme-color-1, #3C2A21) !important;
     }
     @media (max-width: 1199.98px) {
         .layout-navbar-fixed #layout-navbar,
@@ -609,7 +426,7 @@
 
             // Render Karyawan Results
             if (data && data.karyawan && data.karyawan.length > 0) {
-                html += '<div class="px-3 py-1.5 border-top border-bottom text-muted font-mono" style="font-size: 10.5px; background: #F8FAF8;"><i class="ti ti-users me-1"></i>Data Karyawan</div>';
+                html += '<div class="px-3 py-1.5 border-top border-bottom text-muted font-mono" style="font-size: 10.5px; background: #FAF9F8;"><i class="ti ti-users me-1"></i>Data Karyawan</div>';
                 data.karyawan.forEach(k => {
                     html += `<a href="${escapeHtml(k.url)}" class="navbar-search-item" data-name="${escapeHtml(k.nama.toLowerCase())}" data-keywords="${escapeHtml(k.nik.toLowerCase())}" data-category="karyawan">
                         <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 30px; height: 30px; background: #E0F2FE; color: #0284C7;">
@@ -629,7 +446,7 @@
 
             // Render Presensi Results
             if (data && data.presensi && data.presensi.length > 0) {
-                html += '<div class="px-3 py-1.5 border-top border-bottom text-muted font-mono" style="font-size: 10.5px; background: #F8FAF8;"><i class="ti ti-calendar-check me-1"></i>Monitoring Presensi</div>';
+                html += '<div class="px-3 py-1.5 border-top border-bottom text-muted font-mono" style="font-size: 10.5px; background: #FAF9F8;"><i class="ti ti-calendar-check me-1"></i>Monitoring Presensi</div>';
                 data.presensi.forEach(p => {
                     html += `<a href="${escapeHtml(p.url)}" class="navbar-search-item" data-name="${escapeHtml(p.nama.toLowerCase())}" data-keywords="${escapeHtml(p.tanggal.toLowerCase())}" data-category="presensi">
                         <div class="d-flex align-items-center justify-content-center rounded-circle me-2.5 flex-shrink-0" style="width: 30px; height: 30px; background: #FEF3C7; color: #D97706;">

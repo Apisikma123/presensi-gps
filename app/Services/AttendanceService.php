@@ -412,6 +412,49 @@ class AttendanceService
     }
 
     /**
+     * Resolve effective late threshold (Batas Toleransi Keterlambatan)
+     * 
+     * Policy OVERRIDES Shift Tolerance:
+     * - Base: shift.jam_masuk (e.g. 08:00:00)
+     * - Shift Tolerance: shift.batas_toleransi (e.g. 08:05:00 = 5 minutes from start)
+     * - Policy Tolerance: attendance_policy.allow_late_tolerance_minutes (e.g. 10 minutes = 08:10:00)
+     * 
+     * Semantics:
+     * - Policy tolerance OVERRIDES shift tolerance whenever configured (> 0) and greater:
+     *   max(shift.batas_toleransi, shift.jam_masuk + policy.allow_late_tolerance_minutes)
+     * - Never double-adds (no shift tolerance + policy tolerance).
+     * 
+     * Example:
+     * Shift start: 08:00
+     * Shift tolerance: 5 min (08:05)
+     * Policy tolerance: 10 min (08:10)
+     * => Expected Late Threshold: 08:10:00
+     * 08:04 -> Tepat Waktu (<= 08:10)
+     * 08:05 -> Tepat Waktu (<= 08:10)
+     * 08:06 -> Tepat Waktu (<= 08:10)
+     * 08:10 -> Tepat Waktu (<= 08:10)
+     * 08:11 -> Terlambat (> 08:10)
+     */
+    public static function resolveBatasToleransi($jamKerja, string $tanggal, string $timezone = 'Asia/Jakarta'): Carbon
+    {
+        $jamMasukBase = Carbon::parse($tanggal . ' ' . ($jamKerja->jam_masuk ?? '08:00:00'), $timezone);
+        $batasToleransi = $jamKerja->batas_toleransi ?? ($jamKerja->jam_masuk ?? '08:00:00');
+        $toleransiCarbon = Carbon::parse($tanggal . ' ' . $batasToleransi, $timezone);
+
+        try {
+            $activePolicy = \App\Models\AttendancePolicy::getActivePolicy();
+            if ($activePolicy && isset($activePolicy->allow_late_tolerance_minutes) && $activePolicy->allow_late_tolerance_minutes > 0) {
+                // Single Source of Truth: Attendance Policy OVERRIDES shift tolerance
+                return $jamMasukBase->copy()->addMinutes((int)$activePolicy->allow_late_tolerance_minutes);
+            }
+        } catch (\Throwable $e) {
+            // Fail-safe to shift tolerance
+        }
+
+        return $toleransiCarbon;
+    }
+
+    /**
      * Centralized Attendance Status Source of Truth
      */
     public static function evaluateAttendanceStatus(string $nik, string $tanggal, ?string $jamIn, ?Jamkerja $jamKerja = null): array
@@ -455,18 +498,17 @@ class AttendanceService
         }
 
         if (!$jamKerja) {
-            $jamKerja = $schedule['jam_kerja'] ?? Jamkerja::where('kode_jam_kerja', 'JK01')->first() ?? (object)[
-                'jam_masuk' => '07:00:00',
-                'batas_toleransi' => '07:05:00',
-                'toleransi_menit' => 5
+            $jamKerja = $schedule['jam_kerja'] ?? Jamkerja::first() ?? (object)[
+                'jam_masuk' => '08:00:00',
+                'batas_toleransi' => '08:00:00',
+                'toleransi_menit' => 0
             ];
         }
 
         $jamInCarbon = Carbon::parse($jamIn);
-        $batasToleransi = $jamKerja->batas_toleransi ?? '07:05:00';
-        $toleransiCarbon = Carbon::parse($tanggal . ' ' . $batasToleransi);
+        $toleransiCarbon = self::resolveBatasToleransi($jamKerja, $tanggal);
 
-        // Jika jam masuk <= batas toleransi (misal 07:05), maka HADIR
+        // Jika jam masuk <= batas toleransi, maka HADIR
         if ($jamInCarbon->lte($toleransiCarbon)) {
             return [
                 'status' => self::STATUS_HADIR,
@@ -497,7 +539,7 @@ class AttendanceService
         }
 
         $jamMasukCarbon = Carbon::parse($tanggal . ' ' . ($jamKerja->jam_masuk ?? '07:00:00'));
-        $menitTerlambat = $jamInCarbon->diffInMinutes($jamMasukCarbon);
+        $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamInCarbon, false);
 
         return [
             'status' => self::STATUS_TELAT,
@@ -559,7 +601,12 @@ class AttendanceService
         }
 
         // 1. Fail-Fast: Face Recognition AI Verification (<0.03ms pure PHP math, 0 disk I/O)
-        if (($generalsetting->face_recognition ?? 0) == 1) {
+        $activePolicy = \App\Models\AttendancePolicy::getActivePolicy();
+        $isFaceRequired = (($generalsetting->face_recognition ?? 0) == 1)
+            && is_module_enabled('face_recognition', true)
+            && ($activePolicy ? (bool)$activePolicy->require_face_recognition : true);
+
+        if ($isFaceRequired) {
             $verifyError = $this->verifyFaceMatch($karyawan, $data['face_descriptor'] ?? null);
             if ($verifyError !== null) {
                 return $this->attachNewNonce($verifyError);
@@ -648,9 +695,8 @@ class AttendanceService
             ];
         }
 
-        // Tentukan Keterlambatan sesuai Shift Tolerance (misal 07:05) & Dispensasi
-        $batasToleransi = $jamKerja->batas_toleransi ?? '07:05:00';
-        $batasToleransiCarbon = Carbon::parse($tanggalPresensi . ' ' . $batasToleransi, $timezoneCabang);
+        // Tentukan Keterlambatan sesuai Shift Tolerance & Policy Tolerance (Single Source of Truth)
+        $batasToleransiCarbon = self::resolveBatasToleransi($jamKerja, $tanggalPresensi, $timezoneCabang);
         
         $isTerlambat = false;
         $isDispensasi = false;
@@ -672,16 +718,31 @@ class AttendanceService
                     $presensiRecord->update([
                         'is_dispensasi' => 1,
                         'dispensasi_id' => $dispensasiId,
-                        'keterangan' => 'DISPENSASI'
+                        'keterangan' => 'DISPENSASI',
+                        'is_terlambat' => 0,
+                        'menit_terlambat' => 0
                     ]);
                 } else {
                     $isTerlambat = true;
-                    $menitTerlambat = $jamPresensiCarbon->diffInMinutes($jamMasukCarbon);
+                    $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamPresensiCarbon, false);
+                    $presensiRecord->update([
+                        'is_terlambat' => 1,
+                        'menit_terlambat' => $menitTerlambat
+                    ]);
                 }
             } else {
                 $isTerlambat = true;
-                $menitTerlambat = $jamPresensiCarbon->diffInMinutes($jamMasukCarbon);
+                $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamPresensiCarbon, false);
+                $presensiRecord->update([
+                    'is_terlambat' => 1,
+                    'menit_terlambat' => $menitTerlambat
+                ]);
             }
+        } else {
+            $presensiRecord->update([
+                'is_terlambat' => 0,
+                'menit_terlambat' => 0
+            ]);
         }
 
         $statusKehadiran = $isTerlambat ? self::STATUS_TELAT : self::STATUS_HADIR;
@@ -747,7 +808,7 @@ class AttendanceService
             : $jamPulangCarbon;
 
         $isEarlyOut = $jamPresensiCarbon->lt($waktuBolehPulang);
-        $earlyOutMinutes = $isEarlyOut ? (int)$waktuBolehPulang->diffInMinutes($jamPresensiCarbon) : 0;
+        $earlyOutMinutes = $isEarlyOut ? (int)$waktuBolehPulang->diffInMinutes($jamPresensiCarbon, true) : 0;
         $earlyOutReason = $isEarlyOut ? ($data['early_out_reason'] ?? $data['alasan_pulang_cepat'] ?? 'Pulang lebih awal') : null;
 
         // 1. Fail-Fast: Cek presensi masuk hari ini sebelum menulis file ke disk
@@ -772,7 +833,12 @@ class AttendanceService
         }
 
         // 2. Fail-Fast: Face Recognition AI Verification (<0.03ms pure PHP math, 0 disk I/O)
-        if (($generalsetting->face_recognition ?? 0) == 1) {
+        $activePolicy = \App\Models\AttendancePolicy::getActivePolicy();
+        $isFaceRequired = (($generalsetting->face_recognition ?? 0) == 1)
+            && is_module_enabled('face_recognition', true)
+            && ($activePolicy ? (bool)$activePolicy->require_face_recognition : true);
+
+        if ($isFaceRequired) {
             $verifyError = $this->verifyFaceMatch($karyawan, $data['face_descriptor'] ?? null);
             if ($verifyError !== null) {
                 return $this->attachNewNonce($verifyError);
@@ -988,35 +1054,45 @@ class AttendanceService
         }
 
         // 4. Validasi Format GPS & Rentang Geografis
+        $isGpsEnabled = is_module_enabled('gps', true);
         $lokasi = $data['lokasi'] ?? null;
-        if (empty($lokasi) || !str_contains($lokasi, ',')) {
-            return $this->attachNewNonce([
-                'success' => false,
-                'code' => 400,
-                'message' => 'Koordinat lokasi GPS tidak valid atau tidak terbaca.',
-                'notifikasi' => 'notifikasi_gps_invalid'
-            ]);
-        }
 
-        $coords = explode(',', $lokasi);
-        if (count($coords) !== 2 || !is_numeric(trim($coords[0])) || !is_numeric(trim($coords[1]))) {
-            return $this->attachNewNonce([
-                'success' => false,
-                'code' => 400,
-                'message' => 'Format koordinat lokasi GPS tidak valid.',
-                'notifikasi' => 'notifikasi_gps_invalid'
-            ]);
-        }
+        if ($isGpsEnabled) {
+            if (empty($lokasi) || !str_contains($lokasi, ',')) {
+                return $this->attachNewNonce([
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Koordinat lokasi GPS tidak valid atau tidak terbaca.',
+                    'notifikasi' => 'notifikasi_gps_invalid'
+                ]);
+            }
 
-        $lat = (float) trim($coords[0]);
-        $lng = (float) trim($coords[1]);
-        if (!is_finite($lat) || !is_finite($lng) || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180 || (abs($lat) < 0.00001 && abs($lng) < 0.00001)) {
-            return $this->attachNewNonce([
-                'success' => false,
-                'code' => 400,
-                'message' => 'Titik koordinat GPS tidak valid atau berada di luar rentang geografis yang diizinkan (koordinat 0,0 / out-of-range ditolak).',
-                'notifikasi' => 'notifikasi_gps_invalid'
-            ]);
+            $coords = explode(',', $lokasi);
+            if (count($coords) !== 2 || !is_numeric(trim($coords[0])) || !is_numeric(trim($coords[1]))) {
+                return $this->attachNewNonce([
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Format koordinat lokasi GPS tidak valid.',
+                    'notifikasi' => 'notifikasi_gps_invalid'
+                ]);
+            }
+
+            $lat = (float) trim($coords[0]);
+            $lng = (float) trim($coords[1]);
+            if (!is_finite($lat) || !is_finite($lng) || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180 || (abs($lat) < 0.00001 && abs($lng) < 0.00001)) {
+                return $this->attachNewNonce([
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Titik koordinat GPS tidak valid atau berada di luar rentang geografis yang diizinkan (koordinat 0,0 / out-of-range ditolak).',
+                    'notifikasi' => 'notifikasi_gps_invalid'
+                ]);
+            }
+        } else {
+            // When GPS module is disabled, allow fallback or office location coordinates
+            if (empty($lokasi)) {
+                $lokasi = $homeCabang->lokasi_cabang ?? '-6.2088,106.8456';
+                $data['lokasi'] = $lokasi;
+            }
         }
 
         // 5. Anti-Fake GPS & Anomali
@@ -1038,77 +1114,13 @@ class AttendanceService
         $jamSekarang = $carbonNow->format('H:i');
         $tanggalKemarin = $carbonNow->copy()->subDay()->format('Y-m-d');
         $tanggalBesok = $carbonNow->copy()->addDay()->format('Y-m-d');
-
-        // Shift Kerja - Enforce effective schedule hierarchy first
-        $effectiveSchedule = self::getEffectiveSchedule($karyawan->nik, $tanggalSekarang, $karyawan);
-
-        // Phase 3 Backend Guard: Block clock-in if employee is scheduled OFF
-        if ($flowStatus == 1 && $effectiveSchedule['is_off']) {
-            return $this->attachNewNonce([
-                'success' => false,
-                'code' => 400,
-                'message' => 'Hari ini Anda dijadwalkan Libur (OFF). Presensi tidak dapat dilakukan.',
-                'notifikasi' => 'notifikasi_libur',
-                'suara' => 'Hari ini Anda dijadwalkan libur. Tidak dapat melakukan presensi.'
-            ]);
-        }
-
-        // Phase 4 Backend Authority: Expected branch determined by schedule
-        $expectedCabangCode = !empty($effectiveSchedule['kode_cabang']) ? $effectiveSchedule['kode_cabang'] : $karyawan->kode_cabang;
-        $activeCabang = Cabang::getByCode($expectedCabangCode) ?? Cabang::where('kode_cabang', $expectedCabangCode)->first();
-        if (!$activeCabang) {
-            $activeCabang = $homeCabang ?? Cabang::first();
-        }
-
-        // Validasi input cabang user terhadap cabang penugasan resmi
-        $inputLokasiCabang = !empty($data['lokasi_cabang']) ? trim($data['lokasi_cabang']) : null;
-        if ($inputLokasiCabang && $activeCabang && $inputLokasiCabang !== $activeCabang->kode_cabang && $inputLokasiCabang !== $activeCabang->lokasi_cabang) {
-            return $this->attachNewNonce([
-                'success' => false,
-                'code' => 400,
-                'message' => 'Jadwal kerja Anda hari ini berada di ' . ($activeCabang->nama_cabang ?? ('Cabang ' . $activeCabang->kode_cabang)) . '.',
-                'notifikasi' => 'notifikasi_cabang_salah',
-                'suara' => 'Jadwal kerja Anda hari ini tidak berada di cabang ini.'
-            ]);
-        }
-
-        $cabang = $activeCabang;
-        $timezoneCabang = $cabang->timezone ?? $timezoneCabang;
-        $lokasiKantor = $activeCabang ? $activeCabang->lokasi_cabang : null;
-
-        if (empty($lokasiKantor) || !str_contains($lokasiKantor, ',')) {
-            return [
-                'success' => false,
-                'code' => 400,
-                'message' => 'Titik lokasi kantor cabang belum diatur oleh administrator.'
-            ];
-        }
-
-        if (!$effectiveSchedule['is_off'] && !empty($effectiveSchedule['jam_kerja'])) {
-            $jamKerja = $effectiveSchedule['jam_kerja'];
-        } else {
-            if ($karyawan->lock_jam_kerja == 1 && !empty($karyawan->kode_jam_kerja)) {
-                $kodeJamKerja = $karyawan->kode_jam_kerja;
-            } else {
-                $kodeJamKerja = $data['kode_jam_kerja'] ?? $karyawan->kode_jam_kerja ?? 'JK01';
-            }
-            $jamKerja = Jamkerja::getByCode($kodeJamKerja) ?? Jamkerja::where('kode_jam_kerja', 'JK01')->first();
-        }
-
-        if (!$jamKerja) {
-            return [
-                'success' => false,
-                'code' => 400,
-                'message' => 'Jadwal jam kerja tidak valid.'
-            ];
-        }
-
-        // Cek Presensi Kemarin untuk Shift Lintas Hari (HANYA saat absen pulang)
         $tanggalPresensi = $tanggalSekarang;
-        $jamKerjaPulang = $jamKerja->jam_pulang;
-        $tanggalPulang = ($jamKerja->lintashari == 1) ? $tanggalBesok : $tanggalSekarang;
 
+        // P0-1: Clock-Out Snapshot Resolution
+        // When checking out (flowStatus == 2), attendance record from Clock-In is the immutable source of truth
+        $existingClockInAttendance = null;
         if ($flowStatus == 2) {
+            // First check if yesterday's night shift is open for checkout
             $presensiKemarin = Presensi::where('nik', $karyawan->nik)
                 ->join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
                 ->where('presensi.tanggal', $tanggalKemarin)
@@ -1118,33 +1130,118 @@ class AttendanceService
                 ? $presensiKemarin->batas_presensi_pulang
                 : ($generalsetting->batas_presensi_lintashari ?? '06:00');
 
-            if ($presensiKemarin && $presensiKemarin->lintashari == 1 && $presensiKemarin->jam_out == null) {
-                if ($jamSekarang < $batasLintasHari) {
-                    $tanggalPresensi = $tanggalKemarin;
-                    $tanggalPulang = $tanggalSekarang;
-                    $jamKerjaPulang = $presensiKemarin->jam_pulang;
-                }
+            if ($presensiKemarin && $presensiKemarin->lintashari == 1 && $presensiKemarin->jam_out == null && $jamSekarang < $batasLintasHari) {
+                $tanggalPresensi = $tanggalKemarin;
+                $existingClockInAttendance = $presensiKemarin;
+            } else {
+                $existingClockInAttendance = Presensi::where('nik', $karyawan->nik)
+                    ->where('tanggal', $tanggalSekarang)
+                    ->first();
             }
         }
 
-        // 6. Backend GPS Radius Validation
-        [$latUser, $lngUser] = explode(',', $lokasi);
-        [$latKantor, $lngKantor] = explode(',', $lokasiKantor);
+        if ($flowStatus == 2 && $existingClockInAttendance && $existingClockInAttendance->jam_in != null) {
+            // Clock-out uses SNAPSHOT branch and shift from Clock-In
+            $expectedCabangCode = !empty($existingClockInAttendance->kode_cabang) ? $existingClockInAttendance->kode_cabang : $karyawan->kode_cabang;
+            $activeCabang = Cabang::getByCode($expectedCabangCode) ?? Cabang::where('kode_cabang', $expectedCabangCode)->first() ?? $homeCabang ?? Cabang::first();
+            $cabang = $activeCabang;
+            $timezoneCabang = $cabang->timezone ?? $timezoneCabang;
+            $lokasiKantor = $activeCabang ? $activeCabang->lokasi_cabang : null;
 
-        $jarak = hitungjarak((float)$latKantor, (float)$lngKantor, (float)$latUser, (float)$lngUser);
-        $radiusMeters = round($jarak['meters'] ?? 999999);
+            $kodeJamKerja = $existingClockInAttendance->kode_jam_kerja ?? 'JK01';
+            $jamKerja = Jamkerja::getByCode($kodeJamKerja) ?? Jamkerja::where('kode_jam_kerja', $kodeJamKerja)->first();
+            if (!$jamKerja) {
+                $jamKerja = Jamkerja::where('kode_jam_kerja', 'JK01')->first();
+            }
 
-        $statusLockLocation = $karyawan->lock_location ?? 1;
+            $jamKerjaPulang = $jamKerja ? $jamKerja->jam_pulang : '17:00:00';
+            $tanggalPulang = ($jamKerja && $jamKerja->lintashari == 1) ? Carbon::parse($tanggalPresensi)->addDay()->format('Y-m-d') : $tanggalPresensi;
+        } else {
+            // Regular Clock-In or dynamic fallback: Enforce effective schedule hierarchy
+            $effectiveSchedule = self::getEffectiveSchedule($karyawan->nik, $tanggalSekarang, $karyawan);
 
-        $radiusAllowed = $cabang->radius_cabang ?? 50;
-        if ($statusLockLocation == 1 && $radiusMeters > $radiusAllowed) {
-            return $this->attachNewNonce([
+            // Phase 3 Backend Guard: Block clock-in if employee is scheduled OFF
+            if ($flowStatus == 1 && $effectiveSchedule['is_off']) {
+                return $this->attachNewNonce([
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Hari ini Anda dijadwalkan Libur (OFF). Presensi tidak dapat dilakukan.',
+                    'notifikasi' => 'notifikasi_libur',
+                    'suara' => 'Hari ini Anda dijadwalkan libur. Tidak dapat melakukan presensi.'
+                ]);
+            }
+
+            // Phase 4 Backend Authority: Expected branch determined by schedule
+            $expectedCabangCode = !empty($effectiveSchedule['kode_cabang']) ? $effectiveSchedule['kode_cabang'] : $karyawan->kode_cabang;
+            $activeCabang = Cabang::getByCode($expectedCabangCode) ?? Cabang::where('kode_cabang', $expectedCabangCode)->first() ?? $homeCabang ?? Cabang::first();
+
+            // Validasi input cabang user terhadap cabang penugasan resmi
+            $inputLokasiCabang = !empty($data['lokasi_cabang']) ? trim($data['lokasi_cabang']) : null;
+            if ($inputLokasiCabang && $activeCabang && $inputLokasiCabang !== $activeCabang->kode_cabang && $inputLokasiCabang !== $activeCabang->lokasi_cabang) {
+                return $this->attachNewNonce([
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Jadwal kerja Anda hari ini berada di ' . ($activeCabang->nama_cabang ?? ('Cabang ' . $activeCabang->kode_cabang)) . '.',
+                    'notifikasi' => 'notifikasi_cabang_salah',
+                    'suara' => 'Jadwal kerja Anda hari ini tidak berada di cabang ini.'
+                ]);
+            }
+
+            $cabang = $activeCabang;
+            $timezoneCabang = $cabang->timezone ?? $timezoneCabang;
+            $lokasiKantor = $activeCabang ? $activeCabang->lokasi_cabang : null;
+
+            if (!$effectiveSchedule['is_off'] && !empty($effectiveSchedule['jam_kerja'])) {
+                $jamKerja = $effectiveSchedule['jam_kerja'];
+            } else {
+                if ($karyawan->lock_jam_kerja == 1 && !empty($karyawan->kode_jam_kerja)) {
+                    $kodeJamKerja = $karyawan->kode_jam_kerja;
+                } else {
+                    $kodeJamKerja = $data['kode_jam_kerja'] ?? $karyawan->kode_jam_kerja ?? 'JK01';
+                }
+                $jamKerja = Jamkerja::getByCode($kodeJamKerja) ?? Jamkerja::where('kode_jam_kerja', 'JK01')->first();
+            }
+
+            if (!$jamKerja) {
+                return [
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Jadwal jam kerja tidak valid.'
+                ];
+            }
+
+            $jamKerjaPulang = $jamKerja->jam_pulang;
+            $tanggalPulang = ($jamKerja->lintashari == 1) ? $tanggalBesok : $tanggalSekarang;
+        }
+
+        if (empty($lokasiKantor) || !str_contains($lokasiKantor, ',')) {
+            return [
                 'success' => false,
                 'code' => 400,
-                'message' => 'Anda berada di luar radius kantor! Jarak Anda ' . formatAngka($radiusMeters) . ' meter dari kantor (Batas: ' . $radiusAllowed . ' m).',
-                'notifikasi' => 'notifikasi_radius',
-                'suara' => 'Maaf, Anda berada di luar radius kantor!'
-            ]);
+                'message' => 'Titik lokasi kantor cabang belum diatur oleh administrator.'
+            ];
+        }
+
+        // 6. Backend GPS Radius Validation
+        $radiusMeters = 0;
+        if ($isGpsEnabled && !empty($lokasiKantor) && str_contains($lokasiKantor, ',') && !empty($lokasi) && str_contains($lokasi, ',')) {
+            [$latUser, $lngUser] = explode(',', $lokasi);
+            [$latKantor, $lngKantor] = explode(',', $lokasiKantor);
+
+            $jarak = hitungjarak((float)$latKantor, (float)$lngKantor, (float)$latUser, (float)$lngUser);
+            $radiusMeters = round($jarak['meters'] ?? 999999);
+
+            $statusLockLocation = $karyawan->lock_location ?? 1;
+            $radiusAllowed = $cabang->radius_cabang ?? 50;
+            if ($statusLockLocation == 1 && $radiusMeters > $radiusAllowed) {
+                return $this->attachNewNonce([
+                    'success' => false,
+                    'code' => 400,
+                    'message' => 'Anda berada di luar radius kantor! Jarak Anda ' . formatAngka($radiusMeters) . ' meter dari kantor (Batas: ' . $radiusAllowed . ' m).',
+                    'notifikasi' => 'notifikasi_radius',
+                    'suara' => 'Maaf, Anda berada di luar radius kantor!'
+                ]);
+            }
         }
 
         $jamPresensi = $tanggalSekarang . ' ' . $jamSekarang;

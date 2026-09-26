@@ -1,46 +1,25 @@
 @php
-    $scheme = $general_setting->mobile_theme_scheme ?? 'green';
-    
-    // Forced Light Mode Colors
-    $colors = [
-        'green' => [
-            'primary' => '#32745e',
-            'primary_light' => '#58907D',
-            'bg_body' => '#f0fdf9',
-        ],
-        'blue' => [
-            'primary' => '#0d47a1',
-            'primary_light' => '#1976d2',
-            'bg_body' => '#eff6ff',
-        ],
-        'red' => [
-            'primary' => '#b71c1c',
-            'primary_light' => '#d32f2f',
-            'bg_body' => '#fef2f2',
-        ],
-        'purple' => [
-            'primary' => '#4a148c',
-            'primary_light' => '#7b1fa2',
-            'bg_body' => '#faf5ff',
-        ],
-        'orange' => [
-            'primary' => '#e65100',
-            'primary_light' => '#f57c00',
-            'bg_body' => '#fff8f1',
-        ],
-        'rose' => [
-            'primary' => '#ce8291',
-            'primary_light' => '#ef95a6',
-            'bg_body' => '#fff5f7',
-        ],
+    $theme = \App\Services\ThemeResolver::resolve();
+    $t = [
+        'primary' => $theme['primary'],
+        'primary_light' => $theme['secondary'],
+        'bg_body' => $theme['canvas'],
+        'surface' => $theme['surface'],
+        'text_primary' => $theme['text_primary'],
+        'text_secondary' => $theme['text_secondary'],
+        'border' => $theme['border'],
+        'amber' => $theme['warning'],
+        'crimson' => $theme['danger'],
+        'matcha' => $theme['accent'],
+        'primary_contrast' => $theme['primary_contrast'],
+        'primary_soft' => $theme['primary_soft'],
     ];
-
-    // Default to green if scheme is dark or invalid
-    $t = (isset($colors[$scheme]) && $scheme !== 'dark') ? $colors[$scheme] : $colors['green'];
     $isDark = false;
+    $scheme = 'enterprise';
 
     // Share variables globally
     view()->share('isDark', $isDark);
     view()->share('t', $t);
+    view()->share('theme', $theme);
     view()->share('scheme', $scheme);
 @endphp

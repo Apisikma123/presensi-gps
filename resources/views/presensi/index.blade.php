@@ -1,10 +1,12 @@
 @extends('layouts.app')
 @section('titlepage', 'Monitoring Presensi')
 
-@section('content')
 @section('navigasi')
-    <span>Monitoring Presensi</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Monitoring Presensi</li>
 @endsection
+
+@section('content')
 @push('mystyle')
 <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
 <link rel="stylesheet" href="{{ asset('assets/vendor/css/leaflet.css') }}" />
@@ -66,13 +68,13 @@
         line-height: 1.3;
     }
     
-    .pill-hadir { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .pill-terlambat { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-    .pill-izin { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-    .pill-sakit { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .pill-cuti { background: #f0fdfa; color: #0d9488; border: 1px solid #99f6e4; }
-    .pill-alpa { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-    .pill-belum { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+    .pill-hadir { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .pill-terlambat { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .pill-izin { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+    .pill-sakit { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .pill-cuti { background: #fdf8f6; color: #755841; border: 1px solid #fdd5b8; }
+    .pill-alpa { background: #fef2f2; color: #ba1a1a; border: 1px solid #fecdd3; }
+    .pill-belum { background: #f4f3f2; color: #64748b; border: 1px solid #e2e8f0; }
 
     /* Mobile Minimalist Card */
     .mobile-staff-card {
@@ -115,7 +117,50 @@
 <div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div>
         <h4 class="page-title mb-1">Monitoring Presensi</h4>
-        <p class="page-subtitle text-muted mb-0">Pantau kehadiran harian karyawan, ketepatan waktu, dan foto presensi secara langsung.</p>
+        <p class="page-subtitle text-muted mb-0" style="font-size: 13.5px;">Pantau kehadiran harian karyawan, ketepatan waktu, dan dokumentasi foto biometrik.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <a href="{{ route('presensi.download-zip', ['tanggal' => Request('tanggal') ?: date('Y-m-d')]) }}"
+           class="btn btn-primary d-inline-flex align-items-center gap-2 shadow-xs"
+           title="Unduh berkas ZIP foto presensi tanggal terpilih">
+            <i class="ti ti-file-zip" style="font-size: 16px;"></i>
+            <span>Unduh ZIP Foto Presensi</span>
+        </a>
+
+        @if (!empty($archives))
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle d-inline-flex align-items-center gap-1.5 shadow-xs"
+                        type="button" id="dropdownArchiveMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="ti ti-archive" style="font-size: 15px;"></i>
+                    <span>Arsip Bulanan</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1" aria-labelledby="dropdownArchiveMenu" style="border-radius: 10px; min-width: 260px; border-color: #e2e8f0;">
+                    <li class="px-3 py-1.5 text-muted text-uppercase" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em;">
+                        Berkas Arsip Dingin (Cold Storage)
+                    </li>
+                    @foreach ($archives as $monthKey => $meta)
+                        @php
+                            $monthLabel = \Carbon\Carbon::createFromFormat('Y-m', $monthKey)->translatedFormat('F Y');
+                            $fileCountFormatted = number_format($meta['file_count'] ?? 0, 0, ',', '.');
+                            $sizeMbFormatted = number_format($meta['archive_size_mb'] ?? 0, 2, ',', '.');
+                        @endphp
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3"
+                               href="{{ route('file.attendance-archive', ['month' => $monthKey]) }}"
+                               style="font-size: 12.5px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="ti ti-file-zip text-secondary"></i>
+                                    <span class="fw-semibold text-dark">{{ $monthLabel }}</span>
+                                </div>
+                                <span class="badge text-muted font-mono" style="background: #f1f5f9; font-size: 11px;">
+                                    {{ $fileCountFormatted }} foto ({{ $sizeMbFormatted }} MB)
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -168,19 +213,19 @@
         @if (Request('status'))
             @php
                 $statusLabels = [
-                    'h' => ['label' => 'Hadir Hari Ini', 'bg' => 'rgba(5, 150, 105, 0.1)', 'color' => '#059669', 'border' => 'rgba(5, 150, 105, 0.2)'],
-                    'telat' => ['label' => 'Terlambat', 'bg' => 'rgba(217, 119, 6, 0.1)', 'color' => '#D97706', 'border' => 'rgba(217, 119, 6, 0.2)'],
-                    'tepat' => ['label' => 'Tepat Waktu', 'bg' => 'rgba(5, 150, 105, 0.1)', 'color' => '#059669', 'border' => 'rgba(5, 150, 105, 0.2)'],
-                    'i' => ['label' => 'Izin Absen', 'bg' => 'rgba(37, 99, 235, 0.1)', 'color' => '#2563EB', 'border' => 'rgba(37, 99, 235, 0.2)'],
-                    's' => ['label' => 'Izin Sakit', 'bg' => 'rgba(234, 88, 12, 0.1)', 'color' => '#EA580C', 'border' => 'rgba(234, 88, 12, 0.2)'],
-                    'c' => ['label' => 'Cuti', 'bg' => 'rgba(13, 148, 136, 0.1)', 'color' => '#0D9488', 'border' => 'rgba(13, 148, 136, 0.2)'],
-                    'alpa' => ['label' => 'Tanpa Keterangan (Alpha)', 'bg' => 'rgba(220, 38, 38, 0.08)', 'color' => '#DC2626', 'border' => 'rgba(220, 38, 38, 0.2)'],
+                    'h' => ['label' => 'Hadir Hari Ini', 'bg' => '#f0fdf4', 'color' => '#15803d', 'border' => '#bbf7d0'],
+                    'telat' => ['label' => 'Terlambat', 'bg' => '#fffbeb', 'color' => '#b45309', 'border' => '#fde68a'],
+                    'tepat' => ['label' => 'Tepat Waktu', 'bg' => '#f0fdf4', 'color' => '#15803d', 'border' => '#bbf7d0'],
+                    'i' => ['label' => 'Izin Absen', 'bg' => '#e0f2fe', 'color' => '#0284c7', 'border' => '#bae6fd'],
+                    's' => ['label' => 'Izin Sakit', 'bg' => '#fff7ed', 'color' => '#ea580c', 'border' => '#ffedd5'],
+                    'c' => ['label' => 'Cuti', 'bg' => '#fdf8f6', 'color' => '#755841', 'border' => '#fdd5b8'],
+                    'alpa' => ['label' => 'Tanpa Keterangan (Alpha)', 'bg' => '#fef2f2', 'color' => '#ba1a1a', 'border' => '#fecdd3'],
                 ];
                 $curStatus = $statusLabels[Request('status')] ?? ['label' => Request('status'), 'bg' => '#F1F5F9', 'color' => '#334155', 'border' => '#E2E8F0'];
             @endphp
             <div class="d-flex align-items-center gap-2 mb-3">
                 <small class="text-muted fw-semibold">Filter Status Aktif:</small>
-                <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-pill" style="background: {{ $curStatus['bg'] }}; color: {{ $curStatus['color'] }}; border: 1px solid {{ $curStatus['border'] }}; font-size: 12px;">
+                <span class="badge d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background: {{ $curStatus['bg'] }}; color: {{ $curStatus['color'] }}; border: 1px solid {{ $curStatus['border'] }}; font-size: 11.5px; border-radius: 5px;">
                     <span>{{ $curStatus['label'] }}</span>
                     <a href="{{ route('presensi.index', request()->except('status')) }}" style="color: inherit; text-decoration: none; font-weight: bold;" title="Hapus filter status">&times;</a>
                 </span>
@@ -245,7 +290,7 @@
                                                 onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
                                         @else
                                             <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                                                style="width: 38px; height: 38px; background: rgba(50, 116, 94, 0.1); color: #32745e; font-size: 12.5px; border: 1px solid rgba(50, 116, 94, 0.2);">
+                                                style="width: 38px; height: 38px; background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1)); color: var(--color-primary, #3C2A21); font-size: 12.5px; border: 1px solid var(--bs-primary-border-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.2));">
                                                 {{ $initials }}
                                             </div>
                                         @endif
@@ -287,18 +332,31 @@
                                 <!-- Jam Masuk -->
                                 <td>
                                     @if ($d->jam_in != null)
-                                        <div class="d-flex align-items-center gap-1.5">
-                                            <a href="#" class="btnShowpresensi_in time-mono text-dark text-decoration-none fw-bold" id="{{ $d->id }}" status="in" style="font-size: 13px;" title="Lihat Foto Masuk">
-                                                {{ date('H:i', strtotime($d->jam_in)) }}
-                                                @if (!empty($d->foto_in))
-                                                    <i class="ti ti-camera text-primary ms-0.5" style="font-size: 13px;"></i>
-                                                @endif
-                                            </a>
-                                            @if ($terlambat != null && $terlambat['menitterlambat'] > 0)
-                                                <span class="badge rounded-pill bg-label-danger font-mono" style="font-size: 10px;" title="Terlambat {{ $terlambat['menitterlambat'] }} Menit">
-                                                    +{{ $terlambat['menitterlambat'] }}m
-                                                </span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (!empty($d->foto_in))
+                                                <a href="#" class="btnShowpresensi_in d-inline-block position-relative flex-shrink-0" id="{{ $d->id }}" status="in" title="Klik untuk lihat foto masuk">
+                                                    <img src="{{ route('file.absensi', $d->foto_in) }}"
+                                                        alt="Foto Masuk"
+                                                        class="rounded border shadow-xs"
+                                                        style="width: 36px; height: 36px; object-fit: cover; border-color: #cbd5e1 !important;"
+                                                        onerror="this.style.display='none'">
+                                                </a>
                                             @endif
+                                            <div>
+                                                <a href="#" class="btnShowpresensi_in time-mono text-dark text-decoration-none fw-bold" id="{{ $d->id }}" status="in" style="font-size: 13px;" title="Lihat Foto Masuk">
+                                                    {{ date('H:i', strtotime($d->jam_in)) }}
+                                                    @if (!empty($d->foto_in))
+                                                        <i class="ti ti-camera text-primary ms-0.5" style="font-size: 12px;"></i>
+                                                    @endif
+                                                </a>
+                                                @if ($terlambat != null && $terlambat['menitterlambat'] > 0)
+                                                    <div>
+                                                        <span class="badge rounded-md bg-label-danger font-mono" style="font-size: 10px; border-radius: 4px;" title="Terlambat {{ $terlambat['menitterlambat'] }} Menit">
+                                                            +{{ $terlambat['menitterlambat'] }}m
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
                                     @else
                                         <span class="text-muted" style="font-size: 12px;">-</span>
@@ -308,18 +366,31 @@
                                 <!-- Jam Pulang -->
                                 <td>
                                     @if ($d->jam_out != null)
-                                        <div class="d-flex align-items-center gap-1.5">
-                                            <a href="#" class="btnShowpresensi_out time-mono text-dark text-decoration-none fw-bold" id="{{ $d->id }}" status="out" style="font-size: 13px;" title="Lihat Foto Pulang">
-                                                {{ date('H:i', strtotime($d->jam_out)) }}
-                                                @if (!empty($d->foto_out))
-                                                    <i class="ti ti-camera text-primary ms-0.5" style="font-size: 13px;"></i>
-                                                @endif
-                                            </a>
-                                            @if ($pulangcepat > 0)
-                                                <span class="badge rounded-pill bg-label-warning font-mono" style="font-size: 10px;" title="Pulang Cepat">
-                                                    -{{ $pulangcepat }}j
-                                                </span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (!empty($d->foto_out))
+                                                <a href="#" class="btnShowpresensi_out d-inline-block position-relative flex-shrink-0" id="{{ $d->id }}" status="out" title="Klik untuk lihat foto pulang">
+                                                    <img src="{{ route('file.absensi', $d->foto_out) }}"
+                                                        alt="Foto Pulang"
+                                                        class="rounded border shadow-xs"
+                                                        style="width: 36px; height: 36px; object-fit: cover; border-color: #cbd5e1 !important;"
+                                                        onerror="this.style.display='none'">
+                                                </a>
                                             @endif
+                                            <div>
+                                                <a href="#" class="btnShowpresensi_out time-mono text-dark text-decoration-none fw-bold" id="{{ $d->id }}" status="out" style="font-size: 13px;" title="Lihat Foto Pulang">
+                                                    {{ date('H:i', strtotime($d->jam_out)) }}
+                                                    @if (!empty($d->foto_out))
+                                                        <i class="ti ti-camera text-primary ms-0.5" style="font-size: 12px;"></i>
+                                                    @endif
+                                                </a>
+                                                @if ($pulangcepat > 0)
+                                                    <div>
+                                                        <span class="badge rounded-md bg-label-warning font-mono" style="font-size: 10px; border-radius: 4px;" title="Pulang Cepat">
+                                                            -{{ $pulangcepat }}j
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
                                     @else
                                         <span class="text-muted" style="font-size: 12px;">-</span>
@@ -427,7 +498,7 @@
                                         onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
                                 @else
                                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                                        style="width: 36px; height: 36px; background: rgba(50, 116, 94, 0.1); color: #32745e; font-size: 12px;">
+                                        style="width: 36px; height: 36px; background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1)); color: var(--color-primary, #3C2A21); font-size: 12px;">
                                         {{ $initials }}
                                     </div>
                                 @endif
@@ -534,23 +605,8 @@
             $("#loadmodal").load(`/presensi/${id}/${status}/show`);
         });
 
-        $(".delete-confirm").click(function(e) {
-            var form = $(this).closest('form');
-            e.preventDefault();
-            Swal.fire({
-                title: 'Apakah Anda Yakin Data Ini Akan Dihapus ?',
-                text: "Jika Dihapus Maka Data Akan Hilang ",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#32745e',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Hapus Saja!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            })
-        });
+
+
 
         // Trigger Auto-Alpha via SweetAlert confirmation
         $("#btnAutoAlpha").click(function(e) {
@@ -590,7 +646,7 @@
                                     icon: 'success',
                                     title: 'Berhasil',
                                     text: res.message,
-                                    confirmButtonColor: '#32745e',
+                                    confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
                                 }).then(() => {
                                     window.location.reload();
                                 });

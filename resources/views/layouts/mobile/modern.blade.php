@@ -22,7 +22,7 @@
 
     {{-- Template CSS --}}
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/vendor/css/toastr.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ file_exists(public_path('assets/css/theme-custom.css')) ? filemtime(public_path('assets/css/theme-custom.css')) : time() }}" />
 
     {{-- Tailwind & App CSS --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -37,18 +37,19 @@
             --bg-nav: #ffffff;
             --theme-color-1: {{ $t['primary'] }};
             --theme-color-2: {{ $t['primary_light'] }};
+            --theme-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
         }
 
         /* Dynamic Tailwind Arbitrary Hex Overrides */
-        .bg-\[\#1E4D3E\], .bg-\[\#1e4d3e\] { background-color: var(--color-nav, {{ $t['primary'] }}) !important; }
-        .text-\[\#1E4D3E\], .text-\[\#1e4d3e\] { color: var(--color-nav, {{ $t['primary'] }}) !important; }
-        .border-\[\#1E4D3E\], .border-\[\#1e4d3e\] { border-color: var(--color-nav, {{ $t['primary'] }}) !important; }
-        .focus\:ring-\[\#1E4D3E\]:focus, .focus\:ring-\[\#1e4d3e\]:focus { --tw-ring-color: var(--color-nav, {{ $t['primary'] }}) !important; }
-        .focus\:border-\[\#1E4D3E\]:focus, .focus\:border-\[\#1e4d3e\]:focus { border-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .bg-\[\#3C2A21\], .bg-\[\#3C2A21\] { background-color: var(--color-nav, {{ $t['primary'] }}) !important; color: var(--theme-primary-contrast, #FFFFFF) !important; }
+        .text-\[\#3C2A21\], .text-\[\#3C2A21\] { color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .border-\[\#3C2A21\], .border-\[\#3C2A21\] { border-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .focus\:ring-\[\#3C2A21\]:focus, .focus\:ring-\[\#3C2A21\]:focus { --tw-ring-color: var(--color-nav, {{ $t['primary'] }}) !important; }
+        .focus\:border-\[\#3C2A21\]:focus, .focus\:border-\[\#3C2A21\]:focus { border-color: var(--color-nav, {{ $t['primary'] }}) !important; }
 
-        .bg-\[\#32745E\], .bg-\[\#32745e\] { background-color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
-        .text-\[\#32745E\], .text-\[\#32745e\] { color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
-        .border-\[\#32745E\], .border-\[\#32745e\] { border-color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
+        .bg-\[\#634832\], .bg-\[\#634832\] { background-color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
+        .text-\[\#634832\], .text-\[\#634832\] { color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
+        .border-\[\#634832\], .border-\[\#634832\] { border-color: var(--color-nav-active, {{ $t['primary_light'] }}) !important; }
         html { background: {{ $t['primary'] }}; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -126,7 +127,7 @@
             background: #ffffff !important;
         }
         .card:hover, .presensi-card:hover {
-            border-color: rgba(30, 77, 62, 0.35) !important;
+            border-color: var(--theme-border-hover, rgba(var(--bs-primary-rgb), 0.35)) !important;
         }
 
         .form-label-group {
@@ -140,8 +141,8 @@
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02) !important;
         }
         .form-label-group:focus-within {
-            border-color: #1E4D3E !important;
-            box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.1) !important;
+            border-color: var(--color-nav, {{ $t['primary'] }}) !important;
+            box-shadow: 0 0 0 3px var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.1)) !important;
         }
 
         /* Global Form Required & Optional Indicators */
@@ -191,18 +192,18 @@
         }
 
         .air-datepicker-global-container { z-index: 100000 !important; }
-        .air-datepicker-overlay { z-index: 99999 !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important; }
+        .air-datepicker-overlay { z-index: 99999 !important; background: rgba(15, 23, 42, 0.45) !important; }
         .air-datepicker { 
             z-index: 100001 !important; 
             font-family: 'Inter', -apple-system, sans-serif !important; 
             border-radius: 18px !important; 
             border: 1px solid rgba(15, 23, 42, 0.08) !important; 
             box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
-            --adp-accent-color: {{ $t['primary'] ?? '#1E4D3E' }};
-            --adp-cell-background-color-selected: {{ $t['primary'] ?? '#1E4D3E' }};
-            --adp-cell-background-color-selected-hover: {{ $t['primary'] ?? '#1E4D3E' }};
-            --adp-color-current-date: {{ $t['primary'] ?? '#1E4D3E' }};
-            --adp-btn-color: {{ $t['primary'] ?? '#1E4D3E' }};
+            --adp-accent-color: {{ $t['primary'] ?? '#3C2A21' }};
+            --adp-cell-background-color-selected: {{ $t['primary'] ?? '#3C2A21' }};
+            --adp-cell-background-color-selected-hover: {{ $t['primary'] ?? '#3C2A21' }};
+            --adp-color-current-date: {{ $t['primary'] ?? '#3C2A21' }};
+            --adp-btn-color: {{ $t['primary'] ?? '#3C2A21' }};
             --adp-cell-border-radius: 8px;
         }
         .air-datepicker-cell {
@@ -211,29 +212,28 @@
         .air-datepicker-cell.-selected-,
         .air-datepicker-cell.-selected-.-current-,
         .air-datepicker-cell.-selected-.-focus- { 
-            background: {{ $t['primary'] ?? '#1E4D3E' }} !important; 
+            background: {{ $t['primary'] ?? '#3C2A21' }} !important; 
             color: #ffffff !important; 
             font-weight: 700 !important; 
         }
         .air-datepicker-cell.-current-:not(.-selected-) { 
-            color: {{ $t['primary'] ?? '#1E4D3E' }} !important; 
-            font-weight: 700 !important;
-            background: rgba(30, 77, 62, 0.08) !important;
+            color: {{ $t['primary'] ?? 'var(--theme-color-1)' }} !important; 
+            font-weight: 700 !important; 
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)) !important;
         }
         .air-datepicker-button { 
-            color: {{ $t['primary'] ?? '#1E4D3E' }} !important; 
+            color: {{ $t['primary'] ?? 'var(--theme-color-1)' }} !important; 
             font-weight: 600 !important; 
         }
         .air-datepicker-button:hover {
-            background: rgba(30, 77, 62, 0.08) !important;
-            color: {{ $t['primary'] ?? '#1E4D3E' }} !important;
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)) !important;
+            color: {{ $t['primary'] ?? 'var(--theme-color-1)' }} !important;
         }
 
         /* SweetAlert2 Unified Cohesive Theme */
         .swal2-container {
             z-index: 99999 !important;
-            backdrop-filter: blur(4px) !important;
-            -webkit-backdrop-filter: blur(4px) !important;
+            background-color: rgba(15, 23, 42, 0.45) !important;
         }
 
         .swal2-popup {
@@ -266,16 +266,19 @@
         .swal2-confirm {
             background-color: {{ $t['primary'] }} !important;
             border-color: {{ $t['primary'] }} !important;
-            border-radius: 12px !important;
+            border-radius: 10px !important;
             font-weight: 600 !important;
             font-size: 14px !important;
             padding: 10px 24px !important;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
-            transition: all 0.2s ease !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
         }
 
         .swal2-confirm:hover, .swal2-confirm:focus {
-            opacity: 0.9 !important;
+            background-color: var(--color-primary-hover, {{ $t['primary_light'] ?? 'var(--theme-color-2)' }}) !important;
+            border-color: var(--color-primary-hover, {{ $t['primary_light'] ?? 'var(--theme-color-2)' }}) !important;
+            color: {{ $t['primary_contrast'] ?? '#FFFFFF' }} !important;
+            box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb, 15, 23, 42), 0.35) !important;
             transform: translateY(-1px) !important;
         }
 
@@ -323,12 +326,12 @@
     @stack('mystyle')
 </head>
 <body>
-    <header style="padding-top: env(safe-area-inset-top); background: {{ $t['primary'] ?? '#1E4D3E' }} !important; position: fixed; top: 0; left: 0; right: 0; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" class="appHeader-modern">
-        <div class="flex items-center justify-between px-4 h-14">
+    <header style="padding-top: env(safe-area-inset-top); background: {{ $t['primary'] ?? '#3C2A21' }} !important; position: fixed; top: 0; left: 0; right: 0; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" class="appHeader-modern">
+        <div class="flex items-center justify-between px-4 h-14" style="color: var(--theme-primary-contrast, #FFFFFF) !important;">
             <div class="left">
                 @yield('header_left')
             </div>
-            <h1 class="text-[14px] font-bold text-white tracking-wide">@yield('title')</h1>
+            <h1 class="text-[14px] font-bold tracking-wide" style="color: var(--theme-primary-contrast, #FFFFFF) !important;">@yield('title')</h1>
             <div class="right w-8">
                 @yield('header_right')
             </div>
@@ -345,100 +348,97 @@
     <script src="{{ asset('assets/template/js/lib/popper.min.js') }}"></script>
     <script src="{{ asset('assets/template/js/lib/bootstrap.min.js') }}"></script>
     <script src="{{ asset('assets/template/js/base.js') }}?v=2.0"></script>
-    <script src="{{ asset('assets/vendor/libs/toastr/toastr.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script src="{{ asset('assets/external/js/sweetalert2@11.js') }}"></script>
 
-    {{-- Session Flash Notifications --}}
-    <style>
-        .toast-bottom-full-width { bottom: 5rem }
-        .modern-swal-popup {
-            border-radius: 24px !important;
-            padding: 24px 20px !important;
-            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15) !important;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        }
-        .modern-swal-popup .swal2-title {
-            font-size: 18px !important;
-            font-weight: 700 !important;
-            color: #1e293b !important;
-            margin-top: 10px !important;
-        }
-        .modern-swal-popup .swal2-html-container {
-            font-size: 14px !important;
-            color: #64748b !important;
-            margin-top: 6px !important;
-        }
-    </style>
+    {{-- Universal GlobalSwal Helper & Toastr Bridge (antislop-ui Compliant) --}}
+    <script>
+        window.GlobalSwal = {
+            toast: function(icon, message, title) {
+                var p = "{{ $t['primary'] ?? '#3C2A21' }}";
+                Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: function(toast) {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                }).fire({
+                    icon: icon || 'success',
+                    title: title ? (title + ': ' + message) : message
+                });
+            },
+            success: function(message, title) {
+                Swal.fire({
+                    icon: 'success',
+                    title: title || 'Berhasil!',
+                    text: message,
+                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonText: 'Selesai',
+                    timer: 2500,
+                    timerProgressBar: true
+                });
+            },
+            error: function(message, title) {
+                Swal.fire({
+                    icon: 'error',
+                    title: title || 'Gagal',
+                    html: message,
+                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonText: 'Tutup'
+                });
+            },
+            warning: function(message, title) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: title || 'Peringatan',
+                    text: message,
+                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonText: 'Mengerti'
+                });
+            }
+        };
+
+        // Universal Toastr Bridge
+        window.toastr = {
+            options: {},
+            success: function(msg, title) { window.GlobalSwal.toast('success', msg, title); },
+            error: function(msg, title) { window.GlobalSwal.error(msg, title); },
+            warning: function(msg, title) { window.GlobalSwal.toast('warning', msg, title); },
+            info: function(msg, title) { window.GlobalSwal.toast('info', msg, title); }
+        };
+    </script>
+
     @if ($message = Session::get('success'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: "Berhasil!",
-                        text: {!! json_encode($message) !!},
-                        icon: "success",
-                        showConfirmButton: false,
-                        timer: 2000,
-                        timerProgressBar: true,
-                        confirmButtonColor: "{{ $t['primary'] ?? '#1E4D3E' }}",
-                        customClass: { popup: 'modern-swal-popup' }
-                    });
-                } else if (typeof toastr !== 'undefined') {
-                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-                    toastr.options.progressBar = true; toastr.options.positionClass = 'toast-bottom-full-width';
-                    toastr.success({!! json_encode($message) !!}, "Berhasil", { timeOut: 3000 });
-                }
+                window.GlobalSwal.success(@json($message));
             });
         </script>
     @endif
+
     @if ($message = Session::get('error'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: "Gagal",
-                        text: {!! json_encode($message) !!},
-                        icon: "error",
-                        confirmButtonColor: "{{ $t['primary'] ?? '#1E4D3E' }}"
-                    });
-                } else if (typeof toastr !== 'undefined') {
-                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-                    toastr.options.progressBar = true; toastr.options.positionClass = 'toast-bottom-full-width';
-                    toastr.error({!! json_encode($message) !!}, "Gagal", { timeOut: 4000 });
-                }
+                window.GlobalSwal.error(@json($message));
             });
         </script>
     @endif
+
     @if ($message = Session::get('warning'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof toastr !== 'undefined') {
-                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-                    toastr.options.progressBar = true;
-                    toastr.warning({!! json_encode($message) !!}, "Peringatan", { timeOut: 3000 });
-                }
+                window.GlobalSwal.warning(@json($message));
             });
         </script>
     @endif
+
     @if (isset($errors) && $errors->any())
-        @php
-            $errList = implode("\n", $errors->all());
-        @endphp
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: "Periksa Formulir",
-                        text: {!! json_encode($errList) !!},
-                        icon: "warning",
-                        confirmButtonColor: "{{ $t['primary'] ?? '#1E4D3E' }}"
-                    });
-                } else if (typeof toastr !== 'undefined') {
-                    toastr.options.showEasing = 'swing'; toastr.options.hideEasing = 'linear';
-                    toastr.options.progressBar = true;
-                    toastr.error({!! json_encode($errList) !!}, "Gagal", { timeOut: 4000 });
-                }
+                window.GlobalSwal.warning(@json(implode("\n", $errors->all())), 'Periksa Formulir');
             });
         </script>
     @endif
@@ -449,5 +449,8 @@
 
     <!-- Global Action Loading Overlay -->
     @include('components.global-loading')
+
+    <!-- Global Help Drawer -->
+    @include('layouts.help_drawer')
 </body>
 </html>

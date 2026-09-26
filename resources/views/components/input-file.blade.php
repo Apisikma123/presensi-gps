@@ -78,7 +78,7 @@
                 @endif
             </span>
             @if ($helper)
-                <span class="badge" style="font-size: 11px; font-weight: 600; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.15); border-radius: 6px; padding: 3px 8px;">{{ $helper }}</span>
+                <span class="badge" style="font-size: 11px; font-weight: 600; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15)); border-radius: 6px; padding: 3px 8px;">{{ $helper }}</span>
             @endif
         </label>
     @endif
@@ -173,7 +173,7 @@
             <div class="modal-content border-0 shadow-2xl rounded-3 overflow-hidden" style="border: 1px solid rgba(15, 23, 42, 0.1) !important; background: #ffffff;">
                 <div class="modal-header py-2.5 px-3 bg-light border-bottom d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="d-inline-flex align-items-center justify-content-center rounded-2" style="width: 28px; height: 28px; background: rgba(30, 77, 62, 0.1); color: #1E4D3E;">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-2" style="width: 28px; height: 28px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.1)); color: var(--color-primary);">
                             <i class="ti ti-crop fs-6"></i>
                         </span>
                         <div>
@@ -198,7 +198,7 @@
                 </div>
                 <div class="modal-footer py-2.5 px-3 bg-white border-top d-flex gap-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-sm text-white flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1" id="crop_apply_{{ $inputId }}" style="background: #1E4D3E; font-weight: 600;">
+                    <button type="button" class="btn btn-sm text-white flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1" id="crop_apply_{{ $inputId }}" style="background: var(--theme-color-1); color: var(--theme-primary-contrast, #FFFFFF); font-weight: 600;">
                         <i class="ti ti-check"></i>
                         <span>Terapkan</span>
                     </button>
@@ -216,9 +216,9 @@
     }
 
     .custom-dropzone-box {
-        border: 1.5px dashed rgba(30, 77, 62, 0.28) !important;
+        border: 1.5px dashed var(--theme-border, rgba(var(--bs-primary-rgb), 0.28)) !important;
         border-radius: 10px !important;
-        background-color: #F8FAF8 !important;
+        background-color: #FAF9F8 !important;
         padding: 10px 16px !important;
         display: flex !important;
         flex-direction: row !important;
@@ -233,22 +233,22 @@
 
     .custom-dropzone-box:hover,
     .custom-dropzone-box.drag-over {
-        border-color: #1E4D3E !important;
-        background-color: rgba(30, 77, 62, 0.04) !important;
+        border-color: var(--theme-color-1) !important;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.04)) !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 4px 16px rgba(30, 77, 62, 0.08) !important;
+        box-shadow: 0 4px 16px var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)) !important;
     }
 
     .custom-dropzone-box.drag-over {
-        box-shadow: 0 0 0 4px rgba(30, 77, 62, 0.15) !important;
+        box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.15) !important;
     }
 
     .dropzone-icon-pill {
         width: 36px !important;
         height: 36px !important;
         border-radius: 8px !important;
-        background-color: rgba(30, 77, 62, 0.08) !important;
-        color: #1E4D3E !important;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)) !important;
+        color: var(--color-primary) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -285,11 +285,11 @@
     .dropzone-browse-btn {
         font-size: 11.5px !important;
         font-weight: 600 !important;
-        color: #1E4D3E !important;
+        color: var(--color-primary) !important;
         border-radius: 7px !important;
         padding: 5px 12px !important;
         background: #FFFFFF !important;
-        border: 1px solid rgba(30, 77, 62, 0.25) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.25)) !important;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
         display: inline-flex !important;
         align-items: center !important;
@@ -300,11 +300,11 @@
     }
 
     .dropzone-browse-btn:hover {
-        background: #1E4D3E !important;
-        color: #FFFFFF !important;
-        border-color: #1E4D3E !important;
+        background: var(--theme-color-1) !important;
+        color: var(--theme-primary-contrast, #FFFFFF) !important;
+        border-color: var(--theme-color-1) !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 4px 12px rgba(30, 77, 62, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.2) !important;
     }
 
     .dropzone-browse-btn:active {
@@ -313,7 +313,7 @@
 
     /* Preview Card (Distinct, No Overlapping Clutter) */
     .custom-preview-card {
-        border: 1px solid rgba(30, 77, 62, 0.2) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.2)) !important;
         border-radius: 12px !important;
         background-color: #FFFFFF !important;
         padding: 12px 14px !important;
@@ -329,7 +329,7 @@
         height: 68px !important;
         border-radius: 10px !important;
         border: 1px solid rgba(15, 23, 42, 0.08) !important;
-        background-color: #F8FAF8 !important;
+        background-color: #FAF9F8 !important;
         overflow: hidden !important;
         flex-shrink: 0 !important;
         display: flex !important;
@@ -347,7 +347,7 @@
 
     .preview-doc-icon {
         font-size: 28px !important;
-        color: #1E4D3E !important;
+        color: var(--color-primary) !important;
     }
 
     .preview-details {
@@ -393,9 +393,9 @@
     }
 
     .preview-badge.badge-stored {
-        background: rgba(30, 77, 62, 0.08) !important;
-        color: #1E4D3E !important;
-        border: 1px solid rgba(30, 77, 62, 0.18) !important;
+        background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)) !important;
+        color: var(--color-primary) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.18)) !important;
     }
 
     .preview-meta {
@@ -423,13 +423,13 @@
     }
 
     .action-change-btn {
-        background: rgba(30, 77, 62, 0.08) !important;
-        color: #1E4D3E !important;
-        border: 1px solid rgba(30, 77, 62, 0.2) !important;
+        background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)) !important;
+        color: var(--color-primary) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.2)) !important;
     }
     .action-change-btn:hover {
-        background: #1E4D3E !important;
-        color: #FFFFFF !important;
+        background: var(--theme-color-1) !important;
+        color: var(--theme-primary-contrast, #FFFFFF) !important;
     }
 
     .action-view-btn {
@@ -459,9 +459,9 @@
         border: 1px solid #CBD5E1 !important;
     }
     .action-crop-btn:hover {
-        background: #1E4D3E !important;
-        color: #FFFFFF !important;
-        border-color: #1E4D3E !important;
+        background: var(--theme-color-1) !important;
+        color: var(--theme-primary-contrast, #FFFFFF) !important;
+        border-color: var(--theme-color-1) !important;
     }
 
     /* Cropper mask styles for admin modal */
@@ -475,7 +475,7 @@
     }
     .cropper-admin-modal .cropper-line,
     .cropper-admin-modal .cropper-point {
-        background-color: #1E4D3E !important;
+        background-color: var(--theme-color-1) !important;
     }
     .cropper-admin-modal .cropper-modal {
         background-color: transparent !important;
@@ -662,7 +662,20 @@
                     handleFile(croppedFile, true);
                     if (bsModal) bsModal.hide();
 
-                    if (typeof toastr !== 'undefined') {
+                    if (typeof GlobalSwal !== 'undefined') {
+                        GlobalSwal.toast('success', 'Gambar berhasil disesuaikan!');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        }).fire({
+                            icon: 'success',
+                            title: 'Gambar berhasil disesuaikan!'
+                        });
+                    } else if (typeof toastr !== 'undefined') {
                         toastr.success('Gambar berhasil disesuaikan!');
                     }
                 }, 'image/jpeg', 0.9);

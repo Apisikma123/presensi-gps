@@ -62,10 +62,10 @@
             transform: scale(0.92);
         }
         .pagination-btn-active {
-            background: #1E4D3E !important;
+            background: var(--theme-color-1, #3C2A21) !important;
             color: #ffffff !important;
             font-weight: 700 !important;
-            box-shadow: 0 2px 8px rgba(30, 77, 62, 0.25) !important;
+            box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.25) !important;
         }
         .pagination-btn-disabled {
             color: #cbd5e1 !important;
@@ -83,7 +83,7 @@
              style="box-shadow: 0 1px 3px rgba(15,23,42,0.04);">
             {{-- Filter Header --}}
             <div class="flex items-center gap-2 px-3.5 py-2.5 bg-slate-50/60 border-b border-slate-100">
-                <div class="w-6 h-6 rounded-md flex items-center justify-center bg-[#1E4D3E]/10 text-[#1E4D3E]">
+                <div class="w-6 h-6 rounded-md flex items-center justify-center bg-[#3C2A21]/10 text-[#3C2A21]">
                     <ion-icon name="calendar-outline" class="text-[13px]"></ion-icon>
                 </div>
                 <span class="text-[12px] font-bold text-slate-700">Pilih Rentang Tanggal</span>
@@ -94,7 +94,7 @@
                     {{-- Dari --}}
                     <div class="flex-1 relative" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="dari" id="dari" 
-                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#1E4D3E] focus:border-[#1E4D3E] transition-all bg-[#F8FAF8] border border-slate-200/80 text-slate-700"
+                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#3C2A21] focus:border-[#3C2A21] transition-all bg-[#FAF9F8] border border-slate-200/80 text-slate-700"
                             style="width: 100% !important; height: 38px !important; box-sizing: border-box !important;"
                             placeholder="Dari" value="{{ Request('dari') }}" autocomplete="off" required readonly>
                     </div>
@@ -104,14 +104,14 @@
                     {{-- Sampai --}}
                     <div class="flex-1 relative" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="sampai" id="sampai" 
-                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#1E4D3E] focus:border-[#1E4D3E] transition-all bg-[#F8FAF8] border border-slate-200/80 text-slate-700"
+                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#3C2A21] focus:border-[#3C2A21] transition-all bg-[#FAF9F8] border border-slate-200/80 text-slate-700"
                             style="width: 100% !important; height: 38px !important; box-sizing: border-box !important;"
                             placeholder="Sampai" value="{{ Request('sampai') }}" autocomplete="off" required readonly>
                     </div>
                     {{-- Button --}}
                     <button type="submit" id="btnCari"
                         class="flex-shrink-0 w-10 h-[38px] rounded-xl text-white flex items-center justify-center active:scale-95 transition-all shadow-sm"
-                        style="background: #1E4D3E !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important; height: 38px !important; flex: 0 0 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important;">
+                        style="background: var(--theme-color-1, #3C2A21) !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important; height: 38px !important; flex: 0 0 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important;">
                         <ion-icon name="search-outline" class="text-base" style="font-size: 18px !important;"></ion-icon>
                     </button>
                 </div>
@@ -185,8 +185,8 @@
                      data-archive-month="{{ $archive_month }}"
                      data-has-foto-in="{{ !empty($d->foto_in) ? '1' : '0' }}"
                      data-has-foto-out="{{ !empty($d->foto_out) ? '1' : '0' }}"
-                     data-foto-in="{{ (!$is_archived && !empty($d->foto_in)) ? url('/storage/uploads/absensi/' . $d->foto_in) : '' }}"
-                     data-foto-out="{{ (!$is_archived && !empty($d->foto_out)) ? url('/storage/uploads/absensi/' . $d->foto_out) : '' }}"
+                     data-foto-in="{{ !empty($d->foto_in) ? route('file.absensi', $d->foto_in) : '' }}"
+                     data-foto-out="{{ !empty($d->foto_out) ? route('file.absensi', $d->foto_out) : '' }}"
                      data-status="{{ $d->status }}"
                      data-jam-kerja="{{ $d->nama_jam_kerja }}"
                      data-keterangan="{{ $d->status == 'h' ? 'Hadir' : ($d->status == 'i' ? 'Izin: ' . $d->keterangan_izin : ($d->status == 's' ? 'Sakit: ' . $d->keterangan_izin_sakit : ($d->status == 'c' ? 'Cuti: ' . $d->keterangan_izin_cuti : 'Alpha'))) }}"
@@ -399,7 +399,7 @@
 
                     <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 hidden">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-[#1E4D3E] flex items-center justify-center text-white shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-[#3C2A21] flex items-center justify-center text-white shrink-0">
                                 <ion-icon name="finger-print" style="font-size:20px;"></ion-icon>
                             </div>
                             <div>

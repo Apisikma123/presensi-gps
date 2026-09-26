@@ -1,3 +1,10 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $theme['primary'] ?? '#3C2A21';
+    $secondaryColor = $theme['secondary'] ?? '#634832';
+    $primaryHover = $theme['primary_hover'] ?? '#2A1D17';
+    $primaryContrast = $theme['primary_contrast'] ?? '#FFFFFF';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,6 +13,13 @@
     <title>Rekapitulasi Cuti Karyawan - {{ $tahun }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        :root {
+            --theme-color-1: {{ $primaryColor }};
+            --theme-color-2: {{ $secondaryColor }};
+            --color-primary-hover: {{ $primaryHover }};
+            --theme-primary-contrast: {{ $primaryContrast }};
+        }
 
         * {
             box-sizing: border-box;
@@ -17,7 +31,7 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 11px;
             color: #0F172A;
-            background: #F8FAF8;
+            background: #FAF9F8;
             margin: 0;
             padding: 20px;
         }
@@ -49,7 +63,7 @@
             gap: 8px;
             font-size: 11.5px;
             font-weight: 600;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
         .toolbar-info .badge-mode {
             padding: 2px 7px;
@@ -69,8 +83,8 @@
         }
         .btn-print {
             padding: 7px 16px;
-            background: #1E4D3E;
-            color: #FFFFFF;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             border: none;
             border-radius: 4px;
             font-size: 11.5px;
@@ -81,7 +95,7 @@
             gap: 6px;
         }
         .btn-print:hover {
-            background: #32745E;
+            background: var(--color-primary-hover, var(--theme-color-2, #634832));
         }
         .btn-close-view {
             padding: 7px 14px;
@@ -117,8 +131,8 @@
         .kop-logo-monogram {
             width: 48px;
             height: 48px;
-            background: #1E4D3E;
-            color: #FFFFFF;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -138,7 +152,7 @@
             margin: 2px 0 0 0;
             font-size: 10.5px;
             font-weight: 600;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
         .kop-company-meta {
             margin: 3px 0 0 0;
@@ -172,7 +186,7 @@
 
         .kop-divider-primary {
             height: 2px;
-            background: #1E4D3E;
+            background: var(--theme-color-1, #3C2A21);
             margin-bottom: 2px;
         }
         .kop-divider-secondary {
@@ -231,7 +245,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #F8FAF8;
+            background: #F4F3F2;
             border: 1px solid #E2E8F0;
             border-radius: 4px;
             padding: 8px 16px;
@@ -274,14 +288,14 @@
             font-size: 10px;
         }
         table.grid th {
-            background-color: #1E4D3E;
-            color: #FFFFFF;
+            background-color: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             font-weight: 700;
             font-size: 9.5px;
             letter-spacing: 0.3px;
             text-transform: uppercase;
             padding: 6px 4px;
-            border: 1px solid #163B2F;
+            border: 1px solid var(--theme-color-1, #3C2A21);
             text-align: center;
             vertical-align: middle;
         }
@@ -292,13 +306,13 @@
             color: #1E293B;
         }
         table.grid tbody tr:nth-child(even) {
-            background-color: #F8FAF8;
+            background-color: #F4F3F2;
         }
         table.grid tfoot td {
             background-color: #F1F5F9;
             font-weight: 700;
-            border-top: 1.5px solid #1E4D3E;
-            border-bottom: 1.5px solid #1E4D3E;
+            border-top: 1.5px solid var(--theme-color-1, #3C2A21);
+            border-bottom: 1.5px solid var(--theme-color-1, #3C2A21);
             padding: 7px 4px;
         }
         .num-code {
@@ -307,7 +321,7 @@
         }
         .cell-cuti-active {
             font-weight: 700;
-            color: #0F766E !important;
+            color: #4A6741 !important;
         }
 
         /* Sign-off */
@@ -520,10 +534,10 @@
                     <th rowspan="2" style="width: 75px;">NIK</th>
                     <th rowspan="2" style="text-align: left; min-width: 130px;">Nama Karyawan</th>
                     <th rowspan="2" style="text-align: left; width: 100px;">Cabang</th>
-                    <th colspan="12" style="border-bottom: 1px solid #163B2F;">Distribusi Bulanan (Tahun {{ $tahun }})</th>
-                    <th rowspan="2" style="width: 50px; background-color: #163B2F;">Total Ambil</th>
+                    <th colspan="12" style="border-bottom: 1px solid var(--theme-color-1, #3C2A21);">Distribusi Bulanan (Tahun {{ $tahun }})</th>
+                    <th rowspan="2" style="width: 50px; background-color: var(--color-primary-hover, var(--theme-color-2, #25160E));">Total Ambil</th>
                     <th rowspan="2" style="width: 45px;">Jatah</th>
-                    <th rowspan="2" style="width: 45px; background-color: #163B2F;">Sisa</th>
+                    <th rowspan="2" style="width: 45px; background-color: var(--color-primary-hover, var(--theme-color-2, #25160E));">Sisa</th>
                 </tr>
                 <tr>
                     <th style="width: 28px;">Jan</th>

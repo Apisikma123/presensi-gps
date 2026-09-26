@@ -27,12 +27,16 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
                 'departemen.nama_dept',
                 'jabatan.nama_jabatan',
                 'cabang.nama_cabang',
-                'presensi_jamkerja.nama_jam_kerja'
+                'presensi_jamkerja.nama_jam_kerja',
+                'divisions.nama_divisi',
+                'spv.nama_karyawan as nama_supervisor'
             )
             ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
             ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
             ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
             ->leftJoin('presensi_jamkerja', 'karyawan.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->leftJoin('divisions', 'karyawan.kode_divisi', '=', 'divisions.kode_divisi')
+            ->leftJoin('karyawan as spv', 'karyawan.direct_supervisor_nik', '=', 'spv.nik')
             ->orderBy('nama_karyawan', 'asc');
 
         if (!empty($this->filters['nama_karyawan'])) {
@@ -86,52 +90,79 @@ class KaryawanExport implements FromCollection, WithHeadings, WithMapping, WithS
         return [
             'NIK',
             'NIK Perusahaan',
+            'No. KTP',
             'Nama Karyawan',
             'Jenis Kelamin',
+            'Agama',
+            'Kewarganegaraan',
             'No. HP',
-            'Email',
+            'Email Pribadi',
+            'Email Kantor',
             'Alamat',
             'Cabang',
             'Departemen',
+            'Divisi / Tim',
             'Jabatan',
+            'Grade Level',
+            'Atasan Langsung',
+            'Tipe Hubungan Kerja',
             'Jam Kerja',
-            'Status Karyawan',
             'Status Keaktifan',
             'Tanggal Masuk',
             'Tanggal Nonaktif',
-            'Lock Lokasi',
-            'Lock Jam Kerja',
-            'RFID UID'
+            'Bank',
+            'No. Rekening',
+            'Nama Rekening',
+            'NPWP',
+            'BPJS Kesehatan',
+            'BPJS TK',
+            'Kontak Darurat',
+            'Hubungan Kontak'
         ];
     }
 
     public function map($karyawan): array
     {
-        $statusKaryawan = $karyawan->status_karyawan == 'K' ? 'Kontrak' : ($karyawan->status_karyawan == 'T' ? 'Tetap' : ($karyawan->status_karyawan ?: '-'));
         $jenisKelamin = $karyawan->jenis_kelamin == 'L' ? 'Laki-laki' : ($karyawan->jenis_kelamin == 'P' ? 'Perempuan' : ($karyawan->jenis_kelamin ?: '-'));
         $statusAktif = $karyawan->status_aktif_karyawan == 1 ? 'Aktif' : 'Non Aktif';
-        $lockLocation = $karyawan->lock_location == 1 ? 'Ya' : 'Tidak';
-        $lockJamKerja = $karyawan->lock_jam_kerja == 1 ? 'Ya' : 'Tidak';
+        $user = auth()->user();
+        $canSensitive = $user && $user->can('employee.sensitive_data');
+
+        $noKtp = $canSensitive ? ($karyawan->no_ktp ?: '-') : ($karyawan->masked_no_ktp ?: '-');
+        $npwp = $canSensitive ? ($karyawan->npwp_number ?: '-') : ($karyawan->masked_npwp ?: '-');
+        $noRekening = $canSensitive ? ($karyawan->no_rekening ?: '-') : ($karyawan->masked_no_rekening ?: '-');
 
         $data = [
             "'" . $karyawan->nik,
             $karyawan->nik_show ?: $karyawan->nik,
+            $noKtp,
             $karyawan->nama_karyawan,
             $jenisKelamin,
+            $karyawan->religion ?: '-',
+            $karyawan->nationality ?: 'WNI',
             $karyawan->no_hp ?: '-',
-            $karyawan->email ?: '-',
+            $karyawan->personal_email ?: '-',
+            $karyawan->company_email ?: ($karyawan->email ?: '-'),
             $karyawan->alamat ?: '-',
             $karyawan->nama_cabang ?: $karyawan->kode_cabang,
             $karyawan->nama_dept ?: $karyawan->kode_dept,
+            $karyawan->nama_divisi ?: '-',
             $karyawan->nama_jabatan ?: $karyawan->kode_jabatan,
+            $karyawan->grade_level ?: '-',
+            $karyawan->nama_supervisor ?: '-',
+            $karyawan->employment_type ?: 'PKWT',
             $karyawan->nama_jam_kerja ?: $karyawan->kode_jam_kerja,
-            $statusKaryawan,
             $statusAktif,
             $karyawan->tanggal_masuk ?: '-',
             $karyawan->tanggal_nonaktif ?: '-',
-            $lockLocation,
-            $lockJamKerja,
-            $karyawan->rfid_uid ?: '-'
+            $karyawan->nama_bank ?: '-',
+            $noRekening,
+            $karyawan->nama_rekening ?: '-',
+            $npwp,
+            $karyawan->bpjs_kesehatan_number ?: '-',
+            $karyawan->bpjs_ketenagakerjaan_number ?: '-',
+            $karyawan->kontak_darurat ?: '-',
+            $karyawan->hubungan_kontak_darurat ?: '-'
         ];
 
         return array_map(function ($value) {

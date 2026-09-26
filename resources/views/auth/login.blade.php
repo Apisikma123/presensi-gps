@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>Login</title>
+    <title>Login | {{ $company_setting->app_name ?? ($general_setting->nama_aplikasi ?? 'Presence') }}</title>
 
     <meta name="description" content="" />
 
@@ -43,6 +43,30 @@
     <!-- Page -->
     <link rel="stylesheet" href="{{ asset('/assets/vendor/css/pages/page-auth.css') }}" />
 
+    <!-- Theme Custom Properties with Auto-Contrast -->
+    <style>
+        :root {
+            --color-primary: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }};
+            --bs-primary: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }};
+            --theme-color-1: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }};
+            --theme-primary-contrast: {{ $theme['primary_contrast'] ?? '#FFFFFF' }};
+        }
+        .btn-primary {
+            background-color: var(--theme-color-1) !important;
+            border-color: var(--theme-color-1) !important;
+            color: var(--theme-primary-contrast, #FFFFFF) !important;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: {{ $theme['primary_hover'] ?? '#2A1D17' }} !important;
+            border-color: {{ $theme['primary_hover'] ?? '#2A1D17' }} !important;
+            color: var(--theme-primary-contrast, #FFFFFF) !important;
+        }
+        .form-control:focus {
+            border-color: var(--theme-color-1) !important;
+            box-shadow: 0 0 0 0.25rem {{ $theme['primary_soft'] ?? 'rgba(60,42,33,0.15)' }} !important;
+        }
+    </style>
+
     <!-- Helpers -->
     <script src="{{ asset('/assets/vendor/js/helpers.js') }}"></script>
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
@@ -55,26 +79,32 @@
     <div class="authentication-wrapper authentication-basic container-p-y">
         <div class="authentication-inner py-4">
             <!-- Login -->
-            <div class="card">
-                <div class="card-body">
+            <div class="card shadow-sm border-0" style="border-radius: 14px;">
+                <div class="card-body p-4">
                     <!-- Logo -->
-                    <div class="app-brand justify-content-center mb-4 mt-2">
-                        {{-- <img src="{{ asset('assets/img/logo/hibah.png') }}" alt="" width="160"> --}}
+                    <div class="app-brand justify-content-center mb-3 mt-2 text-center">
+                        @if (!empty($app_logo_url))
+                            <img src="{{ $app_logo_url }}" alt="Logo" style="max-height: 52px; max-width: 180px; object-fit: contain;">
+                        @else
+                            <div class="d-inline-flex p-2.5 rounded-3 shadow-sm" style="background: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }}; color: {{ $theme['primary_contrast'] ?? '#FFFFFF' }};">
+                                <i class="ti ti-fingerprint" style="font-size: 28px;"></i>
+                            </div>
+                        @endif
                     </div>
                     <!-- /Logo -->
-                    <h4 class="mb-1 pt-2" style="font-family: 'Outfit', sans-serif; font-weight: 700;">E-Presensi Enterprise</h4>
-                    <p class="mb-4 text-muted">Silakan masuk ke akun Anda</p>
+                    <h4 class="mb-1 pt-1 text-center" style="font-family: 'Outfit', sans-serif; font-weight: 700;">{{ $company_setting->app_name ?? ($general_setting->nama_aplikasi ?? 'Presence') }}</h4>
+                    <p class="mb-3 text-muted text-center" style="font-size: 13px;">{{ $company_setting->company_name ?? ($general_setting->nama_perusahaan ?? 'Universal HR Management System') }}</p>
                     <x-alert-error :messages="$errors->get('id_user')" class="mt-2" />
                     <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                         @csrf
                         <div class="mb-3">
-                            <label for="id_user" class="form-label">Email or Username</label>
+                            <label for="id_user" class="form-label fw-semibold" style="font-size: 12.5px;">Email or Username</label>
                             <input type="text" class="form-control" id="id_user" name="id_user" placeholder="Enter your email or username"
                                 autofocus />
                         </div>
                         <div class="mb-3 form-password-toggle">
                             <div class="d-flex justify-content-between">
-                                <label class="form-label" for="password">Password</label>
+                                <label class="form-label fw-semibold" for="password" style="font-size: 12.5px;">Password</label>
                             </div>
                             <div class="input-group input-group-merge">
                                 <input type="password" id="password" class="form-control" name="password"
@@ -90,29 +120,9 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
+                            <button class="btn btn-primary d-grid w-100 py-2 fw-semibold" type="submit">Sign in</button>
                         </div>
                     </form>
-
-
-
-                    <div class="divider my-4">
-                        <div class="divider-text">or</div>
-                    </div>
-
-                    <div class="d-flex justify-content-center">
-                        <a href="javascript:;" class="btn btn-icon btn-label-facebook me-3">
-                            <i class="tf-icons fa-brands fa-facebook-f fs-5"></i>
-                        </a>
-
-                        <a href="javascript:;" class="btn btn-icon btn-label-google-plus me-3">
-                            <i class="tf-icons fa-brands fa-google fs-5"></i>
-                        </a>
-
-                        <a href="javascript:;" class="btn btn-icon btn-label-twitter">
-                            <i class="tf-icons fa-brands fa-twitter fs-5"></i>
-                        </a>
-                    </div>
                 </div>
             </div>
             <!-- /Register -->

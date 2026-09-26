@@ -46,6 +46,14 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    public function getIdType(): string
+    {
+        if (empty($this->id_type)) {
+            $this->id_type = filter_var($this->input('id_user'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        }
+        return $this->id_type;
+    }
+
     /**
      * Attempt to authenticate the request's credentials.
      *
@@ -55,12 +63,33 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only($this->id_type, 'password'), $this->boolean('remember'))) {
+        $idType = $this->getIdType();
+        $credentials = [
+            $idType => $this->input('id_user'),
+            'password' => $this->input('password'),
+        ];
+
+        if (!Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'id_user' => trans('auth.failed'),
             ]);
+        }
+
+        $user = Auth::user();
+        if ($user && ($user->hasRole('karyawan') || $user->userkaryawan)) {
+            $uk = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            if ($uk) {
+                $karyawan = \App\Models\Karyawan::where('nik', $uk->nik)->first();
+                if (!$karyawan || $karyawan->status_aktif_karyawan != '1' || $karyawan->status_karyawan === 'R' || !empty($karyawan->tanggal_nonaktif)) {
+                    Auth::logout();
+                    RateLimiter::hit($this->throttleKey());
+                    throw ValidationException::withMessages([
+                        'id_user' => 'Akun karyawan Anda berstatus tidak aktif atau telah mengundurkan diri (resign). Silakan hubungi administrator.',
+                    ]);
+                }
+            }
         }
 
         RateLimiter::clear($this->throttleKey());

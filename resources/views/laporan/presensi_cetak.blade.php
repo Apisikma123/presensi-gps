@@ -1,3 +1,10 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $theme['primary'] ?? '#3C2A21';
+    $secondaryColor = $theme['secondary'] ?? '#634832';
+    $primaryHover = $theme['primary_hover'] ?? '#2A1D17';
+    $primaryContrast = $theme['primary_contrast'] ?? '#FFFFFF';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,6 +13,13 @@
     <title>Rekapitulasi Presensi Karyawan - {{ $generalsetting->nama_perusahaan ?? 'HRIS Enterprise' }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        :root {
+            --theme-color-1: {{ $primaryColor }};
+            --theme-color-2: {{ $secondaryColor }};
+            --color-primary-hover: {{ $primaryHover }};
+            --theme-primary-contrast: {{ $primaryContrast }};
+        }
 
         * {
             box-sizing: border-box;
@@ -17,7 +31,7 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 11px;
             color: #0F172A;
-            background: #F8FAF8;
+            background: #FAF9F8;
             margin: 0;
             padding: 20px;
         }
@@ -49,7 +63,7 @@
             gap: 8px;
             font-size: 11.5px;
             font-weight: 600;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
         .toolbar-info .badge-mode {
             padding: 2px 7px;
@@ -69,8 +83,8 @@
         }
         .btn-print {
             padding: 7px 16px;
-            background: #1E4D3E;
-            color: #FFFFFF;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             border: none;
             border-radius: 4px;
             font-size: 11.5px;
@@ -81,7 +95,7 @@
             gap: 6px;
         }
         .btn-print:hover {
-            background: #32745E;
+            background: var(--color-primary-hover, var(--theme-color-2, #634832));
         }
         .btn-close-view {
             padding: 7px 14px;
@@ -117,8 +131,8 @@
         .kop-logo-monogram {
             width: 48px;
             height: 48px;
-            background: #1E4D3E;
-            color: #FFFFFF;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -138,7 +152,7 @@
             margin: 2px 0 0 0;
             font-size: 10.5px;
             font-weight: 600;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
         .kop-company-meta {
             margin: 3px 0 0 0;
@@ -173,7 +187,7 @@
         /* Divider */
         .kop-divider-primary {
             height: 2px;
-            background: #1E4D3E;
+            background: var(--theme-color-1, #3C2A21);
             margin-bottom: 2px;
         }
         .kop-divider-secondary {
@@ -208,7 +222,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #F8FAF8;
+            background: #F4F3F2;
             border: 1px solid #E2E8F0;
             border-radius: 4px;
             padding: 8px 16px;
@@ -251,14 +265,14 @@
             font-size: 10px;
         }
         table.grid th {
-            background-color: #1E4D3E;
-            color: #FFFFFF;
+            background-color: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #FFFFFF);
             font-weight: 700;
             font-size: 9.5px;
             letter-spacing: 0.3px;
             text-transform: uppercase;
             padding: 7px 5px;
-            border: 1px solid #163B2F;
+            border: 1px solid var(--theme-color-1, #3C2A21);
             vertical-align: middle;
             text-align: center;
         }
@@ -269,13 +283,13 @@
             color: #1E293B;
         }
         table.grid tbody tr:nth-child(even) {
-            background-color: #F8FAF8;
+            background-color: #F4F3F2;
         }
         table.grid tfoot td {
             background-color: #F1F5F9;
             font-weight: 700;
-            border-top: 1.5px solid #1E4D3E;
-            border-bottom: 1.5px solid #1E4D3E;
+            border-top: 1.5px solid var(--theme-color-1, #3C2A21);
+            border-bottom: 1.5px solid var(--theme-color-1, #3C2A21);
             padding: 7px 5px;
         }
         .num-code {
@@ -430,7 +444,7 @@
 
                 <div>
                     <h1 class="kop-company-title">{{ $generalsetting->nama_perusahaan ?? 'PERUSAHAAN' }}</h1>
-                    <div class="kop-company-sub">SISTEM INFORMASI MANAJEMEN PRESENSI & OPERASIONAL OUTLET</div>
+                    <div class="kop-company-sub">{{ strtoupper(company_setting('app_tagline') ?: 'Sistem Informasi Manajemen SDM & Presensi') }}</div>
                     <div class="kop-company-meta">
                         {{ $generalsetting->alamat ?? 'Alamat Kantor Pusat' }}
                         @if(!empty($generalsetting->telepon)) &bull; Telp: {{ $generalsetting->telepon }} @endif
@@ -503,28 +517,41 @@
                     $isOff = $eff ? $eff['is_off'] : false;
                     $effCabang = $eff['kode_cabang'] ?? $k->kode_cabang;
                     $isPastOrToday = ($curr <= $today);
+                    $isResigned = ($k->status_aktif_karyawan == 0 || $k->status_aktif_karyawan === '0')
+                        && !empty($k->tanggal_nonaktif)
+                        && $curr > $k->tanggal_nonaktif;
 
                     if (!empty($kode_cabang) && $effCabang !== $kode_cabang && !$pres) {
                         $curr = date('Y-m-d', strtotime('+1 day', strtotime($curr)));
                         continue;
                     }
 
-                    if (!$isOff && $curr <= $effectiveEnd) {
+                    if (!$isOff && $curr <= $effectiveEnd && !$isResigned) {
                         $empWorkDays++;
                     }
 
                     if ($pres) {
                         if ($pres->status === 'h') {
-                            $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
-                            $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : '07:05:00';
                             $actualIn = date('H:i:s', strtotime($pres->jam_in));
 
                             if ($disp && $actualIn <= $disp->batas_dispensasi) {
                                 $totDispensasi++;
-                            } elseif ($actualIn <= $batas) {
-                                $totHadirNormal++;
+                            } elseif (isset($pres->is_terlambat) && $pres->is_terlambat !== null) {
+                                // P1-4: Snapshot immutability from attendance record
+                                if ($pres->is_terlambat == 1) {
+                                    $totTelat++;
+                                } else {
+                                    $totHadirNormal++;
+                                }
                             } else {
-                                $totTelat++;
+                                // Legacy fallback
+                                $jk = $jamkerja_map[$pres->kode_jam_kerja] ?? ($eff['jam_kerja'] ?? $defaultJk);
+                                $batas = $jk && $jk->batas_toleransi ? date('H:i:s', strtotime($jk->batas_toleransi)) : ($jk && $jk->jam_masuk ? date('H:i:s', strtotime($jk->jam_masuk)) : '08:00:00');
+                                if ($actualIn <= $batas) {
+                                    $totHadirNormal++;
+                                } else {
+                                    $totTelat++;
+                                }
                             }
                         } elseif ($pres->status === 'i') {
                             $totIzin++;
@@ -536,8 +563,8 @@
                             $totAlfa++;
                         }
                     } else {
-                        // Only count as Alfa if date is scheduled work day and date has already elapsed
-                        if (!$isOff && $isPastOrToday) {
+                        // Only count as Alfa if date is scheduled work day, date has already elapsed, and employee had not resigned
+                        if (!$isOff && $isPastOrToday && !$isResigned) {
                             $totAlfa++;
                         }
                     }
@@ -624,8 +651,8 @@
                     <th style="width: 40px;">Sakit</th>
                     <th style="width: 40px;">Cuti</th>
                     <th style="width: 42px;">Alfa</th>
-                    <th style="width: 55px; background-color: #163B2F;">Total Hadir</th>
-                    <th style="width: 48px; background-color: #163B2F;">% Hadir</th>
+                    <th style="width: 55px; background-color: var(--color-primary-hover, var(--theme-color-2, #25160E));">Total Hadir</th>
+                    <th style="width: 48px; background-color: var(--color-primary-hover, var(--theme-color-2, #25160E));">% Hadir</th>
                 </tr>
             </thead>
             <tbody>
@@ -665,7 +692,7 @@
                     <td style="text-align: center;" class="num-code">{{ number_format($grandSakit, 0, ',', '.') }}</td>
                     <td style="text-align: center;" class="num-code">{{ number_format($grandCuti, 0, ',', '.') }}</td>
                     <td style="text-align: center; color: #DC2626;" class="num-code">{{ number_format($grandAlfa, 0, ',', '.') }}</td>
-                    <td style="text-align: center; font-size: 10.5px; color: #1E4D3E;" class="num-code">{{ number_format($grandTotalHadir, 0, ',', '.') }}</td>
+                    <td style="text-align: center; font-size: 10.5px; color: var(--theme-color-1, #3C2A21);" class="num-code">{{ number_format($grandTotalHadir, 0, ',', '.') }}</td>
                     <td style="text-align: center;" class="num-code">{{ $attendanceRate }}%</td>
                 </tr>
             </tfoot>

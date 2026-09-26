@@ -261,26 +261,47 @@ class IzincutiController extends Controller
 
             $jmlhari = hitungHari($request->dari, $request->sampai, $nik);
             $cuti = Cuti::where('kode_cuti', $request->kode_cuti)->first();
-            $max_cuti = $cuti->jumlah_hari;
-            $tahun_cuti = date('Y', strtotime($request->dari));
-            $cek_cuti_dipakai = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
-                ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
-                ->where('presensi.nik', $nik)
-                ->where('presensi_izincuti.kode_cuti', $request->kode_cuti)
-                ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun_cuti])
-                ->count();
+            $max_cuti = $cuti ? $cuti->jumlah_hari : 12;
+
             if ($request->kode_cuti == "C01") {
-                $sisa_cuti = $max_cuti - $cek_cuti_dipakai;
-                if ($jmlhari > $sisa_cuti) {
-                    $msg = 'Jumlah Hari Melebihi Sisa Cuti ' . $cuti->jenis_cuti . ' Anda, Sisa Cuti Anda Adalah ' . $sisa_cuti . ' Hari Lagi!';
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => $msg], 422);
+                // P2-4: Cross-year leave quota split (calculate work days grouped by year)
+                $daysByYear = [];
+                $currDate = \Carbon\Carbon::parse($request->dari);
+                $endDate = \Carbon\Carbon::parse($request->sampai);
+                while ($currDate->lte($endDate)) {
+                    $currDateStr = $currDate->toDateString();
+                    $eff = AttendanceService::getEffectiveSchedule($nik, $currDateStr);
+                    if (!$eff['is_off']) {
+                        $y = $currDate->year;
+                        $daysByYear[$y] = ($daysByYear[$y] ?? 0) + 1;
                     }
-                    return Redirect::back()->withInput()->with(messageError($msg));
+                    $currDate->addDay();
+                }
+
+                if (empty($daysByYear)) {
+                    $daysByYear[date('Y', strtotime($request->dari))] = $jmlhari;
+                }
+
+                foreach ($daysByYear as $tahun => $neededDays) {
+                    $usedInYear = Approveizincuti::join('presensi', 'presensi_izincuti_approve.id_presensi', '=', 'presensi.id')
+                        ->join('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
+                        ->where('presensi.nik', $nik)
+                        ->where('presensi_izincuti.kode_cuti', $request->kode_cuti)
+                        ->whereRaw("YEAR(presensi.tanggal) = ?", [$tahun])
+                        ->count();
+
+                    $sisaInYear = $max_cuti - $usedInYear;
+                    if ($neededDays > $sisaInYear) {
+                        $msg = "Jumlah cuti tahun {$tahun} ({$neededDays} hari) melebihi sisa cuti tahun {$tahun} ({$sisaInYear} hari lagi)!";
+                        if ($request->ajax() || $request->wantsJson()) {
+                            return response()->json(['success' => false, 'message' => $msg], 422);
+                        }
+                        return Redirect::back()->withInput()->with(messageError($msg));
+                    }
                 }
             } else {
                 if ($jmlhari > $max_cuti) {
-                    $msg = 'Jumlah Hari Melebihi Maksimal Cuti ' . $cuti->jenis_cuti . ' Yaitu ' . $max_cuti . ' Hari!';
+                    $msg = 'Jumlah Hari Melebihi Maksimal Cuti ' . ($cuti->jenis_cuti ?? 'Cuti') . ' Yaitu ' . $max_cuti . ' Hari!';
                     if ($request->ajax() || $request->wantsJson()) {
                         return response()->json(['success' => false, 'message' => $msg], 422);
                     }
@@ -576,19 +597,25 @@ class IzincutiController extends Controller
                         $jkCode = $eff && $eff['jam_kerja'] ? $eff['jam_kerja']->kode_jam_kerja : ($jamkerja ? $jamkerja->kode_jam_kerja : 'JK01');
                         
                         $existing = Presensi::where('nik', $nik)->where('tanggal', $curr)->first();
-                        $auditNote = null;
-                        if ($existing && $existing->status === 'a') {
-                            $auditNote = "[IZIN_SUSULAN] Diubah dari ALPHA (a) ke CUTI. Approved by: " . ($user->name ?? 'Admin') . " on " . now()->format('Y-m-d H:i:s') . ". Ref: " . $kode_izin_cuti;
-                        }
+                        
+                        if ($existing && ($existing->status === 'h' || !empty($existing->jam_in))) {
+                            // Anti-Overwrite: Physical attendance must NEVER be replaced by leave approval
+                            $presensi = $existing;
+                        } else {
+                            $auditNote = null;
+                            if ($existing && $existing->status === 'a') {
+                                $auditNote = "[IZIN_SUSULAN] Diubah dari ALPHA (a) ke CUTI. Approved by: " . ($user->name ?? 'Admin') . " on " . now()->format('Y-m-d H:i:s') . ". Ref: " . $kode_izin_cuti;
+                            }
 
-                        $presensi = Presensi::updateOrCreate(
-                            ['nik' => $nik, 'tanggal' => $curr],
-                            [
-                                'kode_jam_kerja' => $jkCode,
-                                'status' => 'c',
-                                'keterangan' => $auditNote ?? ($izincuti->keterangan ?? 'Izin Cuti'),
-                            ]
-                        );
+                            $presensi = Presensi::updateOrCreate(
+                                ['nik' => $nik, 'tanggal' => $curr],
+                                [
+                                    'kode_jam_kerja' => $jkCode,
+                                    'status' => 'c',
+                                    'keterangan' => $auditNote ?? ($izincuti->keterangan ?? 'Izin Cuti'),
+                                ]
+                            );
+                        }
 
                         Approveizincuti::updateOrCreate(
                             ['kode_izin_cuti' => $kode_izin_cuti, 'id_presensi' => $presensi->id],
@@ -659,7 +686,9 @@ class IzincutiController extends Controller
                 foreach ($approves as $appr) {
                     $p = Presensi::find($appr->id_presensi);
                     if ($p) {
-                        if (str_contains($p->keterangan ?? '', '[IZIN_SUSULAN]')) {
+                        if ($p->status === 'h' || !empty($p->jam_in)) {
+                            // Retain actual physical attendance intact
+                        } elseif (str_contains($p->keterangan ?? '', '[IZIN_SUSULAN]')) {
                             $p->update([
                                 'status' => 'a',
                                 'keterangan' => 'Tanpa Keterangan (Alpha) - Dibatalkan dari Cuti Susulan Ref: ' . $kode_izin_cuti,

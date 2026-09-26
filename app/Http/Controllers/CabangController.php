@@ -331,11 +331,23 @@ class CabangController extends Controller
                 abort(403, 'Anda tidak memiliki akses ke cabang ini.');
             }
         }
+        // P2-3: Friendly dependency checks before destructive action
+        $hasKaryawan = \App\Models\Karyawan::where('kode_cabang', $kode_cabang)->exists();
+        $hasPresensi = \App\Models\Presensi::where('kode_cabang', $kode_cabang)->exists();
+        $hasRoster = \App\Models\Setjamkerjabyday::where('kode_cabang', $kode_cabang)->exists()
+            || \App\Models\Setjamkerjabydate::where('kode_cabang', $kode_cabang)->exists();
+
+        if ($hasKaryawan || $hasPresensi || $hasRoster) {
+            return Redirect::back()->with(messageError('Cabang tidak dapat dihapus karena masih digunakan oleh data karyawan atau jadwal presensi.'));
+        }
+
         try {
             Cabang::where('kode_cabang', $kode_cabang)->delete();
-            return Redirect::back()->with(messageSuccess('Data Berhasil Dihapus'));
+            return Redirect::back()->with(messageSuccess('Data Cabang Berhasil Dihapus'));
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Redirect::back()->with(messageError('Cabang tidak dapat dihapus karena masih terkait dengan data lain di sistem.'));
         } catch (\Exception $e) {
-            return Redirect::back()->with(messageError($e->getMessage()));
+            return Redirect::back()->with(messageError('Gagal menghapus cabang: ' . $e->getMessage()));
         }
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Jamkerja;
 use App\Models\Setjamkerjabyday;
 use App\Models\Setjamkerjabydate;
 use App\Models\Karyawan;
+use App\Models\Division;
 use App\Models\User;
 use App\Models\Userkaryawan;
 use Carbon\Carbon;
@@ -140,6 +141,8 @@ class KaryawanController extends Controller
         $data['departemen'] = $user->getDepartemen();
         $data['jabatan'] = Jabatan::orderBy('kode_jabatan')->get();
         $data['jamkerja'] = Jamkerja::orderBy('kode_jam_kerja')->get();
+        $data['divisi'] = Division::where('is_active', true)->orderBy('nama_divisi')->get();
+        $data['supervisors'] = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get(['nik', 'nama_karyawan', 'nik_show']);
         return view('datamaster.karyawan.create', $data);
     }
 
@@ -243,6 +246,24 @@ class KaryawanController extends Controller
                 'alamat' => $request->alamat,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'no_hp' => $request->no_hp,
+                'email' => $request->email,
+                'personal_email' => $request->personal_email,
+                'company_email' => $request->company_email,
+                'kontak_darurat' => $request->kontak_darurat,
+                'hubungan_kontak_darurat' => $request->hubungan_kontak_darurat,
+                'no_ktp' => $request->no_ktp,
+                'npwp_number' => $request->npwp_number,
+                'bpjs_kesehatan_number' => $request->bpjs_kesehatan_number,
+                'bpjs_ketenagakerjaan_number' => $request->bpjs_ketenagakerjaan_number,
+                'nama_bank' => $request->nama_bank,
+                'no_rekening' => $request->no_rekening,
+                'nama_rekening' => $request->nama_rekening,
+                'nationality' => $request->nationality ?: 'WNI',
+                'religion' => $request->religion,
+                'grade_level' => $request->grade_level,
+                'direct_supervisor_nik' => $request->direct_supervisor_nik,
+                'employment_type' => $request->employment_type ?: 'PKWT',
+                'kode_divisi' => $request->kode_divisi,
                 'kode_cabang' => $request->kode_cabang,
                 'kode_dept' => $request->kode_dept,
                 'kode_jabatan' => $request->kode_jabatan,
@@ -331,6 +352,8 @@ class KaryawanController extends Controller
         $data['departemen'] = $user->getDepartemen();
         $data['jabatan'] = Jabatan::orderBy('kode_jabatan')->get();
         $data['jamkerja'] = Jamkerja::orderBy('kode_jam_kerja')->get();
+        $data['divisi'] = Division::where('is_active', true)->orderBy('nama_divisi')->get();
+        $data['supervisors'] = Karyawan::where('status_aktif_karyawan', '1')->where('nik', '!=', $nik)->orderBy('nama_karyawan')->get(['nik', 'nama_karyawan', 'nik_show']);
         return view('datamaster.karyawan.edit', $data);
     }
 
@@ -409,6 +432,24 @@ class KaryawanController extends Controller
                 'alamat' => $request->alamat,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'no_hp' => $request->no_hp,
+                'email' => $request->email,
+                'personal_email' => $request->personal_email,
+                'company_email' => $request->company_email,
+                'kontak_darurat' => $request->kontak_darurat,
+                'hubungan_kontak_darurat' => $request->hubungan_kontak_darurat,
+                'no_ktp' => $request->no_ktp,
+                'npwp_number' => $request->npwp_number,
+                'bpjs_kesehatan_number' => $request->bpjs_kesehatan_number,
+                'bpjs_ketenagakerjaan_number' => $request->bpjs_ketenagakerjaan_number,
+                'nama_bank' => $request->nama_bank,
+                'no_rekening' => $request->no_rekening,
+                'nama_rekening' => $request->nama_rekening,
+                'nationality' => $request->nationality ?: 'WNI',
+                'religion' => $request->religion,
+                'grade_level' => $request->grade_level,
+                'direct_supervisor_nik' => $request->direct_supervisor_nik,
+                'employment_type' => $request->employment_type ?: 'PKWT',
+                'kode_divisi' => $request->kode_divisi,
                 'kode_cabang' => $request->kode_cabang,
                 'kode_dept' => $request->kode_dept,
                 'kode_jabatan' => $request->kode_jabatan,
@@ -479,12 +520,22 @@ class KaryawanController extends Controller
         $user = auth()->user();
 
         $nik = Crypt::decrypt($nik);
-        $karyawan = Karyawan::where('nik', $nik)
-            ->select('karyawan.*', 'cabang.nama_cabang', 'departemen.nama_dept', 'jabatan.nama_jabatan', 'presensi_jamkerja.nama_jam_kerja')
+        $karyawan = Karyawan::where('karyawan.nik', $nik)
+            ->select(
+                'karyawan.*',
+                'cabang.nama_cabang',
+                'departemen.nama_dept',
+                'jabatan.nama_jabatan',
+                'presensi_jamkerja.nama_jam_kerja',
+                'divisions.nama_divisi',
+                'spv.nama_karyawan as nama_supervisor'
+            )
             ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
             ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
             ->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
             ->leftJoin('presensi_jamkerja', 'karyawan.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+            ->leftJoin('divisions', 'karyawan.kode_divisi', '=', 'divisions.kode_divisi')
+            ->leftJoin('karyawan as spv', 'karyawan.direct_supervisor_nik', '=', 'spv.nik')
             ->first();
 
         if (!$karyawan) {
@@ -502,6 +553,10 @@ class KaryawanController extends Controller
         $data['karyawan'] = $karyawan;
         $data['user'] = $targetUser;
         $data['karyawan_wajah'] = $karyawan_wajah;
+        $data['kontraks'] = $karyawan->kontraks;
+        $data['activeKontrak'] = $karyawan->activeKontrak;
+        $data['movements'] = $karyawan->movements()->with('approver')->get();
+        $data['resignations'] = $karyawan->resignations;
         return view('datamaster.karyawan.show', $data);
     }
 
@@ -519,6 +574,13 @@ class KaryawanController extends Controller
 
             if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
                 return Redirect::back()->with(messageError('Anda tidak memiliki akses untuk menghapus karyawan cabang ini'));
+            }
+
+            // Guard against destructive cascade deletion of attendance or payroll history
+            $hasAttendance = \App\Models\Presensi::where('nik', $nik)->exists();
+            $hasPayroll = \App\Models\PayrollDetail::where('nik', $nik)->exists();
+            if ($hasAttendance || $hasPayroll) {
+                return Redirect::back()->with(messageError('Karyawan tidak dapat dihapus karena memiliki riwayat kehadiran atau payroll historis. Silakan nonaktifkan status karyawan atau proses pengunduran diri (resign) untuk menjaga integritas data.'));
             }
 
             $user_karyawan = Userkaryawan::where('nik', $nik)->first();
@@ -762,12 +824,17 @@ class KaryawanController extends Controller
         /** @var \App\Models\User $user */
         $user = auth()->user();
         $nik = Crypt::decrypt($nik);
-        $data['karyawan'] = Karyawan::where('nik', $nik)
+        $karyawan = Karyawan::where('nik', $nik)
             ->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
             ->leftJoin('cabang', 'karyawan.kode_cabang', '=', 'cabang.kode_cabang')
             ->select('karyawan.*', 'departemen.nama_dept', 'cabang.nama_cabang')
             ->firstOrFail();
 
+        if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengatur jadwal karyawan cabang ini.');
+        }
+
+        $data['karyawan'] = $karyawan;
         $data['list_bulan'] = [
             ['kode_bulan' => 1, 'nama_bulan' => 'Januari'],
             ['kode_bulan' => 2, 'nama_bulan' => 'Februari'],
@@ -791,7 +858,14 @@ class KaryawanController extends Controller
 
     public function storejamkerjabyday(Request $request, $nik)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
         $nik = Crypt::decrypt($nik);
+        $karyawan = Karyawan::where('nik', $nik)->firstOrFail();
+        if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengatur jadwal karyawan cabang ini.');
+        }
+
         $hari = $request->hari ?? [];
         $kode_jam_kerja = $request->kode_jam_kerja ?? [];
         $kode_cabang = $request->kode_cabang ?? [];
@@ -818,6 +892,17 @@ class KaryawanController extends Controller
 
     public function storejamkerjabydate(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $nik = $request->nik;
+        $karyawan = Karyawan::where('nik', $nik)->first();
+        if (!$karyawan) {
+            return response()->json(['success' => false, 'message' => 'Data karyawan tidak ditemukan.'], 404);
+        }
+        if (!$this->authorizeKaryawanAccess($user, $karyawan)) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk mengatur jadwal karyawan cabang ini.'], 403);
+        }
+
         $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
         try {
             Setjamkerjabydate::updateOrCreate(
@@ -835,7 +920,14 @@ class KaryawanController extends Controller
 
     public function getjamkerjabydate(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
         $nik = $request->nik;
+        $karyawan = Karyawan::where('nik', $nik)->first();
+        if ($karyawan && !$this->authorizeKaryawanAccess($user, $karyawan)) {
+            return response()->json([], 403);
+        }
+
         $bulan = (int)$request->bulan;
         $tahun = (int)$request->tahun;
 
@@ -853,6 +945,14 @@ class KaryawanController extends Controller
 
     public function deletejamkerjabydate(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $nik = $request->nik;
+        $karyawan = Karyawan::where('nik', $nik)->first();
+        if ($karyawan && !$this->authorizeKaryawanAccess($user, $karyawan)) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk menghapus jadwal karyawan cabang ini.'], 403);
+        }
+
         $tanggal = Carbon::parse($request->tanggal)->format('Y-m-d');
         try {
             Setjamkerjabydate::where('nik', $request->nik)->where('tanggal', $tanggal)->delete();

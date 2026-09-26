@@ -86,9 +86,8 @@
     .status-badge {
         align-self: center;
         background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(8px);
         padding: 6px 14px;
-        border-radius: 20px;
+        border-radius: 10px;
         color: #fff;
         font-size: 12px;
         font-weight: 500;
@@ -155,7 +154,7 @@
     }
 
     .btn-modern-start {
-        background: #1E4D3E;
+        background: #3C2A21;
         color: #FFFFFF;
         border: 1px solid rgba(255, 255, 255, 0.2);
         padding: 10px 24px;

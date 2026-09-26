@@ -157,7 +157,22 @@ $(function () {
         $(this).slideDown();
       },
       hide: function (e) {
-        confirm('Are you sure you want to delete this element?') && $(this).slideUp(e);
+        var self = this;
+        Swal.fire({
+          title: "Hapus Elemen?",
+          text: "Apakah Anda yakin ingin menghapus baris data ini?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DC2626",
+          cancelButtonColor: "#64748B",
+          confirmButtonText: "Ya, Hapus",
+          cancelButtonText: "Batal",
+          reverseButtons: true
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            $(self).slideUp(e);
+          }
+        });
       }
     });
   }

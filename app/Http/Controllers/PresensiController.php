@@ -124,12 +124,22 @@ class PresensiController extends Controller
                     ->where(function ($q) {
                         $q->whereNull('presensi.is_dispensasi')->orWhere('presensi.is_dispensasi', '!=', 1);
                     })
-                    ->whereRaw("TIME(presensi.jam_in) > COALESCE(presensi.batas_toleransi, '07:05:00')");
+                    ->where(function ($q) {
+                        $q->where('presensi.is_terlambat', 1)
+                            ->orWhere(function ($sub) {
+                                $sub->whereNull('presensi.is_terlambat')
+                                    ->whereRaw("TIME(presensi.jam_in) > COALESCE(presensi.batas_toleransi, '08:00:00')");
+                            });
+                    });
             } elseif ($request->status == 'tepat') {
                 $query->where('presensi.status', 'h')
                     ->where(function ($q) {
                         $q->where('presensi.is_dispensasi', 1)
-                            ->orWhereRaw("TIME(presensi.jam_in) <= COALESCE(presensi.batas_toleransi, '07:05:00')");
+                            ->orWhere('presensi.is_terlambat', 0)
+                            ->orWhere(function ($sub) {
+                                $sub->whereNull('presensi.is_terlambat')
+                                    ->whereRaw("TIME(presensi.jam_in) <= COALESCE(presensi.batas_toleransi, '08:00:00')");
+                            });
                     });
             } elseif (in_array($request->status, ['i', 's', 'c'])) {
                 $query->where('presensi.status', $request->status);
@@ -145,6 +155,15 @@ class PresensiController extends Controller
         $karyawan->appends(request()->all());
         $data['karyawan'] = $karyawan;
         $data['cabang'] = $user->getCabang();
+
+        // Read dynamic archive metadata from manifest if present
+        $archiveManifestPath = storage_path('app/private/attendance-archive/index.json');
+        $archives = [];
+        if (file_exists($archiveManifestPath)) {
+            $archives = json_decode(file_get_contents($archiveManifestPath), true) ?: [];
+        }
+        $data['archives'] = $archives;
+
         return view('presensi.index', $data);
     }
     public function create(Request $request)
@@ -357,16 +376,24 @@ class PresensiController extends Controller
             return '<div class="alert alert-danger">Karyawan tidak ditemukan</div>';
         }
 
+        $presensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
+        $effectiveSchedule = AttendanceService::getEffectiveSchedule($nik, $tanggal, $karyawan);
+        $resolvedDutyBranch = !empty($effectiveSchedule['kode_cabang']) ? $effectiveSchedule['kode_cabang'] : null;
+        $attendanceBranch = !empty($presensi?->kode_cabang) ? $presensi->kode_cabang : null;
+        $targetBranch = $attendanceBranch ?: ($resolvedDutyBranch ?: $karyawan->kode_cabang);
+
         if (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
-            if (!in_array($karyawan->kode_cabang, $userCabangs) || !in_array($karyawan->kode_dept, $userDepartemens)) {
-                return '<div class="alert alert-danger">Anda tidak memiliki akses ke data presensi cabang ini.</div>';
+            $isBranchAuthorized = in_array($targetBranch, $userCabangs) || in_array($karyawan->kode_cabang, $userCabangs);
+            $isDeptAuthorized = empty($userDepartemens) || in_array($karyawan->kode_dept, $userDepartemens);
+
+            if (!$isBranchAuthorized || !$isDeptAuthorized) {
+                return '<div class="alert alert-danger">Anda tidak memiliki akses ke data presensi penugasan cabang ini.</div>';
             }
         }
 
         $jam_kerja = Jamkerja::all();
-        $presensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
         if ($presensi && $presensi->status_potongan !== null) {
             return '<div class="alert alert-warning">Data Presensi Sudah Dikunci, Hubungi Admin Untuk Membuka Kunci Laporan</div>';
         }
@@ -399,16 +426,24 @@ class PresensiController extends Controller
             return Redirect::back()->with(messageError('Karyawan tidak ditemukan'));
         }
 
+        $tanggal = $request->tanggal;
+        $presensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
+        $effectiveSchedule = AttendanceService::getEffectiveSchedule($nik, $tanggal, $karyawan);
+        $resolvedDutyBranch = !empty($effectiveSchedule['kode_cabang']) ? $effectiveSchedule['kode_cabang'] : null;
+        $attendanceBranch = !empty($presensi?->kode_cabang) ? $presensi->kode_cabang : null;
+        $targetBranch = $attendanceBranch ?: ($resolvedDutyBranch ?: $karyawan->kode_cabang);
+
         if (!$user->isSuperAdmin()) {
             $userCabangs = $user->getCabangCodes();
             $userDepartemens = $user->getDepartemenCodes();
-            if (!in_array($karyawan->kode_cabang, $userCabangs) || !in_array($karyawan->kode_dept, $userDepartemens)) {
-                return Redirect::back()->with(messageError('Anda tidak memiliki akses ke data presensi cabang ini'));
+            $isBranchAuthorized = in_array($targetBranch, $userCabangs) || in_array($karyawan->kode_cabang, $userCabangs);
+            $isDeptAuthorized = empty($userDepartemens) || in_array($karyawan->kode_dept, $userDepartemens);
+
+            if (!$isBranchAuthorized || !$isDeptAuthorized) {
+                return Redirect::back()->with(messageError('Anda tidak memiliki akses ke data presensi penugasan cabang ini'));
             }
         }
 
-        $tanggal = $request->tanggal;
-        $presensi = Presensi::where('nik', $nik)->where('tanggal', $tanggal)->first();
         if ($presensi && $presensi->status_potongan !== null) {
             return redirect()->back()->with(['warning' => 'Data Presensi Sudah Dikunci, Hubungi Admin Untuk Membuka Kunci Laporan']);
         }
@@ -746,5 +781,72 @@ class PresensiController extends Controller
         }
 
         return Redirect::back()->with(messageError($result['message']));
+    }
+
+    /**
+     * Download attendance photos as ZIP for testing or export
+     */
+    public function downloadZip(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->can('presensi.index')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengunduh arsip foto presensi.');
+        }
+
+        $tanggal = $request->input('tanggal') ?: date('Y-m-d');
+        $recordsQuery = Presensi::where('tanggal', $tanggal)
+            ->where(function ($q) {
+                $q->whereNotNull('foto_in')->where('foto_in', '!=', '')
+                  ->orWhereNotNull('foto_out')->where('foto_out', '!=', '');
+            });
+
+        if (!$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $recordsQuery->where(function ($q) use ($userCabangs) {
+                $q->whereIn('presensi.kode_cabang', $userCabangs)
+                  ->orWhereHas('karyawan', function ($sub) use ($userCabangs) {
+                      $sub->whereIn('karyawan.kode_cabang', $userCabangs);
+                  });
+            });
+        }
+
+        $records = $recordsQuery->get();
+
+        if ($records->isEmpty()) {
+            return Redirect::back()->with(messageError("Tidak ada foto presensi untuk tanggal {$tanggal}"));
+        }
+
+        $uploadDir = storage_path('app/public/uploads/absensi');
+        $tmpZip = tempnam(sys_get_temp_dir(), 'presensi_zip_');
+        $zip = new \ZipArchive();
+
+        if ($zip->open($tmpZip, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return Redirect::back()->with(messageError('Gagal membuat file ZIP di server'));
+        }
+
+        $added = 0;
+        foreach ($records as $r) {
+            if (!empty($r->foto_in) && file_exists($uploadDir . '/' . $r->foto_in)) {
+                $zip->addFile($uploadDir . '/' . $r->foto_in, 'masuk/' . $r->foto_in);
+                $added++;
+            }
+            if (!empty($r->foto_out) && file_exists($uploadDir . '/' . $r->foto_out)) {
+                $zip->addFile($uploadDir . '/' . $r->foto_out, 'pulang/' . $r->foto_out);
+                $added++;
+            }
+        }
+
+        $zip->close();
+
+        if ($added === 0) {
+            @unlink($tmpZip);
+            return Redirect::back()->with(messageError('Tidak ada file foto fisik yang ditemukan di folder penyimpanan'));
+        }
+
+        $filename = "foto_presensi_{$tanggal}.zip";
+        return response()->download($tmpZip, $filename, [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend(true);
     }
 }

@@ -48,8 +48,6 @@
             right: 0 !important;
             bottom: 0 !important;
             background: rgba(15, 23, 42, 0.85) !important;
-            -webkit-backdrop-filter: blur(6px) !important;
-            backdrop-filter: blur(6px) !important;
             z-index: 1 !important;
         }
 
@@ -102,8 +100,8 @@
             width: 32px !important;
             height: 32px !important;
             border-radius: 10px !important;
-            background: rgba(30, 77, 62, 0.08) !important;
-            color: #1E4D3E !important;
+            background: rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08) !important;
+            color: var(--theme-color-1, #3C2A21) !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -176,7 +174,7 @@
         }
         .cropper-avatar-mask .cropper-line,
         .cropper-avatar-mask .cropper-point {
-            background-color: #1E4D3E !important;
+            background-color: var(--theme-color-1, #3C2A21) !important;
         }
         .cropper-avatar-mask .cropper-modal {
             background-color: transparent !important;
@@ -263,8 +261,8 @@
             height: 44px !important;
             min-height: 44px !important;
             max-height: 44px !important;
-            background: #1E4D3E !important;
-            color: #ffffff !important;
+            background: var(--theme-color-1, #3C2A21) !important;
+            color: var(--theme-primary-contrast, #ffffff) !important;
             border: none !important;
             border-radius: 12px !important;
             font-family: 'Inter', sans-serif !important;
@@ -276,7 +274,7 @@
             justify-content: center !important;
             gap: 6px !important;
             cursor: pointer !important;
-            box-shadow: 0 2px 8px rgba(30, 77, 62, 0.25) !important;
+            box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.25) !important;
             transition: all 0.15s ease !important;
             white-space: nowrap !important;
             -webkit-tap-highlight-color: transparent !important;
@@ -285,16 +283,16 @@
             font-size: 18px !important;
             display: inline-block !important;
             margin: 0 !important;
-            color: #ffffff !important;
+            color: var(--theme-primary-contrast, #ffffff) !important;
         }
         .cropper-btn-apply span {
             display: inline-block !important;
             line-height: 1 !important;
-            color: #ffffff !important;
+            color: var(--theme-primary-contrast, #ffffff) !important;
         }
         .cropper-btn-apply:active {
             transform: translateY(1px) scale(0.98) !important;
-            background: #16382E !important;
+            background: var(--color-primary-hover, var(--theme-color-2)) !important;
         }
 
         .form-container {
@@ -312,17 +310,17 @@
         .form-label-group {
             position: relative;
             margin-bottom: 14px;
-            background: #F8FAF8 !important;
-            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: #FAF9F8 !important;
+            border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.12));
             border-radius: 14px;
             overflow: hidden;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .form-label-group:focus-within {
-            border-color: #1E4D3E !important;
+            border-color: var(--theme-color-1, #3C2A21) !important;
             background: #ffffff !important;
-            box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.08) !important;
+            box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08) !important;
         }
 
         .form-label-group .input-icon {
@@ -337,7 +335,7 @@
         }
 
         .form-label-group:focus-within .input-icon {
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
 
         .form-label-group input,
@@ -381,7 +379,7 @@
             left: 42px;
             font-size: 10px;
             font-weight: 700;
-            color: #1E4D3E;
+            color: var(--theme-color-1, #3C2A21);
         }
 
         /* Foto Profil */
@@ -425,8 +423,8 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background: #1E4D3E;
-            color: #ffffff;
+            background: var(--theme-color-1, #3C2A21);
+            color: var(--theme-primary-contrast, #ffffff);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -437,8 +435,8 @@
         .btn-submit-modern {
             width: 100%;
             height: 50px;
-            background: #1E4D3E !important;
-            color: #ffffff !important;
+            background: var(--theme-color-1, #3C2A21) !important;
+            color: var(--theme-primary-contrast, #ffffff) !important;
             border: none !important;
             border-radius: 14px;
             font-size: 14px;
@@ -448,8 +446,13 @@
             justify-content: center;
             gap: 8px;
             margin-top: 8px;
-            box-shadow: 0 2px 6px rgba(30, 77, 62, 0.15);
+            box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15);
             transition: all 0.15s ease;
+        }
+        .btn-submit-modern:hover,
+        .btn-submit-modern:focus {
+            background: var(--color-primary-hover, var(--theme-color-2)) !important;
+            color: var(--theme-primary-contrast, #ffffff) !important;
         }
 
         .btn-submit-modern:active {
@@ -770,7 +773,20 @@
 
                 closeCropperModal(false);
 
-                if (typeof toastr !== 'undefined') {
+                if (typeof GlobalSwal !== 'undefined') {
+                    GlobalSwal.toast('success', 'Foto berhasil dipotong & disesuaikan!');
+                } else if (typeof Swal !== 'undefined') {
+                    Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2500,
+                        timerProgressBar: true
+                    }).fire({
+                        icon: 'success',
+                        title: 'Foto berhasil dipotong & disesuaikan!'
+                    });
+                } else if (typeof toastr !== 'undefined') {
                     toastr.success('Foto berhasil dipotong & disesuaikan!');
                 }
             }, 'image/jpeg', 0.9);

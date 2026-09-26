@@ -187,4 +187,6 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    'hosting_readiness_enabled' => env('HOSTING_READINESS_ENABLED', false),
+
 ];

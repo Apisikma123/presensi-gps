@@ -1,7 +1,9 @@
 @extends('layouts.app')
 @section('titlepage', 'Buat Izin Sakit')
 @section('navigasi')
-    <span><a href="{{ route('izinsakit.index') }}">Izin Sakit</a></span> / <span>Buat Izin Sakit</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('izinsakit.index') }}">Persetujuan Izin</a></li>
+    <li class="breadcrumb-item active">Buat Izin Sakit</li>
 @endsection
 
 @section('content')

@@ -410,19 +410,25 @@ class IzinabsenController extends Controller
                         $jkCode = $eff && $eff['jam_kerja'] ? $eff['jam_kerja']->kode_jam_kerja : ($jamkerja ? $jamkerja->kode_jam_kerja : 'JK01');
                         
                         $existing = Presensi::where('nik', $nik)->where('tanggal', $curr)->first();
-                        $auditNote = null;
-                        if ($existing && $existing->status === 'a') {
-                            $auditNote = "[IZIN_SUSULAN] Diubah dari ALPHA (a) ke IZIN. Approved by: " . ($user->name ?? 'Admin') . " on " . now()->format('Y-m-d H:i:s') . ". Ref: " . $kode_izin;
-                        }
+                        
+                        if ($existing && ($existing->status === 'h' || !empty($existing->jam_in))) {
+                            // Anti-Overwrite: Physical attendance must NEVER be replaced by leave approval
+                            $presensi = $existing;
+                        } else {
+                            $auditNote = null;
+                            if ($existing && $existing->status === 'a') {
+                                $auditNote = "[IZIN_SUSULAN] Diubah dari ALPHA (a) ke IZIN. Approved by: " . ($user->name ?? 'Admin') . " on " . now()->format('Y-m-d H:i:s') . ". Ref: " . $kode_izin;
+                            }
 
-                        $presensi = Presensi::updateOrCreate(
-                            ['nik' => $nik, 'tanggal' => $curr],
-                            [
-                                'kode_jam_kerja' => $jkCode,
-                                'status' => 'i',
-                                'keterangan' => $auditNote ?? ($izinabsen->keterangan ?? 'Izin Absen'),
-                            ]
-                        );
+                            $presensi = Presensi::updateOrCreate(
+                                ['nik' => $nik, 'tanggal' => $curr],
+                                [
+                                    'kode_jam_kerja' => $jkCode,
+                                    'status' => 'i',
+                                    'keterangan' => $auditNote ?? ($izinabsen->keterangan ?? 'Izin Absen'),
+                                ]
+                            );
+                        }
 
                         Approveizinabsen::updateOrCreate(
                             ['kode_izin' => $kode_izin, 'id_presensi' => $presensi->id],
@@ -493,7 +499,9 @@ class IzinabsenController extends Controller
                 foreach ($approves as $appr) {
                     $p = Presensi::find($appr->id_presensi);
                     if ($p) {
-                        if (str_contains($p->keterangan ?? '', '[IZIN_SUSULAN]')) {
+                        if ($p->status === 'h' || !empty($p->jam_in)) {
+                            // Retain actual physical attendance intact
+                        } elseif (str_contains($p->keterangan ?? '', '[IZIN_SUSULAN]')) {
                             // Revert back to Alpha if originally converted from Alpha
                             $p->update([
                                 'status' => 'a',

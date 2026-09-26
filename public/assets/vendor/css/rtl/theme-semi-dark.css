@@ -104,7 +104,7 @@ body {
 }
 
 .text-body[href]:hover {
-    color: #163A2F !important;
+    color: #25160E !important;
 }
 
 .bg-primary {
@@ -113,7 +113,7 @@ body {
 
 a.bg-primary:hover,
 a.bg-primary:focus {
-    background-color: #163A2F !important;
+    background-color: #25160E !important;
 }
 
 .dropdown-notifications-item:not(.mark-as-read) .dropdown-notifications-read span {
@@ -136,11 +136,11 @@ a.bg-primary:focus {
 }
 
 .bg-gradient-primary {
-    background-image: linear-gradient(45deg, #1a6bd1, #32745E) !important;
+    background-image: linear-gradient(45deg, #1a6bd1, #634832) !important;
 }
 
 .bg-primary.bg-glow {
-    box-shadow: 0px 2px 3px 0px rgba(30, 77, 62, 0.3);
+    box-shadow: 0px 2px 3px 0px rgba(60, 42, 33, 0.3);
 }
 
 .page-item.active .page-link,
@@ -417,13 +417,13 @@ button.list-group-item-primary.active {
 
 .btn-group .btn-primary,
 .input-group .btn-primary {
-    border-right: var(--bs-border-width) solid #163A2F;
-    border-left: var(--bs-border-width) solid #163A2F;
+    border-right: var(--bs-border-width) solid #25160E;
+    border-left: var(--bs-border-width) solid #25160E;
 }
 
 .btn-group-vertical .btn-primary {
-    border-top-color: #163A2F;
-    border-bottom-color: #163A2F;
+    border-top-color: #25160E;
+    border-bottom-color: #25160E;
 }
 
 .btn-label-primary {
@@ -433,7 +433,7 @@ button.list-group-item-primary.active {
 }
 
 .btn-label-primary.waves-effect .waves-ripple {
-    background: radial-gradient(rgba(30, 77, 62, 0.2) 0, rgba(30, 77, 62, 0.3) 40%, rgba(30, 77, 62, 0.4) 50%, rgba(30, 77, 62, 0.5) 60%, rgba(255, 255, 255, 0) 70%);
+    background: radial-gradient(rgba(60, 42, 33, 0.2) 0, rgba(60, 42, 33, 0.3) 40%, rgba(60, 42, 33, 0.4) 50%, rgba(60, 42, 33, 0.5) 60%, rgba(255, 255, 255, 0) 70%);
 }
 
 .btn-label-primary:hover {
@@ -491,7 +491,7 @@ button.list-group-item-primary.active {
 }
 
 .btn-outline-primary.waves-effect .waves-ripple {
-    background: radial-gradient(rgba(30, 77, 62, 0.2) 0, rgba(30, 77, 62, 0.3) 40%, rgba(30, 77, 62, 0.4) 50%, rgba(30, 77, 62, 0.5) 60%, rgba(255, 255, 255, 0) 70%);
+    background: radial-gradient(rgba(60, 42, 33, 0.2) 0, rgba(60, 42, 33, 0.3) 40%, rgba(60, 42, 33, 0.4) 50%, rgba(60, 42, 33, 0.5) 60%, rgba(255, 255, 255, 0) 70%);
 }
 
 .btn-outline-primary:hover {
@@ -672,7 +672,7 @@ button.list-group-item-primary.active {
 
 .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #1a6bd1;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .switch-primary.switch .switch-input:checked~.switch-toggle-slider {
@@ -687,21 +687,21 @@ button.list-group-item-primary.active {
 
 .switch-primary.switch .switch-input:focus~.switch-toggle-slider {
     border: 1px solid #1a6bd1;
-    box-shadow: 0 0 0.25rem 0.05rem rgba(30, 77, 62, 0.1);
+    box-shadow: 0 0 0.25rem 0.05rem rgba(60, 42, 33, 0.1);
 }
 
 .timeline .timeline-item-primary .timeline-event {
-    background-color: rgba(30, 77, 62, 0.1);
+    background-color: rgba(60, 42, 33, 0.1);
 }
 
 .timeline .timeline-item-primary .timeline-event:before {
-    border-left-color: rgba(30, 77, 62, 0.1) !important;
-    border-right-color: rgba(30, 77, 62, 0.1) !important;
+    border-left-color: rgba(60, 42, 33, 0.1) !important;
+    border-right-color: rgba(60, 42, 33, 0.1) !important;
 }
 
 .timeline .timeline-point-primary {
     background-color: #1a6bd1 !important;
-    box-shadow: 0 0 0 0.1875rem rgba(30, 77, 62, 0.16);
+    box-shadow: 0 0 0 0.1875rem rgba(60, 42, 33, 0.16);
 }
 
 .timeline .timeline-indicator-primary i {
@@ -716,7 +716,7 @@ button.list-group-item-primary.active {
 }
 
 .navbar.bg-primary {
-    background-color: rgba(30, 77, 62, 0.95) !important;
+    background-color: rgba(60, 42, 33, 0.95) !important;
     color: #e2dffc;
 }
 
@@ -803,7 +803,7 @@ button.list-group-item-primary.active {
 }
 
 .menu.bg-primary.menu-horizontal {
-    background-color: rgba(30, 77, 62, 0.95) !important;
+    background-color: rgba(60, 42, 33, 0.95) !important;
 }
 
 .menu.bg-primary .menu-link,
@@ -877,7 +877,7 @@ button.list-group-item-primary.active {
 }
 
 .menu.bg-primary .menu-inner-shadow {
-    background: linear-gradient(#053b22 41%, rgba(30, 77, 62, 0.11) 95%, rgba(30, 77, 62, 0));
+    background: linear-gradient(#053b22 41%, rgba(60, 42, 33, 0.11) 95%, rgba(60, 42, 33, 0));
 }
 
 .menu.bg-primary .menu-text {
@@ -957,7 +957,7 @@ button.list-group-item-primary.active {
 
 .jstree-default .jstree-wholerow-hovered,
 .jstree-default .jstree-hovered {
-    background: rgba(30, 77, 62, 0.08);
+    background: rgba(60, 42, 33, 0.08);
     color: #1a6bd1;
 }
 
@@ -969,7 +969,7 @@ button.list-group-item-primary.active {
 
 .jstree-default-dark .jstree-wholerow-hovered,
 .jstree-default-dark .jstree-hovered {
-    background: rgba(30, 77, 62, 0.08);
+    background: rgba(60, 42, 33, 0.08);
     color: #1a6bd1;
 }
 
@@ -1023,7 +1023,7 @@ a:hover {
 }
 
 .select2-primary .select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background: rgba(30, 77, 62, 0.16) !important;
+    background: rgba(60, 42, 33, 0.16) !important;
     color: #1a6bd1 !important;
 }
 
@@ -1079,7 +1079,7 @@ table.dataTable.dtr-column>tbody>tr>th.control:before {
 .datepicker table tr td.range.highlighted.disabled,
 .datepicker table tr td.range.today.disabled {
     background: rgba(233, 231, 253, 0.5) !important;
-    color: rgba(30, 77, 62, 0.5) !important;
+    color: rgba(60, 42, 33, 0.5) !important;
 }
 
 .datepicker table tr td.today:not(.active) {
@@ -1328,14 +1328,14 @@ li.ui-timepicker-selected,
 }
 
 .fc .fc-button-primary:not(.fc-prev-button):not(.fc-next-button) {
-    background-color: rgba(30, 77, 62, 0.16) !important;
+    background-color: rgba(60, 42, 33, 0.16) !important;
     border: 0;
     color: #1a6bd1;
 }
 
 .fc .fc-button-primary:not(.fc-prev-button):not(.fc-next-button).fc-button-active,
 .fc .fc-button-primary:not(.fc-prev-button):not(.fc-next-button):hover {
-    background-color: rgba(30, 77, 62, 0.24) !important;
+    background-color: rgba(60, 42, 33, 0.24) !important;
     color: #1a6bd1;
 }
 
@@ -1374,16 +1374,16 @@ li.ui-timepicker-selected,
 
 .shepherd-element .shepherd-button:not(:disabled).btn-primary:hover {
     color: #fff !important;
-    background-color: #163A2F !important;
-    border-color: #163A2F !important;
+    background-color: #25160E !important;
+    border-color: #25160E !important;
 }
 
 .btn-check:focus+.shepherd-element .shepherd-button:not(:disabled).btn-primary,
 .shepherd-element .shepherd-button:not(:disabled).btn-primary:focus,
 .shepherd-element .shepherd-button:not(:disabled).btn-primary.focus {
     color: #fff;
-    background-color: #163A2F;
-    border-color: #163A2F;
+    background-color: #25160E;
+    border-color: #25160E;
     box-shadow: none;
 }
 
@@ -1394,8 +1394,8 @@ li.ui-timepicker-selected,
 .shepherd-element .shepherd-button:not(:disabled).btn-primary.show.dropdown-toggle,
 .show>.shepherd-element .shepherd-button:not(:disabled).btn-primary.dropdown-toggle {
     color: #fff !important;
-    background-color: #163A2F !important;
-    border-color: #163A2F !important;
+    background-color: #25160E !important;
+    border-color: #25160E !important;
 }
 
 .shepherd-element .shepherd-button:not(:disabled).btn-primary.disabled,
@@ -1408,13 +1408,13 @@ li.ui-timepicker-selected,
 
 .shepherd-element .btn-group .shepherd-button:not(:disabled).btn-primary,
 .shepherd-element .input-group .shepherd-button:not(:disabled).btn-primary {
-    border-right: var(--bs-border-width) solid #163A2F;
-    border-left: var(--bs-border-width) solid #163A2F;
+    border-right: var(--bs-border-width) solid #25160E;
+    border-left: var(--bs-border-width) solid #25160E;
 }
 
 .shepherd-element .btn-group-vertical .shepherd-button:not(:disabled).btn-primary {
-    border-top-color: #163A2F;
-    border-bottom-color: #163A2F;
+    border-top-color: #25160E;
+    border-bottom-color: #25160E;
 }
 
 .shepherd-element .shepherd-button:not(:disabled).btn-label-secondary {
@@ -1511,11 +1511,11 @@ li.ui-timepicker-selected,
 }
 
 .app-chat .sidebar-body .chat-contact-list li.active {
-    background: linear-gradient(72.47deg, #1a6bd1 22.16%, rgba(30, 77, 62, 0.7) 76.47%);
+    background: linear-gradient(72.47deg, #1a6bd1 22.16%, rgba(60, 42, 33, 0.7) 76.47%);
 }
 
 [dir=rtl] .app-chat .sidebar-body .chat-contact-list li.active {
-    background: linear-gradient(72.47deg, rgba(30, 77, 62, 0.7) 22.16%, #1a6bd1 76.47%) !important;
+    background: linear-gradient(72.47deg, rgba(60, 42, 33, 0.7) 22.16%, #1a6bd1 76.47%) !important;
 }
 
 .app-chat .app-chat-history .chat-history .chat-message.chat-message-right .chat-message-text {
@@ -1531,11 +1531,11 @@ li.ui-timepicker-selected,
 }
 
 .landing-features .features-icon-wrapper .features-icon-box .features-icon {
-    border: 2px solid rgba(30, 77, 62, 0.2);
+    border: 2px solid rgba(60, 42, 33, 0.2);
 }
 
 .landing-features .features-icon-wrapper .features-icon-box:hover .features-icon {
-    background-color: rgba(30, 77, 62, 0.05);
+    background-color: rgba(60, 42, 33, 0.05);
 }
 
 .bg-navbar-theme {
@@ -1688,18 +1688,18 @@ li.ui-timepicker-selected,
 }
 
 [dir=rtl] .bg-menu-theme.menu-vertical .menu-item.active>.menu-link:not(.menu-toggle) {
-    background: linear-gradient(72.47deg, rgba(30, 77, 62, 0.7) 22.16%, #1a6bd1 76.47%) !important;
+    background: linear-gradient(72.47deg, rgba(60, 42, 33, 0.7) 22.16%, #1a6bd1 76.47%) !important;
 }
 
 .bg-menu-theme.menu-horizontal .menu-inner>.menu-item.active>.menu-link.menu-toggle {
-    background: linear-gradient(72.47deg, #1a6bd1 22.16%, rgba(30, 77, 62, 0.7) 76.47%);
+    background: linear-gradient(72.47deg, #1a6bd1 22.16%, rgba(60, 42, 33, 0.7) 76.47%);
     color: #fff !important;
-    box-shadow: 0px 2px 6px 0px rgba(30, 77, 62, 0.48);
+    box-shadow: 0px 2px 6px 0px rgba(60, 42, 33, 0.48);
 }
 
 [dir=rtl] .bg-menu-theme.menu-horizontal .menu-inner>.menu-item.active>.menu-link.menu-toggle {
-    background: linear-gradient(72.47deg, rgba(30, 77, 62, 0.7) 22.16%, #1a6bd1 76.47%);
-    box-shadow: 0px 2px 6px 0px rgba(30, 77, 62, 0.48);
+    background: linear-gradient(72.47deg, rgba(60, 42, 33, 0.7) 22.16%, #1a6bd1 76.47%);
+    box-shadow: 0px 2px 6px 0px rgba(60, 42, 33, 0.48);
     color: #fff !important;
 }
 

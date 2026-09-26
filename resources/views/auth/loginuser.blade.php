@@ -18,7 +18,7 @@
     <meta name="description" content="Aplikasi {{ $general_setting->nama_aplikasi ?? 'Presensi GPS' }} untuk Karyawan">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#1E4D3E">
+    <meta name="theme-color" content="#3C2A21">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
@@ -35,9 +35,9 @@
     <link rel="stylesheet" href="{{ asset('assets/login/css/style.css') }}" />
     <style>
         :root {
-            /* Dynamic Theme Colors */
-            --theme-color-1: {{ $general_setting->theme_color_1 ?? '#053b22' }};
-            --theme-color-2: {{ $general_setting->theme_color_2 ?? '#0b6a3a' }};
+            /* BrewSync Enterprise Theme Colors */
+            --theme-color-1: #3C2A21;
+            --theme-color-2: #634832;
         }
 
         .sign-btn {
@@ -172,7 +172,7 @@
                                 Presensi GPS & Face Recognition Coffee Shop
                             </p>
                             <p class="text" style="margin-top: 0; font-size: 11px; color: #64748b;">
-                                Developed by <a href="https://porto-aga.vercel.app/" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: #32745e; text-decoration: underline;">Muhammad Aga Putra</a>
+                                Developed by <a href="https://porto-aga.vercel.app/" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: #634832; text-decoration: underline;">Muhammad Aga Putra</a>
                             </p>
 
                         </div>

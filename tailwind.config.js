@@ -17,23 +17,25 @@ export default {
         extend: {
             colors: {
                 brand: {
-                    50: '#f0fdf4',
-                    100: '#dcfce7',
-                    200: '#bbf7d0',
-                    300: '#86efac',
-                    400: '#4ade80',
-                    500: '#32745e', // Primary Brand Green
-                    600: '#285e4c',
-                    700: '#1e473a',
-                    800: '#15332a',
-                    900: '#0c1f19',
-                    950: '#06110e',
+                    50: '#FAF9F8', // Crema White
+                    100: '#F4F3F2', // Surface Container Low
+                    200: '#EEEEED', // Surface Container
+                    300: '#DEC1B3', // Inverse Primary
+                    400: '#AA9084', // On-Primary Container
+                    500: '#3C2A21', // Primary Espresso Deep
+                    600: '#25160E', // Dark Espresso
+                    700: '#1A1C1C', // On-Surface
+                    800: '#15110E',
+                    900: '#0D0B09',
+                    950: '#060504',
                 },
                 accent: {
-                    amber: '#f59e0b',
-                    rose: '#f43f5e',
-                    sky: '#0284c7',
-                    indigo: '#6366f1',
+                    matcha: '#4A6741', // Matcha Green
+                    walnut: '#634832', // Roasted Walnut
+                    amber: '#B45309',
+                    rose: '#BA1A1A',
+                    sky: '#0284C7',
+                    indigo: '#634832',
                 },
             },
             fontFamily: {

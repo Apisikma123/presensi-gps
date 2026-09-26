@@ -53,3 +53,10 @@ test_*.php
 *.py
 *.csv
 hosting_check.php
+*.sql
+/release_package/
+/build_package/
+/coverage/
+inventory_routes.json
+routes_analysis.json
+routes_dump.json

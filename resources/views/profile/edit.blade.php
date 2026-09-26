@@ -1,9 +1,11 @@
 @extends('layouts.app')
 @section('titlepage', 'Edit Profile')
-@section('content')
 @section('navigasi')
-    <span>Edit Profile</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Edit Profil</li>
 @endsection
+
+@section('content')
 <div class="row">
     <div class="col-12">
         <div class="card">

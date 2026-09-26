@@ -1,10 +1,12 @@
 @extends('layouts.app')
 @section('titlepage', 'Izin Cuti')
 
-@section('content')
 @section('navigasi')
-    <span>Persetujuan Izin</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Persetujuan Izin Cuti</li>
 @endsection
+
+@section('content')
 
 <div class="row">
     <div class="col-12">
@@ -12,7 +14,7 @@
             @include('layouts.navigation.nav_pengajuan_absen')
         </div>
 
-        <div id="izin-tab-pane" data-no-spa="true" style="position: relative; min-height: 300px; transition: opacity 0.15s ease;">
+        <div id="izin-tab-pane" style="position: relative; min-height: 300px; transition: opacity 0.15s ease;">
         <!-- Top Header Toolbar -->
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div>
@@ -128,7 +130,7 @@
                                                 onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
                                         @else
                                             <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                                style="width: 36px; height: 36px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; font-size: 12px; border: 1px solid rgba(30, 77, 62, 0.15);">
+                                                style="width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 12px; border: 1px solid rgba(60, 42, 33, 0.15);">
                                                 {{ $initials }}
                                             </div>
                                         @endif
@@ -195,7 +197,7 @@
                                                     action="{{ route('izincuti.cancelapprove', Crypt::encrypt($d->kode_izin_cuti)) }}">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="delete-confirm btn-action-tbl btn-action-cancel" title="Batalkan Persetujuan">
+                                                    <button type="submit" class="cancel-confirm btn-action-tbl btn-action-cancel" title="Batalkan Persetujuan">
                                                         <i class="ti ti-circle-minus"></i>
                                                     </button>
                                                 </form>

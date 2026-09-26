@@ -23,9 +23,9 @@
         :root {
             --bg-body: #dff9fb;
             --bg-nav: #ffffff;
-            --color-nav: #32745e;
+            --color-nav: #634832;
             --color-nav-active: #58907D;
-            --bg-indicator: #32745e;
+            --bg-indicator: #634832;
             --color-nav-hover: #3ab58c;
         }
     </style> --}}
@@ -200,11 +200,9 @@
             width: 100%;
             height: 45px;
             border-radius: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(15, 23, 42, 0.85);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
             padding: 0 15px 0 45px;
             font-size: 14px;
             font-weight: 500;
@@ -274,7 +272,6 @@
             width: 150px;
             border-radius: 10px;
             padding: 5px;
-            backdrop-filter: blur(5px);
         }
 
         .jam-digital-malasngoding p {
@@ -366,11 +363,9 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
+            border-radius: 8px;
             padding: 4px 10px;
             font-size: 11px;
             font-weight: 600;
@@ -383,11 +378,9 @@
             position: absolute;
             bottom: 10px;
             left: 10px;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
+            border-radius: 8px;
             padding: 4px 10px;
             font-size: 11px;
             font-weight: 700;
@@ -423,7 +416,7 @@
 
         /* Minimalist Shift Info Card (Flexbox, Zero Negative Margins) */
         .shift-info-card {
-            background: #1E4D3E; /* Espresso Emerald */
+            background: #3C2A21; /* Espresso Emerald */
             border-radius: 14px;
             padding: 8px 10px;
             margin-bottom: 8px;
@@ -434,7 +427,7 @@
             justify-content: space-between;
             gap: 6px;
             overflow: hidden;
-            box-shadow: 0 4px 14px rgba(30, 77, 62, 0.12);
+            box-shadow: 0 4px 14px rgba(60, 42, 33, 0.12);
         }
 
         .shift-info-col {
@@ -565,9 +558,9 @@
         }
 
         #absenmasuk {
-            background: #1E4D3E;
+            background: #3C2A21;
             color: #ffffff;
-            box-shadow: 0 3px 12px rgba(30, 77, 62, 0.2);
+            box-shadow: 0 3px 12px rgba(60, 42, 33, 0.2);
         }
 
         #absenmasuk:disabled {
@@ -580,8 +573,8 @@
 
         #absenpulang {
             background: #ffffff;
-            color: #1E4D3E;
-            border: 1.5px solid #1E4D3E !important;
+            color: #3C2A21;
+            border: 1.5px solid #3C2A21 !important;
             box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
         }
 
@@ -693,7 +686,7 @@
         .selesai-rekap-val.font-mono {
             font-family: 'JetBrains Mono', 'Geist Mono', monospace;
             font-size: 15px;
-            color: #1E4D3E;
+            color: #3C2A21;
         }
 
         /* Minimalist verified inline indicator (no card box) */
@@ -718,13 +711,13 @@
             gap: 8px;
             width: 100%;
             height: 48px;
-            background: #1E4D3E;
+            background: #3C2A21;
             color: #ffffff !important;
             border-radius: 14px;
             font-size: 14px;
             font-weight: 600;
             text-decoration: none !important;
-            box-shadow: 0 4px 14px rgba(30, 77, 62, 0.2);
+            box-shadow: 0 4px 14px rgba(60, 42, 33, 0.2);
             transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
             box-sizing: border-box;
         }
@@ -850,10 +843,10 @@
             flex: 1;
         }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ asset('assets/vendor/css/leaflet.css') }}" />
     <!-- Import Google Fonts: Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="{{ asset('assets/external/js/leaflet.js') }}"></script>
     <div id="content-section">
         @php
             $sudah_selesai = ($presensi && !empty($presensi->jam_in) && !empty($presensi->jam_out));
@@ -922,12 +915,12 @@
             @else
                 <div id="active-presensi-wrapper">
                     @if (!empty($hari_libur))
-                        <div style="margin: 0 0 12px 0; padding: 12px 14px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-left: 3px solid #1E4D3E; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
-                            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(30, 77, 62, 0.12);">
-                                <ion-icon name="calendar-outline" style="font-size: 18px; color: #1E4D3E;"></ion-icon>
+                        <div style="margin: 0 0 12px 0; padding: 12px 14px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-left: 3px solid #3C2A21; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(60, 42, 33, 0.12);">
+                                <ion-icon name="calendar-outline" style="font-size: 18px; color: #3C2A21;"></ion-icon>
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: 9.5px; font-weight: 800; color: #1E4D3E; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; line-height: 1;">HARI LIBUR OPERASIONAL</div>
+                                <div style="font-size: 9.5px; font-weight: 800; color: #3C2A21; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; line-height: 1;">HARI LIBUR OPERASIONAL</div>
                                 <div style="font-size: 13px; font-weight: 800; color: #0F172A; margin-top: 2px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $hari_libur->keterangan }}</div>
                                 <div style="font-size: 11px; color: #64748B; margin-top: 2px; line-height: 1.3;">Bebas kewajiban presensi. Kehadiran tercatat sebagai operasional khusus tanpa penalti keterlambatan.</div>
                             </div>
@@ -1079,9 +1072,19 @@
     </audio>
 @endsection
 @push('myscript')
-    <!-- Face Recognition dengan Caching -->
+    <!-- Face Recognition dengan Caching (Lazy Loaded when enabled) -->
+    @php
+        $activeAttendancePolicy = \App\Models\AttendancePolicy::getActivePolicy();
+        $isFaceRecognitionRequired = (($general_setting->face_recognition ?? 0) == 1) 
+            && is_module_enabled('face_recognition', true)
+            && ($activeAttendancePolicy ? (bool)$activeAttendancePolicy->require_face_recognition : true);
+        $isGpsRequired = is_module_enabled('gps', true);
+    @endphp
+    <!-- Face Recognition dengan Caching (Lazy Loaded when enabled & required) -->
+    @if ($isFaceRecognitionRequired)
     <script src="{{ asset('assets/vendor/face-api.min.js') }}"></script>
     <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ file_exists(public_path('assets/external/js/face-model-cache.js')) ? filemtime(public_path('assets/external/js/face-model-cache.js')) : time() }}"></script>
+    @endif
     <!-- Anti-Fake GPS & Mock Location Detector -->
     <script src="{{ asset('assets/js/anti-fake-gps.js') }}?v={{ file_exists(public_path('assets/js/anti-fake-gps.js')) ? filemtime(public_path('assets/js/anti-fake-gps.js')) : time() }}"></script>
     <script type="text/javascript">
@@ -1137,6 +1140,8 @@
     <script>
         // Fungsi yang dijalankan ketika dokumen siap
         $(function() {
+            const themePrimary = '{{ $t['primary'] ?? '#3C2A21' }}';
+            const themeSecondary = '{{ $t['primary_light'] ?? '#634832' }}';
             // Variabel untuk menampung lokasi
             let lokasi;
             // Variabel untuk menampung lokasi user
@@ -1167,7 +1172,8 @@
             let geoFirstPositionReceived = false;
             const geoStartTime = performance.now();
 
-            if (navigator.geolocation) {
+            const isGpsRequired = {{ $isGpsRequired ? 'true' : 'false' }};
+            if (isGpsRequired && navigator.geolocation) {
                 console.log('[GPS] Starting watchPosition early (parallel with camera)...');
 
                 geoPositionPromise = new Promise((resolve) => {
@@ -1257,8 +1263,8 @@
 
             // Variabel untuk menampung status face recognition
             let faceRecognitionDetected = 0; // Inisialisasi variabel face recognition detected
-            // Mengambil nilai face recognition dari variabel $general_setting->face_recognition
-            let faceRecognition = "{{ $general_setting->face_recognition }}";
+            // Mengambil nilai face recognition dari variabel $general_setting->face_recognition, policy, dan module toggle
+            let faceRecognition = "{{ $isFaceRecognitionRequired ? 1 : 0 }}";
 
             // ===== DYNAMIC SHIFT TIME-GATING =====
             const shiftConfig = {
@@ -1604,7 +1610,7 @@
                         icon: 'info',
                         title: 'Izinkan Akses Lokasi (GPS)',
                         text: 'Akses GPS diperlukan untuk memverifikasi lokasi presensi. Mohon aktifkan GPS dan izinkan browser mengakses lokasi perangkat Anda.',
-                        confirmButtonColor: '#32745e',
+                        confirmButtonColor: themePrimary,
                         confirmButtonText: 'Izinkan / Coba Lagi'
                     }).then(() => {
                         requestLocationPermission();
@@ -1648,7 +1654,7 @@
 
             window.initialServerWajah = @json($user_wajah ?? []);
             const FaceConfig = {
-                isEnabled: {{ $general_setting->face_recognition }},
+                isEnabled: {{ $isFaceRecognitionRequired ? 1 : 0 }},
                 modelsUrl: '/models',
                 detection: {
                     // UNIVERSAL MOBILE OPTIMIZATION for all devices
@@ -2515,8 +2521,21 @@
                                 } catch (faceErr) {
                                     console.warn('Face Recognition Init Failed or Timed Out:', faceErr);
                                     UI.removeLoading();
-                                    UI.showError('Sistem deteksi wajah tidak dapat dimuat. Anda tetap bisa melakukan presensi.');
-                                    UI.enableButtons();
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Biometrik Gagal Dimuat',
+                                        text: 'Sistem biometrik wajah gagal dimuat. Periksa koneksi lalu coba muat ulang halaman. Jika tetap gagal, hubungi supervisor.',
+                                        confirmButtonText: 'Muat Ulang Halaman',
+                                        confirmButtonColor: themePrimary,
+                                        showCancelButton: true,
+                                        cancelButtonText: 'Tutup',
+                                        allowOutsideClick: false
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            cleanupCameraResources();
+                                            window.location.reload();
+                                        }
+                                    });
                                 }
                             })();
                         } else {
@@ -2566,9 +2585,7 @@
                     videoEl.srcObject = null;
                 }
             };
-            window.addEventListener('beforeunload', cleanupCameraResources);
             window.addEventListener('pagehide', cleanupCameraResources);
-            window.addEventListener('unload', cleanupCameraResources);
 
 
             function showPermissionWarning(type) {
@@ -2744,7 +2761,7 @@
                         title: 'Izinkan Akses Lokasi (GPS)',
                         text: 'Sistem sedang menunggu sinyal GPS lokasi Anda. Mohon klik "Aktifkan GPS" dan pastikan izin lokasi diizinkan pada browser.',
                         showCancelButton: true,
-                        confirmButtonColor: '#32745e',
+                        confirmButtonColor: themePrimary,
                         confirmButtonText: 'Aktifkan GPS',
                         cancelButtonText: 'Batal'
                     }).then((result) => {
@@ -2782,7 +2799,7 @@
                         icon: 'info',
                         title: 'Sudah Absen Masuk',
                         text: 'Anda sudah melakukan presensi masuk hari ini.',
-                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonColor: themePrimary,
                         confirmButtonText: 'Tutup'
                     });
                     return false;
@@ -2799,7 +2816,7 @@
                             icon: 'warning',
                             title: 'Belum Waktunya Masuk',
                             text: 'Maaf, waktu absen masuk belum dibuka.',
-                            confirmButtonColor: '#1E4D3E',
+                            confirmButtonColor: themePrimary,
                             confirmButtonText: 'Mengerti'
                         });
                         return false;
@@ -2878,7 +2895,7 @@
                                         text: data.message,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Kembali ke Dashboard',
-                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonColor: themePrimary,
                                         allowOutsideClick: false
                                     }).then(function(result) {
                                         if (result.isConfirmed) {
@@ -2931,7 +2948,7 @@
                         title: 'Izinkan Akses Lokasi (GPS)',
                         text: 'Sistem sedang menunggu sinyal GPS lokasi Anda. Mohon klik "Aktifkan GPS" dan pastikan izin lokasi diizinkan pada browser.',
                         showCancelButton: true,
-                        confirmButtonColor: '#32745e',
+                        confirmButtonColor: themePrimary,
                         confirmButtonText: 'Aktifkan GPS',
                         cancelButtonText: 'Batal'
                     }).then((result) => {
@@ -2969,7 +2986,7 @@
                         icon: 'warning',
                         title: 'Belum Absen Masuk',
                         text: 'Anda harus melakukan presensi masuk terlebih dahulu sebelum presensi pulang.',
-                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonColor: themePrimary,
                         confirmButtonText: 'Mengerti'
                     });
                     return false;
@@ -2982,7 +2999,7 @@
                         icon: 'info',
                         title: 'Presensi Selesai',
                         text: 'Anda telah selesai bekerja hari ini.',
-                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonColor: themePrimary,
                         confirmButtonText: 'Tutup'
                     });
                     return false;
@@ -3008,7 +3025,7 @@
                         input: 'text',
                         inputPlaceholder: 'Tuliskan alasan singkat pulang awal...',
                         showCancelButton: true,
-                        confirmButtonColor: '#1E4D3E',
+                        confirmButtonColor: themePrimary,
                         cancelButtonColor: '#d33',
                         confirmButtonText: 'Ya, Pulang Sekarang',
                         cancelButtonText: 'Batal',
@@ -3100,7 +3117,7 @@
                                         text: data.message,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Kembali ke Dashboard',
-                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonColor: themePrimary,
                                         allowOutsideClick: false
                                     }).then(function(result) {
                                         if (result.isConfirmed) {

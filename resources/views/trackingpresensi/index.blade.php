@@ -1,10 +1,13 @@
 @extends('layouts.app')
 @section('titlepage', 'Tracking Presensi')
 
-@section('content')
 @section('navigasi')
-    <span>Tracking Presensi</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('presensi.index') }}">Monitoring Presensi</a></li>
+    <li class="breadcrumb-item active">Live Tracking GPS</li>
 @endsection
+
+@section('content')
 @push('mystyle')
 <link rel="stylesheet" href="{{ asset('assets/vendor/css/leaflet.css') }}" />
 <link rel="stylesheet" href="{{ asset('assets/vendor/css/MarkerCluster.css') }}" />
@@ -13,18 +16,44 @@
     /* Map container styling */
     #map-wrapper {
         position: relative;
-        border-radius: 12px;
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(37, 22, 14, 0.06);
+        border: 1px solid rgba(60, 42, 33, 0.12);
+        background: #F4F3F2;
     }
     #map {
         height: 640px;
         width: 100%;
-        background: #aad3df;
+        background: #ECE9E6;
     }
 
-    /* Fast cluster styling - Primary Brand Palette (DESIGN.md) */
+    /* Leaflet Control Overrides (Swiss Precision) */
+    .leaflet-bar {
+        border: 1px solid rgba(60, 42, 33, 0.15) !important;
+        border-radius: 8px !important;
+        overflow: hidden;
+        box-shadow: 0 4px 14px rgba(var(--bs-primary-rgb, 37, 22, 14), 0.08) !important;
+    }
+    .leaflet-bar a {
+        background-color: #FFFFFF !important;
+        color: var(--theme-color-1, #25160E) !important;
+        border-bottom: 1px solid var(--theme-border, rgba(60, 42, 33, 0.08)) !important;
+        transition: background-color 0.15s ease;
+    }
+    .leaflet-bar a:hover {
+        background-color: #FAF9F8 !important;
+        color: #000000 !important;
+    }
+    .leaflet-control-layers {
+        border: 1px solid rgba(60, 42, 33, 0.15) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 14px rgba(37, 22, 14, 0.08) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 12px !important;
+    }
+
+    /* Fast cluster styling - Modern Roastery & Swiss Precision (DESIGN.md) */
     .custom-cluster-marker,
     .marker-cluster-small,
     .marker-cluster-medium,
@@ -37,41 +66,41 @@
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        color: #ffffff;
+        color: #FFFFFF;
         font-weight: 700;
-        font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        box-shadow: 0 4px 14px rgba(30, 77, 62, 0.35);
+        font-family: 'JetBrains Mono', monospace;
+        box-shadow: 0 4px 14px rgba(37, 22, 14, 0.35);
         transition: transform 0.15s ease, box-shadow 0.15s ease;
         will-change: transform;
     }
     .custom-cluster-marker:hover .cluster-inner {
         transform: scale(1.12);
-        box-shadow: 0 6px 20px rgba(30, 77, 62, 0.45);
+        box-shadow: 0 6px 20px rgba(37, 22, 14, 0.45);
     }
     .marker-cluster-small .cluster-inner {
         width: 38px;
         height: 38px;
-        background: linear-gradient(135deg, var(--theme-color-2, #32745E), var(--theme-color-1, #1E4D3E)) !important;
-        border: 3px solid rgba(255, 255, 255, 0.95) !important;
+        background: linear-gradient(135deg, var(--theme-color-2), var(--color-primary-hover)) !important;
+        border: 2.5px solid #FFFFFF !important;
         font-size: 13px;
     }
     .marker-cluster-medium .cluster-inner {
         width: 46px;
         height: 46px;
-        background: linear-gradient(135deg, var(--theme-color-1, #1E4D3E), var(--theme-color-2, #32745E)) !important;
-        border: 3px solid rgba(255, 255, 255, 0.95) !important;
+        background: linear-gradient(135deg, var(--theme-color-2), var(--theme-color-1)) !important;
+        border: 2.5px solid #FFFFFF !important;
         font-size: 14px;
     }
     .marker-cluster-large .cluster-inner {
         width: 54px;
         height: 54px;
-        background: linear-gradient(135deg, var(--theme-color-1, #1E4D3E), #0D241C) !important;
-        border: 3.5px solid rgba(255, 255, 255, 0.98) !important;
+        background: linear-gradient(135deg, var(--theme-color-1), var(--color-primary-hover)) !important;
+        border: 3px solid #FFFFFF !important;
         font-size: 15px;
-        box-shadow: 0 4px 18px rgba(var(--bs-primary-rgb), 0.5) !important;
+        box-shadow: 0 6px 22px rgba(var(--bs-primary-rgb, 37, 22, 14), 0.5) !important;
     }
 
-    /* Individual Marker Styling (GPU accelerated & lightweight) */
+    /* Individual Marker Styling */
     .emp-marker {
         background: transparent !important;
         border: none !important;
@@ -81,9 +110,9 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        border: 2.5px solid var(--theme-color-1, #1E4D3E);
-        background: #ffffff;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.22);
+        border: 2px solid var(--theme-color-1, #3C2A21);
+        background: #FFFFFF;
+        box-shadow: 0 3px 10px rgba(var(--bs-primary-rgb, 37, 22, 14), 0.22);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -104,75 +133,102 @@
     .emp-marker-pin .emp-initials {
         font-size: 12px;
         font-weight: 700;
-        color: #1E4D3E;
+        color: var(--theme-color-1, #3C2A21);
+        font-family: 'Outfit', sans-serif;
         text-transform: uppercase;
     }
     .emp-status-dot {
         position: absolute;
         bottom: -2px;
         right: -2px;
-        width: 13px;
-        height: 13px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
-        background: #10B981;
-        border: 2px solid #ffffff;
+        background: #4A6741;
+        border: 2px solid #FFFFFF;
     }
     .emp-name-tag {
         position: absolute;
         bottom: -22px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(15, 23, 42, 0.88);
-        color: #ffffff;
+        background: var(--theme-color-1, #3C2A21);
+        color: var(--theme-primary-contrast, #FAF9F8);
         padding: 2px 7px;
         border-radius: 4px;
         font-size: 10px;
         font-weight: 600;
+        font-family: 'Inter', sans-serif;
         white-space: nowrap;
         pointer-events: none;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         max-width: 120px;
         overflow: hidden;
         text-overflow: ellipsis;
+        border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* Popup Styling */
+    /* Leaflet Popup Styling (Modern Roastery Theme) */
     .leaflet-popup-content-wrapper {
-        border-radius: 12px;
-        padding: 0;
-        overflow: hidden;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        border-radius: 14px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        box-shadow: 0 16px 36px rgba(37, 22, 14, 0.2) !important;
+        border: 1px solid rgba(60, 42, 33, 0.12) !important;
+        background: #FFFFFF !important;
     }
     .leaflet-popup-content {
-        margin: 0;
-        line-height: 1.4;
+        margin: 0 !important;
+        line-height: 1.4 !important;
+    }
+    .leaflet-container a.leaflet-popup-close-button {
+        top: 10px !important;
+        right: 12px !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 18px !important;
+        padding: 0 !important;
+        width: 24px !important;
+        height: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 6px !important;
+        transition: all 0.15s ease !important;
+    }
+    .leaflet-container a.leaflet-popup-close-button:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: #FFFFFF !important;
+    }
+    .leaflet-popup-tip {
+        background: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(37, 22, 14, 0.12) !important;
     }
     .popup-header {
-        background: linear-gradient(135deg, #1E4D3E, #2d6a56);
-        color: white;
-        padding: 12px 16px;
+        background: linear-gradient(135deg, var(--color-primary-hover, var(--theme-color-2)) 0%, var(--theme-color-1) 100%) !important;
+        color: var(--theme-primary-contrast, #FAF9F8) !important;
+        padding: 13px 16px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
     .popup-body {
-        padding: 14px 16px;
-        background: #ffffff;
+        padding: 14px 16px !important;
+        background: #FFFFFF !important;
     }
 
-    /* Search floating overlay */
+    /* Floating Search Bar */
     .map-search-bar {
         position: absolute;
         top: 14px;
         left: 60px;
         z-index: 1000;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
-        padding: 6px 12px;
+        background: #FFFFFF;
+        padding: 7px 14px;
         border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 4px 16px rgba(var(--bs-primary-rgb, 37, 22, 14), 0.08);
+        border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.12));
         display: flex;
         align-items: center;
         gap: 8px;
-        width: 280px;
+        width: 290px;
     }
     .map-search-bar input {
         border: none;
@@ -180,76 +236,99 @@
         background: transparent;
         font-size: 13px;
         width: 100%;
-        color: #1e293b;
+        color: var(--theme-text-primary, #0F172A);
+        font-family: 'Inter', sans-serif;
     }
     .map-search-bar input::placeholder {
-        color: #94a3b8;
+        color: #81756F;
     }
 
-    /* Quick stats chip bar */
+    /* Quick stats chip bar (Bento Minimalist) */
     .stats-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 10px;
     }
     .stat-chip {
         display: flex;
         align-items: center;
-        gap: 8px;
-        background: #ffffff;
-        padding: 8px 16px;
+        gap: 10px;
+        background: #FAF9F8;
+        padding: 8px 14px;
         border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        border: 1px solid rgba(60, 42, 33, 0.08);
+        box-shadow: 0 1px 3px rgba(37, 22, 14, 0.03);
     }
     .stat-chip-icon {
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
         border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 16px;
     }
+    .stat-chip-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #755841;
+        font-family: 'Inter', sans-serif;
+    }
+    .stat-chip-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--theme-text-primary, #0F172A);
+    }
+
+    /* Tactile button interaction */
+    .btn-tactile {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-tactile:active {
+        transform: translateY(1px);
+    }
 </style>
 @endpush
 
 <div class="row">
     <div class="col-12">
-        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
-            <div class="card-header bg-transparent border-bottom pb-3 pt-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 14px; border: 1px solid rgba(60, 42, 33, 0.08); background: #FFFFFF;">
+            <div class="card-header bg-transparent border-bottom pb-3 pt-3" style="border-bottom-color: rgba(60, 42, 33, 0.08) !important;">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
-                        <h5 class="card-title mb-1 text-dark fw-bold">Live Tracking Presensi Karyawan</h5>
-                        <p class="text-muted small mb-0">Pemetaan lokasi kehadiran karyawan secara real-time dan berkinerja tinggi</p>
+                        <h5 class="card-title mb-1 fw-bold" style="font-family: 'Outfit', sans-serif; color: var(--theme-color-1, #25160E); letter-spacing: -0.01em;">Live Tracking Presensi Karyawan</h5>
+                        <p class="small mb-0" style="color: #755841; font-size: 12.5px;">Pemetaan lokasi kehadiran karyawan secara real-time dan berkinerja tinggi</p>
                     </div>
                     <!-- Quick Stats Chips -->
                     <div class="stats-chips">
                         <div class="stat-chip">
-                            <div class="stat-chip-icon" style="background: rgba(var(--bs-primary-rgb), 0.1); color: var(--theme-color-1, #1E4D3E);">
+                            <div class="stat-chip-icon" style="background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb), 0.1)); color: var(--theme-color-1, #3C2A21);">
                                 <i class="ti ti-users"></i>
                             </div>
                             <div>
-                                <div class="text-muted" style="font-size: 11px; font-weight: 500;">Total Presensi</div>
-                                <div class="fw-bold text-dark" id="stat-total" style="font-size: 15px;">0</div>
+                                <div class="stat-chip-label">Total Presensi</div>
+                                <div class="stat-chip-val" id="stat-total">0</div>
                             </div>
                         </div>
                         <div class="stat-chip">
-                            <div class="stat-chip-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
+                            <div class="stat-chip-icon" style="background: #F0F6EE; color: #3D5A35;">
                                 <i class="ti ti-map-pin"></i>
                             </div>
                             <div>
-                                <div class="text-muted" style="font-size: 11px; font-weight: 500;">Titik Lokasi</div>
-                                <div class="fw-bold text-dark" id="stat-locations" style="font-size: 15px;">0</div>
+                                <div class="stat-chip-label">Titik Lokasi</div>
+                                <div class="stat-chip-val" id="stat-locations">0</div>
                             </div>
                         </div>
                         <div class="stat-chip">
-                            <div class="stat-chip-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
+                            <div class="stat-chip-icon" style="background: #F4F3F2; color: #755841;">
                                 <i class="ti ti-stack"></i>
                             </div>
                             <div>
-                                <div class="text-muted" style="font-size: 11px; font-weight: 500;">Cluster Overlap</div>
-                                <div class="fw-bold text-dark" id="stat-overlap" style="font-size: 15px;">0</div>
+                                <div class="stat-chip-label">Cluster Overlap</div>
+                                <div class="stat-chip-val" id="stat-overlap">0</div>
                             </div>
                         </div>
                     </div>
@@ -259,16 +338,18 @@
                 <!-- Filter Form (Responsive Auto-Fit) -->
                 <div class="row g-2 align-items-end mb-3">
                     <div class="col-lg-3 col-md-4 col-sm-6 col-12">
-                        <label for="tanggal" class="form-label fw-semibold text-muted small mb-1">Tanggal Presensi</label>
+                        <label for="tanggal" class="form-label mb-1" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #755841;">Tanggal Presensi</label>
                         <div class="input-group input-group-merge" style="height: 38px;">
-                            <span class="input-group-text bg-light border-end-0"><i class="ti ti-calendar text-muted"></i></span>
-                            <input type="text" class="form-control flatpickr-date bg-light border-start-0" id="tanggal" name="tanggal"
-                                value="{{ $tanggal }}" placeholder="Pilih tanggal" style="height: 38px;">
+                            <span class="input-group-text border-end-0" style="background: #FAF9F8; border-color: rgba(60, 42, 33, 0.14);"><i class="ti ti-calendar" style="color: #755841;"></i></span>
+                            <input type="text" class="form-control flatpickr-date border-start-0" id="tanggal" name="tanggal"
+                                value="{{ $tanggal }}" placeholder="Pilih tanggal"
+                                style="height: 38px; background: #FAF9F8; border-color: rgba(60, 42, 33, 0.14); color: var(--theme-text-primary, #0F172A); font-weight: 500;">
                         </div>
                     </div>
                     <div class="col-lg col-md col-sm-6 col-12">
-                        <label for="kode_cabang" class="form-label fw-semibold text-muted small mb-1">Filter Cabang</label>
-                        <select class="form-select bg-light" id="kode_cabang" name="kode_cabang" style="height: 38px;">
+                        <label for="kode_cabang" class="form-label mb-1" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #755841;">Filter Cabang</label>
+                        <select class="form-select" id="kode_cabang" name="kode_cabang"
+                            style="height: 38px; background: #FAF9F8; border-color: rgba(60, 42, 33, 0.14); color: var(--theme-text-primary, #0F172A); font-weight: 500;">
                             <option value="">Semua Cabang</option>
                             @foreach ($cabangs as $cabang)
                                 <option value="{{ $cabang->kode_cabang }}">{{ $cabang->nama_cabang }}</option>
@@ -277,16 +358,16 @@
                     </div>
                     <div class="col-auto">
                         <div class="d-flex align-items-center gap-2 flex-wrap" style="height: 38px;">
-                            <button type="button" class="btn text-white d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-filter"
-                                style="background-color: var(--theme-color-1, #1E4D3E) !important; border-color: var(--theme-color-1, #1E4D3E) !important; border-radius: 8px; font-weight: 600; height: 38px;">
+                            <button type="button" class="btn text-white btn-tactile d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-filter"
+                                style="background-color: var(--theme-color-1, #25160E) !important; border-color: var(--theme-color-1, #25160E) !important; color: var(--theme-primary-contrast, #FFFFFF) !important; border-radius: 8px; font-weight: 600; height: 38px;">
                                 <i class="ti ti-filter me-1"></i><span>Terapkan</span>
                             </button>
-                            <button type="button" class="btn text-white d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-reset"
-                                style="background-color: #64748B !important; border-color: #64748B !important; border-radius: 8px; font-weight: 600; height: 38px;">
+                            <button type="button" class="btn btn-tactile d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-reset"
+                                style="background-color: #FFFFFF !important; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.18)) !important; color: var(--theme-color-1, #3C2A21) !important; border-radius: 8px; font-weight: 600; height: 38px;">
                                 <i class="ti ti-refresh me-1"></i><span>Reset</span>
                             </button>
-                            <button type="button" class="btn text-white d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-toggle-radius"
-                                style="background-color: #0284C7 !important; border-color: #0284C7 !important; border-radius: 8px; font-weight: 600; height: 38px;">
+                            <button type="button" class="btn text-white btn-tactile d-inline-flex align-items-center justify-content-center gap-1 shadow-sm px-3" id="btn-toggle-radius"
+                                style="background-color: var(--theme-color-2, #634832) !important; border-color: var(--theme-color-2, #634832) !important; color: var(--theme-primary-contrast, #FFFFFF) !important; border-radius: 8px; font-weight: 600; height: 38px;">
                                 <i class="ti ti-circle me-1"></i><span>Radius Kantor</span>
                             </button>
                         </div>
@@ -297,17 +378,19 @@
                 <div id="map-wrapper">
                     <!-- Quick search inside map -->
                     <div class="map-search-bar">
-                        <i class="ti ti-search text-muted" style="font-size: 15px;"></i>
+                        <i class="ti ti-search" style="color: #755841; font-size: 15px;"></i>
                         <input type="text" id="map-emp-search" placeholder="Cari nama karyawan / NIK...">
-                        <span id="search-clear" style="cursor: pointer; display: none;"><i class="ti ti-x text-muted"></i></span>
+                        <span id="search-clear" style="cursor: pointer; display: none;"><i class="ti ti-x" style="color: #755841;"></i></span>
                     </div>
                     <div id="map"></div>
                 </div>
 
                 <!-- Guidance footer -->
-                <div class="d-flex justify-content-between align-items-center mt-3 text-muted small flex-wrap gap-2">
+                <div class="d-flex justify-content-between align-items-center mt-3 small flex-wrap gap-2 p-2 rounded"
+                     style="background: #FAF9F8; border: 1px solid rgba(60, 42, 33, 0.06); color: #634832;">
                     <div>
-                        <i class="ti ti-bulb text-warning me-1"></i> <strong>Tips:</strong> Klik angka cluster untuk memperbesar area kelompok presensi. Klik marker untuk rincian presensi & foto.
+                        <i class="ti ti-info-circle me-1" style="color: #755841;"></i>
+                        <strong>Petunjuk Navigasi:</strong> Klik angka cluster untuk memperbesar area presensi. Klik marker untuk rincian presensi & foto absensi.
                     </div>
                 </div>
             </div>
@@ -318,19 +401,23 @@
 <!-- Modal untuk menampilkan foto dalam ukuran besar -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
-            <div class="modal-header py-3" style="background: var(--theme-color-1, #1E4D3E); color: white;">
-                <h6 class="modal-title text-white fw-bold mb-0" id="imageModalTitle"><i class="ti ti-photo me-2"></i>Foto Presensi</h6>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden; border: 1px solid rgba(60, 42, 33, 0.12);">
+            <div class="modal-header py-3" style="background: linear-gradient(135deg, var(--color-primary-hover, var(--theme-color-2)) 0%, var(--theme-color-1) 100%); color: var(--theme-primary-contrast, #FFFFFF); border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                <h6 class="modal-title text-white fw-bold mb-0" id="imageModalTitle" style="font-family: 'Outfit', sans-serif; font-size: 14px;">
+                    <i class="ti ti-photo me-2" style="color: #FAF9F8;"></i>Foto Presensi
+                </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center p-3 bg-light">
-                <img id="modalImage" src="" alt="Foto Presensi" class="img-fluid rounded shadow-sm"
-                    style="max-height: 65vh; object-fit: contain;">
+            <div class="modal-body text-center p-3" style="background: #FAF9F8;">
+                <img id="modalImage" src="" alt="Foto Presensi" class="img-fluid rounded"
+                    style="max-height: 65vh; object-fit: contain; border: 1px solid rgba(60, 42, 33, 0.08); box-shadow: 0 4px 16px rgba(37, 22, 14, 0.06);">
             </div>
-            <div class="modal-footer py-2 bg-white">
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
-                <a id="downloadImage" href="" download class="btn btn-sm text-white" style="background: var(--theme-color-1, #1E4D3E);">
-                    <i class="ti ti-download me-1"></i>Download Foto
+            <div class="modal-footer py-2 bg-white" style="border-top: 1px solid rgba(60, 42, 33, 0.08);">
+                <button type="button" class="btn btn-sm btn-tactile" data-bs-dismiss="modal"
+                    style="background: #FFFFFF; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.18)); color: var(--theme-color-1, #3C2A21); font-weight: 500; border-radius: 6px;">Tutup</button>
+                <a id="downloadImage" href="" download class="btn btn-sm text-white btn-tactile"
+                    style="background: var(--theme-color-1, #3C2A21); border: 1px solid var(--theme-color-1, #3C2A21); color: var(--theme-primary-contrast, #FFFFFF); font-weight: 600; border-radius: 6px;">
+                    <i class="ti ti-download me-1"></i>Unduh Foto
                 </a>
             </div>
         </div>
@@ -343,8 +430,8 @@
 <script src="{{ asset('assets/vendor/js/leaflet.markercluster.js') }}"></script>
 <script>
     $(document).ready(function() {
-        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#1E4D3E';
-        var themeSecondary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '#32745E';
+        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '{{ $general_setting->theme_color_1 ?? "#3C2A21" }}';
+        var themeSecondary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '{{ $general_setting->theme_color_2 ?? "#634832" }}';
 
         // Initialize flatpickr for date input
         $('.flatpickr-date').flatpickr({
@@ -395,13 +482,13 @@
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
         });
 
-        // Add default layer
-        osm.addTo(map);
+        // Default layer: Google Streets (bersih, nama jalan jelas, bebas simbol aneh)
+        googleStreets.addTo(map);
 
         // Layer control on top right
         var baseMaps = {
-            "OpenStreetMap": osm,
             "Google Streets": googleStreets,
+            "OpenStreetMap": osm,
             "Google Hybrid": googleHybrid,
             "Google Satellite": googleSat
         };
@@ -422,7 +509,7 @@
                 color: themePrimary,
                 weight: 2,
                 opacity: 0.8,
-                fillOpacity: 0.18
+                fillOpacity: 0.14
             },
             spiderLegPolylineOptions: {
                 weight: 1.5,
@@ -463,71 +550,87 @@
             return (parts[0][0] + parts[1][0]).toUpperCase();
         }
 
-        // Lazy Popup Content Generator (Only generated on click!)
+        // Lazy Popup Content Generator (Only generated on click!) - Anti-slop Swiss Precision
         function generatePopupHtml(p) {
             var formattedIn = p.jam_in ? p.jam_in : '-';
-            var formattedOut = p.jam_out ? p.jam_out : '-';
-            var fotoInSrc = p.foto_in ? '/storage/uploads/absensi/' + p.foto_in : null;
-            var fotoOutSrc = p.foto_out ? '/storage/uploads/absensi/' + p.foto_out : null;
+            var fotoInSrc = p.foto_in ? '/files/absensi/' + p.foto_in : null;
+            var fotoOutSrc = p.foto_out ? '/files/absensi/' + p.foto_out : null;
 
             return `
-                <div style="width: 290px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="width: 300px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
                     <div class="popup-header">
                         <div class="d-flex align-items-center gap-2">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;">
+                            <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; font-family: 'Outfit', sans-serif; color: #FAF9F8; flex-shrink: 0;">
                                 ${getInitials(p.nama_karyawan)}
                             </div>
-                            <div style="overflow: hidden;">
-                                <h6 class="mb-0 text-white fw-bold text-truncate" style="font-size: 13.5px;" title="${p.nama_karyawan}">${p.nama_karyawan}</h6>
-                                <span style="font-size: 11px; opacity: 0.85;">NIK: ${p.nik} &bull; ${p.nama_cabang || '-'}</span>
+                            <div style="overflow: hidden; padding-right: 18px;">
+                                <h6 class="mb-0 text-white fw-bold text-truncate" style="font-size: 13.5px; font-family: 'Outfit', sans-serif; letter-spacing: -0.01em;" title="${p.nama_karyawan}">${p.nama_karyawan}</h6>
+                                <span style="font-size: 11px; color: rgba(250, 249, 248, 0.75);">NIK: ${p.nik} &bull; ${p.nama_cabang || '-'}</span>
                             </div>
                         </div>
                     </div>
                     <div class="popup-body">
                         <div class="row g-2 mb-2" style="font-size: 11.5px;">
                             <div class="col-6">
-                                <div class="p-2 rounded" style="background: #ecfdf5; border: 1px solid #d1fae5;">
-                                    <div class="text-muted" style="font-size: 10px;">JAM MASUK</div>
-                                    <div class="fw-bold text-success">${formattedIn}</div>
+                                <div class="p-2 rounded" style="background: #FAF9F8; border: 1px solid rgba(60, 42, 33, 0.08);">
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #755841; margin-bottom: 2px;">JAM MASUK</div>
+                                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #3D5A35;">${formattedIn}</div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="p-2 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                                    <div class="text-muted" style="font-size: 10px;">JAM KELUAR</div>
-                                    <div class="fw-bold text-dark">${formattedOut}</div>
+                                <div class="p-2 rounded" style="background: #FAF9F8; border: 1px solid rgba(60, 42, 33, 0.08);">
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #755841; margin-bottom: 2px;">JAM KELUAR</div>
+                                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #0F172A;">${formattedOut}</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-flex align-items-center gap-1 text-muted mb-2" style="font-size: 11px;">
-                            <i class="ti ti-map-pin text-danger"></i>
-                            <span class="text-truncate">${p.lokasi_in || '-'}</span>
+                        <div class="d-flex align-items-center gap-1.5 py-1 px-2 rounded mb-2" style="background: #F4F3F2; border: 1px solid rgba(60, 42, 33, 0.06); font-size: 11px; color: #4F4540;">
+                            <i class="ti ti-map-pin" style="color: #755841; font-size: 13px;"></i>
+                            <span class="text-truncate" style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">${p.lokasi_in || '-'}</span>
                         </div>
 
                         <!-- Foto Presensi -->
-                        <div class="pt-2 border-top">
-                            <div class="d-flex gap-2 justify-content-center">
+                        <div class="pt-2" style="border-top: 1px solid rgba(60, 42, 33, 0.08);">
+                            <div class="d-flex gap-3 justify-content-center">
                                 ${fotoInSrc ? `
                                     <div class="text-center">
-                                        <img src="${fotoInSrc}"
-                                             style="width: 75px; height: 75px; object-fit: cover; border-radius: 8px; border: 2px solid #10B981; cursor: pointer;"
-                                             onclick="showImageModal('${fotoInSrc}', 'Foto Masuk - ${p.nama_karyawan}')"
-                                             onerror="this.parentElement.innerHTML='<div class=\\'text-muted small\\'>Foto tdk ada</div>'">
-                                        <div style="font-size: 9.5px; margin-top: 3px; font-weight: 600; color: #10B981;">MASUK</div>
+                                        <div style="border-radius: 8px; overflow: hidden; border: 1px solid rgba(60, 42, 33, 0.12); box-shadow: 0 2px 6px rgba(37, 22, 14, 0.04);">
+                                            <img src="${fotoInSrc}"
+                                                 style="width: 82px; height: 82px; object-fit: cover; display: block; cursor: pointer; transition: transform 0.15s ease;"
+                                                 onmouseover="this.style.transform='scale(1.05)'"
+                                                 onmouseout="this.style.transform='scale(1)'"
+                                                 onclick="showImageModal('${fotoInSrc}', 'Foto Masuk - ${p.nama_karyawan}')"
+                                                 onerror="this.parentElement.innerHTML='<div class=\\'text-muted small p-2\\'>Foto tdk ada</div>'">
+                                        </div>
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #3D5A35; background: #F0F6EE; border: 1px solid #D2E4CC; padding: 1.5px 7px; border-radius: 4px;">Masuk</span>
+                                        </div>
                                     </div>
                                 ` : `
-                                    <div style="width: 75px; height: 75px; background: #f1f5f9; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">
-                                        <i class="ti ti-photo-off mb-1"></i>No Foto
+                                    <div class="text-center">
+                                        <div style="width: 82px; height: 82px; background: #FAF9F8; border-radius: 8px; border: 1px dashed rgba(60, 42, 33, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: #81756F;">
+                                            <i class="ti ti-photo-off mb-1" style="font-size: 16px;"></i>No Foto
+                                        </div>
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-block; font-size: 9.5px; font-weight: 600; color: #81756F;">Masuk</span>
+                                        </div>
                                     </div>
                                 `}
 
                                 ${fotoOutSrc ? `
                                     <div class="text-center">
-                                        <img src="${fotoOutSrc}"
-                                             style="width: 75px; height: 75px; object-fit: cover; border-radius: 8px; border: 2px solid #0284C7; cursor: pointer;"
-                                             onclick="showImageModal('${fotoOutSrc}', 'Foto Keluar - ${p.nama_karyawan}')"
-                                             onerror="this.parentElement.innerHTML='<div class=\\'text-muted small\\'>Foto tdk ada</div>'">
-                                        <div style="font-size: 9.5px; margin-top: 3px; font-weight: 600; color: #0284C7;">KELUAR</div>
+                                        <div style="border-radius: 8px; overflow: hidden; border: 1px solid rgba(60, 42, 33, 0.12); box-shadow: 0 2px 6px rgba(37, 22, 14, 0.04);">
+                                            <img src="${fotoOutSrc}"
+                                                 style="width: 82px; height: 82px; object-fit: cover; display: block; cursor: pointer; transition: transform 0.15s ease;"
+                                                 onmouseover="this.style.transform='scale(1.05)'"
+                                                 onmouseout="this.style.transform='scale(1)'"
+                                                 onclick="showImageModal('${fotoOutSrc}', 'Foto Keluar - ${p.nama_karyawan}')"
+                                                 onerror="this.parentElement.innerHTML='<div class=\\'text-muted small p-2\\'>Foto tdk ada</div>'">
+                                        </div>
+                                        <div style="margin-top: 4px;">
+                                            <span style="display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--theme-color-2); background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.1)); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.2)); padding: 1.5px 7px; border-radius: 4px;">Keluar</span>
+                                        </div>
                                     </div>
                                 ` : ''}
                             </div>
@@ -537,7 +640,7 @@
             `;
         }
 
-        // Add Radius Circles for Offices
+        // Add Radius Circles for Offices (Warm Roastery Palette)
         function addRadiusCirclesToMap(data) {
             radiusCircles.forEach(function(circle) {
                 map.removeLayer(circle);
@@ -548,17 +651,17 @@
                 data.forEach(function(cabang) {
                     if (cabang.latitude && cabang.longitude && cabang.radius_cabang) {
                         var circle = L.circle([cabang.latitude, cabang.longitude], {
-                            color: '#1E4D3E',
-                            fillColor: '#10B981',
-                            fillOpacity: 0.12,
+                            color: themeSecondary,
+                            fillColor: themeSecondary,
+                            fillOpacity: 0.08,
                             weight: 2,
                             radius: cabang.radius_cabang
                         }).addTo(map);
 
                         circle.bindPopup(`
-                            <div style="padding: 10px; min-width: 180px;">
-                                <h6 class="fw-bold mb-1" style="color: #1E4D3E;"><i class="ti ti-building me-1"></i>${cabang.nama_cabang}</h6>
-                                <p class="small text-muted mb-0">Radius Absen: <strong>${cabang.radius_cabang} meter</strong></p>
+                            <div style="padding: 8px 10px; min-width: 190px; font-family: 'Inter', sans-serif;">
+                                <h6 class="fw-bold mb-1" style="color: ${themePrimary}; font-family: 'Outfit', sans-serif; font-size: 13.5px;"><i class="ti ti-building me-1" style="color: ${themeSecondary};"></i>${cabang.nama_cabang}</h6>
+                                <p class="small text-muted mb-0" style="font-size: 11.5px;">Radius Absen: <strong style="color: ${themePrimary}; font-family: 'JetBrains Mono', monospace;">${cabang.radius_cabang} meter</strong></p>
                             </div>
                         `);
 
@@ -784,7 +887,7 @@
             $('#btn-filter').click();
         });
 
-        // Toggle Radius
+        // Toggle Radius Button (Cohesive Roasted Walnut & Secondary Styling)
         var radiusVisible = true;
         $('#btn-toggle-radius').click(function() {
             if (radiusVisible) {
@@ -792,12 +895,12 @@
                     map.removeLayer(circle);
                 });
                 $(this).html('<i class="ti ti-circle-off me-1"></i><span>Radius Sembunyi</span>');
-                $(this).css('background-color', '#64748B !important');
+                $(this).attr('style', 'background-color: #FFFFFF !important; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.18)) !important; color: var(--theme-color-1) !important; border-radius: 8px; font-weight: 600; height: 38px;');
                 radiusVisible = false;
             } else {
                 addRadiusCirclesToMap(cabangRadiusData);
                 $(this).html('<i class="ti ti-circle me-1"></i><span>Radius Kantor</span>');
-                $(this).css('background-color', '#0284C7 !important');
+                $(this).attr('style', 'background-color: var(--theme-color-2) !important; border-color: var(--theme-color-2) !important; color: var(--theme-primary-contrast, #FFFFFF) !important; border-radius: 8px; font-weight: 600; height: 38px;');
                 radiusVisible = true;
             }
         });
@@ -817,4 +920,3 @@
     });
 </script>
 @endpush
-

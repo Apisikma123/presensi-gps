@@ -161,12 +161,12 @@
         }
 
         .btn-contact {
-            background: #059669;
+            background: #4A6741;
             color: #ffffff;
         }
 
         .btn-contact:hover {
-            background: #047857;
+            background: #3A5233;
         }
 
         .btn-danger {

@@ -1,10 +1,13 @@
 @extends('layouts.app')
 @section('titlepage', 'Dispensasi Keterlambatan')
 
-@section('content')
 @section('navigasi')
-    <span>Persetujuan Izin & Dispensasi</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('izinabsen.index') }}">Persetujuan Izin</a></li>
+    <li class="breadcrumb-item active">Dispensasi Keterlambatan</li>
 @endsection
+
+@section('content')
 
 <div class="row">
     <div class="col-12">
@@ -12,13 +15,13 @@
             @include('layouts.navigation.nav_pengajuan_absen')
         </div>
 
-        <div id="izin-tab-pane" data-no-spa="true" style="position: relative; min-height: 300px; transition: opacity 0.15s ease;">
+        <div id="izin-tab-pane" style="position: relative; min-height: 300px; transition: opacity 0.15s ease;">
         <!-- Top Header Toolbar -->
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div>
                 <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                     <span>Dispensasi Keterlambatan</span>
-                    <span class="badge" style="background: rgba(30, 77, 62, 0.08); color: #1E4D3E; border: 1px solid rgba(30, 77, 62, 0.15); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+                    <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
                         {{ number_format($dispensasi->total(), 0, ',', '.') }} Total
                     </span>
                 </h5>
@@ -170,24 +173,7 @@
 
 @push('myscript')
 <script>
-    $(function() {
-        $('.deleteform').submit(function(e) {
-            e.preventDefault();
-            var form = this;
-            Swal.fire({
-                title: 'Apakah Anda Yakin?',
-                text: "Data dispensasi ini akan dihapus permanen.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Hapus!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
+    // Dispensasi delete is handled by global .delete-confirm handler in scripts.blade.php
 </script>
 @endpush
+

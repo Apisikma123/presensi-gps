@@ -1,9 +1,12 @@
 @extends('layouts.app')
 @section('titlepage', 'Laporan Cuti')
-@section('content')
 @section('navigasi')
-    <span>Laporan Cuti</span>
+    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('reports.index') }}">Laporan & Analitik</a></li>
+    <li class="breadcrumb-item active">Laporan Cuti</li>
 @endsection
+
+@section('content')
 @push('mystyle')
 <link rel="stylesheet" href="{{ asset('assets/vendor/libs/select2/select2.css') }}" />
 @endpush
@@ -21,7 +24,7 @@
             <div class="card-header d-flex justify-content-between align-items-center py-3 px-4" style="background-color: #FFFFFF !important; border-bottom: 1px solid #F1F5F9 !important;">
                 <div class="d-flex align-items-center gap-2.5">
                     <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                        style="width: 36px; height: 36px; background: rgba(30, 77, 62, 0.08); color: #1E4D3E;">
+                        style="width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);">
                         <i class="ti ti-calendar-stats fs-5"></i>
                     </div>
                     <div>
@@ -72,14 +75,14 @@
                     <div class="row pt-2">
                         <div class="col-lg-6 col-md-6 col-sm-12 mb-2">
                             <button type="submit" name="submitButton" class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center gap-1.5"
-                                style="background-color: #1E4D3E; border-color: #1E4D3E; height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
+                                style="background-color: var(--theme-color-1, #3C2A21); border-color: var(--theme-color-1, #3C2A21); color: var(--theme-primary-contrast, #FFFFFF); height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
                                 <i class="ti ti-printer"></i>
                                 <span>Cetak Laporan</span>
                             </button>
                         </div>
                         <div class="col-lg-6 col-md-6 col-sm-12 mb-2">
                             <button type="submit" name="exportButton" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center gap-1.5"
-                                style="background-color: var(--theme-color-2, #32745E); border-color: var(--theme-color-2, #32745E); height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
+                                style="background-color: var(--theme-color-2, #634832); border-color: var(--theme-color-2, #634832); height: 38px; border-radius: 8px; font-weight: 600; font-size: 12.5px;">
                                 <i class="ti ti-download"></i>
                                 <span>Export Excel</span>
                             </button>

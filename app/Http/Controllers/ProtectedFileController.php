@@ -207,4 +207,113 @@ class ProtectedFileController extends Controller
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
+
+    /**
+     * Stream attendance photo with authentication and branch authorization.
+     *
+     * @param string $filename
+     * @return BinaryFileResponse|\Symfony\Component\HttpFoundation\Response
+     */
+    public function streamAttendancePhoto(string $filename)
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $safeFilename = basename($filename);
+        if (empty($safeFilename) || $safeFilename !== $filename) {
+            abort(400, 'Nama berkas tidak valid.');
+        }
+
+        // Find associated presensi record
+        $presensi = \App\Models\Presensi::where('foto_in', $safeFilename)
+            ->orWhere('foto_out', $safeFilename)
+            ->first();
+
+        $isAuthorized = false;
+        if ($user->isSuperAdmin()) {
+            $isAuthorized = true;
+        } elseif ($presensi) {
+            if ($user->hasRole('karyawan')) {
+                $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
+                if ($userkaryawan && $userkaryawan->nik === $presensi->nik) {
+                    $isAuthorized = true;
+                }
+            } elseif ($user->can('presensi.index') || $user->can('trackingpresensi.index')) {
+                $userCabangs = $user->getCabangCodes();
+                $karyawan = Karyawan::where('nik', $presensi->nik)->first();
+                $branch = !empty($presensi->kode_cabang) ? $presensi->kode_cabang : ($karyawan->kode_cabang ?? null);
+                if (empty($userCabangs) || in_array($branch, $userCabangs) || ($karyawan && in_array($karyawan->kode_cabang, $userCabangs))) {
+                    $isAuthorized = true;
+                }
+            }
+        } elseif (!$user->hasRole('karyawan') && $user->can('presensi.index')) {
+            $isAuthorized = true;
+        }
+
+        if (!$isAuthorized) {
+            abort(403, 'Akses ditolak. Anda tidak memiliki wewenang untuk melihat foto presensi ini.');
+        }
+
+        // Check hot storage on disk
+        $hotPath = storage_path('app/public/uploads/absensi/' . $safeFilename);
+        $privateHotPath = storage_path('app/private/uploads/absensi/' . $safeFilename);
+
+        $resolvedPath = null;
+        if (file_exists($hotPath) && is_file($hotPath)) {
+            $resolvedPath = $hotPath;
+        } elseif (file_exists($privateHotPath) && is_file($privateHotPath)) {
+            $resolvedPath = $privateHotPath;
+        }
+
+        if ($resolvedPath) {
+            $mime = mime_content_type($resolvedPath) ?: 'image/webp';
+            return response()->file($resolvedPath, [
+                'Content-Type' => $mime,
+                'Cache-Control' => 'private, no-cache, must-revalidate',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        }
+
+        // If file is archived, attempt streaming from monthly ZIP archive
+        if ($presensi && ($presensi->is_archived || $presensi->foto_in_archived || $presensi->foto_out_archived)) {
+            $month = date('Y-m', strtotime($presensi->tanggal));
+            $archiveDir = config('attendance.archive_disk_path', storage_path('app/private/attendance-archive'));
+            $zipPath = $archiveDir . '/' . $month . '.zip';
+            if (file_exists($zipPath) && class_exists(\ZipArchive::class)) {
+                $zip = new \ZipArchive();
+                if ($zip->open($zipPath) === true) {
+                    $possibleEntries = [
+                        'uploads/absensi/' . $safeFilename,
+                        str_ends_with($safeFilename, '-out.webp') || str_contains($safeFilename, '-out') 
+                            ? 'pulang/' . $safeFilename 
+                            : 'masuk/' . $safeFilename,
+                        $safeFilename,
+                    ];
+                    $stream = null;
+                    foreach ($possibleEntries as $entryName) {
+                        $stream = $zip->getStream($entryName);
+                        if ($stream) {
+                            break;
+                        }
+                    }
+                    if ($stream) {
+                        $contents = stream_get_contents($stream);
+                        fclose($stream);
+                        $zip->close();
+                        return response($contents, 200, [
+                            'Content-Type' => 'image/webp',
+                            'Cache-Control' => 'private, no-cache, must-revalidate',
+                            'X-Content-Type-Options' => 'nosniff',
+                        ]);
+                    }
+                    $zip->close();
+                }
+            }
+        }
+
+        abort(404, 'Berkas foto presensi tidak ditemukan.');
+    }
 }

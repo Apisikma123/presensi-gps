@@ -111,7 +111,7 @@ class MvpPresentationSeeder extends Seeder
                 'istirahat' => 0,
                 'lintashari' => 0,
                 'keterangan' => 'Shift Pagi Standard',
-                'color' => '#32745e'
+                'color' => '#3C2A21'
             ]
         );
 

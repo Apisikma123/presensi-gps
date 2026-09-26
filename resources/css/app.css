@@ -14,29 +14,37 @@
         font-family: inherit;
     }
     body {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        color: #1e293b;
-        background-color: #f8fafc;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #1a1c1c;
+        background-color: #FAF9F8;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4, h5, h6, .card-title, .page-title, .modal-title {
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: -0.01em;
+    }
+
+    .font-mono, .data-mono, .tabular-nums {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
     }
 }
 
 @layer components {
-    /* Glass & Card Surfaces */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(226, 232, 240, 0.8);
+    /* Solid Surface Cards (DESIGN.md Level 1) */
+    .glass-card, .surface-card {
+        background: #FFFFFF;
+        border: 1px solid rgba(60, 42, 33, 0.08);
         border-radius: 14px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .glass-card:hover {
-        border-color: rgba(203, 213, 225, 1);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    .glass-card:hover, .surface-card:hover {
+        border-color: rgba(60, 42, 33, 0.16);
+        box-shadow: 0 4px 12px rgba(60, 42, 33, 0.06);
     }
 
     /* Metric Grid & Metric Chips */
@@ -53,14 +61,14 @@
         justify-content: center;
         padding: 0.5rem 0.65rem;
         border-radius: 10px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: #F4F3F2;
+        border: 1px solid rgba(60, 42, 33, 0.08);
         transition: all 0.15s ease;
     }
 
     .metric-chip:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
+        background: #EEEEED;
+        border-color: rgba(60, 42, 33, 0.15);
     }
 
     .metric-chip-label {
@@ -123,9 +131,9 @@
     }
 
     .badge-pill-brand {
-        background-color: rgba(50, 116, 94, 0.1);
-        color: #32745e;
-        border: 1px solid rgba(50, 116, 94, 0.2);
+        background-color: rgba(60, 42, 33, 0.08);
+        color: #3C2A21;
+        border: 1px solid rgba(60, 42, 33, 0.2);
         border-radius: 9999px;
         padding: 0.25rem 0.65rem;
         font-size: 11px;
@@ -179,12 +187,12 @@
     left: 0;
     width: 0%;
     height: 3px;
-    background: linear-gradient(90deg, #1E4D3E, #10B981);
+    background: #3C2A21;
     z-index: 9999999;
     pointer-events: none;
     opacity: 0;
     transition: width 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 6px rgba(60, 42, 33, 0.4);
 }
 
 #app-top-progress.is-active {
@@ -245,8 +253,8 @@
 
 .input-group:focus-within,
 .input-group-merge:focus-within {
-    border-color: #1E4D3E !important;
-    box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.14) !important;
+    border-color: #3C2A21 !important;
+    box-shadow: 0 0 0 3px rgba(60, 42, 33, 0.14) !important;
 }
 
 /* ALL child elements inside input-group have zero borders, zero shadows, transparent bg */
@@ -372,8 +380,8 @@ div.admin-filter-toolbar {
 }
 
 .admin-filter-toolbar .input-group:focus-within {
-    border-color: #1E4D3E !important;
-    box-shadow: 0 0 0 3px rgba(30, 77, 62, 0.14) !important;
+    border-color: #3C2A21 !important;
+    box-shadow: 0 0 0 3px rgba(60, 42, 33, 0.14) !important;
 }
 
 .admin-filter-toolbar .input-group-text {
@@ -486,8 +494,8 @@ div.admin-filter-toolbar {
     align-items: center !important;
     justify-content: center !important;
     gap: 5px !important;
-    background-color: var(--bs-primary, #1E4D3E) !important;
-    border: 1px solid var(--bs-primary, #1E4D3E) !important;
+    background-color: var(--bs-primary, #3C2A21) !important;
+    border: 1px solid var(--bs-primary, #3C2A21) !important;
     color: #FFFFFF !important;
     line-height: 34px !important;
 }

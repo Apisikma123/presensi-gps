@@ -15,6 +15,12 @@ class Harilibur extends Model
     protected $keyType = 'string';
     protected $guarded = [];
 
+    protected static function booted()
+    {
+        static::saved(fn() => \Illuminate\Support\Facades\Cache::forget('all_holidays_array'));
+        static::deleted(fn() => \Illuminate\Support\Facades\Cache::forget('all_holidays_array'));
+    }
+
     public function cabang()
     {
         return $this->belongsTo(Cabang::class, 'kode_cabang', 'kode_cabang');

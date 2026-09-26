@@ -42,7 +42,7 @@
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
-            color: #1E4D3E;
+            color: #3C2A21;
             font-weight: 700;
             font-size: 15px;
         }
@@ -91,9 +91,9 @@
         }
 
         .bio-chip-active {
-            background: #ecfdf5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
         }
 
         .bio-chip-inactive {
@@ -125,8 +125,7 @@
             width: 28px;
             height: 28px;
             border-radius: 8px;
-            background: rgba(30, 77, 62, 0.08);
-            color: #1E4D3E;
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -200,9 +199,7 @@
             position: absolute;
             top: 7px;
             left: 7px;
-            background: rgba(15, 23, 42, 0.72);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.85);
             color: #ffffff;
             font-size: 10px;
             font-weight: 700;
@@ -257,7 +254,7 @@
             gap: 7px;
             width: 100%;
             height: 44px;
-            background: #1E4D3E !important;
+            background: #3C2A21 !important;
             color: #ffffff !important;
             font-size: 13px;
             font-weight: 600;

@@ -7,14 +7,14 @@
             <label for="kode_cabang" class="form-label" style="font-weight: 600; font-size: 13px;">Cabang / Outlet</label>
             <select name="kode_cabang" id="kode_cabang" class="form-select select2Kodecabang">
                 <option value="">Pilih Cabang / Cakupan</option>
-                <option value="ALL" style="font-weight: 700; color: #1E4D3E;">SEMUA CABANG (LIBUR NASIONAL / BERSAMA)</option>
+                <option value="ALL" style="font-weight: 700; color: #3C2A21;">SEMUA CABANG (LIBUR NASIONAL / BERSAMA)</option>
                 @foreach ($cabang as $c)
                     <option value="{{ $c->kode_cabang }}">{{ strtoupper($c->nama_cabang) }}</option>
                 @endforeach
             </select>
         </div>
 
-        <div class="form-check mb-3 p-2.5 rounded-2" style="background: rgba(30, 77, 62, 0.05); border: 1px solid rgba(30, 77, 62, 0.15);">
+        <div class="form-check mb-3 p-2.5 rounded-2" style="background: rgba(60, 42, 33, 0.05); border: 1px solid rgba(60, 42, 33, 0.15);">
             <input class="form-check-input ms-0 me-2" type="checkbox" name="auto_assign_karyawan" id="auto_assign_karyawan" value="1" checked>
             <label class="form-check-label text-dark fw-semibold" for="auto_assign_karyawan" style="font-size: 13px;">
                 Otomatis daftarkan seluruh karyawan aktif

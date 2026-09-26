@@ -2,7 +2,7 @@
 
 <html lang="en" class="light-style layout-navbar-fixed layout-menu-fixed layout-wide" dir="ltr" data-theme="theme-default"
     data-assets-path="{{ asset('/assets/') }}" data-template="vertical-menu-template-no-customizer"
-    style="background-color: #EEF2F0; color-scheme: light;">
+    style="background-color: #FAF9F8; color-scheme: light;">
 
 <head>
     <meta charset="utf-8" />
@@ -11,11 +11,24 @@
     <style>
         /* Instant anti-flash inline background before any external CSS is parsed */
         html, body, .layout-wrapper, .layout-container, .layout-page, .content-wrapper {
-            background-color: #EEF2F0 !important;
+            background-color: #FAF9F8 !important;
+        }
+        @media (min-width: 1200px) {
+            #layout-menu {
+                position: fixed !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                width: 16.25rem !important;
+                z-index: 1075 !important;
+            }
+            .layout-page {
+                padding-left: 16.25rem !important;
+            }
         }
     </style>
 
-    <title>@yield('titlepage') | {{ $general_setting->nama_aplikasi ?? '' }}</title>
+    <title>@yield('titlepage') | {{ $company_setting->app_name ?? ($general_setting->nama_aplikasi ?? 'Presence') }}</title>
 
     <meta name="description" content="" />
 
@@ -61,9 +74,9 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="msapplication-config" content="/assets/img/icons/browserconfig.xml">
-    <meta name="msapplication-TileColor" content="#1E4D3E">
+    <meta name="msapplication-TileColor" content="#3C2A21">
     <meta name="msapplication-tap-highlight" content="no">
-    <meta name="theme-color" content="#1E4D3E">
+    <meta name="theme-color" content="#3C2A21">
 
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="/assets/img/icons/pwa/icon-192x192.png">
@@ -86,27 +99,29 @@
     </script>
 </head>
 
-<body style="background-color: #EEF2F0; margin: 0; padding: 0;">
+<body style="background-color: #FAF9F8; margin: 0; padding: 0;">
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar" style="background-color: #EEF2F0;">
-        <div class="layout-container" style="background-color: #EEF2F0;">
+    <div class="layout-wrapper layout-content-navbar" style="background-color: #FAF9F8;">
+        <div class="layout-container" style="background-color: #FAF9F8;">
             <!-- Sidebar -->
             @include('layouts.sidebar')
             <!-- / Sidebar-->
             <!-- Layout container -->
-            <div class="layout-page" style="background-color: #EEF2F0;">
+            <div class="layout-page" style="background-color: #FAF9F8;">
                 <!-- Navbar -->
                 @include('layouts.navbar')
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
-                <div class="content-wrapper" style="background-color: #EEF2F0;">
+                <div class="content-wrapper" style="background-color: #FAF9F8;">
                     <!-- Content -->
                     <div class="container-xxl flex-grow-1 container-p-y" id="app-main-content">
                         @hasSection('navigasi')
-                            <div class="mb-3">
-                                @yield('navigasi')
-                            </div>
+                            <nav aria-label="breadcrumb" class="admin-breadcrumb-nav mb-3">
+                                <ol class="breadcrumb admin-breadcrumb mb-0 align-items-center">
+                                    @yield('navigasi')
+                                </ol>
+                            </nav>
                         @endif
                         @yield('content')
                     </div>

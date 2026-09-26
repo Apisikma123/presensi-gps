@@ -31,7 +31,6 @@
         z-index: 9999;
         animation: slideUp 0.4s ease-out;
         border: 1px solid #e0e0e0;
-        backdrop-filter: blur(10px);
     }
 
     .pwa-install-content {
@@ -317,11 +316,19 @@
         }
 
         showInstallSuccess() {
-            // Show success message
-            if (typeof toastr !== 'undefined') {
+            if (typeof GlobalSwal !== 'undefined') {
+                GlobalSwal.toast('success', 'Aplikasi berhasil diinstall!', 'Berhasil');
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Aplikasi berhasil diinstall!',
+                    showConfirmButton: false,
+                    timer: 2500,
+                    timerProgressBar: true
+                });
+            } else if (typeof toastr !== 'undefined') {
                 toastr.success('Aplikasi berhasil diinstall!', 'Berhasil');
-            } else {
-                alert('Aplikasi berhasil diinstall!');
             }
         }
 
