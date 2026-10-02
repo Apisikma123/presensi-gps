@@ -1,3 +1,4 @@
+@extends('layouts.app')
 @section('titlepage', 'Detail Dokumen SPK Lembur')
 
 @section('navigasi')
@@ -48,7 +49,7 @@
                         </div>
                     </div>
                     <div class="text-end">
-                        <span class="badge mb-2 px-2.5 py-1 text-uppercase" style="background: #f4f3f2; color: var(--theme-text-primary, #0F172A); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; border: 1px solid rgba(15, 23, 42, 0.1);">
+                        <span class="badge mb-2 px-2.5 py-1 text-uppercase" style="background: #F8FAFC; color: var(--theme-text-primary, #0F172A); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; border: 1px solid rgba(15, 23, 42, 0.1);">
                             {{ $lembur->no_spk }}
                         </span>
                         <div>{!! $lembur->status_badge_html !!}</div>
@@ -96,7 +97,7 @@
 
             {{-- 2. Jadwal & Pelaksanaan --}}
             <div class="mb-4">
-                <div class="text-uppercase fw-bold mb-2 pb-1 border-bottom" style="font-size: 11px; color: #755841; letter-spacing: 0.06em;">
+                <div class="text-uppercase fw-bold mb-2 pb-1 border-bottom" style="font-size: 11px; color: var(--theme-color-2, #475569); letter-spacing: 0.06em;">
                     II. Jadwal & Pelaksanaan Lembur
                 </div>
                 <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
@@ -108,7 +109,7 @@
                     <tr>
                         <td style="color: #4f4540;">Klasifikasi Hari</td>
                         <td>:</td>
-                        <td><span class="badge" style="background: #f4f3f2; color: #4f4540; font-size: 11px; border: 1px solid #d3c3bd;">{{ $lembur->day_type_label }}</span></td>
+                        <td><span class="badge" style="background: #F8FAFC; color: #4f4540; font-size: 11px; border: 1px solid #E2E8F0;">{{ $lembur->day_type_label }}</span></td>
                     </tr>
                     <tr>
                         <td style="color: #4f4540;">Jadwal Rencana Lembur</td>
@@ -134,22 +135,22 @@
 
             {{-- 3. Uraian Pekerjaan --}}
             <div class="mb-4">
-                <div class="text-uppercase fw-bold mb-2 pb-1 border-bottom" style="font-size: 11px; color: #755841; letter-spacing: 0.06em;">
+                <div class="text-uppercase fw-bold mb-2 pb-1 border-bottom" style="font-size: 11px; color: var(--theme-color-2, #475569); letter-spacing: 0.06em;">
                     III. Uraian Tugas & Target Lembur
                 </div>
-                <div class="p-3 rounded-2" style="background: #faf9f8; border: 1px solid rgba(60, 42, 33, 0.08); font-size: 13px; line-height: 1.6; color: #1a1c1c;">
+                <div class="p-3 rounded-2" style="background: #FAFAFA; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.08)); font-size: 13px; line-height: 1.6; color: #1a1c1c;">
                     {{ $lembur->keterangan }}
                 </div>
             </div>
 
             {{-- 4. Perhitungan Kompensasi Depnaker --}}
             <div class="mb-5">
-                <div class="text-uppercase fw-bold mb-2 pb-1 border-bottom" style="font-size: 11px; color: #755841; letter-spacing: 0.06em;">
+                <div class="text-uppercase fw-bold mb-2 pb-1 border-bottom" style="font-size: 11px; color: var(--theme-color-2, #475569); letter-spacing: 0.06em;">
                     IV. Formula Kompensasi Upah Lembur (PP 35/2021)
                 </div>
-                <div class="border rounded-2 overflow-hidden mb-2" style="border-color: rgba(60, 42, 33, 0.08) !important;">
+                <div class="border rounded-2 overflow-hidden mb-2" style="border-color: var(--theme-border, rgba(var(--bs-primary-rgb), 0.08)) !important;">
                     <table class="table table-sm table-striped mb-0" style="font-size: 12.5px;">
-                        <thead style="background: #f4f3f2;">
+                        <thead style="background: #F8FAFC;">
                             <tr>
                                 <th class="ps-3 py-2">Tier Jam</th>
                                 <th class="py-2">Durasi Efektif</th>
@@ -168,8 +169,8 @@
                                     <td class="pe-3 py-1.5 text-end fw-semibold" style="font-family: 'JetBrains Mono', monospace;">{{ number_format($tier['subtotal_rate_hours'], 2) }} jam</td>
                                 </tr>
                             @endforeach
-                            <tr style="background: #f4f3f2; border-top: 1px solid rgba(60,42,33,0.12);">
-                                <td colspan="3" class="ps-3 py-2 fw-bold text-uppercase" style="font-size: 11.5px; color: #25160e;">Total Jam Bayar Kompensasi:</td>
+                            <tr style="background: #F8FAFC; border-top: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.12));">
+                                <td colspan="3" class="ps-3 py-2 fw-bold text-uppercase" style="font-size: 11.5px; color: var(--theme-color-1, #0F172A);">Total Jam Bayar Kompensasi:</td>
                                 <td class="pe-3 py-2 text-end fw-bold" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #15803d;">
                                     {{ number_format($calculation['rate_hours'], 2) }} jam
                                 </td>
@@ -190,19 +191,19 @@
                 <div class="row text-center" style="font-size: 12.5px;">
                     <div class="col-4">
                         <div class="text-muted mb-5">Karyawan Ditugaskan,</div>
-                        <div class="fw-bold mt-4" style="color: #25160e;">{{ $lembur->karyawan->nama_karyawan ?? '-' }}</div>
+                        <div class="fw-bold mt-4" style="color: var(--theme-color-1, #0F172A);">{{ $lembur->karyawan->nama_karyawan ?? '-' }}</div>
                         <div class="text-muted" style="font-size: 11px;">Tanggal: {{ $lembur->created_at->format('d/m/Y') }}</div>
                     </div>
                     <div class="col-4">
                         <div class="text-muted mb-5">Atasan Langsung / SPV,</div>
-                        <div class="fw-bold mt-4" style="color: #25160e;">{{ $lembur->approver->name ?? '( ...................................... )' }}</div>
+                        <div class="fw-bold mt-4" style="color: var(--theme-color-1, #0F172A);">{{ $lembur->approver->name ?? '( ...................................... )' }}</div>
                         <div class="text-muted" style="font-size: 11px;">
                             {{ $lembur->approved_at ? 'Disetujui: ' . $lembur->approved_at->format('d/m/Y') : 'Status: Menunggu' }}
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="text-muted mb-5">Mengetahui HRD,</div>
-                        <div class="fw-bold mt-4" style="color: #25160e;">( Human Resources )</div>
+                        <div class="fw-bold mt-4" style="color: var(--theme-color-1, #0F172A);">( Human Resources )</div>
                         <div class="text-muted" style="font-size: 11px;">Presence Universal HR</div>
                     </div>
                 </div>
@@ -217,7 +218,7 @@
             <form action="{{ route('overtime.approve', $lembur->id) }}" method="POST" class="modal-content" style="border-radius: 12px;">
                 @csrf
                 <div class="modal-header border-bottom py-3">
-                    <h5 class="modal-title fw-bold" style="font-family: 'Outfit', sans-serif; color: #25160e;">
+                    <h5 class="modal-title fw-bold" style="font-family: 'Outfit', sans-serif; color: var(--theme-color-1, #0F172A);">
                         Setujui SPK Lembur {{ $lembur->no_spk }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

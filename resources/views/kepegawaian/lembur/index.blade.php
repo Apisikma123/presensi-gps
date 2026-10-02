@@ -113,7 +113,7 @@
                 </div>
             </div>
             <div class="fs-4 fw-bold font-mono text-dark">
-                {{ number_format($stats['total_rate_hours_month'], 1) }} <span style="font-size: 13px; font-weight: normal; color: #755841;">jam</span>
+                {{ number_format($stats['total_rate_hours_month'], 1) }} <span style="font-size: 13px; font-weight: normal; color: var(--theme-color-2, #475569);">jam</span>
             </div>
             <span class="text-muted mt-1" style="font-size: 11.5px;">Formula Depnaker</span>
         </div>
@@ -207,16 +207,35 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2"
-                                        style="width: 32px; height: 32px; background: #f1f5f9; color: var(--theme-text-primary, #0F172A); font-weight: 600; font-size: 12px; border: 1px solid #e2e8f0;">
-                                        {{ strtoupper(substr($lembur->karyawan->nama_karyawan ?? 'K', 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold text-truncate" style="max-width: 180px; color: var(--theme-text-primary, #0F172A);">
-                                            {{ $lembur->karyawan->nama_karyawan ?? $lembur->nik }}
+                                @php
+                                    $empName = $lembur->karyawan->nama_karyawan ?? $lembur->nik;
+                                    $words = explode(' ', trim($empName));
+                                    $initials = '';
+                                    foreach ($words as $w) {
+                                        if (isset($w[0])) $initials .= $w[0];
+                                    }
+                                    $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                                @endphp
+                                <div class="d-flex align-items-center gap-2.5">
+                                    @if (!empty($lembur->karyawan?->foto))
+                                        <img src="{{ getfotoKaryawan($lembur->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                            style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                            onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                        <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                            style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary, #1A5276); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15));">
+                                            {{ $initials }}
                                         </div>
-                                        <div class="text-muted" style="font-size: 11.5px; font-family: 'JetBrains Mono', monospace;">
+                                    @else
+                                        <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                            style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary, #1A5276); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15));">
+                                            {{ $initials }}
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <div class="fw-bold text-dark text-truncate" style="max-width: 180px; font-size: 13px;">
+                                            {{ $empName }}
+                                        </div>
+                                        <div class="text-muted font-mono" style="font-size: 11px;">
                                             {{ $lembur->nik }} &bull; {{ $lembur->karyawan->departemen->nama_dept ?? '-' }}
                                         </div>
                                     </div>
@@ -231,7 +250,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge" style="background: #f4f3f2; color: #4f4540; font-weight: 500; font-size: 11px; border: 1px solid #d3c3bd;">
+                                <span class="badge" style="background: #F1F5F9; color: #4f4540; font-weight: 500; font-size: 11px; border: 1px solid #94A3B8;">
                                     {{ $lembur->day_type_label }}
                                 </span>
                             </td>
@@ -254,22 +273,20 @@
                                 {!! $lembur->status_badge_html !!}
                             </td>
                             <td class="text-end">
-                                <div class="d-inline-flex align-items-center gap-1">
+                                <div class="d-inline-flex align-items-center gap-1.5">
                                     {{-- Detail/Print --}}
-                                    <a href="{{ route('overtime.show', $lembur->id) }}" class="btn btn-sm btn-icon btn-outline-secondary" title="Detail SPK" style="border-radius: 6px;">
+                                    <a href="{{ route('overtime.show', $lembur->id) }}" class="btnShow btn-action-tbl" title="Detail SPK">
                                         <i class="ti ti-file-description"></i>
                                     </a>
 
                                     {{-- Approval buttons for PENDING --}}
                                     @if ($lembur->status === 'PENDING')
                                         @can('overtime.approve')
-                                            <button type="button" class="btn btn-sm btn-icon text-success" title="Setujui SPK"
-                                                style="border-radius: 6px; background: #f0fdf4; border: 1px solid #bbf7d0;"
+                                            <button type="button" class="btnApprove btn-action-tbl" title="Setujui SPK"
                                                 data-bs-toggle="modal" data-bs-target="#modalApprove{{ $lembur->id }}">
                                                 <i class="ti ti-check"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-icon text-danger" title="Tolak SPK"
-                                                style="border-radius: 6px; background: #fef2f2; border: 1px solid #fecdd3;"
+                                            <button type="button" class="btn-action-tbl btn-action-delete" title="Tolak SPK"
                                                 data-bs-toggle="modal" data-bs-target="#modalReject{{ $lembur->id }}">
                                                 <i class="ti ti-x"></i>
                                             </button>
@@ -279,15 +296,15 @@
                                     {{-- Edit / Delete --}}
                                     @if (in_array($lembur->status, ['PENDING', 'DRAFT']))
                                         @can('overtime.edit')
-                                            <a href="{{ route('overtime.edit', $lembur->id) }}" class="btn btn-sm btn-icon btn-outline-secondary" title="Edit" style="border-radius: 6px;">
+                                            <a href="{{ route('overtime.edit', $lembur->id) }}" class="btnEdit btn-action-tbl" title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </a>
                                         @endcan
                                         @can('overtime.delete')
-                                            <form action="{{ route('overtime.delete', $lembur->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('overtime.delete', $lembur->id) }}" method="POST" class="d-inline m-0 p-0">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger delete-confirm" data-label="SPK Lembur {{ $lembur->no_spk }}" title="Hapus" style="border-radius: 6px;">
+                                                <button type="submit" class="delete-confirm btn-action-tbl btn-action-delete" data-label="SPK Lembur {{ $lembur->no_spk }}" title="Hapus">
                                                     <i class="ti ti-trash"></i>
                                                 </button>
                                             </form>
@@ -307,7 +324,7 @@
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body py-3">
-                                                <div class="p-3 mb-3" style="background: #faf9f8; border-radius: 8px; border: 1px solid rgba(15, 23, 42, 0.08); font-size: 13px;">
+                                                <div class="p-3 mb-3" style="background: #F8FAFC; border-radius: 8px; border: 1px solid rgba(15, 23, 42, 0.08); font-size: 13px;">
                                                     <div><strong>Karyawan:</strong> {{ $lembur->karyawan->nama_karyawan ?? $lembur->nik }}</div>
                                                     <div><strong>Waktu Rencana:</strong> {{ $lembur->lembur_mulai->format('d/m/Y H:i') }} - {{ $lembur->lembur_selesai->format('H:i') }} ({{ $lembur->formatted_duration }})</div>
                                                     <div><strong>Tugas:</strong> {{ $lembur->keterangan }}</div>

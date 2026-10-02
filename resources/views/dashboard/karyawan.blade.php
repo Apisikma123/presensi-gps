@@ -15,7 +15,7 @@
 
     {{-- Template CSS & Theme --}}
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ file_exists(public_path('assets/css/theme-custom.css')) ? filemtime(public_path('assets/css/theme-custom.css')) : time() }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ config('app.asset_version', '2.5.0') }}" />
     <script src="{{ asset('assets/external/js/sweetalert2@11.js') }}"></script>
 
     {{-- Tailwind & App CSS --}}
@@ -23,18 +23,18 @@
 
     <style>
         :root {
-            --color-primary: {{ $t['primary'] ?? '#3C2A21' }};
+            --color-primary: {{ $t['primary'] ?? '#1A5276' }};
             --color-primary-hover: {{ $theme['primary_hover'] ?? '#2A1D17' }};
-            --color-primary-soft: {{ $theme['primary_soft'] ?? 'rgba(60, 42, 33, 0.08)' }};
+            --color-primary-soft: {{ $theme['primary_soft'] ?? 'rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)' }};
             --color-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
-            --color-primary-rgb: {{ $theme['primary_rgb'] ?? '60, 42, 33' }};
-            --theme-color-1: {{ $t['primary'] ?? '#3C2A21' }};
-            --theme-color-2: {{ $t['primary_light'] ?? $theme['secondary'] ?? '#634832' }};
+            --color-primary-rgb: {{ $theme['primary_rgb'] ?? '26, 82, 118' }};
+            --theme-color-1: {{ $t['primary'] ?? '#1A5276' }};
+            --theme-color-2: {{ $t['primary_light'] ?? $theme['secondary'] ?? '#2980b9' }};
             --theme-color-accent: {{ $theme['accent'] ?? '#4A6741' }};
             --theme-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
             --bs-primary: var(--theme-color-1);
-            --bs-primary-rgb: {{ $theme['primary_rgb'] ?? '60, 42, 33' }};
-            --theme-color-2-rgb: {{ $theme['secondary_rgb'] ?? '99, 72, 50' }};
+            --bs-primary-rgb: {{ $theme['primary_rgb'] ?? '26, 82, 118' }};
+            --theme-color-2-rgb: {{ $theme['secondary_rgb'] ?? '41, 128, 185' }};
         }
         .swal2-confirm:not(.btn-danger):not(.bg-danger) {
             background-color: var(--theme-color-1) !important;
@@ -66,7 +66,7 @@
         }
         @media (min-width: 481px) {
             body {
-                background-color: #FAF9F8 !important;
+                background-color: #F8FAFC !important;
             }
         }
         #appCapsule {
@@ -79,7 +79,7 @@
             position: relative;
         }
         .hero-bg {
-            background-color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});
+            background-color: var(--color-primary, {{ $t['primary'] ?? '#1A5276' }});
             border-bottom-left-radius: 22px;
             border-bottom-right-radius: 22px;
             position: relative;
@@ -129,7 +129,7 @@
         /* Mobile Header Consistency */
         header, .appHeader-modern {
             padding-top: env(safe-area-inset-top) !important;
-            background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}) !important;
+            background: var(--color-primary, {{ $t['primary'] ?? '#1A5276' }}) !important;
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -188,8 +188,8 @@
         .alert-cream  { background-color: #fff3cd; border: 1px solid #ffeeba; }
         .alert-danger  { background-color: #f8d7da; border: 1px solid #f5c6cb; }
         .alert-info    { background-color: #e3f2fd; border: 1px solid #b8daff; }
-        .dot { height: 6px; width: 6px; background: rgba(var(--color-primary-rgb, 60, 42, 33), 0.2); border-radius: 50%; display: inline-block; margin: 0 4px; transition: all .3s; }
-        .dot.active { width: 18px; border-radius: 10px; background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}); }
+        .dot { height: 6px; width: 6px; background: rgba(var(--color-primary-rgb, 26, 82, 118), 0.2); border-radius: 50%; display: inline-block; margin: 0 4px; transition: all .3s; }
+        .dot.active { width: 18px; border-radius: 10px; background: var(--color-primary, {{ $t['primary'] ?? '#1A5276' }}); }
 
         /* Slide carousel */
         .carousel-wrapper { width: 100%; overflow: hidden; position: relative; border-radius: 15px; }
@@ -217,10 +217,10 @@
             padding: 14px !important;
         }
         .card:hover, .presensi-card:hover {
-            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.35) !important;
+            border-color: rgba(var(--color-primary-rgb, 26, 82, 118), 0.35) !important;
         }
-        .press { transition: transform 0.15s ease; }
-        .press:active { transform: scale(0.97); }
+        .press { transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1); }
+        .press:active { transform: translateY(1px) scale(0.985); }
 
         /* DESIGN.md Consistent Menu Cards */
         .dashboard-menu-card {
@@ -235,11 +235,11 @@
             padding: 8px 4px 6px;
             height: 76px;
             text-align: center;
-            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
             text-decoration: none !important;
         }
         .dashboard-menu-card:active {
-            transform: scale(0.93);
+            transform: translateY(1px) scale(0.985);
             background: #f8fafc;
         }
         .dashboard-menu-card img {
@@ -263,7 +263,7 @@
            DASHBOARD SPACING & CARD RHYTHM (DESIGN.md Anti-Slop)
            ========================================================= */
         .dashboard-hero-bg {
-            background-color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});
+            background-color: var(--color-primary, {{ $t['primary'] ?? '#1A5276' }});
             border-bottom-left-radius: 22px;
             border-bottom-right-radius: 22px;
             position: relative;
@@ -311,7 +311,7 @@
             transition: all 0.15s ease !important;
         }
         .attendance-card:hover {
-            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.3) !important;
+            border-color: rgba(var(--color-primary-rgb, 26, 82, 118), 0.3) !important;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
         }
         .attendance-card-icon {
@@ -388,7 +388,7 @@
 
         /* Tactile Bento Metric Cards (DESIGN.md - 100% Centered & Grounded) */
         .rekap-metric-card {
-            background: #FAF9F8;
+            background: #F8FAFC;
             border: 1px solid rgba(15, 23, 42, 0.06);
             border-radius: 13px;
             padding: 10px 4px 8px;
@@ -401,7 +401,7 @@
         }
         .rekap-metric-card:hover {
             background: #ffffff;
-            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.2);
+            border-color: rgba(var(--color-primary-rgb, 26, 82, 118), 0.2);
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
         }
         .rekap-metric-val {
@@ -425,7 +425,7 @@
             line-height: 1;
         }
 
-        /* 3D Dashboard Menu Cards */
+        /* 2D Flat Tactile Dashboard Menu Cards */
         .dashboard-menu-card {
             background: #ffffff;
             border: 1px solid rgba(15, 23, 42, 0.08);
@@ -438,33 +438,21 @@
             padding: 10px 4px 8px;
             height: 82px;
             text-align: center;
-            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
             text-decoration: none !important;
         }
         .dashboard-menu-card:hover {
-            border-color: rgba(var(--color-primary-rgb, 60, 42, 33), 0.25);
+            border-color: rgba(var(--color-primary-rgb, 26, 82, 118), 0.25);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
         }
         .dashboard-menu-card:active {
-            transform: scale(0.93);
+            transform: translateY(1px) scale(0.985);
             background: #f8fafc;
         }
-        .dashboard-menu-card img {
-            width: 38px;
-            height: 38px;
-            object-fit: contain;
-            margin: 0 auto 5px auto;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
-            transition: transform 0.15s ease;
-        }
-        .dashboard-menu-card:hover img {
-            transform: scale(1.08);
-        }
         .dashboard-menu-card ion-icon {
-            font-size: 32px;
-            margin: 0 auto 5px auto;
-            color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});
+            font-size: 26px;
+            margin: 0 auto 4px auto;
         }
         .dashboard-menu-card span {
             font-family: 'Inter', sans-serif;
@@ -486,9 +474,6 @@
                     <ion-icon name="grid-outline" style="font-size:22px;"></ion-icon>
                 </a>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="openHelpDrawer('panduan_karyawan')" class="glass-icon" title="Pusat Bantuan">
-                        <ion-icon name="help-circle-outline" style="font-size:22px;"></ion-icon>
-                    </button>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <a href="#" onclick="event.preventDefault(); this.closest('form').submit();" class="glass-icon" title="Keluar">
@@ -556,14 +541,13 @@
                             <span class="block text-[13.5px] font-bold text-slate-900 truncate mt-1" style="font-family: 'Outfit', sans-serif;">{{ $hari_libur_hari_ini->keterangan }}</span>
                         </div>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-bold {{ !empty($presensi->jam_in) ? 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }} shrink-0 whitespace-nowrap">
-                        <span class="w-1.5 h-1.5 rounded-full {{ !empty($presensi->jam_in) ? 'bg-[#16a34a]' : 'bg-emerald-600' }}"></span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10.5px] font-bold {{ !empty($presensi->jam_in) ? 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }} shrink-0 whitespace-nowrap">
                         {{ !empty($presensi->jam_in) ? 'Sudah Absen' : 'Bebas Absen' }}
                     </span>
                 @else
                     {{-- Normal Shift Header (P1-3: Shift + Cabang Tugas) --}}
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: {{ $t['primary'] ?? '#3C2A21' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;">
+                        <div style="width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 12px; background: {{ $t['primary'] ?? '#1A5276' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ffffff;">
                             <ion-icon name="time-outline" style="font-size: 20px; color: #ffffff;"></ion-icon>
                         </div>
                         <div class="min-w-0">
@@ -578,8 +562,7 @@
                             @endif
                         </div>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10.5px] font-bold shrink-0 whitespace-nowrap {{ !empty($presensi->jam_in) ? 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]' : 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]' }}">
-                        <span class="w-1.5 h-1.5 rounded-full {{ !empty($presensi->jam_in) ? 'bg-[#16a34a]' : 'bg-[#d97706]' }}"></span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10.5px] font-bold shrink-0 whitespace-nowrap {{ !empty($presensi->jam_in) ? 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]' : 'bg-[#fffbeb] text-[#b45309] border border-[#fde68a]' }}">
                         {{ !empty($presensi->jam_in) ? 'Sudah Absen' : 'Belum Absen' }}
                     </span>
                 @endif
@@ -638,7 +621,7 @@
             <div class="dashboard-surface-card p-3.5 sm:p-4">
                 <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100">
                     <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span class="w-2 h-2 rounded-full" style="background: var(--color-primary, var(--theme-color-1, #1B365D));"></span>
                         <h4 class="text-[13px] font-bold text-slate-800 tracking-tight m-0" style="font-family: 'Outfit', sans-serif;">
                             Rekap Presensi Bulan {{ $bulan_skrg }}
                         </h4>
@@ -690,7 +673,7 @@
             <div class="dashboard-surface-card p-4">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-2.5">
-                        <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}); display: flex; align-items: center; justify-content: center; color: var(--theme-primary-contrast, #fff);">
+                        <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--color-primary, {{ $t['primary'] ?? '#1A5276' }}); display: flex; align-items: center; justify-content: center; color: var(--theme-primary-contrast, #fff);">
                             <ion-icon name="briefcase-outline" style="font-size: 22px; color: var(--theme-primary-contrast, #fff);"></ion-icon>
                         </div>
                         <div>
@@ -724,7 +707,7 @@
             if (module_enabled('face_recognition') && ($general_setting->face_recognition ?? 0) == 1 && Route::has('facerecognition.karyawan.create')) {
                 $quickMenus[] = [
                     'href' => route('facerecognition.karyawan.create'),
-                    'img' => 'assets/template/img/3d/scanwajah.png',
+                    'img' => null,
                     'icon' => 'scan-outline',
                     'color' => '#6366F1',
                     'title' => 'Wajah',
@@ -736,7 +719,7 @@
             if (module_enabled('leave') && Route::has('pengajuanizin.index')) {
                 $quickMenus[] = [
                     'href' => route('pengajuanizin.index'),
-                    'img' => 'assets/template/img/3d/activity.png',
+                    'img' => null,
                     'icon' => 'calendar-outline',
                     'color' => '#10B981',
                     'title' => 'Izin/Cuti',
@@ -797,7 +780,7 @@
                 if (Route::has('dispensasi.index')) {
                     $quickMenus[] = [
                         'href' => route('dispensasi.index'),
-                        'img' => 'assets/template/img/3d/clock.png',
+                        'img' => null,
                         'icon' => 'hourglass-outline',
                         'color' => '#D97706',
                         'title' => 'Dispensasi',
@@ -807,7 +790,7 @@
                 if (Route::has('presensi.histori')) {
                     $quickMenus[] = [
                         'href' => route('presensi.histori'),
-                        'img' => 'assets/template/img/3d/maps.png',
+                        'img' => null,
                         'icon' => 'finger-print-outline',
                         'color' => '#3B82F6',
                         'title' => 'Riwayat',
@@ -857,13 +840,9 @@
             <div class="grid grid-cols-4 gap-2.5">
                 @foreach ($quickMenus as $menu)
                     <a href="{{ $menu['href'] }}" @if(!empty($menu['id'])) id="{{ $menu['id'] }}" @endif class="dashboard-menu-card">
-                        @if (!empty($menu['img']))
-                            <img src="{{ asset($menu['img']) }}" alt="{{ $menu['title'] }}">
-                        @else
-                            <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 3px auto;">
-                                <ion-icon name="{{ $menu['icon'] }}" style="font-size: 24px; color: {{ $menu['color'] ?? '#64748B' }};"></ion-icon>
-                            </div>
-                        @endif
+                        <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 3px auto;">
+                            <ion-icon name="{{ $menu['icon'] }}" style="font-size: 26px; color: {{ $menu['color'] ?? '#64748B' }};"></ion-icon>
+                        </div>
                         <span>{{ $menu['title'] }}</span>
                     </a>
                 @endforeach
@@ -949,18 +928,15 @@
                                         {{-- Badge Cluster --}}
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             @if ($is_dispensasi)
-                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0]">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
+                                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#ecfdf5] text-[#059669] border border-[#a7f3d0]">
                                                     DISPENSASI
                                                 </span>
                                             @elseif ($is_late)
-                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
+                                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
                                                     TELAT
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>
+                                                <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
                                                     HADIR
                                                 </span>
                                             @endif
@@ -973,8 +949,7 @@
                                             <span class="truncate">{{ !empty($d->keterangan_izin) ? $d->keterangan_izin : 'Izin Absen' }}</span>
                                         </div>
                                         <div class="flex items-center gap-1 flex-wrap">
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#0284c7]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]">
                                                 IZIN
                                             </span>
                                         </div>
@@ -986,8 +961,7 @@
                                             <span class="truncate">{{ !empty($d->keterangan_izin_sakit) ? $d->keterangan_izin_sakit : 'Izin Sakit' }}</span>
                                         </div>
                                         <div class="flex items-center gap-1 flex-wrap">
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#be123c] border border-[#fecdd3]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#be123c] border border-[#fecdd3]">
                                                 SAKIT
                                             </span>
                                         </div>
@@ -999,8 +973,7 @@
                                             <span class="truncate">{{ !empty($d->keterangan_izin_cuti) ? $d->keterangan_izin_cuti : 'Cuti' }}</span>
                                         </div>
                                         <div class="flex items-center gap-1 flex-wrap">
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
                                                 CUTI
                                             </span>
                                         </div>
@@ -1012,8 +985,7 @@
                                             <span class="truncate">Tanpa Keterangan</span>
                                         </div>
                                         <div class="flex items-center gap-1 flex-wrap">
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f8fafc] text-[#475569] border border-[#e2e8f0]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#64748b]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f8fafc] text-[#475569] border border-[#e2e8f0]">
                                                 ALPHA
                                             </span>
                                         </div>
@@ -1041,7 +1013,7 @@
         @if (isset($is_birthday) && $is_birthday)
             <div id="birthdayModal" class="fixed inset-0 z-[1000] flex items-center justify-center p-4" style="display:none;">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-                <div class="relative rounded-[30px] w-full max-w-[340px] overflow-hidden shadow-2xl animate-bounce-in" style="background:{{ $t['primary'] ?? '#3C2A21' }};">
+                <div class="relative rounded-[30px] w-full max-w-[340px] overflow-hidden shadow-2xl animate-bounce-in" style="background:{{ $t['primary'] ?? '#1A5276' }};">
                     <div id="confetti-container" class="absolute inset-0 pointer-events-none"></div>
                     <div class="p-8 text-center relative z-10">
                         <button onclick="hideBirthday()" class="absolute top-4 right-4 text-white/50 hover:text-white">
@@ -1112,7 +1084,7 @@
 
                         <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 hidden">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0" style="background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }});">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0" style="background: var(--color-primary, {{ $t['primary'] ?? '#1A5276' }});">
                                     <ion-icon name="finger-print" style="font-size:20px;"></ion-icon>
                                 </div>
                                 <div>
@@ -1245,10 +1217,10 @@
                 'i': { text: 'Izin', color: 'bg-[#0284C7]' },
                 's': { text: 'Sakit', color: 'bg-[#BA1A1A]' },
                 'c': { text: 'Cuti', color: 'bg-[#B45309]' },
-                'a': { text: 'Alpha', color: 'bg-[#755841]' }
+                'a': { text: 'Alpha', color: 'bg-[#475569]' }
             };
             
-            const status = statusMap[data.status] || { text: 'Alpha', color: 'bg-[#755841]' };
+            const status = statusMap[data.status] || { text: 'Alpha', color: 'bg-[#475569]' };
             $("#modalStatus").text(status.text).removeClass().addClass('px-3 py-1 rounded-full text-xs font-bold text-white ' + status.color);
 
             // Photo In
@@ -1301,7 +1273,7 @@
                     icon: 'success',
                     title: title || 'Berhasil!',
                     text: message,
-                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonColor: "{{ $t['primary'] ?? '#1A5276' }}",
                     confirmButtonText: 'Selesai',
                     timer: 2500,
                     timerProgressBar: true
@@ -1312,7 +1284,7 @@
                     icon: 'error',
                     title: title || 'Gagal',
                     html: message,
-                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonColor: "{{ $t['primary'] ?? '#1A5276' }}",
                     confirmButtonText: 'Tutup'
                 });
             },
@@ -1321,7 +1293,7 @@
                     icon: 'warning',
                     title: title || 'Peringatan',
                     text: message,
-                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonColor: "{{ $t['primary'] ?? '#1A5276' }}",
                     confirmButtonText: 'Mengerti'
                 });
             }
@@ -1371,7 +1343,7 @@
 
     @if (module_enabled('face_recognition') && ($general_setting->face_recognition ?? 0) == 1)
         <!-- Face Model Background Preloader for Instant Attendance Load -->
-        <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ file_exists(public_path('assets/external/js/face-model-cache.js')) ? filemtime(public_path('assets/external/js/face-model-cache.js')) : time() }}"></script>
+        <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ config('app.asset_version', '2.5.0') }}"></script>
         <script>
             window.addEventListener('load', function() {
                 setTimeout(function() {

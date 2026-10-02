@@ -117,7 +117,12 @@ class AttendanceService
      * @param string $endDate (YYYY-MM-DD)
      * @return array [nik => [date => ['is_off' => bool, 'jam_kerja' => Jamkerja|null, 'keterangan' => string, 'source' => string]]]
      */
-    public static function getEffectiveSchedulesBatch(array $niks, string $startDate, string $endDate): array
+    /**
+     * In-memory memoization cache for effective schedules during a single HTTP request lifecycle.
+     */
+    protected static array $effectiveScheduleMemo = [];
+
+    public static function getEffectiveSchedulesBatch(array $niks, string $startDate, string $endDate, array $preloadedKaryawans = []): array
     {
         if (empty($niks)) {
             return [];
@@ -128,21 +133,30 @@ class AttendanceService
             return [];
         }
 
-        // 1. Preload master Jamkerja
-        $jamkerjaMap = Jamkerja::all()->keyBy('kode_jam_kerja');
+        // 1. Preload master Jamkerja (Cached for 15 mins to eliminate redundant queries in shared hosting)
+        $jamkerjaMap = \Illuminate\Support\Facades\Cache::remember('master_jamkerja_all_map', 900, function () {
+            return Jamkerja::all()->keyBy('kode_jam_kerja');
+        });
 
-        // 2. Preload Karyawan info
-        $karyawanMap = Karyawan::whereIn('nik', $niks)->get()->keyBy('nik');
+        // 2. Preload Karyawan info (Reuse already loaded instances to eliminate N+1)
+        $karyawanMap = $preloadedKaryawans;
+        $missingNiks = array_diff($niks, array_keys($karyawanMap));
+        if (!empty($missingNiks)) {
+            $fetched = Karyawan::whereIn('nik', $missingNiks)->get()->keyBy('nik')->all();
+            $karyawanMap = $karyawanMap + $fetched;
+        }
 
         // 3. Preload Pengaturan Umum
         $setting = Pengaturanumum::getSetting();
         $sistemHariKerja = (int)($setting->sistem_hari_kerja ?? 6);
         $globalJamkerjaAktif = (bool)($setting->global_jamkerja_aktif ?? false);
 
-        // 4. Preload Global Jamkerja if enabled
+        // 4. Preload Global Jamkerja if enabled (Cached for 15 mins)
         $globalJamkerjaMap = [];
         if ($globalJamkerjaAktif) {
-            $globalJamkerjaMap = GlobalJamkerja::all()->keyBy('hari')->toArray();
+            $globalJamkerjaMap = \Illuminate\Support\Facades\Cache::remember('master_global_jamkerja_all_map', 900, function () {
+                return GlobalJamkerja::all()->keyBy('hari')->toArray();
+            });
         }
 
         // 5. Preload Schedule Overrides By Date (presensi_jamkerja_bydate)
@@ -399,8 +413,14 @@ class AttendanceService
      */
     public static function getEffectiveSchedule(string $nik, string $date, ?Karyawan $karyawan = null): array
     {
-        $batch = self::getEffectiveSchedulesBatch([$nik], $date, $date);
-        return $batch[$nik][$date] ?? [
+        $memoKey = $nik . '|' . $date;
+        if (isset(self::$effectiveScheduleMemo[$memoKey])) {
+            return self::$effectiveScheduleMemo[$memoKey];
+        }
+
+        $preloaded = $karyawan ? [$nik => $karyawan] : [];
+        $batch = self::getEffectiveSchedulesBatch([$nik], $date, $date, $preloaded);
+        $res = $batch[$nik][$date] ?? [
             'is_off' => false,
             'kode_jam_kerja' => $karyawan?->kode_jam_kerja ?? 'JK01',
             'jam_kerja' => null,
@@ -409,6 +429,7 @@ class AttendanceService
             'source' => 'fallback',
             'schedule_source' => 'fallback'
         ];
+        return self::$effectiveScheduleMemo[$memoKey] = $res;
     }
 
     /**
@@ -631,7 +652,41 @@ class AttendanceService
             ]);
         }
 
-        // Atomic Database Lock & Write
+        // 3. Tentukan Keterlambatan sesuai Shift Tolerance & Policy Tolerance (Pre-calculated for Single Atomic Write)
+        $batasToleransiCarbon = self::resolveBatasToleransi($jamKerja, $tanggalPresensi, $timezoneCabang);
+        
+        $isTerlambat = false;
+        $isDispensasi = false;
+        $menitTerlambat = 0;
+        $dispensasiId = null;
+        $keteranganPresensi = null;
+
+        if ($jamPresensiCarbon->gt($batasToleransiCarbon)) {
+            // Cek dispensasi approved
+            $dispensasi = PresensiDispensasi::where('nik', $karyawan->nik)
+                ->where('tanggal', $tanggalPresensi)
+                ->where('status', 'APPROVED')
+                ->first();
+
+            if ($dispensasi) {
+                $batasDispensasiCarbon = Carbon::parse($tanggalPresensi . ' ' . $dispensasi->batas_dispensasi, $timezoneCabang);
+                if ($jamPresensiCarbon->lte($batasDispensasiCarbon)) {
+                    $isDispensasi = true;
+                    $dispensasiId = $dispensasi->id;
+                    $keteranganPresensi = 'DISPENSASI';
+                    $isTerlambat = false;
+                    $menitTerlambat = 0;
+                } else {
+                    $isTerlambat = true;
+                    $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamPresensiCarbon, false);
+                }
+            } else {
+                $isTerlambat = true;
+                $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamPresensiCarbon, false);
+            }
+        }
+
+        // Atomic Database Lock & Single Write (Zero redundant secondary UPDATE)
         $presensiRecord = null;
         $cabang = $context['cabang'];
         try {
@@ -643,6 +698,11 @@ class AttendanceService
                 $fileName,
                 $jamKerja,
                 $cabang,
+                $isTerlambat,
+                $menitTerlambat,
+                $isDispensasi,
+                $dispensasiId,
+                $keteranganPresensi,
                 &$presensiRecord
             ) {
                 $locked = Presensi::where('nik', $karyawan->nik)
@@ -654,16 +714,24 @@ class AttendanceService
                     if ($locked->jam_in != null) {
                         throw new \Exception('ALREADY_CLOCKED_IN');
                     }
-                    $locked->update([
+                    $updateData = [
                         'jam_in' => $jamPresensi,
                         'lokasi_in' => $lokasi,
                         'foto_in' => $fileName,
                         'kode_cabang' => $cabang->kode_cabang,
-                        'status' => 'h'
-                    ]);
+                        'status' => 'h',
+                        'is_terlambat' => $isTerlambat ? 1 : 0,
+                        'menit_terlambat' => $menitTerlambat,
+                        'is_dispensasi' => $isDispensasi ? 1 : 0,
+                        'dispensasi_id' => $dispensasiId,
+                    ];
+                    if ($keteranganPresensi !== null) {
+                        $updateData['keterangan'] = $keteranganPresensi;
+                    }
+                    $locked->update($updateData);
                     $presensiRecord = $locked;
                 } else {
-                    $presensiRecord = Presensi::create([
+                    $createData = [
                         'nik' => $karyawan->nik,
                         'tanggal' => $tanggalPresensi,
                         'jam_in' => $jamPresensi,
@@ -674,8 +742,16 @@ class AttendanceService
                         'foto_out' => null,
                         'kode_cabang' => $cabang->kode_cabang,
                         'kode_jam_kerja' => $jamKerja->kode_jam_kerja,
-                        'status' => 'h'
-                    ]);
+                        'status' => 'h',
+                        'is_terlambat' => $isTerlambat ? 1 : 0,
+                        'menit_terlambat' => $menitTerlambat,
+                        'is_dispensasi' => $isDispensasi ? 1 : 0,
+                        'dispensasi_id' => $dispensasiId,
+                    ];
+                    if ($keteranganPresensi !== null) {
+                        $createData['keterangan'] = $keteranganPresensi;
+                    }
+                    $presensiRecord = Presensi::create($createData);
                 }
             });
         } catch (\Exception $e) {
@@ -693,56 +769,6 @@ class AttendanceService
                 'code' => 400,
                 'message' => 'Gagal memproses presensi masuk: ' . $e->getMessage()
             ];
-        }
-
-        // Tentukan Keterlambatan sesuai Shift Tolerance & Policy Tolerance (Single Source of Truth)
-        $batasToleransiCarbon = self::resolveBatasToleransi($jamKerja, $tanggalPresensi, $timezoneCabang);
-        
-        $isTerlambat = false;
-        $isDispensasi = false;
-        $menitTerlambat = 0;
-        $dispensasiId = null;
-
-        if ($jamPresensiCarbon->gt($batasToleransiCarbon)) {
-            // Cek dispensasi approved
-            $dispensasi = PresensiDispensasi::where('nik', $karyawan->nik)
-                ->where('tanggal', $tanggalPresensi)
-                ->where('status', 'APPROVED')
-                ->first();
-
-            if ($dispensasi) {
-                $batasDispensasiCarbon = Carbon::parse($tanggalPresensi . ' ' . $dispensasi->batas_dispensasi, $timezoneCabang);
-                if ($jamPresensiCarbon->lte($batasDispensasiCarbon)) {
-                    $isDispensasi = true;
-                    $dispensasiId = $dispensasi->id;
-                    $presensiRecord->update([
-                        'is_dispensasi' => 1,
-                        'dispensasi_id' => $dispensasiId,
-                        'keterangan' => 'DISPENSASI',
-                        'is_terlambat' => 0,
-                        'menit_terlambat' => 0
-                    ]);
-                } else {
-                    $isTerlambat = true;
-                    $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamPresensiCarbon, false);
-                    $presensiRecord->update([
-                        'is_terlambat' => 1,
-                        'menit_terlambat' => $menitTerlambat
-                    ]);
-                }
-            } else {
-                $isTerlambat = true;
-                $menitTerlambat = (int) $jamMasukCarbon->diffInMinutes($jamPresensiCarbon, false);
-                $presensiRecord->update([
-                    'is_terlambat' => 1,
-                    'menit_terlambat' => $menitTerlambat
-                ]);
-            }
-        } else {
-            $presensiRecord->update([
-                'is_terlambat' => 0,
-                'menit_terlambat' => 0
-            ]);
         }
 
         $statusKehadiran = $isTerlambat ? self::STATUS_TELAT : self::STATUS_HADIR;
@@ -1101,7 +1127,8 @@ class AttendanceService
                 'success' => false,
                 'code' => 400,
                 'message' => 'Terdeteksi menggunakan aplikasi Fake GPS / Mock Location.',
-                'notifikasi' => 'notifikasi_fakegps'
+                'notifikasi' => 'notifikasi_fakegps',
+                'suara' => 'Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.'
             ]);
         }
 

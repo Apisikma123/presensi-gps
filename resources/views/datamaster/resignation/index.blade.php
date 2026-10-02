@@ -134,7 +134,7 @@
                     <th>Status Clearance</th>
                     <th>Dokumen</th>
                     <th>Alasan</th>
-                    <th class="text-end" style="width: 120px;">Aksi</th>
+                    <th class="text-end" style="width: 125px; min-width: 125px; white-space: nowrap;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -142,21 +142,39 @@
                     <tr>
                         <td class="text-muted font-mono">{{ $loop->iteration + ($resignations->currentPage() - 1) * $resignations->perPage() }}</td>
                         <td>
-                            @if($r->karyawan)
-                                <div class="d-flex align-items-center">
-                                    <span class="avatar avatar-sm bg-label-danger text-danger rounded-circle me-2 fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        {{ strtoupper(substr($r->karyawan->nama_karyawan, 0, 2)) }}
-                                    </span>
-                                    <div>
-                                        <a href="{{ route('karyawan.show', Crypt::encrypt($r->karyawan->nik)) }}" class="fw-bold text-reset text-decoration-none">
-                                            {{ $r->karyawan->nama_karyawan }}
-                                        </a>
-                                        <div class="text-muted small font-mono">NIK: {{ $r->nik }}</div>
+                            @php
+                                $empName = $r->karyawan->nama_karyawan ?? $r->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($r->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($r->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
                                     </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <a href="{{ route('karyawan.show', Crypt::encrypt($r->karyawan->nik ?? $r->nik)) }}" class="fw-bold text-dark text-decoration-none d-block" style="font-size: 13px;">
+                                        {{ $empName }}
+                                    </a>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $r->nik }}
+                                    </span>
                                 </div>
-                            @else
-                                <span class="text-muted font-mono">NIK: {{ $r->nik }}</span>
-                            @endif
+                            </div>
                         </td>
                         <td>
                             <span class="fw-bold text-dark font-mono">{{ $r->tanggal_keluar ? $r->tanggal_keluar->format('d/m/Y') : '-' }}</span>
@@ -170,8 +188,9 @@
                         </td>
                         <td>
                             @if($r->dokumen)
-                                <a href="{{ asset('storage/' . $r->dokumen) }}" target="_blank" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
-                                    <i class="ti ti-file-text"></i>Lihat Berkas
+                                <a href="{{ asset('storage/' . $r->dokumen) }}" target="_blank" class="btn-table-detail" title="Lihat Berkas Resign">
+                                    <i class="ti ti-file-text"></i>
+                                    <span>Lihat Berkas</span>
                                 </a>
                             @else
                                 <span class="text-muted small">-</span>
@@ -182,13 +201,13 @@
                                 {{ $r->alasan ?: '-' }}
                             </span>
                         </td>
-                        <td class="text-end">
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ route('offboarding.show', $r->id) }}" class="btn btn-outline-info" title="Exit Clearance & Hak Akhir">
+                        <td class="text-end" style="width: 125px; min-width: 125px; white-space: nowrap;">
+                            <div class="d-inline-flex align-items-center justify-content-end gap-1.5" style="white-space: nowrap; flex-shrink: 0;">
+                                <a href="{{ route('offboarding.show', $r->id) }}" class="btnShow btn-action-tbl" title="Exit Clearance & Hak Akhir">
                                     <i class="ti ti-checklist"></i>
                                 </a>
                                 @can('resignation.edit')
-                                    <button type="button" class="btn btn-outline-primary btn-edit-clearance"
+                                    <button type="button" class="btn-action-settings btn-action-tbl btn-edit-clearance"
                                         data-id="{{ Crypt::encrypt($r->id) }}"
                                         data-clearance="{{ $r->status_clearance }}"
                                         data-notes="{{ $r->catatan_hr }}"
@@ -198,10 +217,10 @@
                                     </button>
                                 @endcan
                                 @can('resignation.delete')
-                                    <form action="{{ route('resignation.delete', Crypt::encrypt($r->id)) }}" method="POST" class="d-inline form-delete">
+                                    <form action="{{ route('resignation.delete', Crypt::encrypt($r->id)) }}" method="POST" class="d-inline form-delete m-0 p-0" style="flex-shrink: 0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-success" title="Batalkan & Aktifkan Kembali Karyawan">
+                                        <button type="submit" class="btnApprove btn-action-tbl" title="Batalkan & Aktifkan Kembali Karyawan">
                                             <i class="ti ti-user-check"></i>
                                         </button>
                                     </form>

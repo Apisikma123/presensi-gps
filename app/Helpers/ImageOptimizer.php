@@ -55,6 +55,18 @@ class ImageOptimizer
         $fileName = $filenameWithoutExt . '.webp';
         $fullPath = $folderPath ? ($folderPath . '/' . $fileName) : $fileName;
 
+        // Fast-path: If client already uploaded pre-compressed valid WebP within constraints, store directly (0% CPU, <1ms)
+        $preCheck = @getimagesizefromstring($rawBinary);
+        if ($preCheck !== false && !empty($preCheck['mime']) && $preCheck['mime'] === 'image/webp') {
+            $w = $preCheck[0] ?? 0;
+            $h = $preCheck[1] ?? 0;
+            $byteLen = strlen($rawBinary);
+            if ($w > 0 && $h > 0 && $w <= $maxWidth && $h <= $maxWidth && $byteLen <= 600 * 1024) {
+                Storage::disk($disk)->put($fullPath, $rawBinary);
+                return $fileName;
+            }
+        }
+
         // If GD is available, optimize and convert to WebP
         if (function_exists('imagecreatefromstring') && function_exists('imagewebp')) {
             try {

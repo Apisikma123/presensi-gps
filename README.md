@@ -92,6 +92,23 @@ Aplikasi kini berjalan dan dapat diakses di browser:
 
 ---
 
+## 🧪 Pengujian & Verifikasi (Automated Tests)
+
+Jalankan suite pengujian komprehensif untuk memastikan seluruh pilar sistem berjalan 100%:
+
+```bash
+# 1. Menjalankan Master Test Suite (Core, Attendance, HR, Security, System)
+php tests/run_presence_tests.php
+
+# 2. Menjalankan Verifikasi Keamanan & Pencegahan IDOR
+php tests/SecurityAuditFixTest.php
+
+# 3. Menjalankan Load Testing Ringan (Artillery)
+npx artillery run tests/load/scenarios/normal.yaml
+```
+
+---
+
 ## 🔑 Kredensial Akun Login (Ready to Use)
 
 Semua akun di bawah ini menggunakan **Password Seragam**: **`123456`**

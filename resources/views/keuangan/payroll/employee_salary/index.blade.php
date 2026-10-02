@@ -86,16 +86,34 @@
                     @endphp
                     <tr>
                         <td>
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-2 d-flex align-items-center justify-content-center me-2 flex-shrink-0"
-                                    style="width: 32px; height: 32px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-weight: 600; font-size: 12px;">
-                                    {{ strtoupper(substr($emp->nama_karyawan, 0, 1)) }}
-                                </div>
+                            @php
+                                $words = explode(' ', trim($emp->nama_karyawan));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($emp->foto))
+                                    <img src="{{ getfotoKaryawan($emp->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
                                 <div>
-                                    <div class="fw-semibold text-dark text-truncate" style="max-width: 220px;">
+                                    <div class="fw-bold text-dark text-truncate" style="max-width: 220px; font-size: 13px;">
                                         {{ $emp->nama_karyawan }}
                                     </div>
-                                    <div class="text-muted font-mono" style="font-size: 11.5px;">
+                                    <div class="text-muted font-mono" style="font-size: 11px;">
                                         {{ $emp->nik }} &bull; {{ $emp->departemen->nama_dept ?? '-' }}
                                     </div>
                                 </div>
@@ -118,7 +136,7 @@
                         </td>
                         <td class="text-end">
                             @can('employee_salary.edit')
-                                <a href="{{ route('employee_salary.edit', $emp->nik) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                                <a href="{{ route('employee_salary.edit', $emp->nik) }}" class="btn-table-detail" title="Kelola Komponen Gaji">
                                     <i class="ti ti-edit"></i>
                                     <span>Kelola</span>
                                 </a>

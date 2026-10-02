@@ -24,9 +24,9 @@
 <!-- Filter Bar -->
 <div class="card admin-filter-toolbar mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF;">
     <div class="card-body p-3">
-        <form action="{{ route('org_chart.index') }}" method="GET" class="m-0">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-4">
+        <form action="{{ route('org_chart.index') }}" method="GET" class="m-0 w-100">
+            <div class="d-flex align-items-center gap-2 flex-wrap flex-md-nowrap w-100">
+                <div class="flex-grow-1" style="min-width: 220px;">
                     <select name="kode_dept" class="form-select" style="height: 38px; border-radius: 8px;">
                         <option value="">Semua Departemen</option>
                         @foreach($departemens as $d)
@@ -34,7 +34,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="flex-grow-1" style="min-width: 220px;">
                     <select name="kode_cabang" class="form-select" style="height: 38px; border-radius: 8px;">
                         <option value="">Semua Kantor / Cabang</option>
                         @foreach($cabangs as $c)
@@ -42,20 +42,18 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 w-100" style="height: 38px; border-radius: 8px; font-weight: 600;">
+                <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                    <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-1.5 px-3" style="height: 38px; border-radius: 8px; font-weight: 600;">
                         <i class="ti ti-search" style="font-size: 15px;"></i>
                         <span>Cari Data</span>
                     </button>
+                    @if($selectedDept || $selectedCabang)
+                        <a href="{{ route('org_chart.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 px-3" style="height: 38px; border-radius: 8px; font-weight: 600;" title="Reset Filter">
+                            <i class="ti ti-refresh" style="font-size: 15px;"></i>
+                            <span>Reset</span>
+                        </a>
+                    @endif
                 </div>
-                @if($selectedDept || $selectedCabang)
-                <div class="col-md-2">
-                    <a href="{{ route('org_chart.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 w-100" style="height: 38px; border-radius: 8px; font-weight: 600;">
-                        <i class="ti ti-refresh" style="font-size: 15px;"></i>
-                        <span>Reset</span>
-                    </a>
-                </div>
-                @endif
             </div>
         </form>
     </div>

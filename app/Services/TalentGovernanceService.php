@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Announcement;
 use App\Models\CompanyPolicy;
-use App\Models\EmployeeAsset;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeIncident;
 use App\Models\EmployeeTraining;
@@ -74,8 +73,16 @@ class TalentGovernanceService
         $fileSize = null;
 
         if ($file) {
-            $filePath = $file->store("documents/{$nik}", 'public');
-            $fileSize = (int) round($file->getSize() / 1024);
+            $mime = $file->getMimeType();
+            if (str_starts_with($mime, 'image/')) {
+                $baseName = 'doc_' . time() . '_' . \Illuminate\Support\Str::random(6);
+                $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($file, "documents/{$nik}", $baseName, 82, 1600, 'private');
+                $filePath = "documents/{$nik}/" . $fileName;
+                $fileSize = (int) round(\Illuminate\Support\Facades\Storage::disk('private')->size($filePath) / 1024);
+            } else {
+                $filePath = $file->store("documents/{$nik}", 'private');
+                $fileSize = (int) round($file->getSize() / 1024);
+            }
         } elseif (isset($data['file_path'])) {
             $filePath = $data['file_path'];
         }
@@ -92,38 +99,6 @@ class TalentGovernanceService
         ]);
     }
 
-    /**
-     * Assign equipment/asset to employee
-     */
-    public function assignAsset(array $data): EmployeeAsset
-    {
-        $code = $data['asset_code'] ?? ('AST-' . str_pad((string) (EmployeeAsset::count() + 1), 4, '0', STR_PAD_LEFT));
-
-        return EmployeeAsset::create([
-            'asset_code' => $code,
-            'nik' => $data['nik'],
-            'name' => $data['name'],
-            'category' => $data['category'] ?? 'HARDWARE',
-            'serial_number' => $data['serial_number'] ?? null,
-            'assigned_date' => $data['assigned_date'] ?? Carbon::today(),
-            'condition' => $data['condition'] ?? 'GOOD',
-            'notes' => $data['notes'] ?? null,
-            'status' => 'ASSIGNED',
-        ]);
-    }
-
-    /**
-     * Mark asset returned
-     */
-    public function returnAsset(int $assetId, string $condition = 'GOOD'): EmployeeAsset
-    {
-        $asset = EmployeeAsset::findOrFail($assetId);
-        $asset->status = 'RETURNED';
-        $asset->returned_date = Carbon::today();
-        $asset->condition = $condition;
-        $asset->save();
-        return $asset;
-    }
 
     /**
      * Publish company announcement
@@ -189,7 +164,6 @@ class TalentGovernanceService
             'total_trainings' => EmployeeTraining::count(),
             'active_warnings' => EmployeeWarning::where('status', 'ACTIVE')->count(),
             'total_documents' => EmployeeDocument::count(),
-            'assigned_assets' => EmployeeAsset::where('status', 'ASSIGNED')->count(),
             'open_incidents' => EmployeeIncident::where('status', 'OPEN')->count(),
         ];
     }

@@ -1,7 +1,13 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $theme['primary'] ?? '#3C2A21';
+    $secondaryColor = $theme['secondary'] ?? '#25160E';
+    $primaryContrast = $theme['primary_contrast'] ?? '#FFFFFF';
+@endphp
 <table>
     <thead>
         <tr>
-            <th colspan="19" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #3C2A21; text-align: center;">
+            <th colspan="19" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: {{ $primaryColor }}; text-align: center;">
                 {{ strtoupper($generalsetting->nama_perusahaan ?? 'PERUSAHAAN') }}
             </th>
         </tr>
@@ -26,28 +32,28 @@
         </tr>
         <tr></tr>
         <tr>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">NIK</th>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Nama Karyawan</th>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Outlet</th>
-            <th colspan="12" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Distribusi Bulan (Tahun {{ $tahun }})</th>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #25160E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Total Ambil</th>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jatah Cuti</th>
-            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: #25160E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Sisa Cuti</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">NIK</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Nama Karyawan</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Outlet</th>
+            <th colspan="12" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Distribusi Bulan (Tahun {{ $tahun }})</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $secondaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Total Ambil</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jatah Cuti</th>
+            <th rowspan="2" style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $secondaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Sisa Cuti</th>
         </tr>
         <tr>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Jan</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Feb</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Mar</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Apr</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Mei</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Jun</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Jul</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Agu</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Sep</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Okt</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Nov</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center;">Des</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Jan</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Feb</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Mar</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Apr</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Mei</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Jun</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Jul</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Agu</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Sep</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Okt</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Nov</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center;">Des</th>
         </tr>
     </thead>
     <tbody>
@@ -61,7 +67,7 @@
                 $jatah = $master_cuti->jumlah_hari ?? 12;
                 $sisa = max(0, $jatah - $d['total_ambil']);
                 $grandTotalAmbil += $d['total_ambil'];
-                $bg = ($loop->iteration % 2 == 0) ? '#F4F3F2' : '#FFFFFF';
+                $bg = ($loop->iteration % 2 == 0) ? '#F8FAFC' : '#FFFFFF';
             @endphp
             <tr style="background-color: {{ $bg }};">
                 <td style="border: 1px solid #CBD5E1; text-align: center; vertical-align: middle;">{{ $loop->iteration }}</td>

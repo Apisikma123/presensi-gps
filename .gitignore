@@ -60,3 +60,8 @@ hosting_check.php
 inventory_routes.json
 routes_analysis.json
 routes_dump.json
+*.exe
+/tests/load/reports/
+*.report.json
+load_test_report*.md
+benchmark*.json

@@ -9,11 +9,11 @@
                 {{-- Previous Page Link --}}
                 @if ($paginator->onFirstPage())
                     <li class="page-item disabled" aria-disabled="true">
-                        <span class="page-link" style="border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; border-color: #E2E8F0; color: #94A3B8;">&lsaquo;</span>
+                        <span class="page-link" style="border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 1px solid rgba(15, 23, 42, 0.08); background-color: #F8FAFC !important; color: #CBD5E1 !important;">&lsaquo;</span>
                     </li>
                 @else
                     <li class="page-item">
-                        <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" style="border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; border-color: #E2E8F0; color: #475569;">&lsaquo;</a>
+                        <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" style="border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 1px solid rgba(15, 23, 42, 0.12); background-color: #FFFFFF !important; color: #475569 !important; text-decoration: none;">&lsaquo;</a>
                     </li>
                 @endif
 
@@ -22,7 +22,7 @@
                     {{-- "Three Dots" Separator --}}
                     @if (is_string($element))
                         <li class="page-item disabled" aria-disabled="true">
-                            <span class="page-link" style="border-radius: 6px; min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; border-color: #E2E8F0; color: #94A3B8;">{{ $element }}</span>
+                            <span class="page-link" style="border-radius: 8px; min-width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 1px solid rgba(15, 23, 42, 0.08); background-color: #F8FAFC !important; color: #94A3B8 !important;">{{ $element }}</span>
                         </li>
                     @endif
 
@@ -31,11 +31,11 @@
                         @foreach ($element as $page => $url)
                             @if ($page == $paginator->currentPage())
                                 <li class="page-item active" aria-current="page">
-                                    <span class="page-link fw-bold font-mono" style="border-radius: 6px; min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; background-color: var(--theme-color-1, #3C2A21); border-color: var(--theme-color-1, #3C2A21); color: #FFFFFF;">{{ $page }}</span>
+                                    <span class="page-link fw-bold font-mono" style="border-radius: 8px; min-width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; background-color: var(--color-primary, var(--theme-color-1, #1B365D)) !important; border: 1px solid var(--color-primary, var(--theme-color-1, #1B365D)) !important; color: #FFFFFF !important; box-shadow: 0 2px 8px var(--color-primary-soft, rgba(27,54,93,0.25)) !important;">{{ $page }}</span>
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link font-mono" href="{{ $url }}" style="border-radius: 6px; min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; border-color: #E2E8F0; color: #475569;">{{ $page }}</a>
+                                    <a class="page-link font-mono" href="{{ $url }}" style="border-radius: 8px; min-width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; border: 1px solid rgba(15, 23, 42, 0.12); background-color: #FFFFFF !important; color: #475569 !important; text-decoration: none;">{{ $page }}</a>
                                 </li>
                             @endif
                         @endforeach
@@ -45,11 +45,11 @@
                 {{-- Next Page Link --}}
                 @if ($paginator->hasMorePages())
                     <li class="page-item">
-                        <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" style="border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; border-color: #E2E8F0; color: #475569;">&rsaquo;</a>
+                        <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" style="border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 1px solid rgba(15, 23, 42, 0.12); background-color: #FFFFFF !important; color: #475569 !important; text-decoration: none;">&rsaquo;</a>
                     </li>
                 @else
                     <li class="page-item disabled" aria-disabled="true">
-                        <span class="page-link" style="border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; border-color: #E2E8F0; color: #94A3B8;">&rsaquo;</span>
+                        <span class="page-link" style="border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 13px; border: 1px solid rgba(15, 23, 42, 0.08); background-color: #F8FAFC !important; color: #CBD5E1 !important;">&rsaquo;</span>
                     </li>
                 @endif
             </ul>

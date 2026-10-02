@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Cache;
 
 class ThemeResolver
 {
-    const DEFAULT_PRIMARY = '#3C2A21';
-    const DEFAULT_SECONDARY = '#634832';
-    const DEFAULT_ACCENT = '#4A6741';
+    const DEFAULT_PRIMARY = '#1A5276';
+    const DEFAULT_SECONDARY = '#2980b9';
+    const DEFAULT_ACCENT = '#2980b9';
 
     private static ?array $memoryCache = null;
 
@@ -37,7 +37,7 @@ class ThemeResolver
 
             $primary = self::sanitizeHex($p ?: ($company?->theme_color_primary ?: ($general?->theme_color_1 ?: self::DEFAULT_PRIMARY)), self::DEFAULT_PRIMARY);
             $secondary = self::sanitizeHex($s ?: ($company?->theme_color_secondary ?: ($general?->theme_color_2 ?: self::DEFAULT_SECONDARY)), self::DEFAULT_SECONDARY);
-            $accent = self::DEFAULT_ACCENT; // Matcha Green
+            $accent = $secondary;
 
             $primaryRgb = self::hexToRgb($primary);
             $secondaryRgb = self::hexToRgb($secondary);
@@ -51,9 +51,9 @@ class ThemeResolver
             $sidebarSubBg = $isLight ? '#0F172A' : self::adjustBrightness($primary, -50);
             $sidebarActiveBg = $primary;
             $sidebarActiveColor = $primaryContrast;
-            $sidebarText = '#D3C3BD';
-            $sidebarHeader = '#AA9084';
-            $sidebarBorder = "rgba({$primaryRgb}, 0.20)";
+            $sidebarText = '#94A3B8';
+            $sidebarHeader = '#64748B';
+            $sidebarBorder = "rgba(255, 255, 255, 0.08)";
 
             return [
                 'primary' => $primary,
@@ -72,27 +72,27 @@ class ThemeResolver
                 'accent' => $accent,
                 'accent_rgb' => $accentRgb,
 
-                // Semantic statuses (STRICTLY INDEPENDENT from theme)
-                'success' => '#4A6741',
-                'status_success' => '#4A6741',
-                'success_soft' => 'rgba(74, 103, 65, 0.12)',
-                'danger' => '#BA1A1A',
-                'status_danger' => '#BA1A1A',
-                'danger_soft' => 'rgba(186, 26, 26, 0.12)',
-                'warning' => '#B45309',
-                'status_warning' => '#B45309',
-                'warning_soft' => 'rgba(180, 83, 9, 0.12)',
+                // Semantic statuses
+                'success' => '#16A34A',
+                'status_success' => '#16A34A',
+                'success_soft' => 'rgba(22, 163, 74, 0.12)',
+                'danger' => '#DC2626',
+                'status_danger' => '#DC2626',
+                'danger_soft' => 'rgba(220, 38, 38, 0.12)',
+                'warning' => '#D97706',
+                'status_warning' => '#D97706',
+                'warning_soft' => 'rgba(217, 119, 6, 0.12)',
                 'info' => '#2563EB',
                 'status_info' => '#2563EB',
                 'info_soft' => 'rgba(37, 99, 235, 0.12)',
 
-                // Neutral tokens
-                'canvas' => '#FAF9F8',
+                // Neutral tokens (Black / White / Slate)
+                'canvas' => '#F8FAFC',
                 'surface' => '#FFFFFF',
-                'text_primary' => '#1A1C1C',
-                'text_secondary' => '#755841',
-                'border' => "rgba({$primaryRgb}, 0.08)",
-                'border_hover' => "rgba({$primaryRgb}, 0.16)",
+                'text_primary' => '#0F172A',
+                'text_secondary' => '#475569',
+                'border' => '#E2E8F0',
+                'border_hover' => '#CBD5E1',
 
                 // Dynamic Sidebar Tokens (Zero Hardcode)
                 'sidebar_bg' => $sidebarBg,

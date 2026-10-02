@@ -46,9 +46,9 @@
     <!-- Theme Custom Properties with Auto-Contrast -->
     <style>
         :root {
-            --color-primary: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }};
-            --bs-primary: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }};
-            --theme-color-1: {{ $theme['primary'] ?? ($t['primary'] ?? '#3C2A21') }};
+            --color-primary: {{ $theme['primary'] ?? ($t['primary'] ?? '#1A5276') }};
+            --bs-primary: {{ $theme['primary'] ?? ($t['primary'] ?? '#1A5276') }};
+            --theme-color-1: {{ $theme['primary'] ?? ($t['primary'] ?? '#1A5276') }};
             --theme-primary-contrast: {{ $theme['primary_contrast'] ?? '#FFFFFF' }};
         }
         .btn-primary {
@@ -57,13 +57,13 @@
             color: var(--theme-primary-contrast, #FFFFFF) !important;
         }
         .btn-primary:hover, .btn-primary:focus {
-            background-color: {{ $theme['primary_hover'] ?? '#2A1D17' }} !important;
-            border-color: {{ $theme['primary_hover'] ?? '#2A1D17' }} !important;
+            background-color: {{ $theme['primary_hover'] ?? '#154360' }} !important;
+            border-color: {{ $theme['primary_hover'] ?? '#154360' }} !important;
             color: var(--theme-primary-contrast, #FFFFFF) !important;
         }
         .form-control:focus {
             border-color: var(--theme-color-1) !important;
-            box-shadow: 0 0 0 0.25rem {{ $theme['primary_soft'] ?? 'rgba(60,42,33,0.15)' }} !important;
+            box-shadow: 0 0 0 0.25rem {{ $theme['primary_soft'] ?? 'rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15)' }} !important;
         }
     </style>
 
@@ -93,7 +93,7 @@
                     </div>
                     <!-- /Logo -->
                     <h4 class="mb-1 pt-1 text-center" style="font-family: 'Outfit', sans-serif; font-weight: 700;">{{ $company_setting->app_name ?? ($general_setting->nama_aplikasi ?? 'Presence') }}</h4>
-                    <p class="mb-3 text-muted text-center" style="font-size: 13px;">{{ $company_setting->company_name ?? ($general_setting->nama_perusahaan ?? 'Universal HR Management System') }}</p>
+                    <p class="mb-3 text-muted text-center" style="font-size: 13px;">{{ $company_setting->company_name ?? ($general_setting->nama_perusahaan ?? 'Sistem HRIS') }}</p>
                     <x-alert-error :messages="$errors->get('id_user')" class="mt-2" />
                     <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                         @csrf
@@ -120,7 +120,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <button class="btn btn-primary d-grid w-100 py-2 fw-semibold" type="submit">Sign in</button>
+                            <button class="btn btn-primary d-grid w-100 py-2 fw-semibold" type="submit" data-submitting-text="Masuk...">Sign in</button>
                         </div>
                     </form>
                 </div>

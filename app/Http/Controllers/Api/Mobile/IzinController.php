@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Izinabsen;
 use App\Models\Izincuti;
-use App\Models\Izindinas;
 use App\Models\Izinsakit;
 use App\Models\Karyawan;
 use App\Models\Pengaturanumum;
@@ -42,14 +41,7 @@ class IzinController extends Controller
         $izincuti = Izincuti::where('nik', $nik)
             ->select('kode_izin_cuti as kode', 'tanggal', 'keterangan', 'dari', 'sampai', DB::raw('\'c\' as ket'), 'status', 'approval_step', DB::raw('NULL as doc_sid'));
 
-        $izin_dinas = Izindinas::where('nik', $nik)
-            ->select('kode_izin_dinas as kode', 'tanggal', 'keterangan', 'dari', 'sampai', DB::raw('\'d\' as ket'), 'status', 'approval_step', DB::raw('NULL as doc_sid'));
-
-        // Koreksi
-        $koreksi = \App\Models\Koreksi::where('nik', $nik)
-            ->select('kode_koreksi as kode', 'tanggal', 'keterangan', 'tanggal as dari', 'tanggal as sampai', DB::raw('\'k\' as ket'), 'status', 'approval_step', DB::raw('NULL as doc_sid'));
-
-        $pengajuan_izin = $izinabsen->union($izinsakit)->union($izincuti)->union($izin_dinas)->union($koreksi)
+        $pengajuan_izin = $izinabsen->union($izinsakit)->union($izincuti)
             ->orderBy('tanggal', 'desc')
             ->get()
             ->map(function ($item) {
@@ -84,7 +76,7 @@ class IzinController extends Controller
         $nik = $userkaryawan->nik;
 
         $validator = Validator::make($request->all(), [
-            'jenis_izin' => 'required|in:i,s,c,d', // i=absen, s=sakit, c=cuti, d=dinas
+            'jenis_izin' => 'required|in:i,s,c', // i=absen, s=sakit, c=cuti
             'dari' => 'required|date_format:Y-m-d',
             'sampai' => 'required|date_format:Y-m-d|after_or_equal:dari',
             'keterangan' => 'required|string',
@@ -123,16 +115,10 @@ class IzinController extends Controller
                   ->orWhereBetween('sampai', [$dari, $sampai]);
             })->first();
 
-        $cek_dinas = Izindinas::where('nik', $nik)
-            ->where(function($q) use ($dari, $sampai) {
-                $q->whereBetween('dari', [$dari, $sampai])
-                  ->orWhereBetween('sampai', [$dari, $sampai]);
-            })->first();
-
-        if ($cek_absen || $cek_sakit || $cek_cuti || $cek_dinas) {
+        if ($cek_absen || $cek_sakit || $cek_cuti) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sudah memiliki pengajuan izin/sakit/cuti/dinas pada rentang tanggal tersebut!'
+                'message' => 'Anda sudah memiliki pengajuan izin/sakit/cuti pada rentang tanggal tersebut!'
             ], 400);
         }
 
@@ -216,27 +202,6 @@ class IzinController extends Controller
                 $cuti->status = 0;
                 $cuti->approval_step = 1;
                 $cuti->save();
-
-            } elseif ($jenis == 'd') {
-                // Izin Dinas
-                $lastizindinas = Izindinas::select('kode_izin_dinas')
-                    ->whereRaw('YEAR(dari) = ?', [date('Y', strtotime($dari))])
-                    ->whereRaw('MONTH(dari) = ?', [date('m', strtotime($dari))])
-                    ->orderBy("kode_izin_dinas", "desc")
-                    ->first();
-                $last_kode = $lastizindinas ? $lastizindinas->kode_izin_dinas : '';
-                $kode = buatkode($last_kode, "ID" . date('ym', strtotime($dari)), 4);
-
-                $dinas = new Izindinas();
-                $dinas->kode_izin_dinas = $kode;
-                $dinas->nik = $nik;
-                $dinas->tanggal = $dari;
-                $dinas->dari = $dari;
-                $dinas->sampai = $sampai;
-                $dinas->keterangan = $keterangan;
-                $dinas->status = 0;
-                $dinas->approval_step = 1;
-                $dinas->save();
             }
 
             DB::commit();
@@ -279,8 +244,6 @@ class IzinController extends Controller
             $record = Izinsakit::where('kode_izin_sakit', $kode)->where('nik', $nik)->first();
         } elseif ($prefix === 'IC') {
             $record = Izincuti::where('kode_izin_cuti', $kode)->where('nik', $nik)->first();
-        } elseif ($prefix === 'ID') {
-            $record = Izindinas::where('kode_izin_dinas', $kode)->where('nik', $nik)->first();
         }
 
         if (!$record) {

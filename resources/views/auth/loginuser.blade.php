@@ -18,7 +18,7 @@
     <meta name="description" content="Aplikasi {{ $general_setting->nama_aplikasi ?? 'Presensi GPS' }} untuk Karyawan">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#3C2A21">
+    <meta name="theme-color" content="{{ $theme['primary'] ?? ($t['primary'] ?? '#1A5276') }}">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
@@ -30,26 +30,37 @@
     <link rel="apple-touch-icon" sizes="512x512" href="/assets/img/icons/pwa/icon-512x512.png">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json?v={{ file_exists(public_path('manifest.json')) ? filemtime(public_path('manifest.json')) : time() }}">
+    <link rel="manifest" href="/manifest.json?v={{ config('app.asset_version', '2.5.0') }}">
 
     <link rel="stylesheet" href="{{ asset('assets/login/css/style.css') }}" />
     <style>
         :root {
-            /* BrewSync Enterprise Theme Colors */
-            --theme-color-1: #3C2A21;
-            --theme-color-2: #634832;
+            /* Dynamic Brand Palette via ThemeResolver */
+            --theme-color-1: {{ $theme['primary'] ?? ($t['primary'] ?? '#1A5276') }};
+            --theme-color-2: {{ $theme['primary_hover'] ?? ($theme['secondary'] ?? '#154360') }};
+            --theme-contrast: {{ $theme['primary_contrast'] ?? '#FFFFFF' }};
         }
 
         .sign-btn {
             background-color: var(--theme-color-1) !important;
+            color: var(--theme-contrast) !important;
+            transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s ease, box-shadow 0.16s ease !important;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
         }
 
         .sign-btn:hover {
             background-color: var(--theme-color-2) !important;
+            color: var(--theme-contrast) !important;
+        }
+
+        .sign-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.985);
         }
 
         .bullets span.active {
-            background-color: var(--theme-color-1) !important;
+            background-color: #ffffff !important;
         }
 
         .carousel {
@@ -57,11 +68,13 @@
         }
 
         .alert {
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
             border: 1px solid transparent;
-            border-radius: 4px;
-            animation: slideIn 0.5s ease-out;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            animation: alertFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .alert-danger {
@@ -70,15 +83,23 @@
             border-color: #f5c6cb;
         }
 
-        @keyframes slideIn {
+        @keyframes alertFadeIn {
             from {
-                transform: translateY(-20px);
+                transform: translateY(-4px);
                 opacity: 0;
             }
-
             to {
                 transform: translateY(0);
                 opacity: 1;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .alert {
+                animation: none !important;
+            }
+            .sign-btn {
+                transition: none !important;
             }
         }
         .text-group h2 {
@@ -140,7 +161,7 @@
                                 <label for="remember" style="color: #666; font-size: 14px; cursor: pointer; margin-left: 20px;">Remember Me</label>
                             </div>
 
-                            <input type="submit" value="Sign In" class="sign-btn" />
+                            <button type="submit" class="sign-btn" data-submitting-text="Masuk..." style="width: 100%; border: none; padding: 12px; color: #fff; font-size: 14px;">Sign In</button>
 
                             <!-- Quick Demo Account Selector -->
                             <div class="demo-box" style="margin-top: 18px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1; text-align: left;">
@@ -154,25 +175,25 @@
                                         <small style="color: #64748b; font-size: 9px; font-weight: 400;">admin / admin123</small>
                                     </button>
                                     <button type="button" onclick="fillDemo('manager', 'manager123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
-                                        <span>👔 Store Manager</span>
+                                        <span>👔 Manager</span>
                                         <small style="color: #64748b; font-size: 9px; font-weight: 400;">manager / manager123</small>
                                     </button>
                                     <button type="button" onclick="fillDemo('barista', 'barista123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
-                                        <span>☕ Barista</span>
-                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">barista / barista123</small>
+                                        <span>👤 Staf Karyawan</span>
+                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">staf / demo</small>
                                     </button>
                                     <button type="button" onclick="fillDemo('kasir', 'kasir123')" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 7px 8px; font-size: 11px; font-weight: 600; color: #1e293b; cursor: pointer; text-align: left; transition: all 0.2s; display: flex; flex-direction: column;">
-                                        <span>💵 Kasir</span>
-                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">kasir / kasir123</small>
+                                        <span>💼 Staf Kantor</span>
+                                        <small style="color: #64748b; font-size: 9px; font-weight: 400;">staf2 / demo</small>
                                     </button>
                                 </div>
                             </div>
 
                             <p class="text" style="margin-top: 15px; margin-bottom: 4px;">
-                                Presensi GPS & Face Recognition Coffee Shop
+                                Presensi GPS & Face Recognition System
                             </p>
                             <p class="text" style="margin-top: 0; font-size: 11px; color: #64748b;">
-                                Developed by <a href="https://porto-aga.vercel.app/" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: #634832; text-decoration: underline;">Muhammad Aga Putra</a>
+                                Developed by <a href="https://porto-aga.vercel.app/" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: var(--theme-color-1); text-decoration: underline;">Muhammad Aga Putra</a>
                             </p>
 
                         </div>
@@ -251,6 +272,9 @@
 
     <!-- PWA Install Prompt - Only on Login Page -->
     @include('components.pwa-install-prompt')
+
+    <!-- Global Action Loading / Button Submitting System -->
+    @include('components.global-loading')
 </body>
 
 </html>

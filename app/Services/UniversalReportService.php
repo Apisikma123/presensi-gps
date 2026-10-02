@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Cabang;
 use App\Models\Departemen;
-use App\Models\EmployeeAsset;
 use App\Models\EmployeeLoan;
 use App\Models\EmployeeMovement;
 use App\Models\EmployeeResignation;
@@ -263,7 +262,6 @@ class UniversalReportService
             'total_training_hours' => (int) EmployeeTraining::where('status', 'COMPLETED')->sum('duration_hours'),
             'total_trainings_held' => EmployeeTraining::count(),
             'active_warnings' => EmployeeWarning::where('status', 'ACTIVE')->count(),
-            'assigned_assets' => EmployeeAsset::where('status', 'ASSIGNED')->count(),
         ];
     }
 }

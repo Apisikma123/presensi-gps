@@ -25,24 +25,19 @@
         .form-label-group {
             position: relative;
             margin-bottom: 12px;
-            background: #ffffff !important;
-            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: transparent !important;
+            border: 1px solid {{ $t['primary'] }};
             border-radius: 12px;
             overflow: hidden;
             transition: all 0.2s ease;
         }
 
-        .form-label-group:focus-within {
-            border-color: {{ $t['primary'] ?? '#3C2A21' }};
-            box-shadow: 0 0 0 3px rgba(60, 42, 33, 0.1);
-        }
-
         .form-label-group .input-icon {
             position: absolute;
             left: 14px;
-            top: 13px;
+            top: 11px;
             font-size: 20px;
-            color: {{ $t['primary'] ?? '#3C2A21' }};
+            color: {{ $t['primary'] }};
             z-index: 10;
             pointer-events: none;
         }
@@ -50,11 +45,11 @@
         .form-label-group input,
         .form-label-group textarea {
             width: 100% !important;
-            height: 48px;
-            padding: 18px 14px 2px 44px !important;
+            height: 44px;
+            padding: 18px 14px 2px 42px !important;
             font-size: 14px;
             font-weight: 500;
-            color: #0f172a;
+            color: {{ $t['primary'] }};
             background: transparent !important;
             border: none !important;
             outline: none !important;
@@ -63,17 +58,18 @@
         }
 
         .form-label-group textarea {
-            height: 90px !important;
-            padding-top: 24px !important;
+            height: 80px !important;
+            padding-top: 22px !important;
             resize: none;
         }
 
         .form-label-group label {
             position: absolute;
-            top: 13px;
-            left: 44px;
-            font-size: 13px;
-            color: #64748b;
+            top: 11px;
+            left: 42px;
+            font-size: 14px;
+            color: {{ $t['primary'] }};
+            opacity: 0.8;
             pointer-events: none;
             transition: all 0.2s ease-in-out;
             margin-bottom: 0;
@@ -84,34 +80,33 @@
         .form-label-group input:not(:placeholder-shown) ~ label,
         .form-label-group textarea:focus ~ label,
         .form-label-group textarea:not(:placeholder-shown) ~ label {
-            top: 3px;
-            left: 44px;
+            top: 2px;
+            left: 42px;
             font-size: 10px;
             font-weight: 600;
-            color: {{ $t['primary'] ?? '#3C2A21' }};
+            color: {{ $t['primary'] }};
         }
 
         .btn-submit-modern {
             width: 100%;
             height: 48px;
-            background: {{ $t['primary'] ?? '#3C2A21' }};
+            background: {{ $t['primary'] }};
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-top: 10px;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 12px rgba(60, 42, 33, 0.25);
+            margin-top: 15px;
+            transition: all 0.3s;
         }
 
         .btn-submit-modern:active {
             transform: scale(0.97);
-            filter: brightness(0.92);
+            filter: brightness(0.9);
         }
     </style>
 @endpush
@@ -120,11 +115,23 @@
     <div class="fade-up form-container pt-2 pb-24">
         {{-- Info Banner --}}
         <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3.5 mb-3 flex items-start gap-3">
-            <ion-icon name="information-circle-outline" class="text-xl text-[#3C2A21] shrink-0 mt-0.5"></ion-icon>
+            <ion-icon name="information-circle-outline" class="text-xl shrink-0 mt-0.5" style="color: {{ $t['primary'] }};"></ion-icon>
             <div class="text-[12px] text-emerald-900 leading-relaxed">
                 Dispensasi digunakan apabila Anda mengalami kendala perjalanan atau instruksi outlet sehingga memerlukan penyesuaian batas jam absensi masuk.
             </div>
         </div>
+
+        @if (isset($errors) && $errors->any())
+            <div class="mb-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[12px] space-y-1">
+                <div class="font-bold flex items-center gap-1.5">
+                    <ion-icon name="alert-circle" class="text-base text-rose-600"></ion-icon>
+                    <span>Terjadi kesalahan:</span>
+                </div>
+                @foreach ($errors->all() as $err)
+                    <div>• {{ $err }}</div>
+                @endforeach
+            </div>
+        @endif
 
         <form action="{{ route('dispensasi.store') }}" method="POST" id="formDispensasi" autocomplete="off">
             @csrf

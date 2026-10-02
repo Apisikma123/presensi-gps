@@ -170,8 +170,8 @@ class DashboardController extends Controller
                 'jam_masuk' => $d->jam_masuk ? date('H:i', strtotime($d->jam_masuk)) : null,
                 'jam_pulang' => $d->jam_pulang ? date('H:i', strtotime($d->jam_pulang)) : null,
                 'keterangan' => $keterangan,
-                'foto_in' => $d->foto_in ? asset('storage/uploads/absensi/' . $d->foto_in) : null,
-                'foto_out' => $d->foto_out ? asset('storage/uploads/absensi/' . $d->foto_out) : null,
+                'foto_in' => $d->foto_in ? route('api.file.absensi', ['filename' => $d->foto_in]) : null,
+                'foto_out' => $d->foto_out ? route('api.file.absensi', ['filename' => $d->foto_out]) : null,
             ];
         }
 
@@ -182,8 +182,8 @@ class DashboardController extends Controller
                 'presensi' => $presensi ? [
                     'jam_in' => $presensi->jam_in ? date('H:i', strtotime($presensi->jam_in)) : null,
                     'jam_out' => $presensi->jam_out ? date('H:i', strtotime($presensi->jam_out)) : null,
-                    'foto_in' => $presensi->foto_in ? asset('storage/uploads/absensi/' . $presensi->foto_in) : null,
-                    'foto_out' => $presensi->foto_out ? asset('storage/uploads/absensi/' . $presensi->foto_out) : null,
+                    'foto_in' => $presensi->foto_in ? route('api.file.absensi', ['filename' => $presensi->foto_in]) : null,
+                    'foto_out' => $presensi->foto_out ? route('api.file.absensi', ['filename' => $presensi->foto_out]) : null,
                     'istirahat_out' => $presensi->istirahat_out ? date('H:i', strtotime($presensi->istirahat_out)) : null,
                     'istirahat_in' => $presensi->istirahat_in ? date('H:i', strtotime($presensi->istirahat_in)) : null,
                     'foto_istirahat_out' => $presensi->foto_istirahat_out ? asset('storage/uploads/istirahat/' . $presensi->foto_istirahat_out) : null,

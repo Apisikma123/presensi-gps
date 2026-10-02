@@ -83,8 +83,8 @@ class PackageInfoController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Permintaan upgrade paket telah dicatat. Silakan hubungi tim deployment resmi Presence untuk aktivasi lisensi paket.',
-            'contact_email' => 'sales@presence-hr.id',
-            'contact_whatsapp' => '+62 812-3456-7890',
+            'contact_email' => 'agaputra62@gmail.com',
+            'contact_whatsapp' => '+62 851-6908-4136',
         ]);
     }
 }

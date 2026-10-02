@@ -22,7 +22,7 @@ class ModuleFeatureController extends Controller
      */
     public function index()
     {
-        $currentPackage = $this->entitlementService->getCurrentPackage();
+        return redirect()->route('settings.hub', ['tab' => 'modules']);
         $entitledCodes = $this->entitlementService->getEntitledModules();
         $addons = $this->entitlementService->getActiveAddons();
         $isLocked = $this->entitlementService->isDeploymentLocked();
@@ -64,17 +64,8 @@ class ModuleFeatureController extends Controller
                 && !$this->entitlementService->isModuleClientToggleable($canonical);
         });
 
-        // Unpurchased modules (read-only count/summary)
-        $unpurchasedModules = $allModules->filter(function ($m) use ($entitledCodes) {
-            $canonical = ModuleFeature::canonicalCode($m->module_code);
-            return !in_array($canonical, $entitledCodes, true);
-        })->unique(function ($m) {
-            return ModuleFeature::canonicalCode($m->module_code);
-        });
-
         $totalEntitled = $entitledModules->count();
         $totalActive = $entitledModules->where('is_enabled', true)->count();
-        $totalUnpurchased = $unpurchasedModules->count();
 
         return view('settings.modules.index', compact(
             'currentPackage',
@@ -84,10 +75,8 @@ class ModuleFeatureController extends Controller
             'activeToggleable',
             'disabledToggleable',
             'vendorLockedModules',
-            'unpurchasedModules',
             'totalEntitled',
-            'totalActive',
-            'totalUnpurchased'
+            'totalActive'
         ));
     }
 
@@ -120,7 +109,7 @@ class ModuleFeatureController extends Controller
                     'message' => $result['message'],
                 ], 403);
             }
-            return redirect()->route('module_features.index')->with('error', $result['message']);
+            return redirect()->route('settings.hub', ['tab' => 'modules'])->with('error', $result['message']);
         }
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -132,7 +121,7 @@ class ModuleFeatureController extends Controller
             ]);
         }
 
-        return redirect()->route('module_features.index')->with('success', $result['message']);
+        return redirect()->route('settings.hub', ['tab' => 'modules'])->with('success', $result['message']);
     }
 
     /**
@@ -162,6 +151,6 @@ class ModuleFeatureController extends Controller
 
         ModuleFeature::flushCache();
 
-        return redirect()->route('module_features.index')->with('success', 'Konfigurasi modul ' . $module->module_name . ' berhasil disimpan!');
+        return redirect()->route('settings.hub', ['tab' => 'modules'])->with('success', 'Konfigurasi modul ' . $module->module_name . ' berhasil disimpan!');
     }
 }

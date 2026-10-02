@@ -153,8 +153,37 @@
                             <small class="text-muted d-block font-mono" style="font-size: 11px;">{{ $loan->created_at ? $loan->created_at->format('d/m/Y') : '-' }}</small>
                         </td>
                         <td>
-                            <div class="fw-bold text-dark" style="font-size: 13px;">{{ $loan->karyawan->nama_karyawan ?? $loan->nik }}</div>
-                            <small class="text-muted font-mono" style="font-size: 11px;">{{ $loan->nik }}</small>
+                            @php
+                                $empName = $loan->karyawan->nama_karyawan ?? $loan->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($loan->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($loan->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 13px;">{{ $empName }}</div>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $loan->nik }}
+                                    </span>
+                                </div>
+                            </div>
                         </td>
                         <td class="text-end font-mono fw-bold text-dark" style="font-size: 13px;">
                             Rp {{ number_format($loan->loan_amount, 0, ',', '.') }}
@@ -173,26 +202,26 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="d-inline-flex gap-1.5 align-items-center">
-                                <a href="{{ route('loan.show', $loan->id) }}" class="btn btn-sm btn-outline-secondary" style="padding: 4px 8px;" title="Lihat Jadwal Angsuran">
-                                    <i class="ti ti-eye fs-6"></i>
+                                <a href="{{ route('loan.show', $loan->id) }}" class="btnShow btn-action-tbl" title="Lihat Jadwal Angsuran">
+                                    <i class="ti ti-eye"></i>
                                 </a>
                                 @if($loan->status === 'PENDING')
                                     @can('loan.approve')
-                                        <form action="{{ route('loan.approve', $loan->id) }}" method="POST" class="d-inline form-confirm" data-title="Setujui Kasbon" data-message="Setujui pengajuan kasbon ini dan terbitkan jadwal angsuran?">
+                                        <form action="{{ route('loan.approve', $loan->id) }}" method="POST" class="d-inline form-confirm m-0 p-0" data-title="Setujui Kasbon" data-message="Setujui pengajuan kasbon ini dan terbitkan jadwal angsuran?">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-success" style="padding: 4px 8px;" title="Setujui Pinjaman">
-                                                <i class="ti ti-check fs-6"></i>
+                                            <button type="submit" class="btnApprove btn-action-tbl" title="Setujui Pinjaman">
+                                                <i class="ti ti-check"></i>
                                             </button>
                                         </form>
                                     @endcan
                                 @endif
                                 @can('loan.delete')
                                     @if(in_array($loan->status, ['PENDING', 'REJECTED']))
-                                        <form action="{{ route('loan.destroy', $loan->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('loan.destroy', $loan->id) }}" method="POST" class="d-inline m-0 p-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-link text-muted p-1 delete-confirm" data-label="Pengajuan Kasbon" title="Hapus">
-                                                <i class="ti ti-trash fs-6"></i>
+                                            <button type="submit" class="delete-confirm btn-action-tbl btn-action-delete" data-label="Pengajuan Kasbon" title="Hapus">
+                                                <i class="ti ti-trash"></i>
                                             </button>
                                         </form>
                                     @endif

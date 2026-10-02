@@ -20,7 +20,7 @@
 
         <!-- Ultra-minimalist 2px line track -->
         <div class="global-loading-track">
-            <div class="global-loading-indicator" style="background: linear-gradient(90deg, transparent, {{ $primaryColor }}, transparent);"></div>
+            <div class="global-loading-indicator" style="background: linear-gradient(90deg, transparent, var(--color-primary, {{ $primaryColor }}), var(--theme-color-2, {{ $secondaryColor }}), transparent);"></div>
         </div>
 
         <div id="global-loading-text" class="global-loading-message">Memproses...</div>
@@ -28,7 +28,7 @@
 </div>
 
 <style>
-    /* Full Pure White Screen (Zero Card, Zero Shadow, Zero Blur - 100% Lightweight) */
+    /* Full Responsive Screen with Theme Canvas */
     .global-loading-screen {
         position: fixed;
         inset: 0;
@@ -36,7 +36,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #ffffff;
+        background: var(--theme-canvas, #FAF9F8);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -74,7 +74,7 @@
         font-family: 'Outfit', sans-serif;
         font-weight: 700;
         font-size: 32px;
-        color: {{ $primaryColor }};
+        color: var(--color-primary, {{ $primaryColor }});
         line-height: 1;
         animation: none !important;
         transform: none !important;
@@ -85,7 +85,7 @@
         font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
         font-size: 15px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--theme-text-primary, #1A1C1C);
         letter-spacing: -0.01em;
         text-align: center;
         max-width: 260px;
@@ -94,11 +94,11 @@
         text-overflow: ellipsis;
     }
 
-    /* Minimal Hairline Line Indicator */
+    /* Minimal Hairline Line Indicator with Theme Background */
     .global-loading-track {
         width: 120px;
         height: 2.5px;
-        background: #f1f5f9;
+        background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.12));
         border-radius: 999px;
         overflow: hidden;
         position: relative;
@@ -125,7 +125,7 @@
         font-family: 'Inter', sans-serif;
         font-size: 13px;
         font-weight: 500;
-        color: #64748b;
+        color: var(--theme-color-2, {{ $secondaryColor }});
         letter-spacing: 0.01em;
         text-align: center;
     }
@@ -142,8 +142,8 @@
         let safetyTimeout = null;
 
         /**
-         * Show Global Action Loading Overlay
-         * @param {string} message Text to display (e.g. 'Menyimpan data...', 'Memproses...')
+         * Show Global Action Loading Overlay (for explicit heavy operations: export, backup, etc.)
+         * @param {string} message Text to display (e.g. 'Mengekspor data...', 'Memproses...')
          */
         window.showGlobalLoading = function (message) {
             const overlay = document.getElementById('global-action-loading');
@@ -162,7 +162,7 @@
 
             window.isGlobalLoadingActive = true;
 
-            // Failsafe auto-timeout: 20 seconds maximum to guarantee UI is never permanently stuck
+            // Failsafe auto-timeout: 20 seconds maximum
             if (safetyTimeout) clearTimeout(safetyTimeout);
             safetyTimeout = setTimeout(function () {
                 window.hideGlobalLoading();
@@ -185,63 +185,162 @@
             }
         };
 
-        // Hide overlay on browser back/forward cache navigation
+        /**
+         * Universal Request-State Button System (Inline feedback, zero layout shift)
+         */
+        window.setButtonSubmitting = function (btn, message) {
+            if (!btn || btn._isSubmitting) return;
+
+            btn._isSubmitting = true;
+            btn.classList.add('btn-processing', 'is-submitting-btn');
+
+            // Store original width and HTML to prevent layout jump
+            const rect = btn.getBoundingClientRect();
+            if (rect.width > 0 && !btn.dataset.originalWidth) {
+                btn.dataset.originalWidth = rect.width + 'px';
+                btn.style.minWidth = rect.width + 'px';
+            }
+
+            if (btn.tagName === 'INPUT') {
+                if (!btn.dataset.originalVal) btn.dataset.originalVal = btn.value;
+                btn.value = message || 'Memproses...';
+            } else {
+                if (!btn.dataset.originalHtml) btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = `<span class="btn-spinner" role="status" aria-hidden="true"></span><span>${message || 'Memproses...'}</span>`;
+            }
+
+            btn.disabled = true;
+
+            // Safety timeout to restore button if form submit halts (12s failsafe)
+            setTimeout(function() {
+                if (btn._isSubmitting) {
+                    window.resetButtonState(btn);
+                }
+            }, 12000);
+        };
+
+        window.resetButtonState = function (btnOrForm) {
+            if (!btnOrForm) return;
+
+            let btns = [];
+            if (btnOrForm.tagName === 'FORM') {
+                btns = Array.from(btnOrForm.querySelectorAll('.btn-processing, .is-submitting-btn, [data-original-html], [data-original-val]'));
+            } else if (btnOrForm.classList) {
+                btns = [btnOrForm];
+            }
+
+            btns.forEach(function (btn) {
+                btn._isSubmitting = false;
+                btn.classList.remove('btn-processing', 'is-submitting-btn');
+                btn.disabled = false;
+
+                if (btn.dataset.originalWidth) {
+                    btn.style.minWidth = '';
+                    delete btn.dataset.originalWidth;
+                }
+
+                if (btn.tagName === 'INPUT' && btn.dataset.originalVal) {
+                    btn.value = btn.dataset.originalVal;
+                    delete btn.dataset.originalVal;
+                } else if (btn.dataset.originalHtml) {
+                    btn.innerHTML = btn.dataset.originalHtml;
+                    delete btn.dataset.originalHtml;
+                }
+            });
+        };
+
+        // Auto-restore on back/forward cache navigation
         window.addEventListener('pageshow', function () {
             window.hideGlobalLoading();
+            document.querySelectorAll('.btn-processing, .is-submitting-btn').forEach(function (btn) {
+                window.resetButtonState(btn);
+            });
         });
 
-        // 1. Universal Form Submit Interception (POST, PUT, DELETE, PATCH, uploads, auth)
+        function resolveActionMessage(form) {
+            let msg = form.getAttribute('data-loading-text') || form.getAttribute('data-loading-msg');
+            if (msg) return msg;
+
+            const action = (form.getAttribute('action') || '').toLowerCase();
+            const methodField = (form.querySelector('input[name="_method"]')?.value || '').toUpperCase();
+
+            if (action.includes('/login') || action.includes('login')) {
+                return 'Memproses...';
+            } else if (action.includes('/logout') || action.includes('logout')) {
+                return 'Keluar...';
+            } else if (action.includes('/calculate') || action.includes('kalkulasi') || action.includes('hitung')) {
+                return 'Menghitung...';
+            } else if (action.includes('/finalize') || action.includes('finalisasi') || action.includes('kunci')) {
+                return 'Mengunci...';
+            } else if (action.includes('/reopen')) {
+                return 'Membuka Revisi...';
+            } else if (methodField === 'DELETE' || action.includes('/delete') || action.includes('/hapus')) {
+                return 'Menghapus...';
+            } else if (action.includes('/approve') || action.includes('approve')) {
+                return 'Menyetujui...';
+            } else if (action.includes('/reject') || action.includes('reject') || action.includes('/tolak')) {
+                return 'Menolak...';
+            } else if (form.querySelector('input[type="file"]') && form.querySelector('input[type="file"]').files?.length > 0) {
+                return 'Mengunggah...';
+            } else if (action.includes('/update') || methodField === 'PUT' || methodField === 'PATCH') {
+                return 'Memperbarui...';
+            }
+            return 'Menyimpan...';
+        }
+
+        // Track last clicked submit button within form
+        let activeSubmitter = null;
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('button[type="submit"], input[type="submit"], button:not([type]), .btn-submit');
+            if (btn && btn.closest('form')) {
+                activeSubmitter = btn;
+            }
+        }, true);
+
+        // 1. Universal Form Submit Interception (Inline Request-State feedback)
         document.addEventListener('submit', function (e) {
             if (e.defaultPrevented) return;
             const form = e.target;
             if (!form || form.nodeName !== 'FORM') return;
 
-            // DO NOT trigger on GET forms (search filters, pagination, etc. are normal navigations)
+            // DO NOT trigger on GET forms (search filters, pagination, etc.)
             const method = (form.getAttribute('method') || 'GET').toUpperCase();
             if (method === 'GET' && !form.hasAttribute('data-loading')) return;
 
             // Allow forms to opt-out explicitly
             if (form.hasAttribute('data-no-loading') || form.classList.contains('no-loading')) return;
 
-            // Do not show if HTML5 validation fails
+            // Do not intercept if HTML5 validation fails
             if (typeof form.checkValidity === 'function' && !form.checkValidity()) return;
 
-            // Anti double-submit guard
-            if (window.isGlobalLoadingActive) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-            }
+            const msg = resolveActionMessage(form);
 
-            // Determine appropriate action message
-            let msg = form.getAttribute('data-loading-text') || form.getAttribute('data-loading-msg');
-            if (!msg) {
-                const action = (form.getAttribute('action') || '').toLowerCase();
-                const methodField = (form.querySelector('input[name="_method"]')?.value || '').toUpperCase();
-
-                if (action.includes('/login') || action.includes('login')) {
-                    msg = 'Memproses autentikasi...';
-                } else if (action.includes('/logout') || action.includes('logout')) {
-                    msg = 'Memproses logout...';
-                } else if (methodField === 'DELETE' || action.includes('/delete') || action.includes('/hapus')) {
-                    msg = 'Menghapus data...';
-                } else if (action.includes('/approve') || action.includes('approve')) {
-                    msg = 'Menyetujui pengajuan...';
-                } else if (action.includes('/reject') || action.includes('reject') || action.includes('/tolak')) {
-                    msg = 'Menolak pengajuan...';
-                } else if (form.querySelector('input[type="file"]') && form.querySelector('input[type="file"]').files?.length > 0) {
-                    msg = 'Mengunggah berkas...';
-                } else if (action.includes('/update') || methodField === 'PUT' || methodField === 'PATCH') {
-                    msg = 'Memperbarui data...';
-                } else {
-                    msg = 'Menyimpan data...';
+            // If explicitly marked for full-screen global loading (e.g. database backup or export)
+            if (form.hasAttribute('data-global-loading') || form.classList.contains('global-loading')) {
+                if (window.isGlobalLoadingActive) {
+                    e.preventDefault();
+                    return false;
                 }
+                window.showGlobalLoading(msg);
+                return;
             }
 
-            window.showGlobalLoading(msg);
+            // Normal Request: Use inline Request-State Button
+            const submitBtn = (activeSubmitter && form.contains(activeSubmitter))
+                ? activeSubmitter
+                : form.querySelector('button[type="submit"], input[type="submit"], .btn-submit, button.btn-primary');
+
+            if (submitBtn) {
+                if (submitBtn._isSubmitting) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                window.setButtonSubmitting(submitBtn, msg);
+            }
         }, false);
 
-        // 2. Intercept programmatic form.submit() calls (e.g. from SweetAlert confirm handlers)
+        // 2. Programmatic form.submit() interception (e.g. from SweetAlert confirm)
         if (typeof HTMLFormElement !== 'undefined' && HTMLFormElement.prototype) {
             const origSubmit = HTMLFormElement.prototype.submit;
             HTMLFormElement.prototype.submit = function () {
@@ -249,50 +348,39 @@
                 const method = (form.getAttribute('method') || 'GET').toUpperCase();
 
                 if (method !== 'GET' && !form.hasAttribute('data-no-loading') && !form.classList.contains('no-loading')) {
-                    if (window.isGlobalLoadingActive) return; // Anti double submit
-
-                    let msg = form.getAttribute('data-loading-text');
-                    if (!msg) {
-                        const action = (form.getAttribute('action') || '').toLowerCase();
-                        if (action.includes('/login')) msg = 'Memproses autentikasi...';
-                        else if (action.includes('/logout')) msg = 'Memproses logout...';
-                        else if (action.includes('/delete') || action.includes('hapus')) msg = 'Menghapus data...';
-                        else if (action.includes('/approve')) msg = 'Menyetujui pengajuan...';
-                        else if (action.includes('/reject') || action.includes('tolak')) msg = 'Menolak pengajuan...';
-                        else msg = 'Memproses...';
+                    const msg = resolveActionMessage(form);
+                    if (form.hasAttribute('data-global-loading') || form.classList.contains('global-loading')) {
+                        if (!window.isGlobalLoadingActive) window.showGlobalLoading(msg);
+                    } else {
+                        const submitBtn = form.querySelector('button[type="submit"], input[type="submit"], .btn-submit, button.btn-primary');
+                        if (submitBtn) window.setButtonSubmitting(submitBtn, msg);
                     }
-                    window.showGlobalLoading(msg);
                 }
                 return origSubmit.apply(this, arguments);
             };
         }
 
-        // 3. jQuery AJAX Global Hooks (for AJAX requests requesting loading or with showLoading: true)
+        // 3. jQuery AJAX Global Hooks (Only trigger global loading if explicitly asked)
         if (window.jQuery) {
             $(document).ajaxSend(function (event, jqXHR, ajaxOptions) {
-                if (ajaxOptions.showLoading === true || ajaxOptions.globalLoading === true) {
+                if (ajaxOptions.globalLoading === true) {
                     window.showGlobalLoading(ajaxOptions.loadingText || 'Memproses permintaan...');
                 }
             });
             $(document).ajaxComplete(function (event, jqXHR, ajaxOptions) {
-                if (ajaxOptions.showLoading === true || ajaxOptions.globalLoading === true) {
+                if (ajaxOptions.globalLoading === true) {
                     window.hideGlobalLoading();
                 }
             });
             $(document).ajaxError(function (event, jqXHR, ajaxOptions) {
-                if (ajaxOptions.showLoading === true || ajaxOptions.globalLoading === true) {
+                if (ajaxOptions.globalLoading === true) {
                     window.hideGlobalLoading();
                 }
+                // Auto-restore any submitting buttons in document if AJAX errored
+                document.querySelectorAll('.btn-processing, .is-submitting-btn').forEach(function (btn) {
+                    window.resetButtonState(btn);
+                });
             });
         }
-
-        // 4. Manual elements with data-loading="true"
-        document.addEventListener('click', function (e) {
-            const el = e.target.closest('[data-loading="true"]');
-            if (el && !el.closest('form')) {
-                const msg = el.getAttribute('data-loading-text') || 'Memproses...';
-                window.showGlobalLoading(msg);
-            }
-        });
     })();
 </script>

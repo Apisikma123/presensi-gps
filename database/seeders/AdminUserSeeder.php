@@ -46,18 +46,18 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        // Default Coffee Shop Departments (max 3 chars)
-        Departemen::firstOrCreate(['kode_dept' => 'BAR'], ['nama_dept' => 'Bar & Beverage']);
-        Departemen::firstOrCreate(['kode_dept' => 'KIT'], ['nama_dept' => 'Kitchen & Pastry']);
-        Departemen::firstOrCreate(['kode_dept' => 'SRV'], ['nama_dept' => 'Service & Cashier']);
-        Departemen::firstOrCreate(['kode_dept' => 'MGT'], ['nama_dept' => 'Store Management']);
+        // Default Departments (max 3 chars)
+        Departemen::firstOrCreate(['kode_dept' => 'BAR'], ['nama_dept' => 'Operasional Lapangan']);
+        Departemen::firstOrCreate(['kode_dept' => 'KIT'], ['nama_dept' => 'Logistik & Teknis']);
+        Departemen::firstOrCreate(['kode_dept' => 'SRV'], ['nama_dept' => 'Pelayanan & Administrasi']);
+        Departemen::firstOrCreate(['kode_dept' => 'MGT'], ['nama_dept' => 'Manajemen Operasional']);
 
-        // Default Coffee Shop Positions (Jabatan max 3 chars)
-        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'MGR'], ['nama_jabatan' => 'Store Manager']);
-        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'HBD'], ['nama_jabatan' => 'Head Barista']);
-        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'BAR'], ['nama_jabatan' => 'Barista']);
-        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'KAS'], ['nama_jabatan' => 'Cashier']);
-        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'KIT'], ['nama_jabatan' => 'Kitchen Crew']);
+        // Default Positions (Jabatan max 3 chars)
+        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'MGR'], ['nama_jabatan' => 'Manager']);
+        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'HBD'], ['nama_jabatan' => 'Team Leader']);
+        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'BAR'], ['nama_jabatan' => 'Staff Operasional']);
+        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'KAS'], ['nama_jabatan' => 'Staff Keuangan']);
+        \App\Models\Jabatan::firstOrCreate(['kode_jabatan' => 'KIT'], ['nama_jabatan' => 'Staff Teknis']);
 
         // Default Coffee Shop Work Shifts (Jam Kerja)
         \App\Models\Jamkerja::firstOrCreate(
@@ -92,15 +92,29 @@ class AdminUserSeeder extends Seeder
         $allCabangs = Cabang::pluck('kode_cabang')->toArray();
         $allDepartemens = Departemen::pluck('kode_dept')->toArray();
 
+        // Secure password resolution: prevent default weak passwords in production
+        $defaultAdminPassword = app()->environment('production')
+            ? (env('SEED_ADMIN_PASSWORD') ?: throw new \RuntimeException('SEED_ADMIN_PASSWORD must be explicitly set when running seeder in production.'))
+            : 'admin123';
+        $defaultManagerPassword = app()->environment('production')
+            ? (env('SEED_MANAGER_PASSWORD') ?: throw new \RuntimeException('SEED_MANAGER_PASSWORD must be explicitly set when running seeder in production.'))
+            : 'manager123';
+        $defaultBaristaPassword = app()->environment('production')
+            ? (env('SEED_BARISTA_PASSWORD') ?: throw new \RuntimeException('SEED_BARISTA_PASSWORD must be explicitly set when running seeder in production.'))
+            : 'barista123';
+        $defaultKasirPassword = app()->environment('production')
+            ? (env('SEED_KASIR_PASSWORD') ?: throw new \RuntimeException('SEED_KASIR_PASSWORD must be explicitly set when running seeder in production.'))
+            : 'kasir123';
+
         // ==========================================
-        // 1. SUPER ADMIN ACCOUNT (admin / admin123)
+        // 1. SUPER ADMIN ACCOUNT
         // ==========================================
         $adminUser = User::updateOrCreate(
             ['username' => 'admin'],
             [
                 'name' => 'Super Administrator',
                 'email' => 'admin@coffeeshop.com',
-                'password' => Hash::make('admin123'),
+                'password' => Hash::make($defaultAdminPassword),
             ]
         );
         if (!$adminUser->hasRole('super admin')) {
@@ -110,7 +124,7 @@ class AdminUserSeeder extends Seeder
         $adminUser->departemens()->sync($allDepartemens);
 
         // ==========================================
-        // 2. STORE MANAGER ACCOUNT (manager / manager123)
+        // 2. STORE MANAGER ACCOUNT
         // ==========================================
         $roleAdmin = Role::where('name', 'admin')->first();
         $managerUser = User::updateOrCreate(
@@ -118,7 +132,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Store Manager Outlet',
                 'email' => 'manager@coffeeshop.com',
-                'password' => Hash::make('manager123'),
+                'password' => Hash::make($defaultManagerPassword),
             ]
         );
         if (!$managerUser->hasRole('admin')) {
@@ -152,7 +166,7 @@ class AdminUserSeeder extends Seeder
                 'status_karyawan' => 'T',
                 'status_aktif_karyawan' => '1',
                 'lock_location' => '1',
-                'password' => Hash::make('barista123'),
+                'password' => Hash::make($defaultBaristaPassword),
             ]
         );
 
@@ -161,7 +175,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Budi Barista',
                 'email' => 'barista@coffeeshop.com',
-                'password' => Hash::make('barista123'),
+                'password' => Hash::make($defaultBaristaPassword),
             ]
         );
         if (!$baristaUser->hasRole('karyawan')) {
@@ -176,7 +190,7 @@ class AdminUserSeeder extends Seeder
         );
 
         // ==========================================
-        // 4. KASIR ACCOUNT (kasir / kasir123)
+        // 4. KASIR ACCOUNT
         // ==========================================
         \App\Models\Karyawan::updateOrCreate(
             ['nik' => '250100002'],
@@ -198,7 +212,7 @@ class AdminUserSeeder extends Seeder
                 'status_karyawan' => 'T',
                 'status_aktif_karyawan' => '1',
                 'lock_location' => '1',
-                'password' => Hash::make('kasir123'),
+                'password' => Hash::make($defaultKasirPassword),
             ]
         );
 
@@ -207,7 +221,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Siti Kasir',
                 'email' => 'kasir@coffeeshop.com',
-                'password' => Hash::make('kasir123'),
+                'password' => Hash::make($defaultKasirPassword),
             ]
         );
         if (!$kasirUser->hasRole('karyawan')) {

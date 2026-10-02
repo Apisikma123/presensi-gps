@@ -22,7 +22,7 @@ class GeneralsettingController extends Controller
         $data['global_jamkerja'] = GlobalJamkerja::all()->keyBy('hari');
         $data['jamkerja_list'] = Jamkerja::orderBy('jam_masuk')->get();
         $data['karyawan_menus'] = KaryawanMenuSetting::orderBy('id')->get();
-        return view('generalsettings.index', $data);
+        return redirect()->route('settings.hub', ['tab' => 'server']);
     }
 
     public function update(Request $request, $id)
@@ -38,9 +38,6 @@ class GeneralsettingController extends Controller
             'periode_laporan_dari' => 'required',
             'periode_laporan_sampai' => 'required',
             'domain_email' => 'nullable|string',
-            'provider_wa' => 'nullable|string',
-            'tujuan_notifikasi_wa' => 'nullable|string',
-            'id_group_wa' => 'nullable|string|max:255',
             'timezone' => 'required|string|max:50',
             'nama_hrd' => 'nullable|string',
             'theme_color_1' => 'nullable|string|max:20',
@@ -81,8 +78,6 @@ class GeneralsettingController extends Controller
                 'multi_lokasi' => $request->has('multi_lokasi') ? true : false,
                 'batas_jam_absen' => $request->batas_jam_absen,
                 'batas_jam_absen_pulang' => $request->batas_jam_absen_pulang,
-                'cloud_id' => $request->cloud_id ?? $setting->cloud_id ?? '',
-                'api_key' => $request->api_key ?? $setting->api_key ?? '',
                 'domain_email' => $request->domain_email ?? $setting->domain_email ?? 'gmail.com',
                 'batasi_hari_izin' => $request->has('batasi_hari_izin') ? true : false,
                 'jml_hari_izin_max' => $request->jml_hari_izin_max,
@@ -188,10 +183,10 @@ class GeneralsettingController extends Controller
             \Illuminate\Support\Facades\Cache::forget('app_expiration_setting');
             
             DB::commit();
-            return Redirect::back()->with(messageSuccess('Data Berhasil Disimpan. Perubahan timezone telah diterapkan.'));
+            return redirect()->route('settings.hub', ['tab' => 'server'])->with(messageSuccess('Data Berhasil Disimpan. Perubahan timezone telah diterapkan.'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return Redirect::back()->with(messageError($e->getMessage()));
+            return redirect()->route('settings.hub', ['tab' => 'server'])->with(messageError($e->getMessage()));
         }
     }
 

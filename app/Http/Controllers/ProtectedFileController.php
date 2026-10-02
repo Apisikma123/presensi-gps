@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmployeeDocument;
 use App\Models\Facerecognition;
 use App\Models\Izinsakit;
 use App\Models\Karyawan;
@@ -218,6 +219,12 @@ class ProtectedFileController extends Controller
     {
         /** @var User|null $user */
         $user = auth()->user();
+        if (!$user && request()->filled('token')) {
+            $personalToken = \Laravel\Sanctum\PersonalAccessToken::findToken(request()->query('token'));
+            if ($personalToken) {
+                $user = $personalToken->tokenable;
+            }
+        }
         if (!$user) {
             abort(401, 'Unauthenticated.');
         }
@@ -232,25 +239,29 @@ class ProtectedFileController extends Controller
             ->orWhere('foto_out', $safeFilename)
             ->first();
 
+        // Extract target NIK from presensi record or filename prefix
+        $targetNik = $presensi?->nik;
+        if (!$targetNik && preg_match('/^([A-Za-z0-9_-]+)-\d{4}-\d{2}-\d{2}-(in|out)/', $safeFilename, $matches)) {
+            $targetNik = $matches[1];
+        }
+
         $isAuthorized = false;
         if ($user->isSuperAdmin()) {
             $isAuthorized = true;
-        } elseif ($presensi) {
+        } elseif ($targetNik) {
             if ($user->hasRole('karyawan')) {
                 $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
-                if ($userkaryawan && $userkaryawan->nik === $presensi->nik) {
+                if ($userkaryawan && $userkaryawan->nik === $targetNik) {
                     $isAuthorized = true;
                 }
             } elseif ($user->can('presensi.index') || $user->can('trackingpresensi.index')) {
                 $userCabangs = $user->getCabangCodes();
-                $karyawan = Karyawan::where('nik', $presensi->nik)->first();
-                $branch = !empty($presensi->kode_cabang) ? $presensi->kode_cabang : ($karyawan->kode_cabang ?? null);
+                $karyawan = Karyawan::where('nik', $targetNik)->first();
+                $branch = !empty($presensi?->kode_cabang) ? $presensi->kode_cabang : ($karyawan->kode_cabang ?? null);
                 if (empty($userCabangs) || in_array($branch, $userCabangs) || ($karyawan && in_array($karyawan->kode_cabang, $userCabangs))) {
                     $isAuthorized = true;
                 }
             }
-        } elseif (!$user->hasRole('karyawan') && $user->can('presensi.index')) {
-            $isAuthorized = true;
         }
 
         if (!$isAuthorized) {
@@ -315,5 +326,82 @@ class ProtectedFileController extends Controller
         }
 
         abort(404, 'Berkas foto presensi tidak ditemukan.');
+    }
+
+    /**
+     * Download or stream sensitive employee identity documents with strict authorization.
+     *
+     * @param int $id
+     * @return BinaryFileResponse
+     */
+    public function downloadDocument(int $id): BinaryFileResponse
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+        if (!$user && request()->filled('token')) {
+            $personalToken = \Laravel\Sanctum\PersonalAccessToken::findToken(request()->query('token'));
+            if ($personalToken) {
+                $user = $personalToken->tokenable;
+            }
+        }
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $document = EmployeeDocument::findOrFail($id);
+
+        $isAuthorized = false;
+        if ($user->isSuperAdmin()) {
+            $isAuthorized = true;
+        } elseif ($user->hasRole('karyawan')) {
+            $userkaryawan = $user->userkaryawan ?? Userkaryawan::where('id_user', $user->id)->first();
+            $myNik = $userkaryawan?->nik ?? $user->nik;
+            if ($myNik && $document->nik === $myNik) {
+                $isAuthorized = true;
+            }
+        } elseif ($user->can('document.index') || $user->can('document.upload') || $user->can('karyawan.index')) {
+            $karyawan = $document->karyawan ?? Karyawan::where('nik', $document->nik)->first();
+            if ($karyawan) {
+                $userCabangs = $user->getCabangCodes();
+                $userDepartemens = $user->getDepartemenCodes();
+                $cabangAllowed = empty($userCabangs) || in_array($karyawan->kode_cabang, $userCabangs);
+                $deptAllowed = empty($userDepartemens) || in_array($karyawan->kode_dept, $userDepartemens);
+                if ($cabangAllowed && $deptAllowed) {
+                    $isAuthorized = true;
+                }
+            } else {
+                $isAuthorized = true;
+            }
+        }
+
+        if (!$isAuthorized) {
+            abort(403, 'Akses ditolak. Anda tidak memiliki wewenang untuk mengakses dokumen ini.');
+        }
+
+        // Check private path first, then fallback to legacy public path
+        $privatePath = storage_path('app/private/' . $document->file_path);
+        $legacyPublicPath = storage_path('app/public/' . $document->file_path);
+        $legacyAppPath = storage_path('app/' . $document->file_path);
+
+        $resolvedPath = null;
+        if (file_exists($privatePath) && is_file($privatePath)) {
+            $resolvedPath = $privatePath;
+        } elseif (file_exists($legacyPublicPath) && is_file($legacyPublicPath)) {
+            $resolvedPath = $legacyPublicPath;
+        } elseif (file_exists($legacyAppPath) && is_file($legacyAppPath)) {
+            $resolvedPath = $legacyAppPath;
+        }
+
+        if (!$resolvedPath) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        $mime = mime_content_type($resolvedPath) ?: 'application/octet-stream';
+
+        return response()->file($resolvedPath, [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, no-cache, must-revalidate',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 }

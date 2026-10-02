@@ -4,7 +4,7 @@
 @section('header_left')
     <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
         onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
-        class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/15 text-white active:scale-90 transition-transform"
+        class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/15 text-white active:scale-[0.98] transition-transform duration-150"
         title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
@@ -257,14 +257,14 @@
             </div>
 
             <div class="menu-group divide-y divide-slate-100/90">
-                <a href="javascript:void(0)" onclick="openHelpDrawer('panduan_karyawan')" class="menu-row">
+                <a href="{{ route('panduan.index') }}" class="menu-row">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-amber-50 text-amber-700 border border-amber-100">
+                        <div class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl" style="background: var(--color-primary-soft, rgba(27,54,93,0.08)); color: var(--color-primary, #1B365D); border: 1px solid var(--theme-border, rgba(27,54,93,0.15));">
                             <ion-icon name="help-circle-outline" class="text-xl"></ion-icon>
                         </div>
                         <div class="flex flex-col min-w-0">
-                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Panduan Presensi Karyawan</h3>
-                            <span class="text-[11px] text-slate-500 truncate">Petunjuk shift, GPS, face ID, izin, cuti & kendala</span>
+                            <h3 class="text-[13px] font-bold text-slate-800 leading-snug truncate m-0">Pusat Bantuan & Panduan</h3>
+                            <span class="text-[11px] text-slate-500 truncate">Petunjuk absen, izin, shift & solusi kendala umum</span>
                         </div>
                     </div>
                     <ion-icon name="chevron-forward-outline" class="text-slate-300 text-base shrink-0 ml-2"></ion-icon>

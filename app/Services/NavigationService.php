@@ -286,16 +286,6 @@ class NavigationService
             ];
         }
 
-        if (module_enabled('asset') && $user->can('asset.index')) {
-            $items[] = [
-                'name' => 'Aset & Fasilitas',
-                'url' => route('asset.index'),
-                'icon' => 'ti-device-laptop',
-                'category' => 'Kinerja & Tata Kelola',
-                'desc' => 'Inventaris laptop, seragam, kendaraan, & fasilitas kerja',
-                'keywords' => 'aset fasilitas inventaris peminjaman laptop seragam alat kerja device handover barang kantor',
-            ];
-        }
 
         if (module_enabled('announcement') && $user->can('announcement.index')) {
             $items[] = [
@@ -610,17 +600,6 @@ class NavigationService
                 'category' => 'Keamanan & Audit',
                 'desc' => 'Rekaman aktivitas pengguna, riwayat perubahan data, & audit trail',
                 'keywords' => 'log audit jejak audit trail riwayat aktivitas keamanan user tracker security rekaman aksi',
-            ];
-        }
-
-        if ($user->can('presets.index')) {
-            $items[] = [
-                'name' => 'Matriks Preset Klien',
-                'url' => route('settings.presets.index'),
-                'icon' => 'ti-layout-grid',
-                'category' => 'Pengaturan Sistem',
-                'desc' => 'Beralih template preset bisnis (Cafe F&B, Office, Retail, Jasa, Remote)',
-                'keywords' => 'preset matriks template preset klien model bisnis cafe retail remote switch template',
             ];
         }
 

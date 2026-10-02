@@ -210,7 +210,7 @@
     <div class="d-flex align-items-stretch align-items-md-center justify-content-between flex-column flex-md-row gap-2 gap-md-3">
         <div class="d-flex align-items-center gap-2.5 gap-md-3" style="min-width: 0; max-width: 100%;">
             <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); width: 42px; height: 42px; border: 1px solid rgba(var(--color-primary-rgb, 60, 42, 33), 0.15);">
+                style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); width: 42px; height: 42px; border: 1px solid rgba(var(--color-primary-rgb, 26, 82, 118), 0.15);">
                 <i class="ti ti-layout-dashboard fs-3"></i>
             </div>
             <div style="min-width: 0; flex: 1;">
@@ -293,7 +293,7 @@
                 <div class="text-muted" style="font-size: 12px;">Permohonan Izin Absen, Sakit, Cuti, atau Dispensasi membutuhkan konfirmasi Admin.</div>
             </div>
         </div>
-        <a href="{{ route('izinabsen.index') }}" class="btn btn-sm btn-warning text-dark fw-bold d-inline-flex align-items-center gap-1">
+        <a href="{{ route('izinabsen.index') }}" class="btn btn-sm btn-primary fw-bold d-inline-flex align-items-center gap-1">
             <span>Buka Persetujuan</span>
             <i class="ti ti-arrow-right"></i>
         </a>
@@ -407,19 +407,19 @@
             </div>
         </div>
     @else
-        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('settings.presets.index') }}'" title="Klik untuk kelola modul & preset">
+        <div class="stat-card-priority" style="cursor: pointer;" onclick="window.location.href='{{ route('settings.package_info.index') }}'" title="Klik untuk lihat informasi paket lisensi">
             <div class="d-flex justify-content-between align-items-start gap-2">
                 <div style="min-width: 0;">
-                    <div class="stat-label text-truncate">Preset Modul</div>
-                    <h3 class="stat-value" style="color: var(--color-primary, #3C2A21); font-size: 1.6rem; margin-top: 4px;">AKTIF</h3>
+                    <div class="stat-label text-truncate">Paket Lisensi</div>
+                    <h3 class="stat-value" style="color: var(--color-primary, #1A5276); font-size: 1.6rem; margin-top: 4px;">AKTIF</h3>
                 </div>
-                <div class="stat-icon-wrapper" style="background: var(--color-primary-soft, #FAF9F8); color: var(--color-primary, #3C2A21);">
-                    <i class="ti ti-adjustments-alt"></i>
+                <div class="stat-icon-wrapper" style="background: var(--color-primary-soft, #F8FAFC); color: var(--color-primary, #1A5276);">
+                    <i class="ti ti-box"></i>
                 </div>
             </div>
             <div class="stat-subtext">
-                <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary, #3C2A21); flex-shrink: 0;"></span>
-                <span class="text-wrap">Konfigurasi fitur universal</span>
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary, #1A5276); flex-shrink: 0;"></span>
+                <span class="text-wrap">Informasi paket deployment</span>
             </div>
         </div>
     @endif
@@ -450,7 +450,7 @@
                 </div>
 
                 <div class="sub-metric-pill flex-shrink-0" style="cursor: pointer;" onclick="window.location.href='{{ route('izincuti.index') }}'" title="Klik untuk kelola daftar permohonan cuti">
-                    <div class="sub-metric-value" style="color: #755841;">{{ $cuti_hari_ini }}</div>
+                    <div class="sub-metric-value" style="color: var(--theme-color-2, #475569);">{{ $cuti_hari_ini }}</div>
                     <div class="sub-metric-label">Cuti</div>
                 </div>
             @endif
@@ -834,7 +834,7 @@
                             type: 'donut',
                             height: 280
                         },
-                        colors: ['#4A6741', '#D97706', '#0284C7', '#EA580C', '#755841', '#BA1A1A'],
+                        colors: ['#4A6741', '#D97706', '#0284C7', '#EA580C', '#475569', '#BA1A1A'],
                         dataLabels: { enabled: false },
                         legend: {
                             position: 'bottom',
@@ -944,7 +944,7 @@
                         stacked: true,
                         toolbar: { show: false }
                     },
-                    colors: ['#0284C7', '#EA580C', '#755841'],
+                    colors: ['#0284C7', '#EA580C', '#475569'],
                     plotOptions: {
                         bar: {
                             borderRadius: 3,

@@ -17,7 +17,16 @@ class EmployeeLoanController extends Controller
      */
     public function index(Request $request): View
     {
+        $user = auth()->user();
+        $isKaryawan = $user && $user->hasRole('karyawan');
+        $userKaryawan = $isKaryawan ? \App\Models\Userkaryawan::where('id_user', $user->id)->first() : null;
+        $employeeNik = $userKaryawan?->nik ?? $user?->nik;
+
         $query = EmployeeLoan::with(['karyawan.dpt', 'approver'])->latest();
+
+        if ($isKaryawan && $employeeNik) {
+            $query->where('nik', $employeeNik);
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -33,13 +42,37 @@ class EmployeeLoanController extends Controller
 
         $loans = $query->paginate(15)->withQueryString();
 
+        $statsQuery = EmployeeLoan::query();
+        if ($isKaryawan && $employeeNik) {
+            $statsQuery->where('nik', $employeeNik);
+        }
+
+        // Branch and department scoping for non-superadmin staff
+        if (!$isKaryawan && $user && !$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+
+            if (!empty($userCabangs)) {
+                $query->whereHas('karyawan', fn($q) => $q->whereIn('kode_cabang', $userCabangs));
+                $statsQuery->whereHas('karyawan', fn($q) => $q->whereIn('kode_cabang', $userCabangs));
+            }
+            if (!empty($userDepartemens)) {
+                $query->whereHas('karyawan', fn($q) => $q->whereIn('kode_dept', $userDepartemens));
+                $statsQuery->whereHas('karyawan', fn($q) => $q->whereIn('kode_dept', $userDepartemens));
+            }
+        }
+
         $stats = [
-            'total_loans' => EmployeeLoan::count(),
-            'active_loans' => EmployeeLoan::where('status', 'ACTIVE')->count(),
-            'total_disbursed' => (float) EmployeeLoan::whereIn('status', ['ACTIVE', 'PAID_OFF'])->sum('total_amount'),
-            'total_receivable' => (float) EmployeeLoan::where('status', 'ACTIVE')->sum('remaining_amount'),
-            'total_remaining' => (float) EmployeeLoan::where('status', 'ACTIVE')->sum('remaining_amount'),
+            'total_loans' => (clone $statsQuery)->count(),
+            'active_loans' => (clone $statsQuery)->where('status', 'ACTIVE')->count(),
+            'total_disbursed' => (float) (clone $statsQuery)->whereIn('status', ['ACTIVE', 'PAID_OFF'])->sum('total_amount'),
+            'total_receivable' => (float) (clone $statsQuery)->where('status', 'ACTIVE')->sum('remaining_amount'),
+            'total_remaining' => (float) (clone $statsQuery)->where('status', 'ACTIVE')->sum('remaining_amount'),
         ];
+
+        if ($isKaryawan) {
+            return view('keuangan.loan.index-mobile', compact('loans', 'stats'));
+        }
 
         return view('keuangan.loan.index', compact('loans', 'stats'));
     }
@@ -49,6 +82,13 @@ class EmployeeLoanController extends Controller
      */
     public function create(): View
     {
+        $user = auth()->user();
+        if ($user && $user->hasRole('karyawan')) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $currentKaryawan = $userKaryawan ? Karyawan::where('nik', $userKaryawan->nik)->first() : null;
+            return view('keuangan.loan.create-mobile', compact('currentKaryawan'));
+        }
+
         $employees = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
 
         return view('keuangan.loan.create', compact('employees'));
@@ -59,6 +99,16 @@ class EmployeeLoanController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = auth()->user();
+        $isKaryawan = $user && $user->hasRole('karyawan');
+        if ($isKaryawan) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $request->merge([
+                'nik' => $userKaryawan?->nik ?? $user->nik,
+                'interest_rate' => 0,
+            ]);
+        }
+
         $validated = $request->validate([
             'nik' => 'required|exists:karyawan,nik',
             'loan_amount' => 'required|numeric|min:50000',
@@ -70,6 +120,11 @@ class EmployeeLoanController extends Controller
 
         $loan = EmployeeLoanService::applyLoan($validated);
 
+        if ($isKaryawan) {
+            return redirect()->route('loan.index')
+                ->with('success', "Pengajuan kasbon {$loan->loan_number} berhasil dikirim dan menunggu persetujuan.");
+        }
+
         return redirect()->route('loan.show', $loan->id)
             ->with('success', "Pengajuan kasbon {$loan->loan_number} berhasil dicatat.");
     }
@@ -79,7 +134,14 @@ class EmployeeLoanController extends Controller
      */
     public function show(EmployeeLoan $loan): View
     {
+        $this->authorizeLoanAccess($loan, 'view');
+
         $loan->load(['karyawan.dpt', 'karyawan.jabatan', 'approver', 'installments']);
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('karyawan')) {
+            return view('keuangan.loan.show-mobile', compact('loan'));
+        }
 
         return view('keuangan.loan.show', compact('loan'));
     }
@@ -89,6 +151,16 @@ class EmployeeLoanController extends Controller
      */
     public function approve(EmployeeLoan $loan): RedirectResponse
     {
+        $this->authorizeLoanAccess($loan, 'approve');
+
+        // Anti-self-approval protection
+        $user = auth()->user();
+        $userKaryawan = $user ? \App\Models\Userkaryawan::where('id_user', $user->id)->first() : null;
+        $myNik = $userKaryawan?->nik ?? $user?->nik;
+        if ($myNik && $loan->nik === $myNik) {
+            return redirect()->back()->with('error', 'Anda tidak dapat menyetujui pengajuan kasbon milik Anda sendiri.');
+        }
+
         if ($loan->status !== 'PENDING') {
             return redirect()->back()->with('error', 'Hanya pengajuan dengan status Menunggu yang dapat disetujui.');
         }
@@ -103,6 +175,8 @@ class EmployeeLoanController extends Controller
      */
     public function repayInstallment(Request $request, EmployeeLoanInstallment $installment): RedirectResponse
     {
+        $this->authorizeLoanAccess($installment->loan, 'repay');
+
         if ($installment->status === 'PAID') {
             return redirect()->back()->with('error', 'Cicilan ini sudah lunas.');
         }
@@ -117,6 +191,8 @@ class EmployeeLoanController extends Controller
      */
     public function destroy(EmployeeLoan $loan): RedirectResponse
     {
+        $this->authorizeLoanAccess($loan, 'delete');
+
         if (in_array($loan->status, ['ACTIVE', 'PAID_OFF'])) {
             return redirect()->back()->with('error', 'Pinjaman yang sudah aktif berjalan atau lunas tidak dapat dihapus.');
         }
@@ -124,5 +200,46 @@ class EmployeeLoanController extends Controller
         $loan->delete();
 
         return redirect()->route('loan.index')->with('success', 'Pengajuan pinjaman berhasil dihapus.');
+    }
+
+    /**
+     * Authorize user access to a specific loan record
+     */
+    protected function authorizeLoanAccess(EmployeeLoan $loan, string $action = 'view'): void
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        if ($user->isSuperAdmin()) {
+            return;
+        }
+
+        // Employee access: strictly check ownership (NIK match)
+        if ($user->hasRole('karyawan')) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $employeeNik = $userKaryawan?->nik ?? $user->nik ?? null;
+
+            if (!$employeeNik || $loan->nik !== $employeeNik) {
+                abort(403, 'Akses ditolak. Anda hanya berhak melihat pengajuan kasbon milik Anda sendiri.');
+            }
+            return;
+        }
+
+        // Admin/Staff access: check branch and department scoping
+        $karyawan = $loan->karyawan ?? Karyawan::where('nik', $loan->nik)->first();
+        if ($karyawan) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+
+            if (!empty($userCabangs) && !in_array($karyawan->kode_cabang, $userCabangs)) {
+                abort(403, 'Akses ditolak. Karyawan berada di luar cabang wewenang Anda.');
+            }
+            if (!empty($userDepartemens) && !in_array($karyawan->kode_dept, $userDepartemens)) {
+                abort(403, 'Akses ditolak. Karyawan berada di luar departemen wewenang Anda.');
+            }
+        }
     }
 }

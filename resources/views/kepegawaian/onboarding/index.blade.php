@@ -122,9 +122,36 @@
                 @endphp
                 <tr>
                     <td>
-                        <div class="fw-bold text-dark">{{ $ob->karyawan->nama_karyawan ?? 'Karyawan' }}</div>
-                        <div class="text-muted small font-mono">
-                            NIK: {{ $ob->nik }} &bull; {{ $ob->karyawan->departemen->nama_dept ?? '-' }}
+                        @php
+                            $empName = $ob->karyawan->nama_karyawan ?? $ob->nik;
+                            $words = explode(' ', trim($empName));
+                            $initials = '';
+                            foreach ($words as $w) {
+                                if (isset($w[0])) $initials .= $w[0];
+                            }
+                            $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                        @endphp
+                        <div class="d-flex align-items-center gap-2.5">
+                            @if (!empty($ob->karyawan?->foto))
+                                <img src="{{ getfotoKaryawan($ob->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                    style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                    style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @else
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                    style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @endif
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 13px;">{{ $empName }}</div>
+                                <div class="text-muted font-mono" style="font-size: 11px;">
+                                    NIK: {{ $ob->nik }} &bull; {{ $ob->karyawan->departemen->nama_dept ?? '-' }}
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td>
@@ -150,8 +177,9 @@
                         {!! $ob->status_badge_html !!}
                     </td>
                     <td class="text-end">
-                        <a href="{{ route('onboarding.show', $ob->id) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                            <i class="ti ti-checklist"></i> Buka Checklist
+                        <a href="{{ route('onboarding.show', $ob->id) }}" class="btn-table-detail" title="Buka Checklist Onboarding">
+                            <i class="ti ti-checklist"></i>
+                            <span>Buka Checklist</span>
                         </a>
                     </td>
                 </tr>

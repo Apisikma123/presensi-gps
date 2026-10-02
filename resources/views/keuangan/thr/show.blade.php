@@ -26,14 +26,14 @@
             <span>Export CSV</span>
         </a>
         @if ($thr->status !== 'FINALIZED' && $thr->status !== 'PAID')
-            <form action="{{ route('thr.calculate', $thr->id) }}" method="POST" class="d-inline">
+            <form action="{{ route('thr.calculate', $thr->id) }}" method="POST" class="d-inline" data-loading-text="Menghitung nominal THR seluruh karyawan...">
                 @csrf
                 <button type="submit" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5">
                     <i class="ti ti-refresh"></i>
                     <span>Hitung Ulang</span>
                 </button>
             </form>
-            <form action="{{ route('thr.finalize', $thr->id) }}" method="POST" class="d-inline form-confirm" data-title="Finalisasi Event THR" data-message="Apakah Anda yakin ingin mem-finalisasi event THR ini? Data tidak dapat diubah setelah finalisasi.">
+            <form action="{{ route('thr.finalize', $thr->id) }}" method="POST" class="d-inline form-confirm" data-title="Finalisasi Event THR" data-message="Apakah Anda yakin ingin mem-finalisasi event THR ini? Data tidak dapat diubah setelah finalisasi." data-loading-text="Memfinalisasi event THR...">
                 @csrf
                 <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5">
                     <i class="ti ti-lock"></i>
@@ -117,10 +117,39 @@
             </thead>
             <tbody>
                 @forelse ($details as $detail)
+                    @php
+                        $empName = $detail->karyawan->nama_karyawan ?? $detail->nik;
+                        $words = explode(' ', trim($empName));
+                        $initials = '';
+                        foreach ($words as $wrd) {
+                            if (isset($wrd[0])) $initials .= $wrd[0];
+                        }
+                        $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                    @endphp
                     <tr>
                         <td class="ps-4">
-                            <span class="fw-bold text-dark d-block" style="font-size: 13px;">{{ $detail->karyawan->nama_karyawan ?? $detail->nik }}</span>
-                            <span class="text-muted font-mono" style="font-size: 11px;">{{ $detail->nik }}</span>
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($detail->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($detail->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="fw-semibold text-dark text-truncate" style="font-size: 13px; max-width: 170px;">{{ $empName }}</div>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $detail->nik }}
+                                    </span>
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <div class="text-dark" style="font-size: 12.5px;">{{ $detail->karyawan->cabang->nama_cabang ?? '-' }}</div>

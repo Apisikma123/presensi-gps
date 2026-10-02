@@ -152,7 +152,7 @@
                         </td>
                         <td>
                             @if ($d->kode_cabang === 'ALL')
-                                <span class="badge font-mono" style="background: rgba(60, 42, 33, 0.1); color: #3C2A21; border: 1px solid rgba(60, 42, 33, 0.2); font-size: 11px;">
+                                <span class="badge font-mono" style="background: rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1); color: var(--color-primary, #3C2A21); border: 1px solid rgba(var(--bs-primary-rgb, 60, 42, 33), 0.2); font-size: 11px;">
                                     <i class="ti ti-world me-1"></i> SEMUA CABANG (NASIONAL)
                                 </span>
                             @else

@@ -56,6 +56,19 @@ class ModuleEntitlementService
     ];
 
     /**
+     * Default Business Preset Map per Package
+     */
+    public static array $packageDefaultPresetMap = [
+        'FNB_SMALL' => 'A',
+        'FNB_STANDARD' => 'A',
+        'FNB_PRO' => 'A',
+        'RETAIL_SMALL' => 'C',
+        'OFFICE_STANDARD' => 'B',
+        'FULL_HR' => 'A',
+        'CUSTOM' => null,
+    ];
+
+    /**
      * Centralized Package Definitions
      */
     public static function getDefinedPackages(): array
@@ -246,7 +259,7 @@ class ModuleEntitlementService
                     return $pkg;
                 }
             }
-            return 'FULL_HR';
+            return config('presence_deployment.canonical_package', 'FULL_HR');
         });
     }
 
@@ -598,6 +611,10 @@ class ModuleEntitlementService
         $removed = array_values(array_diff($currentEntitled, $targetEntitled));
         $retained = array_values(array_intersect($currentEntitled, $targetEntitled));
 
+        $defaultEnabled = array_map([ModuleFeature::class, 'canonicalCode'], $targetPkg['default_enabled'] ?? []);
+        $allKnown = array_keys(ModuleFeature::all()->keyBy('module_code')->toArray());
+        $modulesDisabled = array_values(array_diff($allKnown, $defaultEnabled));
+
         return [
             'current_package' => $currentPkg['code'],
             'target_package' => $targetPkg['code'],
@@ -605,6 +622,9 @@ class ModuleEntitlementService
             'added_entitlements' => $added,
             'removed_entitlements' => $removed,
             'retained_entitlements' => $retained,
+            'modules_enabled_by_default' => $defaultEnabled,
+            'modules_disabled' => $modulesDisabled,
+            'default_preset' => self::$packageDefaultPresetMap[$newPackageCode] ?? 'None',
             'addons' => $targetAddons,
             'data_impact' => 'NONE (Semua data transaksi historis tetap 100% aman dan tersimpan utuh di database)',
             'requires_migration' => false,
@@ -668,13 +688,27 @@ class ModuleEntitlementService
                     'created_at' => now(),
                 ]);
             }
+
+            // 4. Automatically apply recommended business preset settings inside transaction
+            $defaultPreset = self::$packageDefaultPresetMap[$newPackageCode] ?? null;
+            if ($defaultPreset) {
+                app(\App\Services\ClientPresetService::class)->applyPresetSettings($defaultPreset);
+            }
+
+            // 5. Automatically lock deployment profile inside transaction
+            $this->setDeploymentLocked(true);
         });
 
-        // 4. Invalidate all caches
+        // 6. Invalidate strictly targeted caches (Never destroy entire app cache)
         $this->flushMemoryCache();
         Cache::forget('presence_active_package_code');
         Cache::forget('presence_active_addons');
+        Cache::forget('presence_deployment_locked');
+        Cache::forget('active_client_preset_code');
         ModuleFeature::flushCache();
+        if (class_exists(\App\Services\ThemeResolver::class)) {
+            \App\Services\ThemeResolver::forgetCache();
+        }
 
         return [
             'success' => true,

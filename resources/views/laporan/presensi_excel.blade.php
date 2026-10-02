@@ -1,7 +1,13 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $theme['primary'] ?? '#3C2A21';
+    $secondaryColor = $theme['secondary'] ?? '#25160E';
+    $primaryContrast = $theme['primary_contrast'] ?? '#FFFFFF';
+@endphp
 <table>
     <thead>
         <tr>
-            <th colspan="14" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #3C2A21; text-align: center;">
+            <th colspan="14" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: {{ $primaryColor }}; text-align: center;">
                 {{ strtoupper($generalsetting->nama_perusahaan ?? 'PERUSAHAAN') }}
             </th>
         </tr>
@@ -17,20 +23,20 @@
         </tr>
         <tr></tr>
         <tr>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">NIK</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Nama Karyawan</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Outlet / Cabang</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift Penugasan</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hadir Tepat</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Dispensasi</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Terlambat</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Izin</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Sakit</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Cuti</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Alfa</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #25160E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Total Hadir</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #25160E; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">% Hadir</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">NIK</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Nama Karyawan</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Outlet / Cabang</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift Penugasan</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hadir Tepat</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Dispensasi</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Terlambat</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Izin</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Sakit</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Cuti</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Alfa</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $secondaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Total Hadir</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $secondaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">% Hadir</th>
         </tr>
     </thead>
     <tbody>
@@ -139,7 +145,7 @@
                 $sumTotalHadir += $rowTotalHadir;
                 $grandExpected += $effectiveWorkDays;
 
-                $bg = ($loop->iteration % 2 == 0) ? '#F4F3F2' : '#FFFFFF';
+                $bg = ($loop->iteration % 2 == 0) ? '#F8FAFC' : '#FFFFFF';
             @endphp
             <tr style="background-color: {{ $bg }};">
                 <td style="border: 1px solid #CBD5E1; text-align: center; vertical-align: middle;">{{ $loop->iteration }}</td>
@@ -172,7 +178,7 @@
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #F1F5F9; text-align: center; vertical-align: middle;">{{ $sumSakit }}</td>
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #F1F5F9; text-align: center; vertical-align: middle;">{{ $sumCuti }}</td>
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #F1F5F9; text-align: center; vertical-align: middle; color: #DC2626;">{{ $sumAlfa }}</td>
-            <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #E2E8F0; text-align: center; vertical-align: middle; color: #3C2A21;">{{ $sumTotalHadir }}</td>
+            <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #E2E8F0; text-align: center; vertical-align: middle; color: {{ $primaryColor }};">{{ $sumTotalHadir }}</td>
             <td style="border: 1px solid #94A3B8; font-weight: bold; background-color: #E2E8F0; text-align: center; vertical-align: middle;">{{ $grandRate }}%</td>
         </tr>
         <tr></tr>

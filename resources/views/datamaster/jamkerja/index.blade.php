@@ -58,7 +58,7 @@
                 {{ number_format($jamkerja->total()) }} Total
             </span>
         </h4>
-        <p class="page-subtitle text-muted mb-0">Konfigurasi jam masuk, jam pulang & shift lintas hari outlet coffee.</p>
+        <p class="page-subtitle text-muted mb-0">Konfigurasi jam masuk, jam pulang, toleransi keterlambatan, dan shift kerja.</p>
     </div>
     <div class="header-action-group d-flex align-items-center gap-2 flex-wrap">
         @can('jamkerja.create')

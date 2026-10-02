@@ -20,13 +20,17 @@
         <p class="page-subtitle text-muted mb-0">Konfigurasi identitas perusahaan, legalitas, regional, dan branding universal untuk sistem HR.</p>
     </div>
     <div class="header-action-group d-flex align-items-center gap-2">
+        @module('attendance')
+        @can('attendance_policy.index')
+        <a href="{{ route('attendance_policy.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+            <i class="ti ti-map-pin" style="font-size: 16px;"></i>
+            <span>Kebijakan Presensi & GPS</span>
+        </a>
+        @endcan
+        @endmodule
         <a href="{{ route('module_features.index') }}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1.5" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
             <i class="ti ti-toggle-left" style="font-size: 16px;"></i>
             <span>Fitur & Modul</span>
-        </a>
-        <a href="{{ route('generalsetting.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
-            <i class="ti ti-settings" style="font-size: 16px;"></i>
-            <span>Pengaturan GPS</span>
         </a>
     </div>
 </div>
@@ -156,7 +160,7 @@
                     <!-- Universal Branding -->
                     <x-input-with-icon-label label="Nama Aplikasi (App Display Name) *" name="app_name" icon="ti ti-brand-appgallery" :value="$setting->app_name ?? 'Presence'" required="true" />
 
-                    <x-input-with-icon-label label="Tagline Aplikasi" name="app_tagline" icon="ti ti-badge" :value="$setting->app_tagline ?? 'Universal HR Management System'" />
+                    <x-input-with-icon-label label="Tagline Aplikasi" name="app_tagline" icon="ti ti-badge" :value="$setting->app_tagline ?? 'Sistem HRIS'" />
 
                     <div class="row mb-3">
                         <div class="col-6">

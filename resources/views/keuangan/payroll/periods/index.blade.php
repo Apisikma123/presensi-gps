@@ -89,7 +89,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-muted small fw-medium text-uppercase">Total THP Final</span>
                     <div class="rounded-2 d-flex align-items-center justify-content-center"
-                        style="width: 32px; height: 32px; background: rgba(74, 103, 65, 0.1); color: #4A6741;">
+                        style="width: 32px; height: 32px; background: #ECFDF5; color: #059669;">
                         <i class="ti ti-cash fs-6"></i>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-muted small fw-medium text-uppercase">Karyawan Terbayar</span>
                     <div class="rounded-2 d-flex align-items-center justify-content-center"
-                        style="width: 32px; height: 32px; background: rgba(115, 103, 240, 0.1); color: #7367f0;">
+                        style="width: 32px; height: 32px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary);">
                         <i class="ti ti-user-check fs-6"></i>
                     </div>
                 </div>
@@ -125,7 +125,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-muted small fw-medium text-uppercase">Menunggu Review</span>
                     <div class="rounded-2 d-flex align-items-center justify-content-center"
-                        style="width: 32px; height: 32px; background: rgba(255, 159, 67, 0.12); color: #ff9f43;">
+                        style="width: 32px; height: 32px; background: #FFFBEB; color: #D97706;">
                         <i class="ti ti-clock-pause fs-6"></i>
                     </div>
                 </div>
@@ -157,7 +157,7 @@
 {{-- Payroll Periods Table --}}
 <div class="table-karyawan-wrapper mb-3 w-100 max-w-full" style="border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0; background: #FFFFFF !important; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);">
     <div class="table-responsive w-100 max-w-full" style="overflow-x: auto;">
-        <table class="table table-hover align-middle w-100 mb-0">
+        <table class="table table-hover align-middle w-100 mb-0" style="min-width: 960px;">
             <thead>
                 <tr>
                     <th>PERIODE BULAN</th>
@@ -166,7 +166,7 @@
                     <th>KARYAWAN</th>
                     <th>TOTAL THP (NETTO)</th>
                     <th>STATUS</th>
-                    <th class="text-end" style="width: 160px;">AKSI</th>
+                    <th class="text-end" style="width: 160px; min-width: 160px; white-space: nowrap;">AKSI</th>
                 </tr>
             </thead>
             <tbody>
@@ -181,41 +181,48 @@
                             </div>
                         </td>
                         <td>
-                            <span class="font-mono text-muted" style="font-size: 12px;">
+                            <span class="font-mono text-muted" style="font-size: 12px; white-space: nowrap;">
                                 {{ $period->cutoff_start->format('d/m/Y') }} &ndash; {{ $period->cutoff_end->format('d/m/Y') }}
                             </span>
                         </td>
                         <td>
-                            <span class="fw-medium text-dark" style="font-size: 12.5px;">
+                            <span class="fw-medium text-dark" style="font-size: 12.5px; white-space: nowrap;">
                                 {{ $period->payment_date->translatedFormat('d F Y') }}
                             </span>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
+                            <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px; white-space: nowrap;">
                                 {{ $period->employee_count }} orang
                             </span>
                         </td>
                         <td>
-                            <span class="fw-bold font-mono text-success" style="font-size: 13.5px;">
+                            <span class="fw-bold font-mono text-success" style="font-size: 13.5px; white-space: nowrap;">
                                 Rp {{ number_format($period->total_net, 0, ',', '.') }}
                             </span>
                         </td>
                         <td>
                             {!! $period->status_badge_html !!}
                         </td>
-                        <td class="text-end">
-                            <div class="d-inline-flex align-items-center gap-1.5">
-                                <a href="{{ route('payroll.show', $period->id) }}" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" style="font-size: 12px;">
-                                    <i class="ti ti-calculator"></i>
-                                    <span>Proses</span>
-                                </a>
+                        <td class="text-end" style="width: 160px; min-width: 160px; white-space: nowrap;">
+                            <div class="d-inline-flex align-items-center justify-content-end gap-2" style="white-space: nowrap; flex-shrink: 0;">
+                                @if ($period->status === 'FINALIZED')
+                                    <a href="{{ route('payroll.show', $period->id) }}" class="btn-table-detail" title="Lihat Rincian Payroll">
+                                        <i class="ti ti-eye"></i>
+                                        <span>Detail</span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('payroll.show', $period->id) }}" class="btn-table-process" title="Hitung / Proses Payroll">
+                                        <i class="ti ti-calculator"></i>
+                                        <span>Proses</span>
+                                    </a>
+                                @endif
 
                                 @if ($period->status !== 'FINALIZED')
                                     @can('payroll.delete')
-                                        <form action="{{ route('payroll.delete', $period->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('payroll.delete', $period->id) }}" method="POST" class="d-inline m-0 p-0" style="flex-shrink: 0;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger delete-confirm" data-label="Periode Payroll {{ $period->formatted_period }}" title="Hapus" style="padding: 4px 8px;">
+                                            <button type="submit" class="btn-action-tbl btn-action-delete delete-confirm" data-label="Periode Payroll {{ $period->formatted_period }}" title="Hapus Periode Payroll">
                                                 <i class="ti ti-trash"></i>
                                             </button>
                                         </form>

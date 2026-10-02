@@ -45,21 +45,57 @@ class PayrollService
     }
 
     /**
-     * Calculate monthly payroll for all active employees and store snapshot
+     * Calculate monthly payroll for all active employees and store snapshot via batch upsert
      */
     public function calculatePeriod(PayrollPeriod $period): array
     {
         return DB::transaction(function () use ($period) {
             $employees = Karyawan::where('status_aktif_karyawan', '1')->get();
+            $niks = $employees->pluck('nik')->all();
+
+            // Batch pre-fetch salary assignments with active components (1 single query)
+            $allAssignments = !empty($niks) ? EmployeeSalaryAssignment::with('component')
+                ->whereIn('nik', $niks)
+                ->where('is_active', true)
+                ->get()
+                ->groupBy('nik') : collect();
+
+            // Batch pre-fetch approved overtime records within period (1 single query)
+            $allOvertimes = !empty($niks) ? Lembur::whereIn('nik', $niks)
+                ->whereBetween('tanggal', [$period->cutoff_start->toDateString(), $period->cutoff_end->toDateString()])
+                ->where('status', 'APPROVED')
+                ->get()
+                ->groupBy('nik') : collect();
+
             $totalEmployees = 0;
             $totalGross = 0;
             $totalNet = 0;
+            $batchRecords = [];
 
             foreach ($employees as $employee) {
-                $detail = $this->calculateEmployeePayroll($period, $employee);
+                $employeeAssignments = $allAssignments->get($employee->nik, collect());
+                $employeeOvertimes = $allOvertimes->get($employee->nik, collect());
+
+                $data = $this->computeEmployeePayrollData($period, $employee, $employeeAssignments, $employeeOvertimes);
                 $totalEmployees++;
-                $totalGross += $detail->gross_salary;
-                $totalNet += $detail->take_home_pay;
+                $totalGross += $data['gross_salary'];
+                $totalNet += $data['take_home_pay'];
+                unset($data['gross_salary']);
+                $batchRecords[] = $data;
+            }
+
+            // Batch upsert in chunks of 250 records (High-performance, minimal queries)
+            foreach (array_chunk($batchRecords, 250) as $chunk) {
+                PayrollDetail::upsert($chunk, ['payroll_period_id', 'nik'], [
+                    'basic_salary',
+                    'total_allowances',
+                    'total_overtime_pay',
+                    'total_deductions',
+                    'take_home_pay',
+                    'components_breakdown',
+                    'status',
+                    'updated_at',
+                ]);
             }
 
             $period->update([
@@ -76,12 +112,16 @@ class PayrollService
     }
 
     /**
-     * Calculate payroll for a single employee and persist snapshot
+     * Compute raw payroll calculation data in memory without DB write
      */
-    public function calculateEmployeePayroll(PayrollPeriod $period, Karyawan $employee): PayrollDetail
-    {
-        // 1. Fetch assigned salary components
-        $assignments = EmployeeSalaryAssignment::with('component')
+    public function computeEmployeePayrollData(
+        PayrollPeriod $period,
+        Karyawan $employee,
+        $preloadedAssignments = null,
+        $preloadedOvertime = null
+    ): array {
+        // 1. Fetch assigned salary components (use preloaded if available)
+        $assignments = $preloadedAssignments !== null ? $preloadedAssignments : EmployeeSalaryAssignment::with('component')
             ->where('nik', $employee->nik)
             ->where('is_active', true)
             ->get();
@@ -115,7 +155,7 @@ class PayrollService
         }
 
         // 2. Calculate approved overtime pay from lembur within cutoff dates
-        $overtimeRecords = Lembur::where('nik', $employee->nik)
+        $overtimeRecords = $preloadedOvertime !== null ? $preloadedOvertime : Lembur::where('nik', $employee->nik)
             ->whereBetween('tanggal', [$period->cutoff_start->toDateString(), $period->cutoff_end->toDateString()])
             ->where('status', 'APPROVED')
             ->get();
@@ -152,21 +192,42 @@ class PayrollService
             'calculated_at' => now()->toIso8601String(),
         ];
 
-        // 5. Update or create snapshot record
+        return [
+            'payroll_period_id' => $period->id,
+            'nik' => $employee->nik,
+            'basic_salary' => $basicSalary,
+            'total_allowances' => $totalAllowances,
+            'total_overtime_pay' => $overtimePay,
+            'total_deductions' => $totalDeductions,
+            'take_home_pay' => $takeHomePay,
+            'components_breakdown' => json_encode($breakdown),
+            'status' => 'DRAFT',
+            'created_at' => now(),
+            'updated_at' => now(),
+            'gross_salary' => $basicSalary + $totalAllowances + $overtimePay,
+        ];
+    }
+
+    /**
+     * Calculate payroll for a single employee and persist snapshot
+     */
+    public function calculateEmployeePayroll(
+        PayrollPeriod $period,
+        Karyawan $employee,
+        $preloadedAssignments = null,
+        $preloadedOvertime = null
+    ): PayrollDetail {
+        $data = $this->computeEmployeePayrollData($period, $employee, $preloadedAssignments, $preloadedOvertime);
+        unset($data['gross_salary']);
+        $data['components_breakdown'] = json_decode($data['components_breakdown'], true);
+
+        // Update or create snapshot record
         return PayrollDetail::updateOrCreate(
             [
                 'payroll_period_id' => $period->id,
                 'nik' => $employee->nik,
             ],
-            [
-                'basic_salary' => $basicSalary,
-                'total_allowances' => $totalAllowances,
-                'total_overtime_pay' => $overtimePay,
-                'total_deductions' => $totalDeductions,
-                'take_home_pay' => $takeHomePay,
-                'components_breakdown' => $breakdown,
-                'status' => 'DRAFT',
-            ]
+            $data
         );
     }
 

@@ -1,5 +1,5 @@
 <!-- Employee Identity Card (Brew & Beam Minimalist Architecture) -->
-<div class="card mb-3 shadow-none" style="background: #FAF9F8; border: 1px solid rgba(60, 42, 33, 0.08); border-radius: 14px;">
+<div class="card mb-3 shadow-none" style="background: #FAF9F8; border: 1px solid rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08); border-radius: 14px;">
     <div class="card-body p-3">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-3">

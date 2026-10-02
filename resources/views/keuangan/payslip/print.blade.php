@@ -1,3 +1,6 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -8,6 +11,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --theme-color-1: {{ $theme['primary'] ?? '#25160E' }};
+            --theme-color-2: {{ $theme['secondary'] ?? '#634832' }};
+            --theme-contrast: {{ $theme['primary_contrast'] ?? '#FFFFFF' }};
+        }
         * {
             box-sizing: border-box;
             margin: 0;
@@ -15,7 +23,7 @@
         }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #25160e;
+            color: var(--theme-color-1, #25160e);
             background: #fff;
             padding: 24px;
             font-size: 12px;
@@ -32,7 +40,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #25160e;
+            border-bottom: 2px solid var(--theme-color-1, #25160e);
             padding-bottom: 16px;
             margin-bottom: 20px;
         }
@@ -40,11 +48,11 @@
             font-family: 'Outfit', sans-serif;
             font-size: 20px;
             font-weight: 700;
-            color: #25160e;
+            color: var(--theme-color-1, #25160e);
         }
         .badge-payslip {
-            background: #25160e;
-            color: #fff;
+            background: var(--theme-color-1, #25160e);
+            color: var(--theme-contrast, #fff);
             padding: 4px 10px;
             border-radius: 4px;
             font-size: 11px;
@@ -71,7 +79,7 @@
         }
         .meta-value {
             font-weight: 600;
-            color: #25160e;
+            color: var(--theme-color-1, #25160e);
         }
         .breakdown-grid {
             display: grid;
@@ -162,8 +170,8 @@
             text-align: right;
         }
         .btn-print {
-            background: #25160e;
-            color: #fff;
+            background: var(--theme-color-1, #25160e);
+            color: var(--theme-contrast, #fff);
             padding: 8px 16px;
             border: none;
             border-radius: 6px;
@@ -255,7 +263,7 @@
                         <span class="mono">Rp {{ number_format($payslip['attendance']['overtime_pay'], 0, ',', '.') }}</span>
                     </div>
                 @endif
-                <div class="row-total" style="color: #25160e;">
+                <div class="row-total" style="color: var(--theme-color-1, #25160e);">
                     <span>Total Penerimaan Bruto</span>
                     <span class="mono">Rp {{ number_format($payslip['gross_salary'], 0, ',', '.') }}</span>
                 </div>

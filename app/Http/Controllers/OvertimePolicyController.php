@@ -18,12 +18,9 @@ class OvertimePolicyController extends Controller
     /**
      * Display Overtime Policy Settings & Statutory Rules
      */
-    public function index(): View
+    public function index(): RedirectResponse
     {
-        $policy = OvertimePolicy::getDefaultPolicy();
-        $policies = OvertimePolicy::orderBy('id', 'desc')->get();
-
-        return view('settings.overtime.index', compact('policy', 'policies'));
+        return redirect()->route('settings.hub', ['tab' => 'overtime']);
     }
 
     /**
@@ -47,7 +44,7 @@ class OvertimePolicyController extends Controller
             'is_active' => (bool) $request->is_active,
         ]);
 
-        return redirect()->route('overtime_policy.index')
+        return redirect()->route('settings.hub', ['tab' => 'overtime'])
             ->with('success', 'Kebijakan lembur berhasil diperbarui.');
     }
 }

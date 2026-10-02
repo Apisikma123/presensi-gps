@@ -74,9 +74,9 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="msapplication-config" content="/assets/img/icons/browserconfig.xml">
-    <meta name="msapplication-TileColor" content="#3C2A21">
+    <meta name="msapplication-TileColor" content="{{ $theme['primary'] ?? '#3C2A21' }}">
     <meta name="msapplication-tap-highlight" content="no">
-    <meta name="theme-color" content="#3C2A21">
+    <meta name="theme-color" content="{{ $theme['primary'] ?? '#3C2A21' }}">
 
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="/assets/img/icons/pwa/icon-192x192.png">
@@ -84,7 +84,7 @@
     <link rel="apple-touch-icon" sizes="512x512" href="/assets/img/icons/pwa/icon-512x512.png">
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json?v={{ file_exists(public_path('manifest.json')) ? filemtime(public_path('manifest.json')) : time() }}">
+    <link rel="manifest" href="/manifest.json?v={{ config('app.asset_version', '2.5.0') }}">
 
     <!-- Service Worker Registration -->
     <script>

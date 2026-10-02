@@ -292,26 +292,6 @@
 </div>
 @endif
 
-<!-- SECTION 4: UNPURCHASED SUMMARY BANNER -->
-@if($totalUnpurchased > 0)
-<div class="card shadow-xs border-0 p-3" style="border: 1px dashed #CBD5E1 !important; border-radius: 12px; background: #F8FAFC;">
-    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-        <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle d-flex align-items-center justify-content-center bg-white border shadow-xs" style="width: 44px; height: 44px; color: #64748B;">
-                <i class="ti ti-sparkles fs-4"></i>
-            </div>
-            <div>
-                <h6 class="fw-bold text-dark mb-0">Terdapat {{ $totalUnpurchased }} Modul Enterprise Tambahan di Luar Paket Saat Ini</h6>
-                <p class="text-muted small mb-0">Fitur seperti Penggajian Statutori, PPh 21 TER, BPJS, Rekrutmen, dan Talent Governance tersedia jika perusahaan membutuhkan peningkatan kapasitas.</p>
-            </div>
-        </div>
-        <a href="{{ route('settings.package_info.index') }}" class="btn btn-sm btn-outline-primary text-nowrap" style="border-radius: 8px; font-weight: 600; padding: 6px 14px;">
-            <i class="ti ti-info-circle me-1"></i> Lihat Informasi Paket
-        </a>
-    </div>
-</div>
-@endif
-
 <!-- CSRF FORM FOR TOGGLE -->
 <form id="form-toggle-module" method="POST" style="display: none;">
     @csrf

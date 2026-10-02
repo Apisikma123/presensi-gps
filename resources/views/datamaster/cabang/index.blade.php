@@ -12,7 +12,7 @@
 <div class="admin-page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div class="header-title-group">
         <h4 class="page-title mb-1 d-flex align-items-center gap-2">
-            <span>Cabang / Outlet Coffee</span>
+            <span>Cabang & Kantor Operasional</span>
             <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
                 {{ number_format($cabang->total()) }} Total
             </span>

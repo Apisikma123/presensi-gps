@@ -23,7 +23,7 @@ class CompanySettingsSeeder extends Seeder
                 'company_name' => $umum?->nama_perusahaan ?? 'Presence Universal HR',
                 'legal_name' => $umum?->nama_perusahaan ? 'PT ' . $umum->nama_perusahaan : 'PT Presence Universal HR',
                 'app_name' => 'Presence',
-                'app_tagline' => 'Universal HR Management System',
+                'app_tagline' => 'Sistem HRIS',
                 'business_type' => 'General',
                 'npwp' => null,
                 'nib' => null,

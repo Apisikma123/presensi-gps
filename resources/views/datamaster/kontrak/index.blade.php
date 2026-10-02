@@ -144,21 +144,39 @@
                             @endif
                         </td>
                         <td>
-                            @if($k->karyawan)
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar avatar-sm bg-label-primary rounded-circle me-2 fw-bold d-flex align-items-center justify-content-center font-mono" style="width: 32px; height: 32px; font-size: 11px;">
-                                        {{ strtoupper(substr($k->karyawan->nama_karyawan, 0, 2)) }}
+                            @php
+                                $empName = $k->karyawan->nama_karyawan ?? $k->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($k->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($k->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
                                     </div>
-                                    <div>
-                                        <a href="{{ route('karyawan.show', Crypt::encrypt($k->karyawan->nik)) }}" class="fw-semibold text-dark text-decoration-none">
-                                            {{ $k->karyawan->nama_karyawan }}
-                                        </a>
-                                        <div class="text-muted small font-mono">NIK: {{ $k->nik }}</div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
                                     </div>
+                                @endif
+                                <div>
+                                    <a href="{{ route('karyawan.show', Crypt::encrypt($k->karyawan->nik ?? $k->nik)) }}" class="fw-bold text-dark text-decoration-none d-block" style="font-size: 13px;">
+                                        {{ $empName }}
+                                    </a>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $k->nik }}
+                                    </span>
                                 </div>
-                            @else
-                                <span class="text-muted font-mono">NIK: {{ $k->nik }}</span>
-                            @endif
+                            </div>
                         </td>
                         <td>
                             <span class="badge bg-label-info fw-semibold">{{ $k->jenis_kontrak }}</span>
@@ -189,37 +207,38 @@
                         </td>
                         <td>
                             @if($k->dokumen)
-                                <a href="{{ asset('storage/' . $k->dokumen) }}" target="_blank" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1">
-                                    <i class="ti ti-file-text"></i>Lihat PDF
+                                <a href="{{ asset('storage/' . $k->dokumen) }}" target="_blank" class="btn-table-detail" title="Lihat Dokumen Kontrak PDF">
+                                    <i class="ti ti-file-text"></i>
+                                    <span>Lihat PDF</span>
                                 </a>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
-                            <div class="d-inline-flex gap-1">
+                            <div class="d-inline-flex gap-1.5 align-items-center">
                                 @can('kontrak.create')
                                     @if(in_array($k->status, ['ACTIVE', 'EXPIRING_SOON', 'EXPIRED']))
-                                        <button type="button" class="btn btn-sm btn-outline-success btn-renew p-1" 
+                                        <button type="button" class="btn btn-action-tbl btn-action-approve btn-renew" 
                                             data-id="{{ Crypt::encrypt($k->id) }}"
                                             data-nokontrak="{{ $k->no_kontrak }}"
                                             data-nama="{{ $k->karyawan ? $k->karyawan->nama_karyawan : $k->nik }}"
-                                            title="Perpanjang Kontrak" style="border-radius: 6px; width: 28px; height: 28px;">
-                                            <i class="ti ti-refresh fs-5"></i>
+                                            title="Perpanjang Kontrak">
+                                            <i class="ti ti-refresh"></i>
                                         </button>
                                     @endif
                                 @endcan
                                 @can('kontrak.edit')
-                                    <a href="{{ route('kontrak.edit', Crypt::encrypt($k->id)) }}" class="btn btn-sm btn-outline-primary p-1" title="Edit" style="border-radius: 6px; width: 28px; height: 28px;">
-                                        <i class="ti ti-edit fs-5"></i>
+                                    <a href="{{ route('kontrak.edit', Crypt::encrypt($k->id)) }}" class="btn btn-action-tbl btn-action-settings" title="Edit">
+                                        <i class="ti ti-edit"></i>
                                     </a>
                                 @endcan
                                 @can('kontrak.delete')
-                                    <form action="{{ route('kontrak.delete', Crypt::encrypt($k->id)) }}" method="POST" class="d-inline form-delete">
+                                    <form action="{{ route('kontrak.delete', Crypt::encrypt($k->id)) }}" method="POST" class="d-inline form-delete m-0 p-0">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-delete p-1" title="Hapus" style="border-radius: 6px; width: 28px; height: 28px;">
-                                            <i class="ti ti-trash fs-5"></i>
+                                        <button type="submit" class="btn btn-action-tbl btn-action-delete btn-delete" title="Hapus">
+                                            <i class="ti ti-trash"></i>
                                         </button>
                                     </form>
                                 @endcan

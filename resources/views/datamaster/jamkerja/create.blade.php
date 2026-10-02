@@ -22,7 +22,8 @@
         min="1" max="24" required />
     <x-input-with-icon icon="ti ti-file-text" label="Keterangan" name="keterangan" maxlength="255"
         placeholder="Contoh: Jam kerja untuk shift pagi (Opsional, maksimal 255 karakter)" />
-    <x-input-with-icon icon="ti ti-palette" label="Warna (Untuk Laporan)" name="color" type="color" value="#3C2A21" placeholder="Pilih Warna" />
+    @php $theme = \App\Services\ThemeResolver::resolve(); @endphp
+    <x-input-with-icon icon="ti ti-palette" label="Warna (Untuk Laporan)" name="color" type="color" value="{{ $theme['primary'] ?? '#3C2A21' }}" placeholder="Pilih Warna" />
     <div class="form-group mb-3">
         <label for="lintashari" class="form-label" style="font-weight: 600;">
             Lintas Hari <span class="text-danger">*</span>

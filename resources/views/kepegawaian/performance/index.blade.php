@@ -121,9 +121,36 @@
                         </a>
                     </td>
                     <td>
-                        <div class="fw-bold text-dark">{{ $r->karyawan->nama_karyawan ?? 'Karyawan' }}</div>
-                        <div class="text-muted small font-mono">
-                            NIK: {{ $r->nik }} &bull; {{ $r->karyawan->departemen->nama_dept ?? '-' }}
+                        @php
+                            $empName = $r->karyawan->nama_karyawan ?? $r->nik;
+                            $words = explode(' ', trim($empName));
+                            $initials = '';
+                            foreach ($words as $w) {
+                                if (isset($w[0])) $initials .= $w[0];
+                            }
+                            $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                        @endphp
+                        <div class="d-flex align-items-center gap-2.5">
+                            @if (!empty($r->karyawan?->foto))
+                                <img src="{{ getfotoKaryawan($r->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                    style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                    style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @else
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                    style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @endif
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 13px;">{{ $empName }}</div>
+                                <div class="text-muted font-mono" style="font-size: 11px;">
+                                    NIK: {{ $r->nik }} &bull; {{ $r->karyawan->departemen->nama_dept ?? '-' }}
+                                </div>
+                            </div>
                         </div>
                     </td>
                     <td>
@@ -144,8 +171,9 @@
                         {!! $r->status_badge_html !!}
                     </td>
                     <td class="text-end">
-                        <a href="{{ route('performance.show', $r->id) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" style="border-radius: 6px;">
-                            <i class="ti ti-file-analytics"></i> Rincian Skor
+                        <a href="{{ route('performance.show', $r->id) }}" class="btn-table-detail" title="Lihat Rincian Skor">
+                            <i class="ti ti-file-analytics"></i>
+                            <span>Rincian Skor</span>
                         </a>
                     </td>
                 </tr>

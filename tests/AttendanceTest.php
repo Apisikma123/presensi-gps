@@ -130,6 +130,8 @@ assertAtt("Clock-In & Clock-Out: Valid attendance record creation with timestamp
     $jk = Jamkerja::first();
     $kodeJk = $jk ? $jk->kode_jam_kerja : 'JK01';
 
+    Presensi::where('nik', $nik)->where('tanggal', $today)->delete();
+
     $rec = Presensi::create([
         'nik' => $nik,
         'tanggal' => $today,

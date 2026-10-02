@@ -233,15 +233,10 @@ class PresensiController extends Controller
             $jam_presensi = $tanggal_sekarang . " " . $carbon_now->format('H:i:s');
             $formatName = $karyawan->nik . "-" . $tanggal_presensi . "-" . $in_out;
 
-            // Save uploaded selfie with WebP optimization & downscaling
-            $imageInput = $request->hasFile('image') ? $request->file('image') : $request->input('image');
-            $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80, 800);
-
-            // Face Recognition verification (pure PHP biometrics, zero python process spawn)
+            // 1. Fail-Fast Face Recognition verification (pure PHP biometrics, zero disk I/O / GD on failure)
             if (isset($generalsetting->face_recognition) && $generalsetting->face_recognition == 1) {
                 $masterFace = \App\Models\Facerecognition::where('nik', $karyawan->nik)->first();
                 if (!$masterFace) {
-                    Storage::delete("public/uploads/absensi/" . $fileName);
                     return response()->json([
                         'success' => false,
                         'message' => 'Data biometrik wajah Anda belum terdaftar di sistem. Silakan daftarkan wajah terlebih dahulu.'
@@ -261,7 +256,6 @@ class PresensiController extends Controller
                         $distance = sqrt($distance);
 
                         if ($distance > 0.50) {
-                            Storage::delete("public/uploads/absensi/" . $fileName);
                             return response()->json([
                                 'success' => false,
                                 'message' => 'Verifikasi wajah gagal. Wajah Anda tidak cocok dengan data master terdaftar.'
@@ -270,6 +264,10 @@ class PresensiController extends Controller
                     }
                 }
             }
+
+            // 2. Save uploaded selfie with WebP optimization & downscaling (only after face verification passes)
+            $imageInput = $request->hasFile('image') ? $request->file('image') : $request->input('image');
+            $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($imageInput, 'public/uploads/absensi', $formatName, 80, 800);
 
             // === ATOMIC PERSISTENCE WITH ROW-LEVEL LOCK ===
             DB::transaction(function () use ($karyawan, $tanggal_presensi, $jam_presensi, $lokasi, $fileName, $kode_jam_kerja, $status, &$presensi_hariini) {
@@ -339,7 +337,7 @@ class PresensiController extends Controller
                     'message' => 'Berhasil absen masuk',
                     'data' => [
                         'jam_in' => $carbon_now->format('H:i'),
-                        'foto_in' => asset('storage/uploads/absensi/' . $fileName)
+                        'foto_in' => route('api.file.absensi', ['filename' => $fileName])
                     ]
                 ]);
             } else {
@@ -348,7 +346,7 @@ class PresensiController extends Controller
                     'message' => 'Berhasil absen pulang',
                     'data' => [
                         'jam_out' => $carbon_now->format('H:i'),
-                        'foto_out' => asset('storage/uploads/absensi/' . $fileName)
+                        'foto_out' => route('api.file.absensi', ['filename' => $fileName])
                     ]
                 ]);
             }
@@ -421,8 +419,8 @@ class PresensiController extends Controller
                 'jam_masuk' => date('H:i', strtotime($item->jam_masuk)),
                 'jam_pulang' => date('H:i', strtotime($item->jam_pulang)),
                 'keterangan' => $keterangan,
-                'foto_in' => $item->jam_in ? asset('storage/uploads/absensi/' . $userKaryawan->nik . '-' . $item->tanggal . '-in.png') : null,
-                'foto_out' => $item->jam_out ? asset('storage/uploads/absensi/' . $userKaryawan->nik . '-' . $item->tanggal . '-out.png') : null,
+                'foto_in' => $item->foto_in ? route('api.file.absensi', ['filename' => $item->foto_in]) : ($item->jam_in ? route('api.file.absensi', ['filename' => $userKaryawan->nik . '-' . $item->tanggal . '-in.webp']) : null),
+                'foto_out' => $item->foto_out ? route('api.file.absensi', ['filename' => $item->foto_out]) : ($item->jam_out ? route('api.file.absensi', ['filename' => $userKaryawan->nik . '-' . $item->tanggal . '-out.webp']) : null),
             ];
         });
 

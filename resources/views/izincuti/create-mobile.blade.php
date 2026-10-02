@@ -258,7 +258,7 @@
 
         .bento-progress-fill {
             height: 100%;
-            background: #3C2A21;
+            background: {{ $t['primary'] }};
             border-radius: 9999px;
             transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -304,7 +304,7 @@
                 <div class="bento-cuti-col">
                     <span class="bento-label-micro">Sisa Cuti</span>
                     <div style="display:flex; align-items:baseline; gap:2px;">
-                        <span id="val-sisa-cuti" class="bento-digit" style="font-size:24px; color:#3C2A21;">{{ $infoCuti['sisa'] }}</span>
+                        <span id="val-sisa-cuti" class="bento-digit" style="font-size:24px; color: var(--color-primary, #3C2A21);">{{ $infoCuti['sisa'] }}</span>
                         <span style="font-size:10px; font-weight:600; color:#64748B;">Hr</span>
                     </div>
                     <span class="bento-tag-status" style="background:#D1FAE5; color:#065F46;">Tersedia</span>
@@ -351,6 +351,18 @@
             @endif
         </div>
 
+        @if (isset($errors) && $errors->any())
+            <div class="mb-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[12px] space-y-1">
+                <div class="font-bold flex items-center gap-1.5">
+                    <ion-icon name="alert-circle" class="text-base text-rose-600"></ion-icon>
+                    <span>Terjadi kesalahan:</span>
+                </div>
+                @foreach ($errors->all() as $err)
+                    <div>• {{ $err }}</div>
+                @endforeach
+            </div>
+        @endif
+
         <form action="{{ route('izincuti.store') }}" method="POST" id="formIzin" autocomplete="off">
             @csrf
             
@@ -367,7 +379,7 @@
             </div>
             
             {{-- Info Sisa Cuti Alert Banner --}}
-            <div id="info-sisa-cuti" class="mb-3 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2" style="background: rgba(60, 42, 33, 0.08); border: 1px solid rgba(60, 42, 33, 0.15); color: #3C2A21;">
+            <div id="info-sisa-cuti" class="mb-3 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb), 0.15)); color: var(--color-primary);">
                 <ion-icon name="information-circle-outline" class="text-base shrink-0"></ion-icon>
                 <span id="label-sisa-cuti">Sisa {{ $infoCuti['jenis_cuti_nama'] }} Anda adalah {{ $infoCuti['sisa'] }} Hari</span>
             </div>

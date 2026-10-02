@@ -58,9 +58,9 @@ class PayrollDetail extends Model
     public function getStatusBadgeHtmlAttribute(): string
     {
         return match ($this->status) {
-            'PAID', 'VERIFIED' => '<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;"><span class="rounded-full" style="width: 6px; height: 6px; background: #16a34a;"></span>Terverifikasi</span>',
-            'DRAFT' => '<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;"><span class="rounded-full" style="width: 6px; height: 6px; background: #d97706;"></span>Draft</span>',
-            default => '<span class="badge bg-secondary">' . e($this->status) . '</span>',
+            'PAID', 'VERIFIED' => '<span class="badge bg-label-success">Terverifikasi</span>',
+            'DRAFT' => '<span class="badge bg-label-warning">Draft</span>',
+            default => '<span class="badge bg-label-secondary">' . e($this->status) . '</span>',
         };
     }
 }

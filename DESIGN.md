@@ -1,53 +1,41 @@
 ---
-name: Presence Universal HR
+name: Presence Modern Clean HR
 colors:
-  surface: '#faf9f8'
-  surface-dim: '#dadad9'
-  surface-bright: '#faf9f8'
+  surface: '#ffffff'
+  surface-dim: '#f8fafc'
+  surface-bright: '#ffffff'
   surface-container-lowest: '#ffffff'
-  surface-container-low: '#f4f3f2'
-  surface-container: '#eeeeed'
-  surface-container-high: '#e9e8e7'
-  surface-container-highest: '#e3e2e1'
-  on-surface: '#1a1c1c'
-  on-surface-variant: '#4f4540'
-  inverse-surface: '#2f3130'
-  inverse-on-surface: '#f1f0f0'
-  outline: '#81756f'
-  outline-variant: '#d3c3bd'
-  surface-tint: '#705a4f'
-  primary: '#25160e'
+  surface-container-low: '#f8fafc'
+  surface-container: '#f1f5f9'
+  surface-container-high: '#e2e8f0'
+  surface-container-highest: '#cbd5e1'
+  on-surface: '#0f172a'
+  on-surface-variant: '#475569'
+  inverse-surface: '#0f172a'
+  inverse-on-surface: '#ffffff'
+  outline: '#cbd5e1'
+  outline-variant: '#e2e8f0'
+  surface-tint: '#1a5276'
+  primary: '#1a5276'
   on-primary: '#ffffff'
-  primary-container: '#3c2a21'
-  on-primary-container: '#aa9084'
-  inverse-primary: '#dec1b3'
-  secondary: '#755841'
+  primary-container: '#154360'
+  on-primary-container: '#ffffff'
+  inverse-primary: '#2980b9'
+  secondary: '#2980b9'
   on-secondary: '#ffffff'
-  secondary-container: '#fdd5b8'
-  on-secondary-container: '#785b44'
-  tertiary: '#041e03'
+  secondary-container: '#e0f2fe'
+  on-secondary-container: '#0369a1'
+  tertiary: '#0f172a'
   on-tertiary: '#ffffff'
-  tertiary-container: '#193413'
-  on-tertiary-container: '#7f9e73'
-  error: '#ba1a1a'
+  tertiary-container: '#1e293b'
+  on-tertiary-container: '#ffffff'
+  error: '#dc2626'
   on-error: '#ffffff'
-  error-container: '#ffdad6'
-  on-error-container: '#93000a'
-  primary-fixed: '#fbdcce'
-  primary-fixed-dim: '#dec1b3'
-  on-primary-fixed: '#281810'
-  on-primary-fixed-variant: '#574238'
-  secondary-fixed: '#ffdcc2'
-  secondary-fixed-dim: '#e5bfa3'
-  on-secondary-fixed: '#2b1705'
-  on-secondary-fixed-variant: '#5b412c'
-  tertiary-fixed: '#caecbc'
-  tertiary-fixed-dim: '#afd0a1'
-  on-tertiary-fixed: '#062104'
-  on-tertiary-fixed-variant: '#324e2a'
-  background: '#faf9f8'
-  on-background: '#1a1c1c'
-  surface-variant: '#e3e2e1'
+  error-container: '#fee2e2'
+  on-error-container: '#991b1b'
+  background: '#f8fafc'
+  on-background: '#0f172a'
+  surface-variant: '#f1f5f9'
 typography:
   display-lg:
     fontFamily: Outfit
@@ -166,12 +154,12 @@ Across all employee mobile list cards (Histori Presensi, Pengajuan Izin, Dashboa
 - **Top Badge (Category / Shift):**
   - Class: `text-[10.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0`
   - Examples: `Shift Pagi`, `Cuti Tahunan`, `Izin Absen`, `Izin Sakit`
-- **Bottom Badge (Status & Indicator Dot):**
-  - Base Class: `inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0` with `w-1.5 h-1.5 rounded-full` dot
-  - **Disetujui / Hadir / Tepat Waktu:** `bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]` (Dot: `bg-[#16a34a]`)
-  - **Ditolak / Telat:** `bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]` (Dot: `bg-[#e11d48]`)
-  - **Pending / Menunggu:** `bg-[#fffbeb] text-[#b45309] border border-[#fde68a]` (Dot: `bg-[#d97706]`)
-  - **Dispensasi / Izin:** `bg-[#e0f2fe] text-[#0284c7] border border-[#bae6fd]` (Dot: `bg-[#0284c7]`)
+- **Bottom Badge (Status):**
+  - Base Class: `inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0`
+  - **Disetujui / Hadir / Tepat Waktu:** `bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]`
+  - **Ditolak / Telat:** `bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]`
+  - **Pending / Menunggu:** `bg-[#fffbeb] text-[#b45309] border border-[#fde68a]`
+  - **Dispensasi / Izin:** `bg-[#e0f2fe] text-[#0284c7] border border-[#bae6fd]`
 - **Proportional Symmetry:**
   Both badges share the exact same `px-2 py-0.5 rounded-md` geometry, aligning flush on the card's right edge.
   Never add redundant detail buttons onto the card; the whole card container is interactive (`cursor-pointer active:scale-[0.99]`) and smoothly opens the detail modal.

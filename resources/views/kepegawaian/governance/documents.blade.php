@@ -93,9 +93,38 @@
                             </div>
                         </div>
                     </td>
+                    @php
+                        $empName = $doc->karyawan->nama_karyawan ?? 'Karyawan';
+                        $words = explode(' ', trim($empName));
+                        $initials = '';
+                        foreach ($words as $w) {
+                            if (isset($w[0])) $initials .= $w[0];
+                        }
+                        $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                    @endphp
                     <td>
-                        <div class="fw-semibold text-dark">{{ $doc->karyawan->nama_karyawan ?? 'Karyawan' }}</div>
-                        <div class="text-muted small font-mono">NIK: {{ $doc->nik }}</div>
+                        <div class="d-flex align-items-center gap-2.5">
+                            @if (!empty($doc->karyawan?->foto))
+                                <img src="{{ getfotoKaryawan($doc->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                    style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                    style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @else
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                    style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @endif
+                            <div>
+                                <div class="fw-semibold text-dark text-truncate" style="font-size: 13px; max-width: 170px;">{{ $empName }}</div>
+                                <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                    {{ $doc->nik }}
+                                </span>
+                            </div>
+                        </div>
                     </td>
                     <td>
                         <span class="badge bg-light text-dark fw-semibold">{{ $doc->type_label }}</span>
@@ -107,8 +136,9 @@
                         {{ $doc->created_at->format('d M Y H:i') }}
                     </td>
                     <td class="text-end">
-                        <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" style="border-radius: 6px;">
-                            <i class="ti ti-download"></i> Unduh
+                        <a href="{{ route('file.document', $doc->id) }}" target="_blank" class="btn-table-detail" title="Unduh Dokumen">
+                            <i class="ti ti-download"></i>
+                            <span>Unduh</span>
                         </a>
                     </td>
                 </tr>

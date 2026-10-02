@@ -72,9 +72,9 @@
     .pill-terlambat { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
     .pill-izin { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
     .pill-sakit { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
-    .pill-cuti { background: #fdf8f6; color: #755841; border: 1px solid #fdd5b8; }
+    .pill-cuti { background: #fdf8f6; color: var(--theme-color-2, #475569); border: 1px solid #E2E8F0; }
     .pill-alpa { background: #fef2f2; color: #ba1a1a; border: 1px solid #fecdd3; }
-    .pill-belum { background: #f4f3f2; color: #64748b; border: 1px solid #e2e8f0; }
+    .pill-belum { background: #F1F5F9; color: #64748b; border: 1px solid #e2e8f0; }
 
     /* Mobile Minimalist Card */
     .mobile-staff-card {
@@ -181,7 +181,7 @@
                     </div>
                     <div class="col-xl col-lg col-md-4 col-12">
                         <x-input-with-icon label="" value="{{ Request('nama_karyawan') }}" name="nama_karyawan" icon="ti ti-search"
-                            placeholder="Cari nama karyawan, barista..." hideLabel="true" />
+                            placeholder="Cari nama karyawan..." hideLabel="true" />
                     </div>
                     @if (Request('status'))
                         <input type="hidden" name="status" value="{{ Request('status') }}">
@@ -218,7 +218,7 @@
                     'tepat' => ['label' => 'Tepat Waktu', 'bg' => '#f0fdf4', 'color' => '#15803d', 'border' => '#bbf7d0'],
                     'i' => ['label' => 'Izin Absen', 'bg' => '#e0f2fe', 'color' => '#0284c7', 'border' => '#bae6fd'],
                     's' => ['label' => 'Izin Sakit', 'bg' => '#fff7ed', 'color' => '#ea580c', 'border' => '#ffedd5'],
-                    'c' => ['label' => 'Cuti', 'bg' => '#fdf8f6', 'color' => '#755841', 'border' => '#fdd5b8'],
+                    'c' => ['label' => 'Cuti', 'bg' => '#fdf8f6', 'color' => '#475569', 'border' => '#E2E8F0'],
                     'alpa' => ['label' => 'Tanpa Keterangan (Alpha)', 'bg' => '#fef2f2', 'color' => '#ba1a1a', 'border' => '#fecdd3'],
                 ];
                 $curStatus = $statusLabels[Request('status')] ?? ['label' => Request('status'), 'bg' => '#F1F5F9', 'color' => '#334155', 'border' => '#E2E8F0'];
@@ -287,10 +287,14 @@
                                             <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar"
                                                 class="rounded-circle shadow-none flex-shrink-0"
                                                 style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #e2e8f0;"
-                                                onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
+                                                onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                            <div class="rounded-circle align-items-center justify-content-center fw-bold flex-shrink-0"
+                                                style="display: none; width: 38px; height: 38px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary, #1A5276); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15));">
+                                                {{ $initials }}
+                                            </div>
                                         @else
                                             <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                                                style="width: 38px; height: 38px; background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1)); color: var(--color-primary, #3C2A21); font-size: 12.5px; border: 1px solid var(--bs-primary-border-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.2));">
+                                                style="width: 38px; height: 38px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary, #1A5276); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15));">
                                                 {{ $initials }}
                                             </div>
                                         @endif
@@ -498,7 +502,7 @@
                                         onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
                                 @else
                                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                                        style="width: 36px; height: 36px; background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1)); color: var(--color-primary, #3C2A21); font-size: 12px;">
+                                        style="width: 36px; height: 36px; background: var(--bs-primary-bg-subtle, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.1)); color: var(--color-primary, #1A5276); font-size: 12px;">
                                         {{ $initials }}
                                     </div>
                                 @endif
@@ -646,7 +650,7 @@
                                     icon: 'success',
                                     title: 'Berhasil',
                                     text: res.message,
-                                    confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21'),
+                                    confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#1A5276'),
                                 }).then(() => {
                                     window.location.reload();
                                 });

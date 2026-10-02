@@ -6,7 +6,7 @@
 @section('header_left')
     <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
         onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
-        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-[0.98] transition-transform duration-150"
         title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
@@ -62,10 +62,10 @@
             transform: scale(0.92);
         }
         .pagination-btn-active {
-            background: var(--theme-color-1, #3C2A21) !important;
+            background: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
             color: #ffffff !important;
             font-weight: 700 !important;
-            box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.25) !important;
+            box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb, 27, 54, 93), 0.25) !important;
         }
         .pagination-btn-disabled {
             color: #cbd5e1 !important;
@@ -83,7 +83,7 @@
              style="box-shadow: 0 1px 3px rgba(15,23,42,0.04);">
             {{-- Filter Header --}}
             <div class="flex items-center gap-2 px-3.5 py-2.5 bg-slate-50/60 border-b border-slate-100">
-                <div class="w-6 h-6 rounded-md flex items-center justify-center bg-[#3C2A21]/10 text-[#3C2A21]">
+                <div class="w-6 h-6 rounded-md flex items-center justify-center" style="background: var(--color-primary-soft, rgba(27,54,93,0.1)); color: var(--color-primary, var(--theme-color-1, #1B365D));">
                     <ion-icon name="calendar-outline" class="text-[13px]"></ion-icon>
                 </div>
                 <span class="text-[12px] font-bold text-slate-700">Pilih Rentang Tanggal</span>
@@ -94,7 +94,7 @@
                     {{-- Dari --}}
                     <div class="flex-1 relative" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="dari" id="dari" 
-                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#3C2A21] focus:border-[#3C2A21] transition-all bg-[#FAF9F8] border border-slate-200/80 text-slate-700"
+                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none transition-all bg-[#FAF9F8] border border-slate-200/80 text-slate-700"
                             style="width: 100% !important; height: 38px !important; box-sizing: border-box !important;"
                             placeholder="Dari" value="{{ Request('dari') }}" autocomplete="off" required readonly>
                     </div>
@@ -104,14 +104,14 @@
                     {{-- Sampai --}}
                     <div class="flex-1 relative" style="flex: 1 1 0% !important; min-width: 0 !important;">
                         <input type="text" name="sampai" id="sampai" 
-                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none focus:ring-1 focus:ring-[#3C2A21] focus:border-[#3C2A21] transition-all bg-[#FAF9F8] border border-slate-200/80 text-slate-700"
+                            class="w-full rounded-xl py-2 px-3 text-[12px] font-medium text-center font-mono focus:outline-none transition-all bg-[#FAF9F8] border border-slate-200/80 text-slate-700"
                             style="width: 100% !important; height: 38px !important; box-sizing: border-box !important;"
                             placeholder="Sampai" value="{{ Request('sampai') }}" autocomplete="off" required readonly>
                     </div>
                     {{-- Button --}}
                     <button type="submit" id="btnCari"
                         class="flex-shrink-0 w-10 h-[38px] rounded-xl text-white flex items-center justify-center active:scale-95 transition-all shadow-sm"
-                        style="background: var(--theme-color-1, #3C2A21) !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important; height: 38px !important; flex: 0 0 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important;">
+                        style="background: var(--color-primary, var(--theme-color-1, #1B365D)) !important; width: 40px !important; min-width: 40px !important; max-width: 40px !important; height: 38px !important; flex: 0 0 40px !important; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important;">
                         <ion-icon name="search-outline" class="text-base" style="font-size: 18px !important;"></ion-icon>
                     </button>
                 </div>
@@ -225,25 +225,21 @@
                                     {{-- Badge Cluster --}}
                                     <div class="flex items-center gap-1.5 flex-wrap">
                                         @if (!empty($d->is_dispensasi))
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#e0f2fe] text-[#0284c7] border border-[#bae6fd]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#0284c7]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#e0f2fe] text-[#0284c7] border border-[#bae6fd]">
                                                 DISPENSASI
                                             </span>
                                         @elseif ($is_late)
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
                                                 TELAT
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
                                                 TEPAT WAKTU
                                             </span>
                                         @endif
 
                                         @if ($pulangcepat > 0)
-                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+                                            <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
                                                 PULANG CEPAT
                                             </span>
                                         @endif
@@ -256,8 +252,7 @@
                                         <span class="truncate">{{ !empty($d->keterangan_izin) ? $d->keterangan_izin : 'Izin Absen' }}</span>
                                     </div>
                                     <div class="flex items-center gap-1 flex-wrap">
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#0284c7]"></span>
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]">
                                             IZIN
                                         </span>
                                     </div>
@@ -269,8 +264,7 @@
                                         <span class="truncate">{{ !empty($d->keterangan_izin_sakit) ? $d->keterangan_izin_sakit : 'Izin Sakit' }}</span>
                                     </div>
                                     <div class="flex items-center gap-1 flex-wrap">
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#be123c] border border-[#fecdd3]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#be123c] border border-[#fecdd3]">
                                             SAKIT
                                         </span>
                                     </div>
@@ -282,8 +276,7 @@
                                         <span class="truncate">{{ !empty($d->keterangan_izin_cuti) ? $d->keterangan_izin_cuti : 'Cuti' }}</span>
                                     </div>
                                     <div class="flex items-center gap-1 flex-wrap">
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
                                             CUTI
                                         </span>
                                     </div>
@@ -295,8 +288,7 @@
                                         <span class="truncate">Tanpa Keterangan</span>
                                     </div>
                                     <div class="flex items-center gap-1 flex-wrap">
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#dc2626]"></span>
+                                        <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]">
                                             ALPHA
                                         </span>
                                     </div>
@@ -399,7 +391,7 @@
 
                     <div id="modalMesinSection" class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 hidden">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-[#3C2A21] flex items-center justify-center text-white shrink-0">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0" style="background: var(--color-primary, var(--theme-color-1, #1B365D));">
                                 <ion-icon name="finger-print" style="font-size:20px;"></ion-icon>
                             </div>
                             <div>

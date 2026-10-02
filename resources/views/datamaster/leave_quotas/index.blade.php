@@ -160,21 +160,39 @@
                     <tr>
                         <td class="text-muted font-mono">{{ $loop->iteration + ($quotas->currentPage() - 1) * $quotas->perPage() }}</td>
                         <td>
-                            @if($q->karyawan)
-                                <div class="d-flex align-items-center">
-                                    <span class="avatar avatar-sm bg-label-primary text-primary rounded-circle me-2 fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        {{ strtoupper(substr($q->karyawan->nama_karyawan, 0, 2)) }}
-                                    </span>
-                                    <div>
-                                        <a href="{{ route('karyawan.show', Crypt::encrypt($q->karyawan->nik)) }}" class="fw-bold text-reset text-decoration-none">
-                                            {{ $q->karyawan->nama_karyawan }}
-                                        </a>
-                                        <div class="text-muted small font-mono">NIK: {{ $q->nik }}</div>
+                            @php
+                                $empName = $q->karyawan->nama_karyawan ?? $q->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($q->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($q->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
                                     </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <a href="{{ route('karyawan.show', Crypt::encrypt($q->karyawan->nik ?? $q->nik)) }}" class="fw-bold text-dark text-decoration-none d-block" style="font-size: 13px;">
+                                        {{ $empName }}
+                                    </a>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $q->nik }}
+                                    </span>
                                 </div>
-                            @else
-                                <span class="text-muted font-mono">NIK: {{ $q->nik }}</span>
-                            @endif
+                            </div>
                         </td>
                         <td>
                             <span class="badge bg-label-primary font-mono fw-bold">{{ $q->leaveType ? $q->leaveType->code : '-' }}</span>
@@ -203,13 +221,14 @@
                         </td>
                         <td class="text-end">
                             @can('leave_quotas.adjust')
-                                <button type="button" class="btn btn-sm btn-outline-primary btn-adjust"
+                                <button type="button" class="btn-table-detail btn-adjust"
                                     data-id="{{ $q->id }}"
                                     data-nama="{{ $q->karyawan ? $q->karyawan->nama_karyawan : $q->nik }}"
                                     data-type="{{ $q->leaveType ? $q->leaveType->name : '-' }}"
                                     data-balance="{{ (float)$q->closing_balance }}"
                                     title="Sesuaikan Saldo">
-                                    <i class="ti ti-adjustments me-1"></i>Sesuaikan
+                                    <i class="ti ti-adjustments"></i>
+                                    <span>Sesuaikan</span>
                                 </button>
                             @endcan
                         </td>

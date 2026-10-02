@@ -256,24 +256,24 @@
     }
 
     .calendar-day:hover {
-        background-color: #F4F3F2;
-        border-color: #3C2A21;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.06));
+        border-color: var(--color-primary, #3C2A21);
     }
 
     .calendar-day.other-month {
-        background-color: #F4F3F2;
+        background-color: #F8FAFC;
         color: #9ca3af;
     }
 
     .calendar-day.today {
-        background-color: #F4F3F2;
-        border-color: #3C2A21;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08));
+        border-color: var(--color-primary, #3C2A21);
         font-weight: 600;
     }
 
     .calendar-day.selected {
-        background-color: #3C2A21;
-        color: white;
+        background-color: var(--color-primary, #3C2A21);
+        color: var(--theme-primary-contrast, white);
     }
 
     .calendar-day.selection-mode {
@@ -281,8 +281,8 @@
     }
 
     .calendar-day.selection-active {
-        background-color: #DEC1B3 !important;
-        border-color: #3C2A21 !important;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15)) !important;
+        border-color: var(--color-primary, #3C2A21) !important;
         border-width: 2px !important;
     }
 
@@ -292,13 +292,13 @@
     }
 
     .calendar-day.has-jam-kerja {
-        background-color: #F4F3F2;
-        border-color: #3C2A21;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.06));
+        border-color: var(--color-primary, #3C2A21);
         border-width: 2px;
     }
 
     .calendar-day.has-jam-kerja:hover {
-        background-color: #DEC1B3;
+        background-color: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.12));
     }
 
     .day-number {

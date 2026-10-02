@@ -78,42 +78,42 @@ class Globalprovider extends ServiceProvider
             View::share('company_setting', null);
             View::share('general_setting', null);
             $defaultTheme = [
-                'primary' => '#3C2A21',
-                'primary_rgb' => '60, 42, 33',
+                'primary' => '#1A5276',
+                'primary_rgb' => '26, 82, 118',
                 'primary_contrast' => '#FFFFFF',
-                'primary_hover' => '#2A1D17',
-                'primary_soft' => 'rgba(60, 42, 33, 0.08)',
-                'primary_border' => 'rgba(60, 42, 33, 0.18)',
-                'secondary' => '#634832',
-                'secondary_rgb' => '99, 72, 50',
+                'primary_hover' => '#154360',
+                'primary_soft' => 'rgba(26, 82, 118, 0.08)',
+                'primary_border' => 'rgba(26, 82, 118, 0.18)',
+                'secondary' => '#2980b9',
+                'secondary_rgb' => '41, 128, 185',
                 'secondary_contrast' => '#FFFFFF',
-                'secondary_hover' => '#4D3827',
-                'secondary_soft' => 'rgba(99, 72, 50, 0.08)',
-                'accent' => '#4A6741',
-                'accent_rgb' => '74, 103, 65',
-                'success' => '#4A6741',
-                'danger' => '#BA1A1A',
-                'warning' => '#B45309',
+                'secondary_hover' => '#2471a3',
+                'secondary_soft' => 'rgba(41, 128, 185, 0.08)',
+                'accent' => '#2980b9',
+                'accent_rgb' => '41, 128, 185',
+                'success' => '#16A34A',
+                'danger' => '#DC2626',
+                'warning' => '#D97706',
                 'info' => '#2563EB',
-                'canvas' => '#FAF9F8',
+                'canvas' => '#F8FAFC',
                 'surface' => '#FFFFFF',
-                'text_primary' => '#1A1C1C',
-                'text_secondary' => '#755841',
-                'border' => 'rgba(60, 42, 33, 0.08)',
-                'border_hover' => 'rgba(60, 42, 33, 0.16)',
+                'text_primary' => '#0F172A',
+                'text_secondary' => '#475569',
+                'border' => '#E2E8F0',
+                'border_hover' => '#CBD5E1',
             ];
             View::share('theme', $defaultTheme);
             View::share('t', [
-                'primary' => '#3C2A21',
-                'primary_light' => '#634832',
-                'bg_body' => '#FAF9F8',
+                'primary' => '#1A5276',
+                'primary_light' => '#2980b9',
+                'bg_body' => '#F8FAFC',
                 'surface' => '#FFFFFF',
-                'text_primary' => '#1A1C1C',
-                'text_secondary' => '#755841',
-                'border' => 'rgba(60, 42, 33, 0.08)',
-                'amber' => '#B45309',
-                'crimson' => '#BA1A1A',
-                'matcha' => '#4A6741',
+                'text_primary' => '#0F172A',
+                'text_secondary' => '#475569',
+                'border' => '#E2E8F0',
+                'amber' => '#D97706',
+                'crimson' => '#DC2626',
+                'matcha' => '#16A34A',
                 'primary_contrast' => '#FFFFFF',
             ]);
             View::share('isDark', false);
@@ -221,7 +221,19 @@ class Globalprovider extends ServiceProvider
                         }
                     }
 
-                    $data_izin = $data_izinabsen->unionAll($data_izinsakit)->unionAll($data_izincuti)->limit(10)->get();
+                    $data_dispensasi = PresensiDispensasi::select('presensi_dispensasi.nik', 'nama_karyawan', DB::raw('"d" as status'), 'presensi_dispensasi.created_at')
+                        ->where('presensi_dispensasi.status', 'PENDING')
+                        ->join('karyawan', 'presensi_dispensasi.nik', '=', 'karyawan.nik');
+                    if (!$isSuperAdmin) {
+                        if (!empty($userCabangs)) {
+                            $data_dispensasi->whereIn('karyawan.kode_cabang', $userCabangs);
+                        }
+                        if (!empty($userDepartemens)) {
+                            $data_dispensasi->whereIn('karyawan.kode_dept', $userDepartemens);
+                        }
+                    }
+
+                    $data_izin = $data_izinabsen->unionAll($data_izinsakit)->unionAll($data_izincuti)->unionAll($data_dispensasi)->limit(10)->get();
 
                     $notifikasi_ajuan_absen = $notifikasi_izinabsen + $notifikasi_izincuti + $notifikasi_izinsakit + $notifikasi_dispensasi;
                     $notifikasi_unread = 0;

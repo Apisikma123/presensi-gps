@@ -11,7 +11,7 @@ class PresencePackageChange extends Command
                             {package_code : Target package code (e.g. FNB_SMALL, FNB_PRO, FULL_HR, RETAIL_SMALL, OFFICE_STANDARD)}
                             {--addons= : Comma-separated add-on codes (e.g. face_recognition,loans)}
                             {--preview : Preview diff without applying}
-                            {--force : Force apply without interactive prompt}
+                            {--yes : Automatically confirm without interactive prompt (developer automation only)}
                             {--notes= : Audit log explanation}';
 
     protected $description = 'Safely upgrade or downgrade deployment package with diff preview and zero data loss';
@@ -58,7 +58,7 @@ class PresencePackageChange extends Command
             return 0;
         }
 
-        if (!$this->option('force') && !$this->confirm("Are you sure you want to apply package change to {$targetCode}?", false)) {
+        if (!$this->option('yes') && !$this->confirm("Are you sure you want to apply package change to {$targetCode}?", false)) {
             $this->warn("Operation cancelled.");
             return 0;
         }

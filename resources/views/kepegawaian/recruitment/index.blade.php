@@ -146,8 +146,9 @@
                         {!! $v->status_badge_html !!}
                     </td>
                     <td class="text-end">
-                        <a href="{{ route('recruitment.show', $v->id) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                            <i class="ti ti-layout-kanban"></i> Pipeline
+                        <a href="{{ route('recruitment.show', $v->id) }}" class="btn-table-detail" title="Lihat Pipeline Pelamar">
+                            <i class="ti ti-layout-kanban"></i>
+                            <span>Pipeline</span>
                         </a>
                     </td>
                 </tr>

@@ -112,8 +112,8 @@
     }
 
     .checkbox-wrapper-55 input:checked+.switch-left {
-        background-color: #0084d0;
-        color: #fff;
+        background-color: var(--color-primary, #3C2A21);
+        color: var(--theme-primary-contrast, #fff);
         bottom: 0px;
         left: 0.5em;
         height: 2.5em;
@@ -400,12 +400,12 @@
 
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <button type="button" class="btn btn-success w-100 d-inline-flex align-items-center justify-content-center" id="btnGenerateIcons">
+                                <button type="button" class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center" id="btnGenerateIcons">
                                     <i class="ti ti-device-mobile me-1"></i> Generate
                                 </button>
                             </div>
                             <div class="col-6">
-                                <button type="button" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center text-white" id="btnPreviewIcons">
+                                <button type="button" class="btn btn-outline-primary w-100 d-inline-flex align-items-center justify-content-center" id="btnPreviewIcons">
                                     <i class="ti ti-eye me-1"></i> Preview
                                 </button>
                             </div>
@@ -466,15 +466,16 @@
                 </div>
 
                 <!-- Perbaikan Permission Folder Storage -->
-                <div class="card mb-3 border border-warning">
-                    <div class="card-header bg-warning-subtle">
-                        <h6 class="mb-0 text-warning-emphasis font-weight-bold">Perbaikan Folder Storage</h6>
+                <div class="card mb-3" style="border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.12)); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+                    <div class="card-header py-3 px-3.5 border-bottom d-flex align-items-center gap-2" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.04));">
+                        <i class="ti ti-folder-lock fs-5" style="color: var(--color-primary, #3C2A21);"></i>
+                        <h6 class="mb-0 fw-bold" style="font-size: 13.5px; color: var(--theme-color-1, #25160E);">Perbaikan Folder Storage</h6>
                     </div>
-                    <div class="card-body">
-                        <p class="text-muted" style="font-size: 12px; line-height: 1.5;">
+                    <div class="card-body p-3.5">
+                        <p class="text-muted mb-3" style="font-size: 12px; line-height: 1.5;">
                             Jika Anda mengalami masalah file upload tidak bisa diakses (404/403) atau sistem gagal membuat folder/menyimpan file baru saat upload dokumen, klik tombol di bawah untuk menyetel ulang permission folder storage menjadi 775 secara rekursif.
                         </p>
-                        <button type="button" class="btn btn-warning w-100 d-inline-flex align-items-center justify-content-center text-white" id="btnFixPermissions">
+                        <button type="button" class="btn btn-primary w-100 d-inline-flex align-items-center justify-content-center shadow-sm" id="btnFixPermissions" style="height: 40px; border-radius: 8px; font-weight: 600;">
                             <i class="ti ti-folder-lock me-1"></i> Perbaiki Permission Storage
                         </button>
                     </div>

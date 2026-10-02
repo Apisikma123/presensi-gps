@@ -55,8 +55,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $app_logo_url ?? asset('logo.png') }}?v={{ $general_setting?->updated_at?->timestamp ?? time() }}">
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
 
-    <link rel="manifest" href="{{ asset('manifest.json') }}?v={{ file_exists(public_path('manifest.json')) ? filemtime(public_path('manifest.json')) : time() }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ file_exists(public_path('assets/css/theme-custom.css')) ? filemtime(public_path('assets/css/theme-custom.css')) : time() }}" />
+    <link rel="manifest" href="{{ asset('manifest.json') }}?v={{ config('app.asset_version', '2.5.0') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ config('app.asset_version', '2.5.0') }}" />
 
 
     <style>
@@ -69,6 +69,20 @@
             --color-nav-active-rgb: {{ hexToRgb($c['color_nav_active']) }};
             --bg-indicator: {{ $c['bg_indicator'] }};
             --color-nav-hover: {{ $c['color_nav_hover'] }};
+
+            /* Universal Dynamic Theme Variables */
+            --color-primary: {{ $theme1 }};
+            --color-primary-hover: {{ $themeObj['primary_hover'] ?? '#2A1D17' }};
+            --color-primary-soft: {{ $themeObj['primary_soft'] ?? 'rgba(' . ($themeObj['primary_rgb'] ?? '60, 42, 33') . ', 0.08)' }};
+            --color-primary-contrast: {{ $themeObj['primary_contrast'] ?? '#FFFFFF' }};
+            --theme-color-1: {{ $theme1 }};
+            --theme-color-2: {{ $theme2 }};
+            --theme-color-accent: {{ $themeObj['accent'] ?? '#4A6741' }};
+            --theme-primary-contrast: {{ $themeObj['primary_contrast'] ?? '#FFFFFF' }};
+            --theme-border: {{ $themeObj['border'] ?? 'rgba(' . ($themeObj['primary_rgb'] ?? '60, 42, 33') . ', 0.08)' }};
+            --bs-primary: var(--theme-color-1);
+            --bs-primary-rgb: {{ $themeObj['primary_rgb'] ?? '60, 42, 33' }};
+            --theme-color-2-rgb: {{ $themeObj['secondary_rgb'] ?? '99, 72, 50' }};
         }
 
         /* Apply background to body if needed, currently set in :root usually consumed by body style */

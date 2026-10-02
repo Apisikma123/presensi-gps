@@ -38,8 +38,15 @@ class ReimbursementService
         $data['status'] = 'SUBMITTED';
 
         if ($file && $file->isValid()) {
-            $path = $file->store('reimbursements', 'public');
-            $data['receipt_attachment'] = $path;
+            $mime = $file->getMimeType();
+            if (str_starts_with($mime, 'image/')) {
+                $baseName = 'rcpt_' . $data['claim_number'] . '_' . time();
+                $fileName = \App\Helpers\ImageOptimizer::saveAsWebp($file, 'reimbursements', $baseName, 82, 1280, 'public');
+                $data['receipt_attachment'] = 'reimbursements/' . $fileName;
+            } else {
+                $path = $file->store('reimbursements', 'public');
+                $data['receipt_attachment'] = $path;
+            }
         }
 
         return Reimbursement::create($data);

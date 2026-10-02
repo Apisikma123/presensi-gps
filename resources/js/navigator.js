@@ -21,6 +21,8 @@
             bar.id = 'app-top-progress';
             document.body.appendChild(bar);
         }
+        bar.style.backgroundColor = 'var(--color-primary, var(--theme-color-1, #1e40af))';
+        bar.style.boxShadow = '0 0 10px rgba(var(--bs-primary-rgb, 30, 64, 175), 0.6)';
         return bar;
     }
 

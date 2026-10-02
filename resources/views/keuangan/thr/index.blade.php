@@ -89,12 +89,12 @@
                             Rp {{ number_format($payment->total_amount, 0, ',', '.') }}
                         </td>
                         <td class="text-end pe-4">
-                            <div class="d-inline-flex gap-1.5">
-                                <a href="{{ route('thr.show', $payment->id) }}" class="btn btn-sm btn-outline-secondary" title="Lihat Rincian" style="padding: 4px 8px;">
-                                    <i class="ti ti-eye fs-6"></i>
+                            <div class="d-inline-flex gap-1.5 align-items-center">
+                                <a href="{{ route('thr.show', $payment->id) }}" class="btn-action-tbl btnShow" title="Lihat Rincian">
+                                    <i class="ti ti-eye"></i>
                                 </a>
-                                <a href="{{ route('thr.export', $payment->id) }}" class="btn btn-sm btn-outline-secondary" title="Export CSV" style="padding: 4px 8px;">
-                                    <i class="ti ti-download fs-6"></i>
+                                <a href="{{ route('thr.export', $payment->id) }}" class="btn-action-tbl" title="Export CSV">
+                                    <i class="ti ti-download"></i>
                                 </a>
                             </div>
                         </td>

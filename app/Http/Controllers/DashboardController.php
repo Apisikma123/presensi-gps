@@ -133,45 +133,50 @@ class DashboardController extends Controller
         // Query Total Karyawan Aktif
         $needsKaryawanJoin = !empty($targetCabangs) || !empty($targetDepartemens);
 
-        // 1. Total Karyawan Aktif
-        $totalAktifQuery = Karyawan::where('status_aktif_karyawan', '1');
-        if (!empty($targetCabangs)) {
-            $totalAktifQuery->whereIn('kode_cabang', $targetCabangs);
-        }
-        if (!empty($targetDepartemens)) {
-            $totalAktifQuery->whereIn('kode_dept', $targetDepartemens);
-        }
-        $totalKaryawan = $totalAktifQuery->count();
-
-        // 2. Presensi Hari Ini (Single-pass server aggregation, no PHP loop on all rows)
-        $summaryQuery = Presensi::leftJoin('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-            ->where('presensi.tanggal', $tglPresensi);
-
-        if ($needsKaryawanJoin) {
-            $summaryQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
+        // 1. Total Karyawan Aktif & Summary Presensi Hari Ini (Cached for 15s)
+        $summaryCacheKey = 'dashboard_summary_' . ($user->isSuperAdmin() ? 'all' : implode('_', $targetCabangs) . '_' . implode('_', $targetDepartemens)) . '_' . $tglPresensi;
+        [$totalKaryawan, $jmlHadir, $jmlTelat, $jmlDispensasi, $jmlIzin, $jmlSakit, $jmlCuti] = Cache::remember($summaryCacheKey, 15, function () use ($needsKaryawanJoin, $targetCabangs, $targetDepartemens, $tglPresensi) {
+            $totalAktifQuery = Karyawan::where('status_aktif_karyawan', '1');
             if (!empty($targetCabangs)) {
-                $summaryQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+                $totalAktifQuery->whereIn('kode_cabang', $targetCabangs);
             }
             if (!empty($targetDepartemens)) {
-                $summaryQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+                $totalAktifQuery->whereIn('kode_dept', $targetDepartemens);
             }
-        }
+            $total = $totalAktifQuery->count();
 
-        $summary = $summaryQuery->select(
-            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
-            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_telat"),
-            DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi = 1 THEN 1 ELSE 0 END) as jml_dispensasi"),
-            DB::raw("SUM(CASE WHEN presensi.status = 'i' THEN 1 ELSE 0 END) as jml_izin"),
-            DB::raw("SUM(CASE WHEN presensi.status = 's' THEN 1 ELSE 0 END) as jml_sakit"),
-            DB::raw("SUM(CASE WHEN presensi.status = 'c' THEN 1 ELSE 0 END) as jml_cuti")
-        )->first();
+            $summaryQuery = Presensi::leftJoin('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+                ->where('presensi.tanggal', $tglPresensi);
 
-        $jmlHadir = (int) ($summary->jml_hadir ?? 0);
-        $jmlTelat = (int) ($summary->jml_telat ?? 0);
-        $jmlDispensasi = (int) ($summary->jml_dispensasi ?? 0);
-        $jmlIzin = (int) ($summary->jml_izin ?? 0);
-        $jmlSakit = (int) ($summary->jml_sakit ?? 0);
-        $jmlCuti = (int) ($summary->jml_cuti ?? 0);
+            if ($needsKaryawanJoin) {
+                $summaryQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
+                if (!empty($targetCabangs)) {
+                    $summaryQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+                }
+                if (!empty($targetDepartemens)) {
+                    $summaryQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+                }
+            }
+
+            $summary = $summaryQuery->select(
+                DB::raw("SUM(CASE WHEN presensi.status = 'h' AND (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
+                DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_telat"),
+                DB::raw("SUM(CASE WHEN presensi.status = 'h' AND presensi.is_dispensasi = 1 THEN 1 ELSE 0 END) as jml_dispensasi"),
+                DB::raw("SUM(CASE WHEN presensi.status = 'i' THEN 1 ELSE 0 END) as jml_izin"),
+                DB::raw("SUM(CASE WHEN presensi.status = 's' THEN 1 ELSE 0 END) as jml_sakit"),
+                DB::raw("SUM(CASE WHEN presensi.status = 'c' THEN 1 ELSE 0 END) as jml_cuti")
+            )->first();
+
+            return [
+                $total,
+                (int) ($summary->jml_hadir ?? 0),
+                (int) ($summary->jml_telat ?? 0),
+                (int) ($summary->jml_dispensasi ?? 0),
+                (int) ($summary->jml_izin ?? 0),
+                (int) ($summary->jml_sakit ?? 0),
+                (int) ($summary->jml_cuti ?? 0),
+            ];
+        });
 
         $totalTercatat = $jmlHadir + $jmlTelat + $jmlIzin + $jmlSakit + $jmlCuti;
         $tidakHadir = max(0, $totalKaryawan - $totalTercatat);
@@ -254,44 +259,48 @@ class DashboardController extends Controller
         $chart2Labels = ['Hadir Tepat Waktu', 'Terlambat', 'Izin', 'Sakit', 'Cuti', 'Tidak Hadir'];
         $chart2Series = [$jmlHadir, $jmlTelat, $jmlIzin, $jmlSakit, $jmlCuti, $tidakHadir];
 
-        // 6. CHART 3: PERBANDINGAN SHIFT HARI INI (Grouped Bar - conditional join)
-        $shiftQuery = Presensi::join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-            ->where('presensi.tanggal', $tglPresensi)
-            ->where('presensi.status', 'h');
+        // 6. CHART 3: PERBANDINGAN SHIFT HARI INI (Cached for 15s)
+        $shiftCacheKey = 'dashboard_shift_' . ($user->isSuperAdmin() ? 'all' : implode('_', $targetCabangs) . '_' . implode('_', $targetDepartemens)) . '_' . $tglPresensi;
+        [$chart3Categories, $chart3Hadir, $chart3Telat] = Cache::remember($shiftCacheKey, 15, function () use ($needsKaryawanJoin, $targetCabangs, $targetDepartemens, $tglPresensi) {
+            $shiftQuery = Presensi::join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+                ->where('presensi.tanggal', $tglPresensi)
+                ->where('presensi.status', 'h');
 
-        if ($needsKaryawanJoin) {
-            $shiftQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
-            if (!empty($targetCabangs)) {
-                $shiftQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+            if ($needsKaryawanJoin) {
+                $shiftQuery->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
+                if (!empty($targetCabangs)) {
+                    $shiftQuery->whereIn('karyawan.kode_cabang', $targetCabangs);
+                }
+                if (!empty($targetDepartemens)) {
+                    $shiftQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
+                }
             }
-            if (!empty($targetDepartemens)) {
-                $shiftQuery->whereIn('karyawan.kode_dept', $targetDepartemens);
-            }
-        }
 
-        $shiftAgg = $shiftQuery->select(
-            'presensi_jamkerja.nama_jam_kerja',
-            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
-            DB::raw("SUM(CASE WHEN (presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00')))) THEN 1 ELSE 0 END) as jml_telat")
-        )->groupBy('presensi_jamkerja.nama_jam_kerja')->get();
+            $shiftAgg = $shiftQuery->select(
+                'presensi_jamkerja.nama_jam_kerja',
+                DB::raw("SUM(CASE WHEN (presensi.is_dispensasi = 1 OR presensi.is_terlambat = 0 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) <= COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00'))) THEN 1 ELSE 0 END) as jml_hadir"),
+                DB::raw("SUM(CASE WHEN (presensi.is_dispensasi != 1 AND (presensi.is_terlambat = 1 OR (presensi.is_terlambat IS NULL AND TIME(presensi.jam_in) > COALESCE(presensi_jamkerja.batas_toleransi, presensi_jamkerja.jam_masuk, '08:00:00')))) THEN 1 ELSE 0 END) as jml_telat")
+            )->groupBy('presensi_jamkerja.nama_jam_kerja')->get();
 
-        $chart3Categories = [];
-        $chart3Hadir = [];
-        $chart3Telat = [];
-        if ($shiftAgg->isNotEmpty()) {
-            foreach ($shiftAgg as $s) {
-                $chart3Categories[] = $s->nama_jam_kerja;
-                $chart3Hadir[] = (int) $s->jml_hadir;
-                $chart3Telat[] = (int) $s->jml_telat;
+            $categories = [];
+            $hadir = [];
+            $telat = [];
+            if ($shiftAgg->isNotEmpty()) {
+                foreach ($shiftAgg as $s) {
+                    $categories[] = $s->nama_jam_kerja;
+                    $hadir[] = (int) $s->jml_hadir;
+                    $telat[] = (int) $s->jml_telat;
+                }
+            } else {
+                $allShifts = Jamkerja::getAllShifts();
+                foreach ($allShifts as $as) {
+                    $categories[] = $as->nama_jam_kerja;
+                    $hadir[] = 0;
+                    $telat[] = 0;
+                }
             }
-        } else {
-            $allShifts = Jamkerja::getAllShifts();
-            foreach ($allShifts as $as) {
-                $chart3Categories[] = $as->nama_jam_kerja;
-                $chart3Hadir[] = 0;
-                $chart3Telat[] = 0;
-            }
-        }
+            return [$categories, $hadir, $telat];
+        });
 
         $leave7dCacheKey = 'dashboard_leave_7d_' . ($user->isSuperAdmin() ? 'all' : implode('_', $targetCabangs) . '_' . implode('_', $targetDepartemens)) . '_' . $tglPresensi;
         [$chart4Izin, $chart4Sakit, $chart4Cuti] = Cache::remember($leave7dCacheKey, 60, function () use ($startDate, $tglPresensi, $needsKaryawanJoin, $targetCabangs, $targetDepartemens, $datePeriod) {
@@ -526,9 +535,9 @@ class DashboardController extends Controller
             ['name' => 'Persetujuan Izin Cuti', 'url' => route('izincuti.index'), 'icon' => 'ti-calendar-event', 'category' => 'Pengajuan', 'keywords' => 'cuti tahunan kuota cuti bersama permohonan libur', 'can' => 'izincuti.index'],
             ['name' => 'Dispensasi Keterlambatan', 'url' => route('dispensasi.index'), 'icon' => 'ti-clock-edit', 'category' => 'Pengajuan', 'keywords' => 'dispensasi terlambat macet telat persetujuan', 'can' => 'dispensasi.index'],
             ['name' => 'Shift & Jam Kerja', 'url' => route('jamkerja.index'), 'icon' => 'ti-clock', 'category' => 'Master Data', 'keywords' => 'jam kerja shift jadwal pagi malam waktu operasional', 'can' => 'jamkerja.index'],
-            ['name' => 'Outlet Cabang Coffee', 'url' => route('cabang.index'), 'icon' => 'ti-building-store', 'category' => 'Master Data', 'keywords' => 'cabang outlet toko coffee shop lokasi radius geofence', 'can' => 'cabang.index'],
-            ['name' => 'Divisi / Departemen', 'url' => route('departemen.index'), 'icon' => 'ti-building', 'category' => 'Master Data', 'keywords' => 'departemen divisi unit bagian kitchen bar service', 'can' => 'departemen.index'],
-            ['name' => 'Jabatan & Posisi', 'url' => route('jabatan.index'), 'icon' => 'ti-id', 'category' => 'Master Data', 'keywords' => 'jabatan posisi role pangkat barista supervisor manager', 'can' => 'jabatan.index'],
+            ['name' => 'Cabang & Kantor Operasional', 'url' => route('cabang.index'), 'icon' => 'ti-building-store', 'category' => 'Master Data', 'keywords' => 'cabang outlet kantor toko lokasi radius geofence', 'can' => 'cabang.index'],
+            ['name' => 'Divisi / Departemen', 'url' => route('departemen.index'), 'icon' => 'ti-building', 'category' => 'Master Data', 'keywords' => 'departemen divisi unit bagian operasional administrasi', 'can' => 'departemen.index'],
+            ['name' => 'Jabatan & Posisi', 'url' => route('jabatan.index'), 'icon' => 'ti-id', 'category' => 'Master Data', 'keywords' => 'jabatan posisi role pangkat staf supervisor manager', 'can' => 'jabatan.index'],
             ['name' => 'Laporan Presensi Karyawan', 'url' => route('laporan.presensi'), 'icon' => 'ti-file-report', 'category' => 'Laporan', 'keywords' => 'laporan rekapitulasi kehadiran export excel pdf cetak', 'can' => 'laporan.presensi'],
             ['name' => 'Rekapitulasi Cuti Karyawan', 'url' => route('laporan.cuti'), 'icon' => 'ti-file-spreadsheet', 'category' => 'Laporan', 'keywords' => 'laporan rekap cuti saldo kuota tahunan', 'can' => 'laporan.cuti'],
             ['name' => 'Manajemen Akun User', 'url' => route('users.index'), 'icon' => 'ti-users-cog', 'category' => 'Pengaturan', 'keywords' => 'user pengguna role hak akses password akun', 'can' => 'users.index'],
@@ -659,7 +668,7 @@ class DashboardController extends Controller
                 $iaQuery->whereIn('karyawan.kode_dept', !empty($uDepts) ? $uDepts : ['INVALID']);
             }
 
-            $izinAbsen = $iaQuery->select('presensi_izinabsen.kode_izin as id', 'presensi_izinabsen.nik', 'karyawan.nama_karyawan', 'presensi_izinabsen.tanggal', 'presensi_izinabsen.keterangan', 'presensi_izinabsen.status_approved')
+            $izinAbsen = $iaQuery->select('presensi_izinabsen.kode_izin as id', 'presensi_izinabsen.nik', 'karyawan.nama_karyawan', 'presensi_izinabsen.tanggal', 'presensi_izinabsen.keterangan', 'presensi_izinabsen.status as status_approved')
                 ->orderBy('presensi_izinabsen.tanggal', 'desc')->limit(3)->get();
 
             foreach ($izinAbsen as $ia) {
@@ -689,7 +698,7 @@ class DashboardController extends Controller
                 $isQuery->whereIn('karyawan.kode_dept', !empty($uDepts) ? $uDepts : ['INVALID']);
             }
 
-            $izinSakit = $isQuery->select('presensi_izinsakit.kode_izin_sakit as id', 'presensi_izinsakit.nik', 'karyawan.nama_karyawan', 'presensi_izinsakit.tanggal', 'presensi_izinsakit.keterangan', 'presensi_izinsakit.status_approved')
+            $izinSakit = $isQuery->select('presensi_izinsakit.kode_izin_sakit as id', 'presensi_izinsakit.nik', 'karyawan.nama_karyawan', 'presensi_izinsakit.tanggal', 'presensi_izinsakit.keterangan', 'presensi_izinsakit.status as status_approved')
                 ->orderBy('presensi_izinsakit.tanggal', 'desc')->limit(3)->get();
 
             foreach ($izinSakit as $is) {
@@ -719,7 +728,7 @@ class DashboardController extends Controller
                 $icQuery->whereIn('karyawan.kode_dept', !empty($uDepts) ? $uDepts : ['INVALID']);
             }
 
-            $izinCuti = $icQuery->select('presensi_izincuti.kode_izin_cuti as id', 'presensi_izincuti.nik', 'karyawan.nama_karyawan', 'presensi_izincuti.tanggal', 'presensi_izincuti.keterangan', 'presensi_izincuti.status_approved')
+            $izinCuti = $icQuery->select('presensi_izincuti.kode_izin_cuti as id', 'presensi_izincuti.nik', 'karyawan.nama_karyawan', 'presensi_izincuti.tanggal', 'presensi_izincuti.keterangan', 'presensi_izincuti.status as status_approved')
                 ->orderBy('presensi_izincuti.tanggal', 'desc')->limit(3)->get();
 
             foreach ($izinCuti as $ic) {
@@ -743,7 +752,7 @@ class DashboardController extends Controller
                 ->where(function ($sub) use ($q) {
                     $sub->where('karyawan.nama_karyawan', 'like', "%{$q}%")
                         ->orWhere('presensi_dispensasi.nik', 'like', "%{$q}%")
-                        ->orWhere('presensi_dispensasi.keterangan', 'like', "%{$q}%");
+                        ->orWhere('presensi_dispensasi.alasan', 'like', "%{$q}%");
                 });
 
             if (!$user->isSuperAdmin()) {
@@ -751,7 +760,7 @@ class DashboardController extends Controller
                 $dispQuery->whereIn('karyawan.kode_dept', !empty($uDepts) ? $uDepts : ['INVALID']);
             }
 
-            $dispensasiList = $dispQuery->select('presensi_dispensasi.id', 'presensi_dispensasi.nik', 'karyawan.nama_karyawan', 'presensi_dispensasi.tanggal', 'presensi_dispensasi.keterangan', 'presensi_dispensasi.status_approved')
+            $dispensasiList = $dispQuery->select('presensi_dispensasi.id', 'presensi_dispensasi.nik', 'karyawan.nama_karyawan', 'presensi_dispensasi.tanggal', 'presensi_dispensasi.alasan as keterangan', 'presensi_dispensasi.status as status_approved')
                 ->orderBy('presensi_dispensasi.tanggal', 'desc')->limit(3)->get();
 
             foreach ($dispensasiList as $d) {

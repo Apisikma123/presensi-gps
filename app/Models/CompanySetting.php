@@ -68,7 +68,7 @@ class CompanySetting extends Model
             return static::first() ?? new static([
                 'company_name' => 'Presence Universal HR',
                 'app_name' => 'Presence',
-                'app_tagline' => 'Universal HR Management System',
+                'app_tagline' => 'Sistem HRIS',
                 'business_type' => 'General',
                 'timezone' => 'Asia/Jakarta',
                 'locale' => 'id',

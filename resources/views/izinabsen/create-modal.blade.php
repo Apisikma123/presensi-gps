@@ -10,16 +10,53 @@
             @endforeach
         </select>
     </div>
-    <div class="row">
+    <div class="form-group mb-3">
+        <label for="tipe_izin_modal" class="form-label fw-semibold" style="font-size: 13px;">Tipe Permisi / Izin</label>
+        <select name="tipe_izin" id="tipe_izin_modal" class="form-select" onchange="toggleTipeIzinModal(this.value)">
+            <option value="harian" selected>Izin Seharian (Full Day)</option>
+            <option value="jam">Izin Jam Kerja (Hourly / Keluar Kantor)</option>
+            <option value="pulang_cepat">Izin Pulang Lebih Cepat</option>
+        </select>
+    </div>
+
+    {{-- Rentang Tanggal (Harian) --}}
+    <div id="rowHarianModal" class="row">
         <div class="col-lg-6 col-sm-12 col-md-12">
-            <x-input-with-icon icon="ti ti-calendar" label="Dari" name="dari" datepicker="flatpickr-date" required="true" />
+            <x-input-with-icon icon="ti ti-calendar" label="Dari" name="dari" datepicker="flatpickr-date" />
         </div>
         <div class="col-lg-6 col-sm-12 col-md-12">
-            <x-input-with-icon icon="ti ti-calendar" label="Sampai" name="sampai" datepicker="flatpickr-date" required="true" />
+            <x-input-with-icon icon="ti ti-calendar" label="Sampai" name="sampai" datepicker="flatpickr-date" />
         </div>
     </div>
-    <x-input-with-icon icon="ti ti-sun" label="Jumlah Hari Kerja" name="jml_hari" disabled="true" />
-    <x-textarea-label label="Keterangan" name="keterangan" required="true" />
+    <div id="rowJmlHariModal">
+        <x-input-with-icon icon="ti ti-sun" label="Jumlah Hari Kerja" name="jml_hari" disabled="true" />
+    </div>
+
+    {{-- Tanggal & Jam (Untuk Izin Jam / Pulang Cepat) --}}
+    <div id="rowJamModal" style="display:none;" class="row mb-3">
+        <div class="col-lg-12 mb-3">
+            <x-input-with-icon icon="ti ti-calendar" label="Tanggal Izin" name="tanggal_izin" datepicker="flatpickr-date" />
+        </div>
+        <div class="col-lg-6 col-sm-6" id="colJamMulaiModal">
+            <label class="form-label fw-semibold" style="font-size: 13px;">Dari Jam</label>
+            <input type="time" name="jam_mulai" class="form-control" value="10:00">
+        </div>
+        <div class="col-lg-6 col-sm-6" id="colJamSelesaiModal">
+            <label class="form-label fw-semibold" style="font-size: 13px;">Sampai Jam</label>
+            <input type="time" name="jam_selesai" class="form-control" value="12:00">
+        </div>
+        <div class="col-lg-12" id="colJamPulangModal" style="display:none;">
+            <label class="form-label fw-semibold" style="font-size: 13px;">Jam Rencana Pulang</label>
+            <input type="time" name="jam_pulang_cepat" class="form-control" value="15:00">
+        </div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="keperluan_modal" class="form-label fw-semibold" style="font-size: 13px;">Keperluan / Acara Permisi <span class="text-danger fw-bold ms-0.5">*</span></label>
+        <input type="text" name="keperluan" id="keperluan_modal" class="form-control" placeholder="Misal: Acara sekolah anak, urusan bank, fisioterapi, dll." required>
+    </div>
+
+    <x-textarea-label label="Keterangan Detail (Opsional)" name="keterangan_detail" />
     <div class="modal-footer-standard d-flex align-items-center justify-content-end gap-2 mt-4 pt-3 border-top">
         @if (request()->ajax())
             <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Batal</button>
@@ -33,6 +70,23 @@
     </div>
 </form>
 <script>
+    window.toggleTipeIzinModal = function(val) {
+        if (val === 'jam') {
+            $('#rowHarianModal, #rowJmlHariModal').hide();
+            $('#rowJamModal').show();
+            $('#colJamMulaiModal, #colJamSelesaiModal').show();
+            $('#colJamPulangModal').hide();
+        } else if (val === 'pulang_cepat') {
+            $('#rowHarianModal, #rowJmlHariModal').hide();
+            $('#rowJamModal').show();
+            $('#colJamMulaiModal, #colJamSelesaiModal').hide();
+            $('#colJamPulangModal').show();
+        } else {
+            $('#rowHarianModal, #rowJmlHariModal').show();
+            $('#rowJamModal').hide();
+        }
+    };
+
     $(function() {
         const form = $('#formIzin');
         const batasi_hari_izin = "{{ $general_setting->batasi_hari_izin ?? 0 }}";

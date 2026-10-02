@@ -6,7 +6,6 @@ use App\Models\Announcement;
 use App\Models\Cabang;
 use App\Models\CompanyPolicy;
 use App\Models\Departemen;
-use App\Models\EmployeeAsset;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeIncident;
 use App\Models\EmployeeTraining;
@@ -141,15 +140,63 @@ class TalentGovernanceController extends Controller
             });
         }
 
-        $documents = $query->orderBy('created_at', 'desc')->paginate(10);
-        $karyawans = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
         $types = EmployeeDocument::TYPES;
+        $user = Auth::user();
+        if ($user && $user->hasRole('karyawan')) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $query->where('nik', $userKaryawan?->nik ?? $user->nik);
+            $documents = $query->orderBy('created_at', 'desc')->paginate(10);
+            return view('kepegawaian.governance.documents-mobile', compact('documents', 'types'));
+        }
+
+        // Branch and department scoping for non-superadmin HR staff
+        if ($user && !$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs)) {
+                $query->whereHas('karyawan', fn($q) => $q->whereIn('kode_cabang', $userCabangs));
+            }
+            if (!empty($userDepartemens)) {
+                $query->whereHas('karyawan', fn($q) => $q->whereIn('kode_dept', $userDepartemens));
+            }
+        }
+
+        $documents = $query->orderBy('created_at', 'desc')->paginate(10);
+        $karyawansQuery = Karyawan::where('status_aktif_karyawan', '1');
+        if ($user && !$user->isSuperAdmin()) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+            if (!empty($userCabangs)) {
+                $karyawansQuery->whereIn('kode_cabang', $userCabangs);
+            }
+            if (!empty($userDepartemens)) {
+                $karyawansQuery->whereIn('kode_dept', $userDepartemens);
+            }
+        }
+        $karyawans = $karyawansQuery->orderBy('nama_karyawan')->get();
 
         return view('kepegawaian.governance.documents', compact('documents', 'karyawans', 'types'));
     }
 
+    public function documentCreate(Request $request)
+    {
+        $types = EmployeeDocument::TYPES;
+        $user = Auth::user();
+        $isKaryawan = $user && $user->hasRole('karyawan');
+        $karyawans = $isKaryawan ? [] : Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
+
+        return view('kepegawaian.governance.documents-create-mobile', compact('types', 'isKaryawan', 'karyawans'));
+    }
+
     public function documentStore(Request $request)
     {
+        $user = Auth::user();
+        if ($user && $user->hasRole('karyawan')) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $nik = $userKaryawan?->nik ?? $user->nik;
+            $request->merge(['nik' => $nik]);
+        }
+
         $request->validate([
             'nik' => 'required|string|exists:karyawan,nik',
             'document_type' => 'required|string|in:KTP,NPWP,KK,IJAZAH,KONTRAK,SERTIFIKAT,BPJS,OTHER',
@@ -158,6 +205,20 @@ class TalentGovernanceController extends Controller
             'expiry_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
+
+        if ($user && !$user->hasRole('karyawan') && !$user->isSuperAdmin()) {
+            $targetKaryawan = Karyawan::where('nik', $request->nik)->first();
+            if ($targetKaryawan) {
+                $userCabangs = $user->getCabangCodes();
+                $userDepartemens = $user->getDepartemenCodes();
+                if (!empty($userCabangs) && !in_array($targetKaryawan->kode_cabang, $userCabangs)) {
+                    abort(403, 'Akses ditolak. Karyawan berada di luar cabang wewenang Anda.');
+                }
+                if (!empty($userDepartemens) && !in_array($targetKaryawan->kode_dept, $userDepartemens)) {
+                    abort(403, 'Akses ditolak. Karyawan berada di luar departemen wewenang Anda.');
+                }
+            }
+        }
 
         $this->governanceService->uploadDocument(
             $request->nik,
@@ -171,7 +232,33 @@ class TalentGovernanceController extends Controller
 
     public function documentDestroy($id)
     {
-        EmployeeDocument::findOrFail($id)->delete();
+        $doc = EmployeeDocument::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$user->isSuperAdmin()) {
+            if (!$user->can('document.delete')) {
+                abort(403, 'Akses ditolak. Anda tidak memiliki wewenang untuk menghapus dokumen.');
+            }
+            $karyawan = $doc->karyawan ?? Karyawan::where('nik', $doc->nik)->first();
+            if ($karyawan) {
+                $userCabangs = $user->getCabangCodes();
+                $userDepartemens = $user->getDepartemenCodes();
+                if (!empty($userCabangs) && !in_array($karyawan->kode_cabang, $userCabangs)) {
+                    abort(403, 'Akses ditolak. Karyawan berada di luar cabang wewenang Anda.');
+                }
+                if (!empty($userDepartemens) && !in_array($karyawan->kode_dept, $userDepartemens)) {
+                    abort(403, 'Akses ditolak. Karyawan berada di luar departemen wewenang Anda.');
+                }
+            }
+        }
+
+        // Delete physical file from both private and legacy public storage
+        if (!empty($doc->file_path)) {
+            \Illuminate\Support\Facades\Storage::disk('private')->delete($doc->file_path);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($doc->file_path);
+        }
+
+        $doc->delete();
         return redirect()->back()->with('success', 'Dokumen berkas karyawan berhasil dihapus.');
     }
 
@@ -183,12 +270,17 @@ class TalentGovernanceController extends Controller
         $policies = CompanyPolicy::orderBy('category')->orderBy('title')->get();
         $categories = CompanyPolicy::CATEGORIES;
 
+        $user = Auth::user();
+        if ($user && $user->hasRole('karyawan')) {
+            return view('kepegawaian.governance.policies-mobile', compact('policies', 'categories'));
+        }
+
         return view('kepegawaian.governance.policies', compact('policies', 'categories'));
     }
 
     public function policyStore(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'policy_code' => 'required|string|max:50|unique:company_policies,policy_code',
             'title' => 'required|string|max:200',
             'category' => 'required|string',
@@ -197,66 +289,11 @@ class TalentGovernanceController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        CompanyPolicy::create($request->all());
+        CompanyPolicy::create($validated);
 
         return redirect()->back()->with('success', 'Kebijakan / SOP Perusahaan berhasil didaftarkan.');
     }
 
-    // ==========================================
-    // 5. INVENTARIS & ASET KARYAWAN (ASSETS)
-    // ==========================================
-    public function assetIndex(Request $request)
-    {
-        $query = EmployeeAsset::with('karyawan.departemen');
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('search')) {
-            $s = $request->search;
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('asset_code', 'like', "%{$s}%")
-                  ->orWhere('serial_number', 'like', "%{$s}%")
-                  ->orWhereHas('karyawan', fn($sub) => $sub->where('nama_karyawan', 'like', "%{$s}%"));
-            });
-        }
-
-        $assets = $query->orderBy('assigned_date', 'desc')->paginate(10);
-        $karyawans = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
-        $categories = EmployeeAsset::CATEGORIES;
-
-        return view('kepegawaian.governance.assets', compact('assets', 'karyawans', 'categories'));
-    }
-
-    public function assetStore(Request $request)
-    {
-        $request->validate([
-            'nik' => 'required|string|exists:karyawan,nik',
-            'name' => 'required|string|max:150',
-            'category' => 'required|string',
-            'serial_number' => 'nullable|string|max:100',
-            'assigned_date' => 'required|date',
-            'condition' => 'required|string|in:EXCELLENT,GOOD,FAIR,DAMAGED',
-            'notes' => 'nullable|string',
-        ]);
-
-        $this->governanceService->assignAsset($request->all());
-
-        return redirect()->back()->with('success', 'Aset fasilitas kerja berhasil ditugaskan ke karyawan.');
-    }
-
-    public function assetReturn(Request $request, $id)
-    {
-        $request->validate([
-            'condition' => 'required|string|in:EXCELLENT,GOOD,FAIR,DAMAGED',
-        ]);
-
-        $this->governanceService->returnAsset((int) $id, $request->condition);
-
-        return redirect()->back()->with('success', 'Aset fasilitas kerja berhasil ditandai telah dikembalikan.');
-    }
 
     // ==========================================
     // 6. PENGUMUMAN INTERNAL (ANNOUNCEMENTS)
@@ -267,6 +304,11 @@ class TalentGovernanceController extends Controller
         $departemens = Departemen::orderBy('nama_dept')->get();
         $cabangs = Cabang::orderBy('nama_cabang')->get();
         $categories = Announcement::CATEGORIES;
+
+        $user = Auth::user();
+        if ($user && $user->hasRole('karyawan')) {
+            return view('kepegawaian.governance.announcements-mobile', compact('announcements', 'categories'));
+        }
 
         return view('kepegawaian.governance.announcements', compact('announcements', 'departemens', 'cabangs', 'categories'));
     }

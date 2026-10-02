@@ -261,11 +261,12 @@
     }).addTo({{ $map_id }});
 
     // Garis penghubung karyawan ke kantor
+    var themeColor2 = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '#634832';
     var line = L.polyline([
         [latitude_user, longitude_user],
         [latitude_kantor, longitude_kantor]
     ], {
-        color: '#634832',
+        color: themeColor2,
         weight: 2,
         dashArray: '8, 8',
         opacity: 0.8

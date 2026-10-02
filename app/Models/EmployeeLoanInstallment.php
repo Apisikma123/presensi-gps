@@ -44,8 +44,8 @@ class EmployeeLoanInstallment extends Model
     public function getStatusBadgeHtmlAttribute(): string
     {
         return match ($this->status) {
-            'PAID' => '<span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-md" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;"><span class="rounded-full" style="width: 6px; height: 6px; background: #16a34a;"></span>Lunas</span>',
-            default => '<span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-md" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;"><span class="rounded-full" style="width: 6px; height: 6px; background: #d97706;"></span>Belum Bayar</span>',
+            'PAID' => '<span class="badge bg-label-success">Lunas</span>',
+            default => '<span class="badge bg-label-warning">Belum Bayar</span>',
         };
     }
 }

@@ -74,14 +74,14 @@
                             <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">{{ $d->group_name }}</span>
                         </td>
                         <td class="text-end">
-                            <div class="btn-group btn-group-sm">
-                                <a href="#" class="btn btn-outline-primary editPermission" id="{{ Crypt::encrypt($d->id) }}" title="Edit">
+                            <div class="d-inline-flex align-items-center justify-content-end gap-1.5">
+                                <a href="#" class="btnEdit editPermission" id="{{ Crypt::encrypt($d->id) }}" title="Edit">
                                     <i class="ti ti-edit"></i>
                                 </a>
-                                <form method="POST" name="deleteform" class="deleteform d-inline" action="{{ route('permissions.delete', Crypt::encrypt($d->id)) }}">
+                                <form method="POST" name="deleteform" class="deleteform d-inline m-0 p-0" action="{{ route('permissions.delete', Crypt::encrypt($d->id)) }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="btn btn-outline-danger delete-confirm" title="Hapus">
+                                    <button type="submit" class="delete-confirm" title="Hapus">
                                         <i class="ti ti-trash"></i>
                                     </button>
                                 </form>

@@ -11,7 +11,7 @@ class AttendancePolicyController extends Controller
     {
         $policy = AttendancePolicy::getActivePolicy();
 
-        return view('settings.attendance.index', compact('policy'));
+        return redirect()->route('settings.hub', ['tab' => 'attendance']);
     }
 
     public function update(Request $request)
@@ -38,6 +38,6 @@ class AttendancePolicyController extends Controller
             'description' => $request->description,
         ]);
 
-        return redirect()->route('attendance_policy.index')->with('success', 'Kebijakan presensi kehadiran berhasil diperbarui.');
+        return redirect()->route('settings.hub', ['tab' => 'attendance'])->with('success', 'Kebijakan presensi kehadiran berhasil diperbarui.');
     }
 }

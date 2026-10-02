@@ -76,9 +76,38 @@
                             <div class="text-muted small">No. Sertifikat: <span class="font-mono">{{ $t->certificate_number }}</span></div>
                         @endif
                     </td>
+                    @php
+                        $empName = $t->karyawan->nama_karyawan ?? 'Karyawan';
+                        $words = explode(' ', trim($empName));
+                        $initials = '';
+                        foreach ($words as $wrd) {
+                            if (isset($wrd[0])) $initials .= $wrd[0];
+                        }
+                        $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                    @endphp
                     <td>
-                        <div class="fw-semibold text-dark">{{ $t->karyawan->nama_karyawan ?? 'Karyawan' }}</div>
-                        <div class="text-muted small font-mono">NIK: {{ $t->nik }}</div>
+                        <div class="d-flex align-items-center gap-2.5">
+                            @if (!empty($t->karyawan?->foto))
+                                <img src="{{ getfotoKaryawan($t->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                    style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                    style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @else
+                                <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                    style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                    {{ $initials }}
+                                </div>
+                            @endif
+                            <div>
+                                <div class="fw-semibold text-dark text-truncate" style="font-size: 13px; max-width: 170px;">{{ $empName }}</div>
+                                <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                    {{ $t->nik }}
+                                </span>
+                            </div>
+                        </div>
                     </td>
                     <td>{{ $t->provider ?: 'Internal HR' }}</td>
                     <td>

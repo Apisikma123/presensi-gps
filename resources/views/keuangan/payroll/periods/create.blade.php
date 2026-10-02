@@ -40,7 +40,7 @@
     <div class="col-12 col-lg-8">
         <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
             <div class="card-header border-bottom py-3" style="background: #FAF9F8;">
-                <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: #3C2A21;">
+                <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: var(--color-primary, #3C2A21);">
                     <i class="ti ti-calendar-event me-1.5 text-primary"></i> Konfigurasi Siklus Penggajian
                 </h5>
             </div>

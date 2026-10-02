@@ -31,9 +31,18 @@ class OvertimeController extends Controller
      */
     public function index(Request $request): View
     {
+        $user = auth()->user();
+        $isKaryawan = $user && $user->hasRole('karyawan');
+        $userKaryawan = $isKaryawan ? \App\Models\Userkaryawan::where('id_user', $user->id)->first() : null;
+        $employeeNik = $userKaryawan?->nik ?? $user?->nik;
+
         $query = Lembur::with(['karyawan.departemen', 'karyawan.jabatan', 'policy', 'approver'])
             ->orderBy('tanggal', 'desc')
             ->orderBy('id', 'desc');
+
+        if ($isKaryawan && $employeeNik) {
+            $query->where('nik', $employeeNik);
+        }
 
         if ($request->filled('nik')) {
             $query->where('nik', $request->nik);
@@ -58,13 +67,18 @@ class OvertimeController extends Controller
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
+        $statsQuery = Lembur::query();
+        if ($isKaryawan && $employeeNik) {
+            $statsQuery->where('nik', $employeeNik);
+        }
+
         // Statistics for Swiss Precision Bento Grid
         $stats = [
-            'total_spk_month' => Lembur::whereYear('tanggal', $currentYear)->whereMonth('tanggal', $currentMonth)->count(),
-            'pending_approval' => Lembur::where('status', 'PENDING')->count(),
-            'approved_month' => Lembur::whereYear('tanggal', $currentYear)->whereMonth('tanggal', $currentMonth)->where('status', 'APPROVED')->count(),
+            'total_spk_month' => (clone $statsQuery)->whereYear('tanggal', $currentYear)->whereMonth('tanggal', $currentMonth)->count(),
+            'pending_approval' => (clone $statsQuery)->where('status', 'PENDING')->count(),
+            'approved_month' => (clone $statsQuery)->whereYear('tanggal', $currentYear)->whereMonth('tanggal', $currentMonth)->where('status', 'APPROVED')->count(),
             'total_rate_hours_month' => round(
-                (float) Lembur::whereYear('tanggal', $currentYear)
+                (float) (clone $statsQuery)->whereYear('tanggal', $currentYear)
                     ->whereMonth('tanggal', $currentMonth)
                     ->where('status', 'APPROVED')
                     ->sum('calculated_rate_hours'),
@@ -76,6 +90,10 @@ class OvertimeController extends Controller
         $employees = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
         $policies = OvertimePolicy::where('is_active', true)->get();
 
+        if ($isKaryawan) {
+            return view('kepegawaian.lembur.index-mobile', compact('lemburs', 'stats', 'policies'));
+        }
+
         return view('kepegawaian.lembur.index', compact('lemburs', 'stats', 'employees', 'policies'));
     }
 
@@ -84,9 +102,17 @@ class OvertimeController extends Controller
      */
     public function create(): View
     {
-        $employees = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
+        $user = auth()->user();
         $policies = OvertimePolicy::where('is_active', true)->get();
         $defaultPolicy = OvertimePolicy::getDefaultPolicy();
+
+        if ($user && $user->hasRole('karyawan')) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $currentKaryawan = $userKaryawan ? Karyawan::where('nik', $userKaryawan->nik)->first() : null;
+            return view('kepegawaian.lembur.create-mobile', compact('currentKaryawan', 'policies', 'defaultPolicy'));
+        }
+
+        $employees = Karyawan::where('status_aktif_karyawan', '1')->orderBy('nama_karyawan')->get();
 
         return view('kepegawaian.lembur.create', compact('employees', 'policies', 'defaultPolicy'));
     }
@@ -96,6 +122,13 @@ class OvertimeController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = auth()->user();
+        $isKaryawan = $user && $user->hasRole('karyawan');
+        if ($isKaryawan) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $request->merge(['nik' => $userKaryawan?->nik ?? $user->nik]);
+        }
+
         $request->validate([
             'nik' => 'required|exists:karyawan,nik',
             'tanggal' => 'required|date',
@@ -121,12 +154,19 @@ class OvertimeController extends Controller
      */
     public function show(Lembur $lembur): View
     {
+        $this->authorizeOvertimeAccess($lembur, 'show');
+
         $lembur->load(['karyawan.departemen', 'karyawan.jabatan', 'policy', 'approver']);
         $calculation = $this->calculator->calculateRateHours(
             $lembur->duration_hours,
             $lembur->day_type,
             $lembur->policy
         );
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('karyawan')) {
+            return view('kepegawaian.lembur.show-mobile', compact('lembur', 'calculation'));
+        }
 
         return view('kepegawaian.lembur.show', compact('lembur', 'calculation'));
     }
@@ -201,6 +241,16 @@ class OvertimeController extends Controller
      */
     public function approve(Request $request, Lembur $lembur): RedirectResponse
     {
+        $this->authorizeOvertimeAccess($lembur, 'approve');
+
+        // Anti-self-approval protection
+        $user = auth()->user();
+        $userKaryawan = $user ? \App\Models\Userkaryawan::where('id_user', $user->id)->first() : null;
+        $myNik = $userKaryawan?->nik ?? $user?->nik;
+        if ($myNik && $lembur->nik === $myNik) {
+            return back()->with('error', 'Anda tidak dapat menyetujui pengajuan SPK lembur milik Anda sendiri.');
+        }
+
         $request->validate([
             'approved_duration_minutes' => 'nullable|integer|min:1',
             'notes' => 'nullable|string|max:500',
@@ -225,6 +275,16 @@ class OvertimeController extends Controller
      */
     public function reject(Request $request, Lembur $lembur): RedirectResponse
     {
+        $this->authorizeOvertimeAccess($lembur, 'reject');
+
+        // Anti-self-rejection/approval check
+        $user = auth()->user();
+        $userKaryawan = $user ? \App\Models\Userkaryawan::where('id_user', $user->id)->first() : null;
+        $myNik = $userKaryawan?->nik ?? $user?->nik;
+        if ($myNik && $lembur->nik === $myNik) {
+            return back()->with('error', 'Anda tidak dapat memproses SPK lembur milik Anda sendiri.');
+        }
+
         $request->validate([
             'notes' => 'required|string|max:500',
         ]);
@@ -236,6 +296,46 @@ class OvertimeController extends Controller
             return back()->with('success', "SPK Lembur {$lembur->no_spk} ditolak.");
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menolak SPK Lembur: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Authorize user access to a specific overtime SPK
+     */
+    protected function authorizeOvertimeAccess(Lembur $lembur, string $action = 'show'): void
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        if ($user->isSuperAdmin()) {
+            return;
+        }
+
+        if ($user->hasRole('karyawan')) {
+            $userKaryawan = \App\Models\Userkaryawan::where('id_user', $user->id)->first();
+            $myNik = $userKaryawan?->nik ?? $user->nik ?? null;
+
+            if (!$myNik || $lembur->nik !== $myNik) {
+                abort(403, 'Akses ditolak. Anda hanya berhak melihat SPK lembur milik Anda sendiri.');
+            }
+            return;
+        }
+
+        // Branch and department scoping for admin staff
+        $karyawan = $lembur->karyawan ?? Karyawan::where('nik', $lembur->nik)->first();
+        if ($karyawan) {
+            $userCabangs = $user->getCabangCodes();
+            $userDepartemens = $user->getDepartemenCodes();
+
+            if (!empty($userCabangs) && !in_array($karyawan->kode_cabang, $userCabangs)) {
+                abort(403, 'Akses ditolak. Karyawan berada di luar cabang wewenang Anda.');
+            }
+            if (!empty($userDepartemens) && !in_array($karyawan->kode_dept, $userDepartemens)) {
+                abort(403, 'Akses ditolak. Karyawan berada di luar departemen wewenang Anda.');
+            }
         }
     }
 

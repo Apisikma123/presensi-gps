@@ -17,9 +17,9 @@ class Kernel extends ConsoleKernel
             \Illuminate\Support\Facades\Cache::forever('scheduler_last_heartbeat', now()->timestamp);
         })->name('scheduler-heartbeat')->everyMinute();
 
-        // Jalankan worker queue untuk memproses job antrian sesuai interval cron shared hosting
+        // Jalankan worker queue untuk memproses job antrian sesuai interval cron shared hosting (M: 15m, S: 30m)
         $schedule->command('queue:work --queue=default --sleep=3 --tries=3 --stop-when-empty')
-            ->everyThirtyMinutes()
+            ->everyFifteenMinutes()
             ->withoutOverlapping();
 
         // Cek dan generate otomatis status Tanpa Keterangan / Alpha ('a') setelah jam shift berakhir

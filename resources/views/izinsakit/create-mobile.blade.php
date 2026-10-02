@@ -88,7 +88,7 @@
 
         /* Modern Mobile File Upload (DESIGN.md Compliant) */
         .mobile-upload-box {
-            border: 1.5px dashed rgba(60, 42, 33, 0.28);
+            border: 1.5px dashed var(--theme-border, rgba(var(--bs-primary-rgb), 0.28));
             border-radius: 14px;
             background: #ffffff;
             padding: 16px;
@@ -106,16 +106,16 @@
 
         .mobile-upload-box:active {
             transform: scale(0.99);
-            background: rgba(60, 42, 33, 0.04);
-            border-color: {{ $t['primary'] ?? '#3C2A21' }};
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.04));
+            border-color: {{ $t['primary'] }};
         }
 
         .mobile-upload-icon {
             width: 42px;
             height: 42px;
             border-radius: 12px;
-            background: rgba(60, 42, 33, 0.08);
-            color: {{ $t['primary'] ?? '#3C2A21' }};
+            background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08));
+            color: {{ $t['primary'] }};
             display: flex;
             align-items: center;
             justify-content: center;
@@ -204,7 +204,7 @@
             font-size: 11px;
             font-weight: 600;
             color: {{ $t['primary'] ?? '#3C2A21' }};
-            background: rgba(60, 42, 33, 0.08);
+            background: rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08);
             border: none;
             border-radius: 8px;
             padding: 4px 10px;
@@ -249,6 +249,18 @@
 
 @section('content')
     <div class="fade-up form-container">
+        @if (isset($errors) && $errors->any())
+            <div class="mb-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[12px] space-y-1">
+                <div class="font-bold flex items-center gap-1.5">
+                    <ion-icon name="alert-circle" class="text-base text-rose-600"></ion-icon>
+                    <span>Terjadi kesalahan:</span>
+                </div>
+                @foreach ($errors->all() as $err)
+                    <div>• {{ $err }}</div>
+                @endforeach
+            </div>
+        @endif
+
         <form action="{{ route('izinsakit.store') }}" method="POST" id="formIzin" enctype="multipart/form-data" autocomplete="off">
             @csrf
 
@@ -446,9 +458,24 @@
                     });
                 }
 
-                fileInput.addEventListener('change', function() {
-                    const file = this.files[0];
+                fileInput.addEventListener('change', async function() {
+                    let file = this.files[0];
                     if (!file) return;
+
+                    // Auto-compress on mobile client if image
+                    if (file.type && file.type.startsWith('image/') && typeof window.compressImageFile === 'function') {
+                        try {
+                            const compressed = await window.compressImageFile(file, { maxDimension: 1280, quality: 0.82 });
+                            if (compressed && compressed.size < file.size) {
+                                file = compressed;
+                                const dt = new DataTransfer();
+                                dt.items.add(file);
+                                fileInput.files = dt.files;
+                            }
+                        } catch(err) {
+                            console.warn('Client compression fallback', err);
+                        }
+                    }
 
                     if (file.size > 2 * 1024 * 1024) {
                         Swal.fire({

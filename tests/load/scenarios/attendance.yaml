@@ -1,0 +1,31 @@
+# ==================================================================
+# SCENARIO: ATTENDANCE CLOCK-IN SPIKE (Morning Rush)
+# ==================================================================
+config:
+  target: "{{ $processEnvironment.TARGET_URL }}"
+  http:
+    timeout: 30
+    pool: 100
+    maxSockets: 200
+  processor: "../helpers.js"
+  phases:
+    - name: "Arrival Ramp (10 -> 50 users)"
+      duration: 30
+      arrivalRate: 5
+      rampTo: 50
+    - name: "Clock-in Rush (50 -> 100 users)"
+      duration: 60
+      arrivalRate: 25
+      rampTo: 100
+
+scenarios:
+  - name: "Morning Clock-in Rush"
+    weight: 100
+    flow:
+      - get:
+          url: "/login"
+          afterResponse: "checkStatusCode"
+      - think: 1
+      - get:
+          url: "/presensi/create"
+          afterResponse: "checkStatusCode"

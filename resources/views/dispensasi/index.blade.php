@@ -100,8 +100,37 @@
                                     {{ date('d/m/Y', strtotime($d->tanggal)) }}
                                 </td>
                                 <td class="px-3">
-                                    <div class="fw-semibold text-dark">{{ $d->karyawan->nama_karyawan ?? $d->nik }}</div>
-                                    <small class="text-muted font-mono">{{ $d->nik }}</small>
+                                    @php
+                                        $empName = $d->karyawan->nama_karyawan ?? $d->nik;
+                                        $words = explode(' ', trim($empName));
+                                        $initials = '';
+                                        foreach ($words as $w) {
+                                            if (isset($w[0])) $initials .= $w[0];
+                                        }
+                                        $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                                    @endphp
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        @if (!empty($d->karyawan?->foto))
+                                            <img src="{{ getfotoKaryawan($d->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                                style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                                onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                            <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                                style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                                {{ $initials }}
+                                            </div>
+                                        @else
+                                            <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                                style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                                {{ $initials }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size: 13px;">{{ $empName }}</div>
+                                            <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                                {{ $d->nik }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-3 font-mono fw-bold text-primary">
                                     {{ $d->batas_dispensasi }}
@@ -111,17 +140,11 @@
                                 </td>
                                 <td class="px-3 text-center">
                                     @if ($d->status === 'APPROVED')
-                                        <span class="badge-status badge-status-approved">
-                                            <span class="badge-status-dot"></span>Disetujui
-                                        </span>
+                                        <span class="badge-status badge-status-approved">Disetujui</span>
                                     @elseif ($d->status === 'REJECTED')
-                                        <span class="badge-status badge-status-rejected">
-                                            <span class="badge-status-dot"></span>Ditolak
-                                        </span>
+                                        <span class="badge-status badge-status-rejected">Ditolak</span>
                                     @else
-                                        <span class="badge-status badge-status-pending">
-                                            <span class="badge-status-dot"></span>Pending
-                                        </span>
+                                        <span class="badge-status badge-status-pending">Pending</span>
                                     @endif
                                 </td>
                                 <td class="px-3 text-end">

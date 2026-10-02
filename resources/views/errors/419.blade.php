@@ -1,22 +1,29 @@
+@php
+    $theme = $theme ?? \App\Services\ThemeResolver::resolve();
+    $setting = \App\Models\Pengaturanumum::first();
+    $appName = $company_setting->company_name ?? ($setting->nama_app ?? config('app.name', 'Presensi GPS'));
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sesi Berakhir (419) | BrewSync Enterprise</title>
+    <title>Sesi Berakhir (419) | {{ $appName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --surface-bg: #faf9f8;
+            --surface-bg: #f8fafc;
             --card-bg: #ffffff;
-            --primary: #25160e;
-            --primary-hover: #3c2a21;
-            --text-main: #1a1c1c;
+            --primary: {{ $theme['primary'] ?? '#1B365D' }};
+            --primary-hover: {{ $theme['primary_hover'] ?? '#142946' }};
+            --primary-contrast: {{ $theme['primary_contrast'] ?? '#ffffff' }};
+            --secondary: {{ $theme['secondary'] ?? '#4B6B94' }};
+            --text-main: #0f172a;
             --text-muted: #64748b;
-            --border-subtle: rgba(60, 42, 33, 0.08);
+            --border-subtle: rgba({{ $theme['primary_rgb'] ?? '15, 23, 42' }}, 0.10);
             --amber-accent: #b45309;
         }
 
@@ -42,7 +49,7 @@
             background: var(--card-bg);
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(60, 42, 33, 0.04), 0 1px 3px rgba(60, 42, 33, 0.03);
+            box-shadow: 0 4px 20px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.04), 0 1px 3px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.03);
             width: 100%;
             max-width: 460px;
             padding: 2.5rem 2rem;
@@ -100,6 +107,7 @@
             justify-content: center;
             gap: 0.5rem;
             width: 100%;
+            min-height: 48px;
             padding: 0.85rem 1.25rem;
             border-radius: 12px;
             font-size: 0.95rem;
@@ -107,21 +115,22 @@
             text-decoration: none;
             cursor: pointer;
             transition: all 0.15s ease;
-            border: none;
+            border: 1px solid transparent;
             font-family: inherit;
         }
 
         .btn:active {
-            transform: translateY(1px);
+            transform: scale(0.985);
         }
 
         .btn-primary {
             background: var(--primary);
-            color: #ffffff;
+            color: var(--primary-contrast);
         }
 
         .btn-primary:hover {
             background: var(--primary-hover);
+            color: var(--primary-contrast);
         }
 
         .btn svg {

@@ -36,14 +36,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.1s ease-in-out, background-color 0.2s;
+        transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s ease;
         -webkit-tap-highlight-color: transparent; 
         border-radius: 12px;
         margin: 0 2px;
     }
     .appBottomMenu .item:active {
-        transform: scale(0.92);
-        background-color: rgba(0,0,0,0.03);
+        transform: translateY(1px) scale(0.98);
+        background-color: rgba(0,0,0,0.04);
     }
 
     .appBottomMenu .item .col {
@@ -72,7 +72,7 @@
     /* Active State */
     .appBottomMenu .item.active ion-icon, 
     .appBottomMenu .item.active strong {
-        color: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}) !important;
+        color: var(--color-primary, #3C2A21) !important;
         font-weight: 700 !important;
     }
 
@@ -87,11 +87,11 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: var(--color-primary, {{ $t['primary'] ?? '#3C2A21' }}) !important;
+        background: linear-gradient(135deg, var(--color-primary, #3C2A21), var(--theme-color-2, #634832)) !important;
         box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 60, 42, 33), 0.3) !important;
         position: relative !important;
         top: -10px !important;
-        transition: transform 0.1s ease-in-out, box-shadow 0.2s !important;
+        transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease !important;
     }
     .appBottomMenu .item .action-button.large ion-icon {
         color: var(--theme-primary-contrast, #ffffff) !important;
@@ -99,8 +99,8 @@
         margin-bottom: 0 !important;
     }
     .appBottomMenu .item:active .action-button.large {
-        transform: scale(0.9) !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+        transform: translateY(-8px) scale(0.97) !important;
+        box-shadow: 0 2px 6px rgba(var(--color-primary-rgb, 60, 42, 33), 0.25) !important;
     }
 
     /* Keep nav tap targets comfortable and clear of home gesture line */

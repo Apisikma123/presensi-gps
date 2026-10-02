@@ -21,6 +21,12 @@
         <p class="page-subtitle text-muted mb-0">Kelola akun login admin, manager cabang, serta otentikasi mobile karyawan.</p>
     </div>
     <div class="header-action-group d-flex align-items-center gap-2">
+        @can('permissions.index')
+            <a href="{{ route('permissions.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+                <i class="ti ti-key" style="font-size: 16px;"></i>
+                <span>Hak Akses & Roles</span>
+            </a>
+        @endcan
         <a href="#" class="btn btn-primary d-inline-flex align-items-center gap-1.5" id="btncreateUser" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
             <i class="ti ti-user-plus" style="font-size: 16px;"></i>
             <span>Tambah User</span>
@@ -42,7 +48,7 @@
             <a href="{{ route('users.index', ['user_type' => 'karyawan']) }}" data-tab="karyawan" 
                class="nav-link tab-user-link {{ Request('user_type') == 'karyawan' ? 'active' : '' }}">
                 <i class="tf-icons ti ti-users"></i>
-                <span>User Karyawan / Barista</span>
+                <span>User Karyawan & Staf</span>
             </a>
         </li>
     </ul>
@@ -51,7 +57,7 @@
 <!-- 1-Page Tab Content Pane -->
 <div id="user-tab-pane" style="position: relative; min-height: 300px; transition: opacity 0.15s ease;">
     <!-- Filter Toolbar -->
-    <div class="card mb-3" style="border: 1px solid rgba(60, 42, 33, 0.08); border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(60, 42, 33, 0.02);">
+    <div class="card mb-3" style="border: 1px solid rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08); border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(var(--bs-primary-rgb, 26, 82, 118), 0.02);">
         <div class="card-body p-3">
             <form action="{{ route('users.index') }}" id="filterForm" method="GET" class="m-0">
                 <input type="hidden" name="user_type" id="user_type" value="{{ Request('user_type', 'biasa') }}">
@@ -119,17 +125,17 @@
     </div>
 
 <!-- Table Card -->
-<div class="card mb-3" style="border: 1px solid rgba(60, 42, 33, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(60, 42, 33, 0.02);">
+<div class="card mb-3" style="border: 1px solid rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(var(--bs-primary-rgb, 26, 82, 118), 0.02);">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead style="background: #FAF9F8; border-bottom: 1px solid rgba(60, 42, 33, 0.08);">
+            <thead style="background: #F8FAFC; border-bottom: 1px solid rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08);">
                 <tr>
-                    <th style="width: 50px; color: #755841; font-weight: 600; font-size: 11px; letter-spacing: 0.05em;" class="text-center font-mono">NO</th>
-                    <th style="color: #755841; font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">PENGGUNA / AKUN</th>
-                    <th style="color: #755841; font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">PERAN / ROLE</th>
-                    <th class="text-center" style="color: #755841; font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">STATUS KONEKSI</th>
-                    <th style="color: #755841; font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">HAK AKSES UNIT</th>
-                    <th class="text-end" style="width: 100px; color: #755841; font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">AKSI</th>
+                    <th style="width: 50px; color: var(--theme-color-2, #475569); font-weight: 600; font-size: 11px; letter-spacing: 0.05em;" class="text-center font-mono">NO</th>
+                    <th style="color: var(--theme-color-2, #475569); font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">PENGGUNA / AKUN</th>
+                    <th style="color: var(--theme-color-2, #475569); font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">PERAN / ROLE</th>
+                    <th class="text-center" style="color: var(--theme-color-2, #475569); font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">STATUS KONEKSI</th>
+                    <th style="color: var(--theme-color-2, #475569); font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">HAK AKSES UNIT</th>
+                    <th class="text-end" style="width: 100px; color: var(--theme-color-2, #475569); font-weight: 600; font-size: 11px; letter-spacing: 0.05em;">AKSI</th>
                 </tr>
             </thead>
             <tbody>
@@ -139,11 +145,30 @@
                             {{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}
                         </td>
                         <td>
+                            @php
+                                $userFoto = $d->userkaryawan?->karyawan?->foto;
+                                $words = explode(' ', trim($d->name));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'US';
+                            @endphp
                             <div class="d-flex align-items-center gap-2.5">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold"
-                                    style="width: 34px; height: 34px; background: rgba(var(--bs-primary-rgb), 0.08); color: var(--theme-color-1, #3C2A21); font-size: 12px;">
-                                    {{ strtoupper(substr($d->name, 0, 2)) }}
-                                </div>
+                                @if (!empty($userFoto))
+                                    <img src="{{ getfotoKaryawan($userFoto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary, #1A5276); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary, #1A5276); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
                                 <div>
                                     <div class="fw-bold text-dark" style="font-size: 13px;">
                                         {{ $d->name }}
@@ -241,7 +266,7 @@
 </div>
 
 <!-- Pagination Footer -->
-<div class="card" style="border: 1px solid rgba(60, 42, 33, 0.08); border-radius: 12px; background: #FFFFFF;">
+<div class="card" style="border: 1px solid rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08); border-radius: 12px; background: #FFFFFF;">
     <div class="card-body py-2.5 px-3">
         {{ $users->links('pagination::bootstrap-5') }}
     </div>
@@ -265,10 +290,10 @@
     }
 
     .nav-segment .nav-link.active {
-        background-color: var(--theme-color-1, #3C2A21) !important;
-        border-color: var(--theme-color-1, #3C2A21) !important;
+        background-color: var(--theme-color-1, #1A5276) !important;
+        border-color: var(--theme-color-1, #1A5276) !important;
         color: var(--theme-primary-contrast, #FFFFFF) !important;
-        box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.25) !important;
+        box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb, 26, 82, 118), 0.25) !important;
     }
 
     .nav-segment .nav-link:not(.active),
@@ -282,19 +307,19 @@
     }
 
     .nav-segment .nav-link:hover:not(.active) {
-        background-color: var(--bs-primary-bg-subtle, #FAF9F8) !important;
-        color: var(--theme-color-1, #3C2A21) !important;
+        background-color: var(--bs-primary-bg-subtle, #F8FAFC) !important;
+        color: var(--theme-color-2, #2980b9) !important;
     }
 
     .nav-segment .nav-link:hover:not(.active) span,
     .nav-segment .nav-link:hover:not(.active) i,
     .nav-segment .nav-link:hover:not(.active) .tf-icons {
-        color: var(--theme-color-1, #3C2A21) !important;
+        color: var(--theme-color-2, #2980b9) !important;
     }
 
     /* Search & Filter Toolbar Controls */
     .user-search-group {
-        border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.14)) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.14)) !important;
         border-radius: 8px !important;
         background: #FFFFFF !important;
         transition: all 0.15s ease;
@@ -302,14 +327,14 @@
     }
 
     .user-search-group:focus-within {
-        border-color: var(--theme-color-1, #3C2A21) !important;
-        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.10) !important;
+        border-color: var(--theme-color-1, #1A5276) !important;
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb, 26, 82, 118), 0.10) !important;
     }
 
     .user-search-group .input-group-text {
         background: transparent !important;
         border: none !important;
-        color: #755841 !important;
+        color: var(--theme-color-2, #475569) !important;
         padding-left: 12px !important;
         padding-right: 6px !important;
         font-size: 15px !important;
@@ -332,7 +357,7 @@
 
     .user-filter-select {
         height: 38px !important;
-        border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.14)) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.14)) !important;
         border-radius: 8px !important;
         font-size: 13px !important;
         color: #1A1C1C !important;
@@ -342,15 +367,15 @@
     }
 
     .user-filter-select:focus {
-        border-color: var(--theme-color-1, #3C2A21) !important;
-        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.10) !important;
+        border-color: var(--theme-color-1, #1A5276) !important;
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb, 26, 82, 118), 0.10) !important;
     }
 
     .user-btn-primary {
         height: 38px !important;
         padding: 0 18px !important;
         border-radius: 8px !important;
-        background: var(--theme-color-1, #3C2A21) !important;
+        background: var(--theme-color-1, #1A5276) !important;
         color: var(--theme-primary-contrast, #FFFFFF) !important;
         font-weight: 600 !important;
         font-size: 12.5px !important;
@@ -375,11 +400,11 @@
         height: 38px !important;
         padding: 0 12px !important;
         border-radius: 8px !important;
-        background: #FAF9F8 !important;
-        color: #755841 !important;
+        background: #F8FAFC !important;
+        color: var(--theme-color-2, #475569) !important;
         font-weight: 500 !important;
         font-size: 12.5px !important;
-        border: 1px solid rgba(60, 42, 33, 0.14) !important;
+        border: 1px solid rgba(var(--bs-primary-rgb, 26, 82, 118), 0.14) !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -389,9 +414,9 @@
     }
 
     .user-btn-reset:hover {
-        background: #F4F3F2 !important;
-        color: var(--theme-color-1, #3C2A21) !important;
-        border-color: var(--theme-color-1, #3C2A21) !important;
+        background: #F1F5F9 !important;
+        color: var(--theme-color-1, #1A5276) !important;
+        border-color: var(--theme-color-1, #1A5276) !important;
     }
 
     .user-btn-reset:active {

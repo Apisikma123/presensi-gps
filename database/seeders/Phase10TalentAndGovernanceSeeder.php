@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Announcement;
 use App\Models\CompanyPolicy;
-use App\Models\EmployeeAsset;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeeIncident;
 use App\Models\EmployeeTraining;
@@ -47,13 +46,6 @@ class Phase10TalentAndGovernanceSeeder extends Seeder
                 'is_enabled' => true,
             ],
             [
-                'module_code' => 'asset',
-                'module_name' => 'Modul Aset & Fasilitas Kerja',
-                'description' => 'Peminjaman dan pengembalian inventaris kantor, laptop, kendaraan dinas, dan kartu akses.',
-                'category' => 'OPERATIONAL',
-                'is_enabled' => true,
-            ],
-            [
                 'module_code' => 'announcement',
                 'module_name' => 'Modul Pengumuman Perusahaan',
                 'description' => 'Penyebaran pengumuman internal, surat edaran direksi, dan informasi hari libur.',
@@ -87,11 +79,6 @@ class Phase10TalentAndGovernanceSeeder extends Seeder
                 'document.index',
                 'document.upload',
                 'document.delete',
-            ],
-            'Aset & Fasilitas' => [
-                'asset.index',
-                'asset.create',
-                'asset.return',
             ],
             'Pengumuman Internal' => [
                 'announcement.index',
@@ -223,19 +210,6 @@ class Phase10TalentAndGovernanceSeeder extends Seeder
                 'certificate_number' => 'CERT/ICA/2026/0881',
                 'status' => 'COMPLETED',
                 'score' => 92.00,
-            ]);
-
-            // Sample Asset
-            EmployeeAsset::create([
-                'asset_code' => 'AST-0001',
-                'nik' => $emp->nik,
-                'name' => 'Laptop Lenovo ThinkPad E14 Gen 4',
-                'category' => 'HARDWARE',
-                'serial_number' => 'PF-39X1882',
-                'assigned_date' => Carbon::now()->subMonths(3),
-                'condition' => 'EXCELLENT',
-                'notes' => 'Disertai tas laptop dan charger original 65W',
-                'status' => 'ASSIGNED',
             ]);
 
             // Sample Announcement

@@ -127,10 +127,14 @@
                                         @if (!empty($d->foto))
                                             <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
                                                 style="width: 36px; height: 36px; object-fit: cover; border: 1px solid #E2E8F0;"
-                                                onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
+                                                onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                            <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                                style="display: none; width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 12px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                                {{ $initials }}
+                                            </div>
                                         @else
                                             <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                                style="width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 12px; border: 1px solid rgba(60, 42, 33, 0.15);">
+                                                style="width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 12px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                                 {{ $initials }}
                                             </div>
                                         @endif
@@ -165,17 +169,11 @@
                                 </td>
                                 <td class="text-center">
                                     @if ($d->status == 0)
-                                        <span class="badge-status badge-status-pending">
-                                            <span class="badge-status-dot"></span>Pending
-                                        </span>
+                                        <span class="badge-status badge-status-pending">Pending</span>
                                     @elseif ($d->status == 1)
-                                        <span class="badge-status badge-status-approved">
-                                            <span class="badge-status-dot"></span>Disetujui
-                                        </span>
+                                        <span class="badge-status badge-status-approved">Disetujui</span>
                                     @elseif ($d->status == 2)
-                                        <span class="badge-status badge-status-rejected">
-                                            <span class="badge-status-dot"></span>Ditolak
-                                        </span>
+                                        <span class="badge-status badge-status-rejected">Ditolak</span>
                                     @endif
                                 </td>
                                 <td class="text-end">

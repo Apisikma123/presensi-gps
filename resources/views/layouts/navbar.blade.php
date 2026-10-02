@@ -136,6 +136,10 @@
                                             $keterangan = 'Izin Cuti';
                                             $bgcolor = 'success';
                                             $link = route('izincuti.index');
+                                        } elseif ($d->status == 'd') {
+                                            $keterangan = 'Dispensasi Terlambat';
+                                            $bgcolor = 'primary';
+                                            $link = route('dispensasi.index');
                                         }
                                     @endphp
                                     <li class="list-group-item list-group-item-action dropdown-notifications-item p-3 border-bottom">

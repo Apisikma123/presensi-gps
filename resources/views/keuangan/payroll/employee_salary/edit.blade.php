@@ -41,8 +41,8 @@
 <div class="row">
     <div class="col-12 col-lg-8">
         <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
-            <div class="card-header border-bottom py-3" style="background: #FAF9F8;">
-                <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: #3C2A21;">
+            <div class="card-header border-bottom py-3" style="background: #F8FAFC;">
+                <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: var(--color-primary, #1A5276);">
                     <i class="ti ti-wallet me-1.5 text-primary"></i> Komponen Upah & Potongan
                 </h5>
             </div>
@@ -62,7 +62,7 @@
                             @endphp
                             <div class="row align-items-center mb-2.5">
                                 <div class="col-6">
-                                    <label class="form-label mb-0 fw-medium" style="font-size: 13px; color: #3C2A21;">
+                                    <label class="form-label mb-0 fw-medium" style="font-size: 13px; color: var(--color-primary, #1A5276);">
                                         {{ $comp->name }}
                                     </label>
                                     <div class="text-muted" style="font-size: 11px;">
@@ -71,7 +71,7 @@
                                 </div>
                                 <div class="col-6">
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-white" style="font-size: 12px; color: #755841;">Rp</span>
+                                        <span class="input-group-text bg-white" style="font-size: 12px; color: var(--theme-color-2, #475569);">Rp</span>
                                         <input type="number" name="components[{{ $comp->id }}]" class="form-control"
                                             value="{{ (int) $val }}" min="0" step="1000"
                                             style="font-family: 'JetBrains Mono', monospace; font-size: 13px; border-radius: 0 6px 6px 0;">
@@ -92,7 +92,7 @@
                             @endphp
                             <div class="row align-items-center mb-2.5">
                                 <div class="col-6">
-                                    <label class="form-label mb-0 fw-medium" style="font-size: 13px; color: #3C2A21;">
+                                    <label class="form-label mb-0 fw-medium" style="font-size: 13px; color: var(--color-primary, #1A5276);">
                                         {{ $comp->name }}
                                     </label>
                                     <div class="text-muted" style="font-size: 11px;">

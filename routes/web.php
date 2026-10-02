@@ -241,6 +241,7 @@ Route::middleware('auth')->group(function () {
         // Brankas Dokumen Karyawan
         Route::middleware('module:documents')->group(function () {
             Route::get('/employee-documents', 'documentIndex')->name('document.index')->can('document.index');
+            Route::get('/employee-documents/create', 'documentCreate')->name('document.create')->can('document.upload');
             Route::post('/employee-documents', 'documentStore')->name('document.store')->can('document.upload');
             Route::delete('/employee-documents/{id}', 'documentDestroy')->name('document.destroy')->can('document.delete');
         });
@@ -251,12 +252,6 @@ Route::middleware('auth')->group(function () {
             Route::post('/company-policies', 'policyStore')->name('policy.store')->can('document.upload');
         });
 
-        // Inventaris & Aset Fasilitas
-        Route::middleware('module:asset')->group(function () {
-            Route::get('/assets', 'assetIndex')->name('asset.index')->can('asset.index');
-            Route::post('/assets', 'assetStore')->name('asset.store')->can('asset.create');
-            Route::post('/assets/{id}/return', 'assetReturn')->name('asset.return')->can('asset.return');
-        });
 
         // Pengumuman Internal
         Route::middleware('module:announcements')->group(function () {
@@ -298,6 +293,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/payroll/{period}/calculate', 'calculate')->name('payroll.calculate')->can('payroll.calculate');
             Route::post('/payroll/{period}/finalize', 'finalize')->name('payroll.finalize')->can('payroll.finalize');
             Route::post('/payroll/{period}/reopen', 'reopen')->name('payroll.reopen')->can('payroll.reopen');
+            Route::get('/payroll/{period}/export', 'export')->name('payroll.export')->can('payroll.index');
             Route::delete('/payroll/{period}', 'destroy')->name('payroll.delete')->can('payroll.delete');
         });
 
@@ -316,16 +312,8 @@ Route::middleware('auth')->group(function () {
             Route::put('/employee-salary/{karyawan}', 'update')->name('employee_salary.update')->can('employee_salary.edit');
         });
 
-        // Periode Penggajian (Payroll)
-        Route::controller(PayrollPeriodController::class)->group(function () {
-            Route::get('/payroll-periods', 'index')->name('payroll_periods.index')->can('payroll.index');
-            Route::get('/payroll-periods/create', 'create')->name('payroll_periods.create')->can('payroll.create');
-            Route::post('/payroll-periods', 'store')->name('payroll_periods.store')->can('payroll.create');
-            Route::get('/payroll-periods/{period}', 'show')->name('payroll_periods.show')->can('payroll.index');
-            Route::post('/payroll-periods/{period}/calculate', 'calculate')->name('payroll_periods.calculate')->can('payroll.calculate');
-            Route::post('/payroll-periods/{period}/finalize', 'finalize')->name('payroll_periods.finalize')->can('payroll.finalize');
-            Route::get('/payroll-periods/{period}/export', 'export')->name('payroll_periods.export')->can('payroll.index');
-        });
+        // Legacy Alias for Payroll Periods
+        Route::get('/payroll-periods', fn() => redirect()->route('payroll.index'))->name('payroll_periods.index');
 
         // Indonesia Statutory Compliance (PPh 21 TER & BPJS)
         Route::controller(IndonesiaComplianceController::class)->group(function () {
@@ -347,8 +335,8 @@ Route::middleware('auth')->group(function () {
         // Slip Gaji (Payslips)
         Route::controller(PayslipController::class)->group(function () {
             Route::get('/payslips', 'index')->name('payslip.index')->can('payslip.index');
-            Route::get('/payslips/{detail}', 'show')->name('payslip.show')->can('payslip.show');
-            Route::get('/payslips/{detail}/print', 'print')->name('payslip.print')->can('payslip.print');
+            Route::get('/payslips/{detail}', 'show')->name('payslip.show');
+            Route::get('/payslips/{detail}/print', 'print')->name('payslip.print');
             Route::get('/my-payslips', 'myPayslips')->name('payslip.my_payslips');
         });
     });
@@ -456,12 +444,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/facerecognition/getwajah', 'getWajah')->name('facerecognition.getwajah');
     });
 
-    // Protected Storage File Access (Biometrics, Medical SIDs, Attendance Photos & Archives)
+    // Protected Storage File Access (Biometrics, Medical SIDs, Attendance Photos & Archives, Documents)
     Route::controller(\App\Http\Controllers\ProtectedFileController::class)->group(function () {
         Route::get('/files/sid/{filename}', 'streamSid')->name('file.sid');
         Route::get('/files/facerecognition/{folder}/{filename}', 'streamFace')->name('file.face');
         Route::get('/files/attendance-archive/{month}', 'downloadAttendanceArchive')->name('file.attendance-archive');
         Route::get('/files/absensi/{filename}', 'streamAttendancePhoto')->name('file.absensi');
+        Route::get('/files/documents/{id}', 'downloadDocument')->name('file.document');
     });
 
     // Manajemen Cuti & Izin (Module Protected)
@@ -584,6 +573,7 @@ Route::middleware('auth')->group(function () {
     // Pusat Bantuan & Dokumentasi Sistem
     Route::controller(HelpCenterController::class)->group(function () {
         Route::get('/help', 'index')->name('help.index');
+        Route::get('/panduan', 'userPanduan')->name('panduan.index');
     });
 
     // Pusat Direktori Pengaturan (Settings Hub)
@@ -626,6 +616,14 @@ Route::middleware('auth')->group(function () {
         Route::controller(\App\Http\Controllers\PackageInfoController::class)->group(function () {
             Route::get('/settings/package-info', 'index')->name('settings.package_info.index');
             Route::post('/settings/package-info/request-upgrade', 'requestUpgrade')->name('settings.package_info.request_upgrade');
+        });
+
+        // Developer Deployment Setup (Protected Shared-Hosting Fallback without SSH)
+        Route::controller(\App\Http\Controllers\DeveloperDeploymentController::class)->group(function () {
+            Route::get('/vendor/deployment-setup', 'index')->name('vendor.deployment.index');
+            Route::post('/vendor/deployment-setup/auth', 'authenticate')->name('vendor.deployment.auth');
+            Route::post('/vendor/deployment-setup/preview', 'preview')->name('vendor.deployment.preview');
+            Route::post('/vendor/deployment-setup/apply', 'apply')->name('vendor.deployment.apply');
         });
 
         Route::controller(AttendancePolicyController::class)->group(function () {

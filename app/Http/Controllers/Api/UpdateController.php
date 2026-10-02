@@ -91,7 +91,7 @@ class UpdateController extends Controller
             
             // Buat log update
             $updateLog = UpdateLog::create([
-                'user_id' => Auth::id() ?? $request->input('user_id'),
+                'user_id' => Auth::id(),
                 'version' => $update->version,
                 'status' => 'pending',
             ]);
@@ -143,14 +143,14 @@ class UpdateController extends Controller
 
             if (!$updateLog) {
                 $updateLog = UpdateLog::create([
-                    'user_id' => Auth::id() ?? $request->input('user_id'),
+                    'user_id' => Auth::id(),
                     'version' => $update->version,
                     'status' => 'pending',
                 ]);
             }
 
             // Install update
-            $success = $this->updateService->installUpdate($update, $updateLog, Auth::id() ?? $request->input('user_id'));
+            $success = $this->updateService->installUpdate($update, $updateLog, Auth::id());
 
             $freshLog = $updateLog->fresh();
             $logMessage = $freshLog->message ?? ($success ? 'Update berhasil diinstall' : 'Gagal menginstall update');
@@ -189,7 +189,7 @@ class UpdateController extends Controller
             
             // Buat log update
             $updateLog = UpdateLog::create([
-                'user_id' => Auth::id() ?? $request->input('user_id'),
+                'user_id' => Auth::id(),
                 'version' => $update->version,
                 'status' => 'pending',
             ]);
@@ -208,7 +208,7 @@ class UpdateController extends Controller
             }
 
             // Install
-            $installSuccess = $this->updateService->installUpdate($update, $updateLog, Auth::id() ?? $request->input('user_id'));
+            $installSuccess = $this->updateService->installUpdate($update, $updateLog, Auth::id());
 
             $freshLog = $updateLog->fresh();
             $logMessage = $freshLog->message ?? ($installSuccess ? 'Update berhasil diinstall' : 'Gagal menginstall update');

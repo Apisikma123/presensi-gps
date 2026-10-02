@@ -127,11 +127,11 @@ class Lembur extends Model
     public function getStatusBadgeHtmlAttribute(): string
     {
         return match ($this->status) {
-            'APPROVED', 'COMPLETED' => '<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;"><span class="rounded-full" style="width: 6px; height: 6px; background: #16a34a;"></span>Disetujui</span>',
-            'PENDING' => '<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;"><span class="rounded-full" style="width: 6px; height: 6px; background: #d97706;"></span>Menunggu</span>',
-            'REJECTED', 'CANCELLED' => '<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md" style="background: #fef2f2; color: #ba1a1a; border: 1px solid #fecdd3;"><span class="rounded-full" style="width: 6px; height: 6px; background: #ba1a1a;"></span>Ditolak</span>',
-            'DRAFT' => '<span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md" style="background: #f4f3f2; color: #4f4540; border: 1px solid #d3c3bd;"><span class="rounded-full" style="width: 6px; height: 6px; background: #81756f;"></span>Draft</span>',
-            default => '<span class="badge bg-secondary">' . e($this->status) . '</span>',
+            'APPROVED', 'COMPLETED' => '<span class="badge bg-label-success">Disetujui</span>',
+            'PENDING' => '<span class="badge bg-label-warning">Menunggu</span>',
+            'REJECTED', 'CANCELLED' => '<span class="badge bg-label-danger">Ditolak</span>',
+            'DRAFT' => '<span class="badge bg-label-secondary">Draft</span>',
+            default => '<span class="badge bg-label-secondary">' . e($this->status) . '</span>',
         };
     }
 }

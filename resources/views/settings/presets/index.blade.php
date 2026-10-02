@@ -15,7 +15,7 @@
             <h4 class="page-title mb-0" style="font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--theme-text-primary, #1A1C1C);">
                 Matriks Preset Klien (A — E)
             </h4>
-            <span class="badge" style="background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+            <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
                 5 Preset Standar
             </span>
         </div>
@@ -52,7 +52,7 @@
 @push('mystyle')
 <style>
     .preset-card {
-        border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.08)) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)) !important;
         border-radius: 14px !important;
         background: #FFFFFF !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
@@ -100,9 +100,9 @@
         border-radius: 6px !important;
     }
     .badge-preset-category {
-        background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)) !important;
-        color: var(--theme-text-secondary, #755841) !important;
-        border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15)) !important;
+        background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)) !important;
+        color: var(--theme-text-secondary, #475569) !important;
+        border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.15)) !important;
         font-size: 11px !important;
         font-weight: 600 !important;
         padding: 3.5px 8px !important;
@@ -161,7 +161,7 @@
 @endif
 
 {{-- Intro Banner Card --}}
-<div class="card mb-4" style="border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.08)); border-radius: 14px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
+<div class="card mb-4" style="border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); border-radius: 14px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
     <div class="card-body p-4">
         <div class="row align-items-center gy-3">
             <div class="col-md-9">
@@ -171,7 +171,7 @@
                 </p>
             </div>
             <div class="col-md-3 text-md-end">
-                <span class="badge" style="background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.16)); font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 20px;">
+                <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.16)); font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 20px;">
                     <i class="ti ti-layers-subtract me-1"></i> Preset Aktif: <strong>Preset {{ $activePresetCode ?? 'A' }}</strong>
                 </span>
             </div>
@@ -187,7 +187,7 @@
         @endphp
         <div class="col-lg-6 col-xl-4">
             <div class="card h-100 d-flex flex-column preset-card {{ $isCurrentActive ? 'preset-card-active' : '' }}">
-                <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center" style="background: #FFFFFF; border-bottom: 1px solid var(--theme-border, rgba(60, 42, 33, 0.07));">
+                <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center" style="background: #FFFFFF; border-bottom: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.07));">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge badge-preset-code">
                             PRESET {{ $code }}
@@ -245,10 +245,10 @@
                         </div>
                     @endif
 
-                    <div class="p-3 mt-3" style="background: #FDFCFB; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.08)); border-radius: 10px;">
+                    <div class="p-3 mt-3" style="background: #FDFCFB; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); border-radius: 10px;">
                         <div class="d-flex align-items-center gap-1.5 mb-2">
                             <i class="ti ti-shield-check" style="color: #4A6741; font-size: 14px;"></i>
-                            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--theme-text-secondary, #634832);">
+                            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--theme-text-secondary, #2980b9);">
                                 Kriteria Pengujian (Must Work)
                             </span>
                         </div>
@@ -263,7 +263,7 @@
                     </div>
                 </div>
 
-                <div class="card-footer p-3 bg-white" style="border-top: 1px solid var(--theme-border, rgba(60, 42, 33, 0.06));">
+                <div class="card-footer p-3 bg-white" style="border-top: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.06));">
                     @if($isCurrentActive)
                         <button type="button" class="btn w-100 d-inline-flex align-items-center justify-content-center gap-2" disabled style="height: 42px; border-radius: 9px; font-weight: 700; background: rgba(74, 103, 65, 0.1); color: #2E4D26; border: 1px solid rgba(74, 103, 65, 0.25); cursor: default;">
                             <i class="ti ti-circle-check fs-5"></i>
@@ -298,7 +298,7 @@
         var btn = $(this);
         var form = btn.closest('form');
         var presetName = btn.data('preset-name') || 'Preset';
-        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#3C2A21';
+        var themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '#1A5276';
 
         Swal.fire({
             title: "Terapkan " + presetName + "?",

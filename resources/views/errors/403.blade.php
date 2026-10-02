@@ -1,5 +1,7 @@
 @php
+    $theme = $theme ?? \App\Services\ThemeResolver::resolve();
     $setting = \App\Models\Pengaturanumum::first();
+    $appName = $company_setting->company_name ?? ($setting->nama_app ?? config('app.name', 'Presensi GPS'));
     $expiredDateStr = '';
     if ($setting && $setting->expired) {
         $expiredDateStr = \Carbon\Carbon::parse($setting->expired)->translatedFormat('d F Y');
@@ -11,20 +13,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akses Ditolak (403) | BrewSync Enterprise</title>
+    <title>Akses Ditolak (403) | {{ $appName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --surface-bg: #faf9f8;
+            --surface-bg: #f8fafc;
             --card-bg: #ffffff;
-            --primary: #25160e;
-            --primary-hover: #3c2a21;
-            --text-main: #1a1c1c;
+            --primary: {{ $theme['primary'] ?? '#1B365D' }};
+            --primary-hover: {{ $theme['primary_hover'] ?? '#142946' }};
+            --primary-contrast: {{ $theme['primary_contrast'] ?? '#ffffff' }};
+            --secondary: {{ $theme['secondary'] ?? '#4B6B94' }};
+            --text-main: #0f172a;
             --text-muted: #64748b;
-            --border-subtle: rgba(60, 42, 33, 0.08);
-            --error: #ba1a1a;
+            --border-subtle: rgba({{ $theme['primary_rgb'] ?? '15, 23, 42' }}, 0.10);
+            --error: #dc2626;
         }
 
         * {
@@ -49,7 +53,7 @@
             background: var(--card-bg);
             border: 1px solid var(--border-subtle);
             border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(60, 42, 33, 0.04), 0 1px 3px rgba(60, 42, 33, 0.03);
+            box-shadow: 0 4px 20px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.04), 0 1px 3px rgba(var(--bs-primary-rgb, 60, 42, 33), 0.03);
             width: 100%;
             max-width: 460px;
             padding: 2.5rem 2rem;
@@ -125,6 +129,7 @@
             justify-content: center;
             gap: 0.5rem;
             width: 100%;
+            min-height: 48px;
             padding: 0.85rem 1.25rem;
             border-radius: 12px;
             font-size: 0.95rem;
@@ -132,32 +137,33 @@
             text-decoration: none;
             cursor: pointer;
             transition: all 0.15s ease;
-            border: none;
+            border: 1px solid transparent;
             font-family: inherit;
         }
 
         .btn:active {
-            transform: translateY(1px);
+            transform: scale(0.985);
         }
 
         .btn-primary {
             background: var(--primary);
-            color: #ffffff;
+            color: var(--primary-contrast);
         }
 
         .btn-primary:hover {
             background: var(--primary-hover);
+            color: var(--primary-contrast);
         }
 
         .btn-secondary {
             background: #ffffff;
             color: var(--text-main);
-            border: 1px solid var(--border-subtle);
+            border: 1.5px solid #e2e8f0;
         }
 
         .btn-secondary:hover {
             background: #f8fafc;
-            border-color: rgba(60, 42, 33, 0.18);
+            border-color: #cbd5e1;
         }
 
         .btn-contact {

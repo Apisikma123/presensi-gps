@@ -154,7 +154,7 @@
     }
 
     .btn-modern-start {
-        background: #3C2A21;
+        background: var(--color-primary, #3C2A21);
         color: #FFFFFF;
         border: 1px solid rgba(255, 255, 255, 0.2);
         padding: 10px 24px;
@@ -168,7 +168,7 @@
         transition: all 0.15s ease;
         cursor: pointer;
     }
-    .btn-modern-start:hover { background: #163B30; }
+    .btn-modern-start:hover { background: var(--color-primary-hover, var(--theme-color-2, #25160E)); }
     .btn-modern-start:active { transform: scale(0.96); }
 
     .loading-spinner {

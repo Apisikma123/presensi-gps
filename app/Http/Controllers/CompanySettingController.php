@@ -49,7 +49,7 @@ class CompanySettingController extends Controller
             'd M Y' => 'DD Mon YYYY (Contoh: 25 Sep 2026)',
         ];
 
-        return view('settings.company.index', compact('setting', 'businessTypes', 'timezones', 'currencies', 'dateFormats'));
+        return redirect()->route('settings.hub', ['tab' => 'company']);
     }
 
     public function update(Request $request)
@@ -145,6 +145,6 @@ class CompanySettingController extends Controller
         Cache::forget('global_app_logo_relative_path');
         \App\Services\ThemeResolver::forgetCache();
 
-        return redirect()->route('company_settings.index')->with('success', 'Pengaturan profil perusahaan & branding berhasil diperbarui!');
+        return redirect()->route('settings.hub', ['tab' => 'company'])->with('success', 'Pengaturan profil perusahaan & branding berhasil diperbarui!');
     }
 }

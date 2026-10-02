@@ -3,9 +3,15 @@
         <ul class="nav nav-segment" id="izinTabs">
             @can('izinabsen.index')
                 <li class="nav-item">
-                    <a href="{{ route('izinabsen.index') }}" data-tab="izinabsen" data-url="{{ route('izinabsen.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinabsen', 'izinabsen/*']) ? 'active' : '' }}">
+                    <a href="{{ route('izinabsen.index', ['tipe' => 'permisi']) }}" data-tab="izinpermisi" data-url="{{ route('izinabsen.index', ['tipe' => 'permisi']) }}" class="nav-link tab-izin-link {{ request()->is(['izinabsen*']) && request('tipe') === 'permisi' ? 'active' : '' }}">
+                        <i class="tf-icons ti ti-clock-pause"></i>
+                        <span>Izin Permisi (Jam/Keluar)</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('izinabsen.index') }}" data-tab="izinabsen" data-url="{{ route('izinabsen.index') }}" class="nav-link tab-izin-link {{ request()->is(['izinabsen*']) && request('tipe') !== 'permisi' ? 'active' : '' }}">
                         <i class="tf-icons ti ti-file-description"></i>
-                        <span>Izin Absen</span>
+                        <span>Izin Absen (Seharian)</span>
                         <span class="tab-counter-badge badge-izin" data-badge-for="izinabsen" style="{{ empty($notifikasi_izinabsen) ? 'display: none;' : '' }}">{{ $notifikasi_izinabsen ?? '' }}</span>
                     </a>
                 </li>

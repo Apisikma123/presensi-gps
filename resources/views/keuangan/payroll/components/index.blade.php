@@ -108,16 +108,16 @@
                         <td class="text-end">
                             <div class="d-inline-flex gap-1">
                                 @can('salary_component.edit')
-                                    <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $comp->id }}" title="Edit" style="border-radius: 6px;">
+                                    <button type="button" class="btnEdit btn-action-tbl btn-action-edit" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $comp->id }}" title="Edit">
                                         <i class="ti ti-edit"></i>
                                     </button>
                                 @endcan
                                 @if ($comp->code !== 'BASIC_SALARY')
                                     @can('salary_component.delete')
-                                        <form action="{{ route('salary_components.delete', $comp->id) }}" method="POST" class="d-inline m-0">
+                                        <form action="{{ route('salary_components.delete', $comp->id) }}" method="POST" class="d-inline m-0 p-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-icon btn-outline-danger delete-confirm" data-label="Komponen {{ $comp->name }}" title="Hapus" style="border-radius: 6px;">
+                                            <button type="submit" class="delete-confirm btn-action-tbl btn-action-delete" data-label="Komponen {{ $comp->name }}" title="Hapus">
                                                 <i class="ti ti-trash"></i>
                                             </button>
                                         </form>
@@ -133,7 +133,7 @@
                                             @csrf
                                             @method('PUT')
                                             <div class="modal-header border-bottom py-3" style="background: #FAF9F8;">
-                                                <h5 class="modal-title fw-bold" style="font-family: 'Outfit', sans-serif; color: #3C2A21; font-size: 15px;">
+                                                <h5 class="modal-title fw-bold" style="font-family: 'Outfit', sans-serif; color: var(--color-primary, #3C2A21); font-size: 15px;">
                                                     Edit Komponen {{ $comp->code }}
                                                 </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -203,7 +203,7 @@
             <form action="{{ route('salary_components.store') }}" method="POST" class="modal-content" style="border-radius: 12px;">
                 @csrf
                 <div class="modal-header border-bottom py-3" style="background: #FAF9F8;">
-                    <h5 class="modal-title fw-bold" style="font-family: 'Outfit', sans-serif; color: #3C2A21; font-size: 15px;">
+                    <h5 class="modal-title fw-bold" style="font-family: 'Outfit', sans-serif; color: var(--color-primary, #3C2A21); font-size: 15px;">
                         Tambah Komponen Gaji Baru
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

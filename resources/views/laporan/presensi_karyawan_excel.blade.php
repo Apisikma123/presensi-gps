@@ -1,7 +1,13 @@
+@php
+    $theme = \App\Services\ThemeResolver::resolve();
+    $primaryColor = $theme['primary'] ?? '#3C2A21';
+    $secondaryColor = $theme['secondary'] ?? '#25160E';
+    $primaryContrast = $theme['primary_contrast'] ?? '#FFFFFF';
+@endphp
 <table>
     <thead>
         <tr>
-            <th colspan="8" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: #3C2A21; text-align: center;">
+            <th colspan="8" style="font-family: Arial, sans-serif; font-weight: bold; font-size: 15px; color: {{ $primaryColor }}; text-align: center;">
                 {{ strtoupper($generalsetting->nama_perusahaan ?? 'PERUSAHAAN') }}
             </th>
         </tr>
@@ -34,14 +40,14 @@
         </tr>
         <tr></tr>
         <tr>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Tanggal</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hari</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Masuk</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Pulang</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Status Kehadiran</th>
-            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: #3C2A21; color: #FFFFFF; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Keterangan / Audit Presensi</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">No</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Tanggal</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Hari</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Shift</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Masuk</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Jam Pulang</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: center; vertical-align: middle;">Status Kehadiran</th>
+            <th style="font-family: Arial, sans-serif; font-weight: bold; background-color: {{ $primaryColor }}; color: {{ $primaryContrast }}; border: 1px solid #94A3B8; text-align: left; vertical-align: middle;">Keterangan / Audit Presensi</th>
         </tr>
     </thead>
     <tbody>
@@ -141,7 +147,7 @@
                     }
                 }
 
-                $bg = ($no % 2 == 0) ? '#F4F3F2' : '#FFFFFF';
+                $bg = ($no % 2 == 0) ? '#F8FAFC' : '#FFFFFF';
             @endphp
             <tr style="background-color: {{ $bg }};">
                 <td style="border: 1px solid #CBD5E1; text-align: center; vertical-align: middle;">{{ $no++ }}</td>

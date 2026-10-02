@@ -18,6 +18,11 @@ class HelpCenterController extends Controller
         return view('help.index', compact('enabledModules', 'search'));
     }
 
+    public function userPanduan()
+    {
+        return view('panduan.index');
+    }
+
     public function drawerContent()
     {
         return view('layouts.help_drawer_content');

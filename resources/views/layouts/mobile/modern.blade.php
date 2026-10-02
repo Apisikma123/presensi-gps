@@ -22,7 +22,7 @@
 
     {{-- Template CSS --}}
     <link rel="stylesheet" href="{{ asset('assets/template/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ file_exists(public_path('assets/css/theme-custom.css')) ? filemtime(public_path('assets/css/theme-custom.css')) : time() }}" />
+    <link rel="stylesheet" href="{{ asset('assets/css/theme-custom.css') }}?v={{ config('app.asset_version', '2.5.0') }}" />
 
     {{-- Tailwind & App CSS --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -30,6 +30,10 @@
 
     <style>
         :root {
+            --color-primary: {{ $t['primary'] }};
+            --color-primary-hover: {{ $theme['primary_hover'] ?? '#2A1D17' }};
+            --color-primary-soft: {{ $theme['primary_soft'] ?? 'rgba(' . ($theme['primary_rgb'] ?? '60, 42, 33') . ', 0.08)' }};
+            --color-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
             --color-nav: {{ $t['primary'] }};
             --color-nav-active: {{ $t['primary_light'] }};
             --bg-indicator: {{ $t['primary'] }};
@@ -37,7 +41,12 @@
             --bg-nav: #ffffff;
             --theme-color-1: {{ $t['primary'] }};
             --theme-color-2: {{ $t['primary_light'] }};
+            --theme-color-accent: {{ $theme['accent'] ?? '#4A6741' }};
             --theme-primary-contrast: {{ $t['primary_contrast'] ?? '#FFFFFF' }};
+            --theme-border: {{ $t['border'] ?? 'rgba(' . ($theme['primary_rgb'] ?? '60, 42, 33') . ', 0.08)' }};
+            --bs-primary: var(--theme-color-1);
+            --bs-primary-rgb: {{ $theme['primary_rgb'] ?? '60, 42, 33' }};
+            --theme-color-2-rgb: {{ $theme['secondary_rgb'] ?? '99, 72, 50' }};
         }
 
         /* Dynamic Tailwind Arbitrary Hex Overrides */
@@ -175,6 +184,35 @@
             opacity: 0.85;
         }
 
+        /* Universal Form-Label-Group Select & Floating Standards */
+        .form-label-group select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            cursor: pointer;
+            padding-right: 38px !important;
+        }
+
+        .form-label-group .select-chevron {
+            position: absolute;
+            right: 14px;
+            top: 13px;
+            font-size: 16px;
+            color: var(--color-primary, {{ $t['primary'] ?? '#1B365D' }});
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .form-label-group select:focus ~ label,
+        .form-label-group select:valid ~ label,
+        .form-label-group select.has-value ~ label {
+            top: 2px !important;
+            left: 42px !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            color: var(--color-primary, {{ $t['primary'] ?? '#1B365D' }}) !important;
+        }
+
         /* App Capsule Base & Bottom Clearance (antislop-layoutmobile R-03, R-35) */
         #appCapsule {
             padding-top: calc(56px + env(safe-area-inset-top, 0px) + 14px) !important;
@@ -191,6 +229,46 @@
             box-sizing: border-box !important;
         }
 
+        /* Universal Mobile & Global Pagination per Theme Color */
+        .pagination .page-item .page-link {
+            background-color: #ffffff !important;
+            border: 1px solid rgba(15, 23, 42, 0.12) !important;
+            color: #475569 !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-family: 'JetBrains Mono', monospace !important;
+            transition: all 0.2s ease !important;
+            min-width: 34px !important;
+            height: 34px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 2px !important;
+        }
+
+        .pagination .page-item.active .page-link,
+        .pagination .page-item .page-link.active,
+        .pagination .page-item .page-link[aria-current="page"] {
+            background-color: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+            border-color: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            box-shadow: 0 2px 8px var(--color-primary-soft, rgba(27, 54, 93, 0.25)) !important;
+        }
+
+        .pagination .page-item:not(.active):not(.disabled) .page-link:hover,
+        .pagination .page-item:not(.active):not(.disabled) .page-link:active {
+            background-color: var(--color-primary-soft, rgba(27, 54, 93, 0.08)) !important;
+            color: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+            border-color: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background-color: #f8fafc !important;
+            border-color: rgba(15, 23, 42, 0.08) !important;
+            color: #cbd5e1 !important;
+        }
+
         .air-datepicker-global-container { z-index: 100000 !important; }
         .air-datepicker-overlay { z-index: 99999 !important; background: rgba(15, 23, 42, 0.45) !important; }
         .air-datepicker { 
@@ -199,11 +277,11 @@
             border-radius: 18px !important; 
             border: 1px solid rgba(15, 23, 42, 0.08) !important; 
             box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
-            --adp-accent-color: {{ $t['primary'] ?? '#3C2A21' }};
-            --adp-cell-background-color-selected: {{ $t['primary'] ?? '#3C2A21' }};
-            --adp-cell-background-color-selected-hover: {{ $t['primary'] ?? '#3C2A21' }};
-            --adp-color-current-date: {{ $t['primary'] ?? '#3C2A21' }};
-            --adp-btn-color: {{ $t['primary'] ?? '#3C2A21' }};
+            --adp-accent-color: {{ $t['primary'] ?? '#1B365D' }};
+            --adp-cell-background-color-selected: {{ $t['primary'] ?? '#1B365D' }};
+            --adp-cell-background-color-selected-hover: {{ $t['primary'] ?? '#1B365D' }};
+            --adp-color-current-date: {{ $t['primary'] ?? '#1B365D' }};
+            --adp-btn-color: {{ $t['primary'] ?? '#1B365D' }};
             --adp-cell-border-radius: 8px;
         }
         .air-datepicker-cell {
@@ -326,7 +404,7 @@
     @stack('mystyle')
 </head>
 <body>
-    <header style="padding-top: env(safe-area-inset-top); background: {{ $t['primary'] ?? '#3C2A21' }} !important; position: fixed; top: 0; left: 0; right: 0; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" class="appHeader-modern">
+    <header style="padding-top: env(safe-area-inset-top); background: var(--color-primary, {{ $t['primary'] ?? '#1B365D' }}) !important; position: fixed; top: 0; left: 0; right: 0; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" class="appHeader-modern">
         <div class="flex items-center justify-between px-4 h-14" style="color: var(--theme-primary-contrast, #FFFFFF) !important;">
             <div class="left">
                 @yield('header_left')
@@ -351,10 +429,64 @@
     <script src="{{ asset('assets/external/js/sweetalert2@11.js') }}"></script>
 
     {{-- Universal GlobalSwal Helper & Toastr Bridge (antislop-ui Compliant) --}}
+    {{-- Universal Client-Side Image Optimizer (Auto-WebP, Max 2MB, Downscaled) --}}
     <script>
+        window.compressImageFile = function(file, options) {
+            options = options || {};
+            var maxDimension = options.maxDimension || 1280;
+            var quality = options.quality || 0.82;
+
+            return new Promise(function(resolve) {
+                if (!file || !file.type || !file.type.startsWith('image/')) {
+                    return resolve(file);
+                }
+
+                if (file.size <= 800 * 1024 && file.type === 'image/webp') {
+                    return resolve(file);
+                }
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var w = img.width;
+                        var h = img.height;
+                        if (w > maxDimension || h > maxDimension) {
+                            if (w > h) {
+                                h = Math.round((h * maxDimension) / w);
+                                w = maxDimension;
+                            } else {
+                                w = Math.round((w * maxDimension) / h);
+                                h = maxDimension;
+                            }
+                        }
+                        var canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        canvas.toBlob(function(blob) {
+                            if (!blob) return resolve(file);
+                            var newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                            var compressedFile = new File([blob], newName, {
+                                type: 'image/webp',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        }, 'image/webp', quality);
+                    };
+                    img.onerror = function() { resolve(file); };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() { resolve(file); };
+                reader.readAsDataURL(file);
+            });
+        };
+
         window.GlobalSwal = {
             toast: function(icon, message, title) {
-                var p = "{{ $t['primary'] ?? '#3C2A21' }}";
+                var p = "{{ $t['primary'] ?? '#1B365D' }}";
                 Swal.mixin({
                     toast: true,
                     position: 'top-end',
@@ -375,7 +507,7 @@
                     icon: 'success',
                     title: title || 'Berhasil!',
                     text: message,
-                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonColor: "{{ $t['primary'] ?? '#1B365D' }}",
                     confirmButtonText: 'Selesai',
                     timer: 2500,
                     timerProgressBar: true
@@ -386,7 +518,7 @@
                     icon: 'error',
                     title: title || 'Gagal',
                     html: message,
-                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonColor: "{{ $t['primary'] ?? '#1B365D' }}",
                     confirmButtonText: 'Tutup'
                 });
             },
@@ -395,7 +527,7 @@
                     icon: 'warning',
                     title: title || 'Peringatan',
                     text: message,
-                    confirmButtonColor: "{{ $t['primary'] ?? '#3C2A21' }}",
+                    confirmButtonColor: "{{ $t['primary'] ?? '#1B365D' }}",
                     confirmButtonText: 'Mengerti'
                 });
             }
@@ -409,6 +541,29 @@
             warning: function(msg, title) { window.GlobalSwal.toast('warning', msg, title); },
             info: function(msg, title) { window.GlobalSwal.toast('info', msg, title); }
         };
+
+        // Global Select Floating Label Sync
+        document.addEventListener('DOMContentLoaded', function() {
+            function syncGlobalSelects() {
+                document.querySelectorAll('.form-label-group select').forEach(function(sel) {
+                    if (sel.value && sel.value !== '') {
+                        sel.classList.add('has-value');
+                    } else {
+                        sel.classList.remove('has-value');
+                    }
+                });
+            }
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.matches('.form-label-group select')) {
+                    if (e.target.value && e.target.value !== '') {
+                        e.target.classList.add('has-value');
+                    } else {
+                        e.target.classList.remove('has-value');
+                    }
+                }
+            });
+            syncGlobalSelects();
+        });
     </script>
 
     @if ($message = Session::get('success'))

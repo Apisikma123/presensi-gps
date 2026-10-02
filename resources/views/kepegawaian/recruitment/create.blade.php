@@ -50,7 +50,7 @@
                 </div>
                 <div class="col-md-8">
                     <label class="form-label required fw-semibold" style="font-size: 12px;">Posisi / Judul Lowongan</label>
-                    <input type="text" name="title" class="form-control" placeholder="Contoh: Barista & Store Crew, HR Generalist" value="{{ old('title') }}" required style="border-radius: 8px;">
+                    <input type="text" name="title" class="form-control" placeholder="Contoh: Staff Administrasi, HR Generalist, Supervisor" value="{{ old('title') }}" required style="border-radius: 8px;">
                 </div>
 
                 <div class="col-md-6">

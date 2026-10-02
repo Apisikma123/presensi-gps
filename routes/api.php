@@ -59,5 +59,6 @@ Route::prefix('mobile')->group(function () {
         // Protected Files Streaming for Mobile
         Route::get('/files/sid/{filename}', [App\Http\Controllers\ProtectedFileController::class, 'streamSid'])->name('api.file.sid');
         Route::get('/files/facerecognition/{folder}/{filename}', [App\Http\Controllers\ProtectedFileController::class, 'streamFace'])->name('api.file.face');
+        Route::get('/files/absensi/{filename}', [App\Http\Controllers\ProtectedFileController::class, 'streamAttendancePhoto'])->name('api.file.absensi');
     });
 });

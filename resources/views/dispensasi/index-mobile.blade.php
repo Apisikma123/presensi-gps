@@ -5,7 +5,7 @@
 @section('header_left')
     <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
         onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
-        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-[0.98] transition-transform duration-150"
         title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
@@ -13,7 +13,7 @@
 
 @section('header_right')
     <a href="{{ route('dispensasi.create') }}"
-        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-[0.98] transition-transform duration-150"
         title="Ajukan Dispensasi">
         <ion-icon name="add-outline" class="text-xl"></ion-icon>
     </a>
@@ -66,7 +66,7 @@
         {{-- Banner Info --}}
         <div class="bg-white rounded-2xl p-4 mb-4 border border-slate-200/80 shadow-xs flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(60, 42, 33, 0.1); color: #3C2A21;">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1); color: var(--color-primary, #3C2A21);">
                     <ion-icon name="time-outline" class="text-2xl"></ion-icon>
                 </div>
                 <div>
@@ -76,7 +76,7 @@
             </div>
             <a href="{{ route('dispensasi.create') }}"
                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-[12px] font-bold shadow-xs active:scale-95 transition-transform"
-               style="background: #3C2A21;">
+               style="background: var(--color-primary, #3C2A21);">
                 <ion-icon name="add-outline" class="text-base"></ion-icon>
                 <span>Ajukan</span>
             </a>
@@ -144,7 +144,7 @@
                     <p class="text-[12px] text-slate-500 mb-4 max-w-xs mx-auto">Anda belum pernah mengajukan dispensasi keterlambatan presensi.</p>
                     <a href="{{ route('dispensasi.create') }}"
                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-[13px] font-bold shadow-xs active:scale-95 transition-transform"
-                       style="background: #3C2A21;">
+                       style="background: var(--color-primary, #3C2A21);">
                         <ion-icon name="add-outline" class="text-lg"></ion-icon>
                         <span>Ajukan Dispensasi Sekarang</span>
                     </a>

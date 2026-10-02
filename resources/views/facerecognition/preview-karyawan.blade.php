@@ -42,7 +42,7 @@
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
-            color: #3C2A21;
+            color: var(--color-primary, #1B365D);
             font-weight: 700;
             font-size: 15px;
         }
@@ -253,20 +253,23 @@
             justify-content: center;
             gap: 7px;
             width: 100%;
-            height: 44px;
-            background: #3C2A21 !important;
-            color: #ffffff !important;
-            font-size: 13px;
-            font-weight: 600;
+            height: 48px;
+            background: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+            color: var(--color-primary-contrast, #ffffff) !important;
+            font-size: 14px;
+            font-weight: 700;
             border-radius: 12px;
             text-decoration: none;
             margin-top: 16px;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             transition: all 0.15s ease;
         }
 
         .bio-btn-primary:active {
-            transform: scale(0.98);
-            background: #16382E !important;
+            transform: scale(0.985);
+            background: var(--color-primary-hover, var(--theme-color-2, #142946)) !important;
+            color: var(--color-primary-contrast, #ffffff) !important;
         }
     </style>
 @endpush

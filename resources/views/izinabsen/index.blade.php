@@ -19,12 +19,22 @@
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div>
                 <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                    <span>Pengajuan Izin Absen</span>
+                    @if(request('tipe') === 'permisi')
+                        <span>Pengajuan Izin Permisi (Jam Kerja & Pulang Cepat)</span>
+                    @else
+                        <span>Pengajuan Izin Absen (Seharian)</span>
+                    @endif
                     <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 11px;">
                         {{ $izinabsen->total() }} Total
                     </span>
                 </h5>
-                <small class="text-muted" style="font-size: 12px;">Daftar permohonan izin tidak masuk kerja karyawan outlet coffee shop.</small>
+                <small class="text-muted" style="font-size: 12px;">
+                    @if(request('tipe') === 'permisi')
+                        Daftar permohonan permisi keluar kantor sementara atau pulang cepat karyawan.
+                    @else
+                        Daftar permohonan izin tidak masuk kerja seharian seluruh karyawan dan staf.
+                    @endif
+                </small>
             </div>
             <div class="d-flex align-items-center gap-2">
                 @can('izinabsen.create')
@@ -39,6 +49,9 @@
         <!-- Search & Filter Bar (Standardized Compact Admin Filter Toolbar) -->
         <div class="card admin-filter-toolbar mb-3">
             <form action="{{ route('izinabsen.index') }}" method="GET" class="m-0">
+                @if(request('tipe'))
+                    <input type="hidden" name="tipe" value="{{ request('tipe') }}">
+                @endif
                 <div class="row g-2 align-items-center">
                     <div class="col-xl-2 col-lg-2 col-md-3 col-6">
                         <x-input-with-icon label="" value="{{ Request('dari') }}" name="dari" icon="ti ti-calendar"
@@ -123,10 +136,14 @@
                                         @if (!empty($d->foto))
                                             <img src="{{ getfotoKaryawan($d->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
                                                 style="width: 36px; height: 36px; object-fit: cover; border: 1px solid #E2E8F0;"
-                                                onerror="this.onerror=null;this.src='{{ asset('assets/img/avatars/default.png') }}';">
+                                                onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                            <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                                style="display: none; width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 12px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                                {{ $initials }}
+                                            </div>
                                         @else
                                             <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                                style="width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 12px; border: 1px solid rgba(60, 42, 33, 0.15);">
+                                                style="width: 36px; height: 36px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 12px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                                 {{ $initials }}
                                             </div>
                                         @endif
@@ -143,32 +160,46 @@
                                     <small class="text-muted" style="font-size: 11.5px;">{{ $d->nama_jabatan }} • {{ $d->nama_dept }}</small>
                                 </td>
                                 <td>
+                                    @php
+                                        $ketRaw = $d->keterangan ?? '';
+                                        $isIzinJam = str_contains($ketRaw, '[Izin Jam:');
+                                        $isPulangCepat = str_contains($ketRaw, '[Pulang Cepat:');
+                                        
+                                        $jamInfo = '';
+                                        if ($isIzinJam && preg_match('/\[Izin Jam:\s*([^\]]+)\]/', $ketRaw, $m)) {
+                                            $jamInfo = $m[1];
+                                        } elseif ($isPulangCepat && preg_match('/\[Pulang Cepat:\s*([^\]]+)\]/', $ketRaw, $m)) {
+                                            $jamInfo = 'Jam ' . $m[1];
+                                        }
+                                        $cleanKet = preg_replace('/^\[.*?\]\s*/', '', $ketRaw);
+                                    @endphp
                                     <span class="font-mono text-dark fw-semibold d-block" style="font-size: 12px;">
-                                        {{ date('d M Y', strtotime($d->dari)) }} - {{ date('d M Y', strtotime($d->sampai)) }}
+                                        {{ date('d M Y', strtotime($d->dari)) }}
+                                        @if($d->dari != $d->sampai) - {{ date('d M Y', strtotime($d->sampai)) }} @endif
                                     </span>
-                                    <div class="d-flex align-items-center gap-1 mt-0.5">
+                                    <div class="d-flex align-items-center gap-1 mt-0.5 flex-wrap">
                                         <span class="badge bg-light text-dark font-mono" style="border: 1px solid #E2E8F0; font-size: 10px;">{{ $d->kode_izin }}</span>
-                                        <span class="badge bg-label-primary font-mono" style="font-size: 10px;">{{ $lama }} Hari</span>
+                                        @if($isIzinJam)
+                                            <span class="badge bg-label-info font-mono" style="font-size: 10px;"><i class="ti ti-clock me-0.5"></i>Permisi Jam ({{ $jamInfo }})</span>
+                                        @elseif($isPulangCepat)
+                                            <span class="badge bg-label-warning font-mono" style="font-size: 10px;"><i class="ti ti-door-exit me-0.5"></i>Pulang Cepat ({{ $jamInfo }})</span>
+                                        @else
+                                            <span class="badge bg-label-primary font-mono" style="font-size: 10px;">{{ $lama }} Hari</span>
+                                        @endif
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="text-muted text-truncate d-inline-block" style="max-width: 220px; font-size: 12px;" title="{{ $d->keterangan }}">
-                                        {{ $d->keterangan ?? '-' }}
+                                    <span class="text-dark fw-medium text-truncate d-inline-block" style="max-width: 240px; font-size: 12px;" title="{{ $cleanKet }}">
+                                        {{ $cleanKet ?: '-' }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     @if ($d->status == 0)
-                                        <span class="badge-status badge-status-pending">
-                                            <span class="badge-status-dot"></span>Pending
-                                        </span>
+                                        <span class="badge-status badge-status-pending">Pending</span>
                                     @elseif ($d->status == 1)
-                                        <span class="badge-status badge-status-approved">
-                                            <span class="badge-status-dot"></span>Disetujui
-                                        </span>
+                                        <span class="badge-status badge-status-approved">Disetujui</span>
                                     @elseif ($d->status == 2)
-                                        <span class="badge-status badge-status-rejected">
-                                            <span class="badge-status-dot"></span>Ditolak
-                                        </span>
+                                        <span class="badge-status badge-status-rejected">Ditolak</span>
                                     @endif
                                 </td>
                                 <td class="text-end">

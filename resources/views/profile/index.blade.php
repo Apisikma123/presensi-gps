@@ -311,7 +311,7 @@
             position: relative;
             margin-bottom: 14px;
             background: #FAF9F8 !important;
-            border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.12));
+            border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.12));
             border-radius: 14px;
             overflow: hidden;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);

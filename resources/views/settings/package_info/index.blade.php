@@ -20,10 +20,17 @@
         <p class="page-subtitle text-muted mb-0">Rincian hak akses modul, profil lisensi instalasi, dan status tata kelola deployment Presence.</p>
     </div>
     <div class="header-action-group d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-primary d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalUpgradeRequest" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
-            <i class="ti ti-arrow-up-circle" style="font-size: 16px;"></i>
-            <span>Minta Upgrade Paket</span>
-        </button>
+        @if($package['code'] !== 'FULL_HR')
+            <button type="button" class="btn btn-primary d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#modalUpgradeRequest" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
+                <i class="ti ti-arrow-up-circle" style="font-size: 16px;"></i>
+                <span>Minta Upgrade Paket</span>
+            </button>
+        @else
+            <div class="d-inline-flex align-items-center gap-1.5 px-3 py-1.5 rounded-3" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.25); color: #15803d; font-weight: 600; font-size: 13px;">
+                <i class="ti ti-circle-check text-success fs-5"></i>
+                <span>Semua Fitur Aktif (Paket Lengkap)</span>
+            </div>
+        @endif
         <a href="{{ route('module_features.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" style="height: 38px; border-radius: 10px; font-weight: 600; padding: 0 16px;">
             <i class="ti ti-arrow-left" style="font-size: 16px;"></i>
             <span>Kontrol Modul</span>
@@ -214,11 +221,11 @@
                     <h6 class="fw-bold text-dark mb-2" style="font-size: 13.5px;">Saluran Resmi Layanan Klien:</h6>
                     <div class="d-flex align-items-center gap-2 mb-2 text-dark small">
                         <i class="ti ti-mail text-primary fs-5"></i>
-                        <span>Email: <a href="mailto:sales@presence-hr.id" class="fw-bold text-primary">sales@presence-hr.id</a></span>
+                        <span>Email: <a id="encGmailLink" href="#" target="_blank" rel="noopener noreferrer" class="fw-bold text-primary" data-enc-email="YWdhcHV0cmE2MkBnbWFpbC5jb20="><span id="encEmailText">&#97;&#103;&#97;&#112;&#117;&#116;&#114;&#97;&#54;&#50;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#111;&#109;</span></a></span>
                     </div>
                     <div class="d-flex align-items-center gap-2 text-dark small">
                         <i class="ti ti-brand-whatsapp text-success fs-5"></i>
-                        <span>WhatsApp Deployment: <span class="fw-bold text-success">+62 812-3456-7890</span></span>
+                        <span>WhatsApp Deployment: <span id="encWaText" class="fw-bold text-success" data-enc-wa="KzYyIDg1MS02OTA4LTQxMzY=">&#43;&#54;&#50;&#32;&#56;&#53;&#49;&#45;&#54;&#57;&#48;&#56;&#45;&#52;&#49;&#51;&#54;</span></span>
                     </div>
                 </div>
 
@@ -228,8 +235,12 @@
             </div>
             <div class="modal-footer border-top py-2.5">
                 <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Tutup</button>
-                <a href="https://wa.me/6281234567890?text=Halo%20Tim%20Presence,%20kami%20ingin%20berkonsultasi%20upgrade%20paket%20lisensi%20Presence%20(Deployment%20ID:%20{{ $deploymentId }})"
+                <a id="btnEncWa"
+                   href="#"
                    target="_blank"
+                   rel="noopener noreferrer"
+                   data-enc-num="NjI4NTE2OTA4NDEzNg=="
+                   data-dep-id="{{ $deploymentId }}"
                    class="btn btn-success d-inline-flex align-items-center gap-1.5 px-3">
                     <i class="ti ti-brand-whatsapp"></i> Hubungi via WhatsApp
                 </a>
@@ -237,4 +248,30 @@
         </div>
     </div>
 </div>
+
+@push('myscript')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obfuscated dynamic Gmail Web Compose link setup (No mailto)
+    const gmailLink = document.getElementById('encGmailLink');
+    if (gmailLink && gmailLink.dataset.encEmail) {
+        try {
+            const rawEmail = atob(gmailLink.dataset.encEmail);
+            gmailLink.href = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(rawEmail);
+        } catch(e) {}
+    }
+
+    // Obfuscated dynamic WhatsApp contact button link setup
+    const waBtn = document.getElementById('btnEncWa');
+    if (waBtn && waBtn.dataset.encNum) {
+        try {
+            const rawWa = atob(waBtn.dataset.encNum);
+            const depId = waBtn.dataset.depId || '';
+            const msgText = 'Halo Tim Presence, kami ingin berkonsultasi upgrade paket lisensi Presence (Deployment ID: ' + depId + ')';
+            waBtn.href = 'https://wa.me/' + rawWa + '?text=' + encodeURIComponent(msgText);
+        } catch(e) {}
+    }
+});
+</script>
+@endpush
 @endsection

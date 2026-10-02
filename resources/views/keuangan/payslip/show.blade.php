@@ -24,7 +24,7 @@
         </p>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('payslip.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5">
+        <a href="{{ auth()->user() && auth()->user()->hasRole('karyawan') ? route('payslip.my_payslips') : route('payslip.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5">
             <i class="ti ti-arrow-left"></i>
             <span>Kembali</span>
         </a>
@@ -41,16 +41,16 @@
         <div class="card mb-4" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
                 <div class="card-body p-4 p-md-5">
                     {{-- Header Company --}}
-                    <div class="d-flex justify-content-between align-items-start pb-4 mb-4" style="border-bottom: 2px solid #25160e;">
+                    <div class="d-flex justify-content-between align-items-start pb-4 mb-4" style="border-bottom: 2px solid var(--theme-color-1, #25160e);">
                         <div>
-                            <h4 class="fw-bold mb-1" style="font-family: 'Outfit', sans-serif; color: #25160e; letter-spacing: -0.02em;">
+                            <h4 class="fw-bold mb-1" style="font-family: 'Outfit', sans-serif; color: var(--theme-color-1, #25160e); letter-spacing: -0.02em;">
                                 {{ $payslip['company']['name'] }}
                             </h4>
                             <p class="text-muted mb-0" style="font-size: 12.5px;">{{ $payslip['company']['address'] }}</p>
                             <small class="text-muted" style="font-size: 11.5px;">Telp: {{ $payslip['company']['phone'] }}</small>
                         </div>
                         <div class="text-end">
-                            <span class="badge px-3 py-1.5" style="background: #25160e; color: #fff; font-size: 12px; letter-spacing: 0.5px;">
+                            <span class="badge px-3 py-1.5" style="background: var(--theme-color-1, #25160e); color: var(--theme-primary-contrast, #fff); font-size: 12px; letter-spacing: 0.5px;">
                                 SLIP GAJI BULANAN
                             </span>
                             <div class="mt-2" style="font-family: 'JetBrains Mono'; font-size: 12.5px; color: #78716c;">

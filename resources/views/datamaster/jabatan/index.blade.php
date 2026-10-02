@@ -58,7 +58,7 @@
                 {{ number_format($jabatan->total()) }} Total
             </span>
         </h4>
-        <p class="page-subtitle text-muted mb-0">Manajemen level posisi, barista, kasir, kitchen, dan manager outlet coffee shop.</p>
+        <p class="page-subtitle text-muted mb-0">Manajemen level posisi jabatan, staf, supervisor, dan manajemen kantor.</p>
     </div>
     <div class="header-action-group d-flex align-items-center gap-2 flex-wrap">
         @can('jabatan.create')

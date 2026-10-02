@@ -104,21 +104,39 @@
                             @endif
                         </td>
                         <td>
-                            @if($m->karyawan)
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar avatar-sm bg-label-primary rounded-circle me-2 fw-bold d-flex align-items-center justify-content-center font-mono" style="width: 32px; height: 32px; font-size: 11px;">
-                                        {{ strtoupper(substr($m->karyawan->nama_karyawan, 0, 2)) }}
+                            @php
+                                $empName = $m->karyawan->nama_karyawan ?? $m->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($m->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($m->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
                                     </div>
-                                    <div>
-                                        <a href="{{ route('karyawan.show', Crypt::encrypt($m->karyawan->nik)) }}" class="fw-semibold text-dark text-decoration-none">
-                                            {{ $m->karyawan->nama_karyawan }}
-                                        </a>
-                                        <div class="text-muted small font-mono">NIK: {{ $m->nik }}</div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
                                     </div>
+                                @endif
+                                <div>
+                                    <a href="{{ route('karyawan.show', Crypt::encrypt($m->karyawan->nik ?? $m->nik)) }}" class="fw-bold text-dark text-decoration-none d-block" style="font-size: 13px;">
+                                        {{ $empName }}
+                                    </a>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $m->nik }}
+                                    </span>
                                 </div>
-                            @else
-                                <span class="text-muted font-mono">NIK: {{ $m->nik }}</span>
-                            @endif
+                            </div>
                         </td>
                         <td>
                             <span class="badge bg-label-info fw-semibold">{{ $m->movement_type_label }}</span>
@@ -144,16 +162,16 @@
                             {!! $m->status_badge_html !!}
                         </td>
                         <td class="text-end">
-                            <div class="d-inline-flex gap-1">
-                                <a href="{{ route('movement.show', Crypt::encrypt($m->id)) }}" class="btn btn-sm btn-outline-info p-1" title="Rincian & SK" style="border-radius: 6px; width: 28px; height: 28px;">
-                                    <i class="ti ti-eye fs-5"></i>
+                            <div class="d-inline-flex gap-1.5 align-items-center">
+                                <a href="{{ route('movement.show', Crypt::encrypt($m->id)) }}" class="btnShow btn-action-tbl" title="Rincian & SK">
+                                    <i class="ti ti-eye"></i>
                                 </a>
                                 @can('movement.delete')
-                                    <form action="{{ route('movement.delete', Crypt::encrypt($m->id)) }}" method="POST" class="d-inline form-delete">
+                                    <form action="{{ route('movement.delete', Crypt::encrypt($m->id)) }}" method="POST" class="d-inline form-delete m-0 p-0">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger p-1" title="Hapus Riwayat" style="border-radius: 6px; width: 28px; height: 28px;">
-                                            <i class="ti ti-trash fs-5"></i>
+                                        <button type="submit" class="btn-action-tbl btn-action-delete" title="Hapus Riwayat">
+                                            <i class="ti ti-trash"></i>
                                         </button>
                                     </form>
                                 @endcan

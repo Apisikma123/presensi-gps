@@ -21,8 +21,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
-use App\Imports\KaryawanImport;
-use App\Exports\TemplateKaryawanExport;
 use App\Exports\KaryawanExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -796,27 +794,6 @@ class KaryawanController extends Controller
     public function export(Request $request)
     {
         return Excel::download(new KaryawanExport($request->all()), 'Data_Karyawan.xlsx');
-    }
-
-    public function download_template()
-    {
-        return Excel::download(new TemplateKaryawanExport, 'Template_Import_Karyawan.xlsx');
-    }
-
-    public function import()
-    {
-        return view('datamaster.karyawan.import_modal');
-    }
-
-    public function import_proses(Request $request)
-    {
-        $request->validate(['file' => 'required|mimes:csv,xls,xlsx']);
-        try {
-            Excel::import(new KaryawanImport, $request->file('file'));
-            return Redirect::back()->with(messageSuccess('Data Karyawan Berhasil Diimport'));
-        } catch (\Exception $e) {
-            return Redirect::back()->with(messageError($e->getMessage()));
-        }
     }
 
     public function setjamkerja($nik)

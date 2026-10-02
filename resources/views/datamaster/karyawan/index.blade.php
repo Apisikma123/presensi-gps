@@ -217,7 +217,7 @@
     <div class="header-title-group">
         <h4 class="page-title mb-1 d-flex align-items-center gap-2">
             <span>Data Karyawan</span>
-            <span class="badge" style="background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
+            <span class="badge" style="background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary); border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15)); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 3px 10px;">
                 {{ number_format($karyawan->total(), 0, ',', '.') }} Total
             </span>
         </h4>
@@ -354,12 +354,12 @@
                                         style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #E2E8F0;"
                                         onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
                                     <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
-                                        style="display: none; width: 38px; height: 38px; background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15));">
+                                        style="display: none; width: 38px; height: 38px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                         {{ $initials }}
                                     </div>
                                 @else
                                     <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                        style="width: 38px; height: 38px; background: var(--color-primary-soft, rgba(60, 42, 33, 0.08)); color: var(--color-primary); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(60, 42, 33, 0.15));">
+                                        style="width: 38px; height: 38px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary); font-size: 12.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                         {{ $initials }}
                                     </div>
                                 @endif
@@ -370,9 +370,9 @@
                                             {{ $d->nik_show ?? $d->nik }}
                                         </span>
                                         @if ($d->status_aktif_karyawan == '1')
-                                            <span class="badge-status badge-status-aktif"><span class="badge-status-dot"></span>Aktif</span>
+                                            <span class="badge-status badge-status-aktif">Aktif</span>
                                         @else
-                                            <span class="badge-status badge-status-nonaktif"><span class="badge-status-dot"></span>Non Aktif</span>
+                                            <span class="badge-status badge-status-nonaktif">Non Aktif</span>
                                         @endif
                                     </div>
                                 </div>

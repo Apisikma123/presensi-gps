@@ -1,0 +1,46 @@
+# ==================================================================
+# SCENARIO: NORMAL USAGE BASELINE (10 -> 50 Users)
+# ==================================================================
+config:
+  target: "{{ $processEnvironment.TARGET_URL }}"
+  http:
+    timeout: 30
+    pool: 50
+    maxSockets: 100
+  processor: "../helpers.js"
+  phases:
+    - name: "Warm-up (10 users)"
+      duration: 30
+      arrivalRate: 5
+      rampTo: 10
+    - name: "Sustained Normal (25 users)"
+      duration: 60
+      arrivalRate: 10
+      rampTo: 25
+    - name: "Peak Hour (50 users)"
+      duration: 60
+      arrivalRate: 25
+      rampTo: 50
+
+scenarios:
+  - name: "Browse Dashboard & Attendance"
+    weight: 60
+    flow:
+      - get:
+          url: "/login"
+          afterResponse: "checkStatusCode"
+      - think: 2
+      - get:
+          url: "/presensi"
+          afterResponse: "checkStatusCode"
+
+  - name: "Browse Permits & Leaves"
+    weight: 40
+    flow:
+      - get:
+          url: "/login"
+          afterResponse: "checkStatusCode"
+      - think: 2
+      - get:
+          url: "/izincuti"
+          afterResponse: "checkStatusCode"

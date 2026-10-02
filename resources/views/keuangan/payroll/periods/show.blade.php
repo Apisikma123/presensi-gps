@@ -33,7 +33,7 @@
 
         @if ($period->status !== 'FINALIZED')
             @can('payroll.calculate')
-                <form action="{{ route('payroll.calculate', $period->id) }}" method="POST" class="m-0">
+                <form action="{{ route('payroll.calculate', $period->id) }}" method="POST" class="m-0" data-loading-text="Menghitung gaji seluruh karyawan...">
                     @csrf
                     <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5">
                         <i class="ti ti-calculator"></i>
@@ -46,7 +46,8 @@
                 @can('payroll.finalize')
                     <form action="{{ route('payroll.finalize', $period->id) }}" method="POST" class="m-0 form-confirm"
                         data-title="Finalisasi & Kunci Payroll"
-                        data-message="Kunci & finalisasi payroll periode {{ $period->formatted_period }}? Setelah dikunci, data tidak dapat diubah tanpa izin buka revisi.">
+                        data-message="Kunci & finalisasi payroll periode {{ $period->formatted_period }}? Setelah dikunci, data tidak dapat diubah tanpa izin buka revisi."
+                        data-loading-text="Mengunci & memfinalisasi periode payroll...">
                         @csrf
                         <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1.5">
                             <i class="ti ti-lock"></i>
@@ -59,7 +60,8 @@
             @can('payroll.reopen')
                 <form action="{{ route('payroll.reopen', $period->id) }}" method="POST" class="m-0 form-confirm"
                     data-title="Buka Revisi Payroll"
-                    data-message="Buka kembali periode {{ $period->formatted_period }} untuk perbaikan/revisi?">
+                    data-message="Buka kembali periode {{ $period->formatted_period }} untuk perbaikan/revisi?"
+                    data-loading-text="Membuka revisi payroll...">
                     @csrf
                     <button type="submit" class="btn btn-outline-warning d-inline-flex align-items-center gap-1.5">
                         <i class="ti ti-lock-open"></i>
@@ -183,7 +185,7 @@
 <div class="card mb-3" style="border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                <thead style="background: #f4f3f2; border-bottom: 1px solid rgba(60, 42, 33, 0.08);">
+                <thead style="background: #F8FAFC; border-bottom: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08));">
                     <tr>
                         <th style="color: #4f4540; font-weight: 600; font-size: 11px; letter-spacing: 0.04em;">KARYAWAN</th>
                         <th style="color: #4f4540; font-weight: 600; font-size: 11px; letter-spacing: 0.04em;">GAJI POKOK</th>
@@ -198,17 +200,36 @@
                 <tbody>
                     @forelse ($details as $detail)
                         <tr>
+                            @php
+                                $empName = $detail->karyawan->nama_karyawan ?? $detail->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $wrd) {
+                                    if (isset($wrd[0])) $initials .= $wrd[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2"
-                                        style="width: 32px; height: 32px; background: #f4f3f2; color: #25160e; font-weight: 600; font-size: 12px; border: 1px solid rgba(60, 42, 33, 0.1);">
-                                        {{ strtoupper(substr($detail->karyawan->nama_karyawan ?? 'K', 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold text-truncate" style="max-width: 170px; color: #25160e;">
-                                            {{ $detail->karyawan->nama_karyawan ?? $detail->nik }}
+                                <div class="d-flex align-items-center gap-2.5">
+                                    @if (!empty($detail->karyawan?->foto))
+                                        <img src="{{ getfotoKaryawan($detail->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                            style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                            onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                        <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                            style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                            {{ $initials }}
                                         </div>
-                                        <div class="text-muted" style="font-size: 11.5px; font-family: 'JetBrains Mono', monospace;">
+                                    @else
+                                        <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                            style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                            {{ $initials }}
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <div class="fw-semibold text-truncate" style="max-width: 170px; color: var(--theme-color-1, #25160e); font-size: 13px;">
+                                            {{ $empName }}
+                                        </div>
+                                        <div class="text-muted font-mono" style="font-size: 11px;">
                                             {{ $detail->nik }} &bull; {{ $detail->karyawan->departemen->nama_dept ?? '-' }}
                                         </div>
                                     </div>
@@ -243,17 +264,18 @@
                                 {!! $detail->status_badge_html !!}
                             </td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalBreakdown{{ $detail->id }}" style="border-radius: 6px; font-size: 12px; padding: 4px 10px;">
-                                    <i class="ti ti-file-analytics me-1"></i> Rincian
+                                <button type="button" class="btn-table-detail" data-bs-toggle="modal" data-bs-target="#modalBreakdown{{ $detail->id }}" title="Lihat Rincian Gaji">
+                                    <i class="ti ti-file-analytics"></i>
+                                    <span>Rincian</span>
                                 </button>
 
                                 {{-- Modal Breakdown Snapshot --}}
                                 <div class="modal fade" id="modalBreakdown{{ $detail->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered text-start" style="max-width: 580px;">
-                                        <div class="modal-content" style="border-radius: 12px; border: 1px solid rgba(60, 42, 33, 0.1);">
-                                            <div class="modal-header border-bottom py-3" style="background: #faf9f8;">
+                                        <div class="modal-content" style="border-radius: 12px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.1));">
+                                            <div class="modal-header border-bottom py-3" style="background: #FAFAFA;">
                                                 <div>
-                                                    <h5 class="modal-title fw-bold mb-0" style="font-family: 'Outfit', sans-serif; font-size: 16px; color: #25160e;">
+                                                    <h5 class="modal-title fw-bold mb-0" style="font-family: 'Outfit', sans-serif; font-size: 16px; color: var(--theme-color-1, #25160e);">
                                                         Slip Rincian Upah &mdash; {{ $period->formatted_period }}
                                                     </h5>
                                                     <span class="text-muted" style="font-size: 12px;">
@@ -280,15 +302,15 @@
                                                                             </span>
                                                                         @endif
                                                                     </td>
-                                                                    <td class="text-end fw-semibold" style="font-family: 'JetBrains Mono', monospace; color: #25160e;">
+                                                                    <td class="text-end fw-semibold" style="font-family: 'JetBrains Mono', monospace; color: var(--theme-color-1, #25160e);">
                                                                         Rp {{ number_format($earn['amount'], 0, ',', '.') }}
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
                                                         @endif
-                                                        <tr style="border-top: 1px dashed rgba(60,42,33,0.15);">
-                                                            <td class="fw-bold" style="color: #25160e;">Total Penghasilan Bruto</td>
-                                                            <td class="text-end fw-bold" style="font-family: 'JetBrains Mono', monospace; color: #25160e;">
+                                                        <tr style="border-top: 1px dashed var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                                            <td class="fw-bold" style="color: var(--theme-color-1, #25160e);">Total Penghasilan Bruto</td>
+                                                            <td class="text-end fw-bold" style="font-family: 'JetBrains Mono', monospace; color: var(--theme-color-1, #25160e);">
                                                                 Rp {{ number_format($detail->gross_salary, 0, ',', '.') }}
                                                             </td>
                                                         </tr>
@@ -315,7 +337,7 @@
                                                                 <td colspan="2" class="text-muted fst-italic py-1" style="font-size: 12px;">Tidak ada potongan</td>
                                                             </tr>
                                                         @endif
-                                                        <tr style="border-top: 1px dashed rgba(60,42,33,0.15);">
+                                                        <tr style="border-top: 1px dashed var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                                             <td class="fw-bold text-danger">Total Potongan</td>
                                                             <td class="text-end fw-bold text-danger" style="font-family: 'JetBrains Mono', monospace;">
                                                                 - Rp {{ number_format($detail->total_deductions, 0, ',', '.') }}
@@ -352,7 +374,7 @@
                                     @can('payroll.calculate')
                                         <form action="{{ route('payroll.calculate', $period->id) }}" method="POST" class="mt-2">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm text-white" style="background: #25160e; border-radius: 8px;">
+                                            <button type="submit" class="btn btn-sm text-white" style="background: var(--color-primary, #25160e); border-radius: 8px;">
                                                 <i class="ti ti-player-play me-1"></i> Jalankan Kalkulasi Sekarang
                                             </button>
                                         </form>

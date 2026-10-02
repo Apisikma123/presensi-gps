@@ -40,8 +40,8 @@
     {{-- Form Column --}}
     <div class="col-12 col-lg-7">
         <div class="card h-100" style="background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);">
-            <div class="card-header border-bottom py-3" style="background: #FAF9F8;">
-                <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: #3C2A21;">
+            <div class="card-header border-bottom py-3" style="background: #F8FAFC;">
+                <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: var(--color-primary, #1A5276);">
                     <i class="ti ti-file-pencil me-1.5 text-primary"></i> Data Penugasan Lembur
                 </h5>
             </div>
@@ -146,10 +146,10 @@
 
         {{-- Live Depnaker Calculation Simulator & Compliance Check --}}
         <div class="col-12 col-lg-5">
-            <div class="card h-100" style="background: #faf9f8; border: 1px solid rgba(60, 42, 33, 0.08); border-radius: 12px;">
-                <div class="card-header border-bottom py-3" style="background: #f4f3f2;">
+            <div class="card h-100" style="background: #FAFAFA; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); border-radius: 12px;">
+                <div class="card-header border-bottom py-3" style="background: #F8FAFC;">
                     <div class="d-flex align-items-center justify-content-between">
-                        <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: #25160e;">
+                        <h5 class="card-title mb-0" style="font-family: 'Outfit', sans-serif; font-size: 15px; color: var(--theme-color-1, #0F172A);">
                             Kalkulator Depnaker (PP 35/2021)
                         </h5>
                         <span class="badge" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; font-size: 10px;">
@@ -161,15 +161,15 @@
                     {{-- Summary Bento --}}
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <div class="p-3 bg-white rounded-3 border" style="border-color: rgba(60,42,33,0.08) !important;">
+                            <div class="p-3 bg-white rounded-3 border" style="border-color: var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)) !important;">
                                 <div class="text-muted text-uppercase" style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;">Durasi Rencana</div>
-                                <div class="fs-4 fw-bold mt-1" id="simPlannedHours" style="font-family: 'JetBrains Mono', monospace; color: #25160e;">
-                                    2.0 <span style="font-size: 12px; font-weight: normal; color: #755841;">jam</span>
+                                <div class="fs-4 fw-bold mt-1" id="simPlannedHours" style="font-family: 'JetBrains Mono', monospace; color: var(--theme-color-1, #0F172A);">
+                                    2.0 <span style="font-size: 12px; font-weight: normal; color: var(--theme-color-2, #475569);">jam</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-3 bg-white rounded-3 border" style="border-color: rgba(60,42,33,0.08) !important;">
+                            <div class="p-3 bg-white rounded-3 border" style="border-color: var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)) !important;">
                                 <div class="text-muted text-uppercase" style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;">Jam Bayar Pengali</div>
                                 <div class="fs-4 fw-bold mt-1" id="simRateHours" style="font-family: 'JetBrains Mono', monospace; color: #15803d;">
                                     3.5 <span style="font-size: 12px; font-weight: normal; color: #15803d;">jam</span>
@@ -179,11 +179,11 @@
                     </div>
 
                     {{-- Meal Allowance Badge --}}
-                    <div id="simMealBox" class="alert mb-3 py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 8px; background: #ffffff; border: 1px solid rgba(60,42,33,0.08); font-size: 12px;">
+                    <div id="simMealBox" class="alert mb-3 py-2 px-3 d-flex align-items-center justify-content-between" style="border-radius: 8px; background: #ffffff; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)); font-size: 12px;">
                         <span class="d-flex align-items-center gap-1.5 text-muted">
                             <i class="ti ti-soup"></i> Hak Makanan / Minuman (≥1.400 kkal):
                         </span>
-                        <span id="simMealBadge" class="badge" style="background: #f4f3f2; color: #755841;">Tidak</span>
+                        <span id="simMealBadge" class="badge" style="background: #F8FAFC; color: var(--theme-color-2, #475569);">Tidak</span>
                     </div>
 
                     {{-- Tier Breakdown Table --}}
@@ -191,9 +191,9 @@
                         <label class="form-label text-muted text-uppercase mb-1" style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em;">
                             Rincian Pengali Tier Regulasi
                         </label>
-                        <div class="bg-white rounded-3 border overflow-hidden" style="border-color: rgba(60,42,33,0.08) !important;">
+                        <div class="bg-white rounded-3 border overflow-hidden" style="border-color: var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.08)) !important;">
                             <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
-                                <thead style="background: #f4f3f2; border-bottom: 1px solid rgba(60,42,33,0.06);">
+                                <thead style="background: #F8FAFC; border-bottom: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 26, 82, 118), 0.06));">
                                     <tr>
                                         <th class="ps-3 py-1.5 text-muted">Jam Ke-</th>
                                         <th class="py-1.5 text-muted">Durasi</th>
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!data.calculation) return;
 
             const calc = data.calculation;
-            document.getElementById('simPlannedHours').innerHTML = calc.total_duration_hours + ' <span style="font-size: 12px; font-weight: normal; color: #755841;">jam</span>';
+            document.getElementById('simPlannedHours').innerHTML = calc.total_duration_hours + ' <span style="font-size: 12px; font-weight: normal; color: var(--theme-color-2, #475569);">jam</span>';
             document.getElementById('simRateHours').innerHTML = calc.rate_hours.toFixed(2) + ' <span style="font-size: 12px; font-weight: normal; color: #15803d;">jam</span>';
 
             // Meal allowance
@@ -283,8 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 mealBadge.textContent = 'Tidak';
                 mealBadge.className = 'badge';
-                mealBadge.style.background = '#f4f3f2';
-                mealBadge.style.color = '#755841';
+                mealBadge.style.background = '#F1F5F9';
+                mealBadge.style.color = '#475569';
                 mealBadge.style.border = 'none';
             }
 

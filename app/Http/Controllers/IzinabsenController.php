@@ -72,6 +72,16 @@ class IzinabsenController extends Controller
         if (!empty($request->status) || $request->status === '0') {
             $qizin->where('presensi_izinabsen.status', $request->status);
         }
+
+        if ($request->tipe === 'permisi' || $request->tipe === 'jam') {
+            $qizin->where(function ($q) {
+                $q->where('presensi_izinabsen.keterangan', 'like', '%[Izin Jam%')
+                  ->orWhere('presensi_izinabsen.keterangan', 'like', '%[Pulang Cepat%');
+            });
+        } elseif ($request->tipe === 'harian') {
+            $qizin->where('presensi_izinabsen.keterangan', 'not like', '%[Izin Jam%')
+                  ->where('presensi_izinabsen.keterangan', 'not like', '%[Pulang Cepat%');
+        }
         $qizin->select(
             'presensi_izinabsen.*',
             'karyawan.nama_karyawan',
@@ -191,6 +201,18 @@ class IzinabsenController extends Controller
         $role = $user->getRoleNames()->first();
         $general_setting = Pengaturanumum::where('id', 1)->first();
 
+        $tipe_izin = $request->input('tipe_izin', 'harian');
+        if ($tipe_izin === 'jam' || $tipe_izin === 'pulang_cepat') {
+            $tgl = $request->input('tanggal_izin', $request->input('dari', date('Y-m-d')));
+            $request->merge([
+                'dari' => $tgl,
+                'sampai' => $tgl,
+                'keterangan' => $request->input('keperluan', $request->input('keterangan', 'Izin Keluar Kantor'))
+            ]);
+        } elseif ($request->filled('keperluan') && !$request->filled('keterangan')) {
+            $request->merge(['keterangan' => $request->keperluan]);
+        }
+
         if ($user->hasRole('karyawan')) {
             if (!$userkaryawan || empty($userkaryawan->nik)) {
                 return Redirect::back()->withInput()->with(messageError('Akun Anda belum terhubung dengan data karyawan. Silakan hubungi admin.'));
@@ -264,13 +286,46 @@ class IzinabsenController extends Controller
             $last_kode_izin = $lastizin != null ? $lastizin->kode_izin : '';
             $kode_izin  = buatkode($last_kode_izin, "IA"  . date('ym', strtotime($request->dari)), 4);
 
+            $tipe_izin = $request->input('tipe_izin', 'harian');
+            if ($tipe_izin === 'jam') {
+                $jamMulai = $request->input('jam_mulai', '00:00');
+                $jamSelesai = $request->input('jam_selesai', '00:00');
+                $durasiText = $jamMulai . ' - ' . $jamSelesai;
+                $keperluan = trim($request->input('keperluan', $request->keterangan));
+                $keterangan = "[Izin Jam: {$durasiText}] {$keperluan}";
+                if ($request->filled('keterangan_detail')) {
+                    $keterangan .= " (" . trim($request->keterangan_detail) . ")";
+                }
+            } elseif ($tipe_izin === 'pulang_cepat') {
+                $jamPulang = $request->input('jam_pulang_cepat', '00:00');
+                $keperluan = trim($request->input('keperluan', $request->keterangan));
+                $keterangan = "[Pulang Cepat: {$jamPulang}] {$keperluan}";
+                if ($request->filled('keterangan_detail')) {
+                    $keterangan .= " (" . trim($request->keterangan_detail) . ")";
+                }
+            } elseif ($request->filled('keperluan')) {
+                $keperluan = trim($request->keperluan);
+                $keterangan = "[Izin Seharian] {$keperluan}";
+                if ($request->filled('keterangan_detail')) {
+                    $keterangan .= " (" . trim($request->keterangan_detail) . ")";
+                }
+            } else {
+                $keterangan = $request->keterangan;
+                if ($request->filled('kategori_izin')) {
+                    $kategori = trim($request->kategori_izin);
+                    if (!str_starts_with($keterangan, '[' . $kategori . ']')) {
+                        $keterangan = '[' . $kategori . '] ' . $keterangan;
+                    }
+                }
+            }
+
             $izin = new Izinabsen();
             $izin->kode_izin = $kode_izin;
             $izin->nik = $nik;
             $izin->tanggal = $request->dari;
             $izin->dari = $request->dari;
             $izin->sampai = $request->sampai;
-            $izin->keterangan = $request->keterangan;
+            $izin->keterangan = $keterangan;
             $izin->status = 0;
             $izin->approval_step = 1;
             $izin->save();

@@ -5,7 +5,7 @@
 @section('header_left')
     <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
         onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
-        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-[0.98] transition-transform duration-150"
         title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
@@ -23,9 +23,9 @@
         :root {
             --bg-body: #dff9fb;
             --bg-nav: #ffffff;
-            --color-nav: #634832;
+            --color-nav: var(--theme-color-2, #634832);
             --color-nav-active: #58907D;
-            --bg-indicator: #634832;
+            --bg-indicator: var(--theme-color-2, #634832);
             --color-nav-hover: #3ab58c;
         }
     </style> --}}
@@ -56,6 +56,7 @@
             background: #222;
             position: relative;
             box-shadow: 0 4px 24px rgba(44, 62, 80, 0.10);
+            border: 2px solid rgba(var(--color-primary-rgb, 27, 54, 93), 0.25);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -358,20 +359,54 @@
             display: block;
         }
 
-        /* Frosted Glass Telemetry Badges */
-        .abs-tanggal-modern {
+        /* Camera Top Overlay Bar (Space-Between Flex, Prevents Any Element Collision) */
+        .camera-top-bar {
             position: absolute;
             top: 10px;
+            left: 10px;
             right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 30;
+            pointer-events: none;
+            gap: 8px;
+        }
+
+        .camera-top-bar > * {
+            pointer-events: auto;
+            position: static !important;
+        }
+
+        #btn-request-gps {
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 11px;
+            padding: 5px 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.85);
+            color: #ffffff;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: none !important;
+        }
+
+        /* Frosted Glass Telemetry Badges */
+        .abs-tanggal-modern {
             background: rgba(15, 23, 42, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 8px;
-            padding: 4px 10px;
+            padding: 5px 10px;
             font-size: 11px;
             font-weight: 600;
             color: #ffffff;
-            z-index: 25;
             letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
         }
 
         .abs-jam-modern {
@@ -414,9 +449,10 @@
             box-shadow: none !important;
         }
 
-        /* Minimalist Shift Info Card (Flexbox, Zero Negative Margins) */
+        /* Minimalist Shift Info Card (Flexbox, Dynamic Brand Colors) */
         .shift-info-card {
-            background: #3C2A21; /* Espresso Emerald */
+            background: var(--color-primary, var(--theme-color-1, #1B365D));
+            color: var(--theme-primary-contrast, #ffffff);
             border-radius: 14px;
             padding: 8px 10px;
             margin-bottom: 8px;
@@ -427,7 +463,8 @@
             justify-content: space-between;
             gap: 6px;
             overflow: hidden;
-            box-shadow: 0 4px 14px rgba(60, 42, 33, 0.12);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .shift-info-col {
@@ -472,7 +509,7 @@
         .shift-info-val {
             font-size: 14px;
             font-weight: 700;
-            color: #ffffff;
+            color: var(--theme-primary-contrast, #ffffff);
             font-family: 'JetBrains Mono', 'Geist Mono', monospace;
             white-space: nowrap;
         }
@@ -558,33 +595,35 @@
         }
 
         #absenmasuk {
-            background: #3C2A21;
-            color: #ffffff;
-            box-shadow: 0 3px 12px rgba(60, 42, 33, 0.2);
+            background: var(--color-primary, var(--theme-color-1, #1B365D));
+            color: var(--theme-primary-contrast, #ffffff);
+            border: 1.5px solid var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
 
         #absenmasuk:disabled {
-            background: #cbd5e1 !important;
-            color: #64748b !important;
+            background: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            border: 1.5px solid #cbd5e1 !important;
             box-shadow: none !important;
             cursor: not-allowed;
-            opacity: 0.8;
+            opacity: 0.75;
         }
 
         #absenpulang {
             background: #ffffff;
-            color: #3C2A21;
-            border: 1.5px solid #3C2A21 !important;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+            color: var(--color-secondary, var(--theme-color-2, #475569));
+            border: 1.5px solid var(--color-secondary, var(--theme-color-2, #475569)) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
         #absenpulang:disabled {
             background: #f8fafc !important;
             color: #94a3b8 !important;
-            border-color: #e2e8f0 !important;
+            border: 1.5px solid #e2e8f0 !important;
             box-shadow: none !important;
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.75;
         }
 
         /* Minimalist Pure White Card: Attendance Selesai */
@@ -686,7 +725,7 @@
         .selesai-rekap-val.font-mono {
             font-family: 'JetBrains Mono', 'Geist Mono', monospace;
             font-size: 15px;
-            color: #3C2A21;
+            color: var(--color-primary, var(--theme-color-1, #1B365D));
         }
 
         /* Minimalist verified inline indicator (no card box) */
@@ -711,13 +750,13 @@
             gap: 8px;
             width: 100%;
             height: 48px;
-            background: #3C2A21;
-            color: #ffffff !important;
+            background: var(--color-primary, var(--theme-color-1, #3C2A21));
+            color: var(--theme-primary-contrast, #ffffff) !important;
             border-radius: 14px;
             font-size: 14px;
             font-weight: 600;
             text-decoration: none !important;
-            box-shadow: 0 4px 14px rgba(60, 42, 33, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
             box-sizing: border-box;
         }
@@ -915,12 +954,12 @@
             @else
                 <div id="active-presensi-wrapper">
                     @if (!empty($hari_libur))
-                        <div style="margin: 0 0 12px 0; padding: 12px 14px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-left: 3px solid #3C2A21; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
-                            <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(60, 42, 33, 0.12);">
-                                <ion-icon name="calendar-outline" style="font-size: 18px; color: #3C2A21;"></ion-icon>
+                        <div style="margin: 0 0 12px 0; padding: 12px 14px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, 0.08); border-left: 3px solid var(--color-primary, #1B365D); border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--color-primary-soft, rgba(27, 54, 93, 0.08)); color: var(--color-primary, #1B365D); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(15, 23, 42, 0.08);">
+                                <ion-icon name="calendar-outline" style="font-size: 18px; color: var(--color-primary, #1B365D);"></ion-icon>
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: 9.5px; font-weight: 800; color: #3C2A21; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; line-height: 1;">HARI LIBUR OPERASIONAL</div>
+                                <div style="font-size: 9.5px; font-weight: 800; color: var(--color-primary, #1B365D); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; line-height: 1;">HARI LIBUR OPERASIONAL</div>
                                 <div style="font-size: 13px; font-weight: 800; color: #0F172A; margin-top: 2px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $hari_libur->keterangan }}</div>
                                 <div style="font-size: 11px; color: #64748B; margin-top: 2px; line-height: 1.3;">Bebas kewajiban presensi. Kehadiran tercatat sebagai operasional khusus tanpa penalti keterlambatan.</div>
                             </div>
@@ -928,13 +967,14 @@
                     @endif
                     <div class="camera-section">
                         <div id="facedetection" style="position:relative;">
-                            <!-- GPS Permission Button / Status -->
-                            <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm" style="position: absolute; top: 10px; left: 10px; z-index: 30; pointer-events: auto; cursor: pointer; border-radius: 20px; font-weight: 600; font-size: 11px; padding: 4px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 5px; border: none; background: #f39c12; color: white;">
-                                <ion-icon name="location-outline" style="font-size: 14px;"></ion-icon>
-                                <span>Izinkan GPS</span>
-                            </button>
-                            <!-- Absolute Tanggal & Jam -->
-                            <div class="abs-tanggal-modern">{{ DateToIndo(date('Y-m-d')) }}</div>
+                            <!-- Camera Top Overlay Bar (Space-between flex container to avoid any collision) -->
+                            <div class="camera-top-bar">
+                                <button type="button" id="btn-request-gps" onclick="requestLocationPermission(true)" class="btn btn-sm">
+                                    <ion-icon name="navigate-outline" style="font-size: 14px;"></ion-icon>
+                                    <span>Menghubungkan GPS...</span>
+                                </button>
+                                <div class="abs-tanggal-modern">{{ DateToIndo(date('Y-m-d')) }}</div>
+                            </div>
                             <div class="abs-jam-modern"><span id="jam"></span></div>
                             <div class="webcam-capture"></div>
                             
@@ -1046,28 +1086,30 @@
             @endif
         </div>
 
-    <audio id="notifikasi_radius">
+    <audio id="notifikasi_radius" preload="auto">
         <source src="{{ asset('assets/sound/radius.mp3') }}" type="audio/mpeg">
     </audio>
-    <audio id="notifikasi_mulaiabsen">
+    <audio id="notifikasi_mulaiabsen" preload="auto">
         <source src="{{ asset('assets/sound/mulaiabsen.wav') }}" type="audio/mpeg">
     </audio>
-    <audio id="notifikasi_akhirabsen">
+    <audio id="notifikasi_akhirabsen" preload="auto">
         <source src="{{ asset('assets/sound/akhirabsen.wav') }}" type="audio/mpeg">
     </audio>
-    <audio id="notifikasi_sudahabsen">
+    <audio id="notifikasi_sudahabsen" preload="auto">
         <source src="{{ asset('assets/sound/sudahabsen.wav') }}" type="audio/mpeg">
     </audio>
-    <audio id="notifikasi_absenmasuk">
+    <audio id="notifikasi_absenmasuk" preload="auto">
         <source src="{{ asset('assets/sound/absenmasuk.wav') }}" type="audio/mpeg">
     </audio>
-
+    <audio id="notifikasi_fakegps" preload="auto">
+        <source src="{{ asset('assets/sound/fakegps.mp3') }}" type="audio/mpeg">
+    </audio>
 
     <!--Pulang-->
-    <audio id="notifikasi_sudahabsenpulang">
+    <audio id="notifikasi_sudahabsenpulang" preload="auto">
         <source src="{{ asset('assets/sound/sudahabsenpulang.mp3') }}" type="audio/mpeg">
     </audio>
-    <audio id="notifikasi_absenpulang">
+    <audio id="notifikasi_absenpulang" preload="auto">
         <source src="{{ asset('assets/sound/absenpulang.mp3') }}" type="audio/mpeg">
     </audio>
 @endsection
@@ -1083,10 +1125,10 @@
     <!-- Face Recognition dengan Caching (Lazy Loaded when enabled & required) -->
     @if ($isFaceRecognitionRequired)
     <script src="{{ asset('assets/vendor/face-api.min.js') }}"></script>
-    <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ file_exists(public_path('assets/external/js/face-model-cache.js')) ? filemtime(public_path('assets/external/js/face-model-cache.js')) : time() }}"></script>
+    <script src="{{ asset('assets/external/js/face-model-cache.js') }}?v={{ config('app.asset_version', '2.5.0') }}"></script>
     @endif
     <!-- Anti-Fake GPS & Mock Location Detector -->
-    <script src="{{ asset('assets/js/anti-fake-gps.js') }}?v={{ file_exists(public_path('assets/js/anti-fake-gps.js')) ? filemtime(public_path('assets/js/anti-fake-gps.js')) : time() }}"></script>
+    <script src="{{ asset('assets/js/anti-fake-gps.js') }}?v={{ config('app.asset_version', '2.5.0') }}"></script>
     <script type="text/javascript">
         // Fungsi yang dijalankan ketika halaman selesai dimuat
         // Menggunakan DOMContentLoaded untuk memastikan DOM sudah siap
@@ -1140,8 +1182,8 @@
     <script>
         // Fungsi yang dijalankan ketika dokumen siap
         $(function() {
-            const themePrimary = '{{ $t['primary'] ?? '#3C2A21' }}';
-            const themeSecondary = '{{ $t['primary_light'] ?? '#634832' }}';
+            const themePrimary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '{{ $t['primary'] ?? '#1B365D' }}';
+            const themeSecondary = getComputedStyle(document.documentElement).getPropertyValue('--theme-color-2').trim() || '{{ $t['primary_light'] ?? '#2D4B73' }}';
             // Variabel untuk menampung lokasi
             let lokasi;
             // Variabel untuk menampung lokasi user
@@ -1229,27 +1271,66 @@
                     );
                 });
             }
-            // Mengambil elemen HTML dengan id 'notifikasi_radius'
+            // Mengambil elemen HTML dengan id audio notifikasi
             let notifikasi_radius = document.getElementById('notifikasi_radius');
-            // Mengambil elemen HTML dengan id 'notifikasi_mulaiabsen'
             let notifikasi_mulaiabsen = document.getElementById('notifikasi_mulaiabsen');
-            // Mengambil elemen HTML dengan id 'notifikasi_akhirabsen'
             let notifikasi_akhirabsen = document.getElementById('notifikasi_akhirabsen');
-            // Mengambil elemen HTML dengan id 'notifikasi_sudahabsen'
             let notifikasi_sudahabsen = document.getElementById('notifikasi_sudahabsen');
-            // Mengambil elemen HTML dengan id 'notifikasi_absenmasuk'
             let notifikasi_absenmasuk = document.getElementById('notifikasi_absenmasuk');
-
-            // Mengambil elemen HTML dengan id 'notifikasi_sudahabsenpulang'
             let notifikasi_sudahabsenpulang = document.getElementById('notifikasi_sudahabsenpulang');
-            // Mengambil elemen HTML dengan id 'notifikasi_absenpulang'
             let notifikasi_absenpulang = document.getElementById('notifikasi_absenpulang');
+            let notifikasi_fakegps = document.getElementById('notifikasi_fakegps');
 
-            // Fungsi sintesis suara notifikasi
+            // Prime / unlock audio policy on user interaction (tap/click) for mobile browsers
+            let audioUnlocked = false;
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                const audioElements = [
+                    notifikasi_absenmasuk,
+                    notifikasi_absenpulang,
+                    notifikasi_radius,
+                    notifikasi_mulaiabsen,
+                    notifikasi_akhirabsen,
+                    notifikasi_sudahabsen,
+                    notifikasi_sudahabsenpulang,
+                    notifikasi_fakegps
+                ];
+                audioElements.forEach(function(el) {
+                    if (el) {
+                        try {
+                            el.muted = true;
+                            const p = el.play();
+                            if (p !== undefined) {
+                                p.then(function() {
+                                    el.pause();
+                                    el.currentTime = 0;
+                                    el.muted = false;
+                                }).catch(function() {
+                                    el.muted = false;
+                                });
+                            }
+                        } catch (e) {}
+                    }
+                });
+
+                if ('speechSynthesis' in window) {
+                    try {
+                        window.speechSynthesis.resume();
+                    } catch (e) {}
+                }
+                audioUnlocked = true;
+            }
+
+            document.addEventListener('click', unlockAudio, { once: true, passive: true });
+            document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+
+            // Fungsi sintesis suara notifikasi (TTS)
             function speakVoice(text) {
+                if (!text) return;
                 if ('speechSynthesis' in window) {
                     try {
                         window.speechSynthesis.cancel();
+                        window.speechSynthesis.resume();
                         const utterance = new SpeechSynthesisUtterance(text);
                         utterance.lang = 'id-ID';
                         utterance.rate = 0.95;
@@ -1258,6 +1339,39 @@
                     } catch (e) {
                         console.warn('SpeechSynthesis error:', e);
                     }
+                }
+            }
+
+            // Fungsi pemutar audio presensi (Prioritas audio file .wav/.mp3 + Fallback TTS)
+            function playAttendanceSound(notifType, fallbackText) {
+                const soundMap = {
+                    'notifikasi_absenmasuk': notifikasi_absenmasuk,
+                    'notifikasi_absenpulang': notifikasi_absenpulang,
+                    'notifikasi_radius': notifikasi_radius,
+                    'notifikasi_mulaiabsen': notifikasi_mulaiabsen,
+                    'notifikasi_akhirabsen': notifikasi_akhirabsen,
+                    'notifikasi_sudahabsen': notifikasi_sudahabsen,
+                    'notifikasi_sudahabsenpulang': notifikasi_sudahabsenpulang,
+                    'notifikasi_fakegps': notifikasi_fakegps
+                };
+
+                const targetAudio = soundMap[notifType];
+                if (targetAudio) {
+                    try {
+                        targetAudio.currentTime = 0;
+                        targetAudio.muted = false;
+                        const promise = targetAudio.play();
+                        if (promise !== undefined) {
+                            promise.catch(function(err) {
+                                console.warn('Audio tag play error, fallback to TTS:', err);
+                                if (fallbackText) speakVoice(fallbackText);
+                            });
+                        }
+                    } catch (e) {
+                        if (fallbackText) speakVoice(fallbackText);
+                    }
+                } else if (fallbackText) {
+                    speakVoice(fallbackText);
                 }
             }
 
@@ -1434,13 +1548,15 @@
                     window.AntiFakeGPS.recordSample(position);
                 }
 
-                // Update GPS status button
+                // Update GPS status button (Clean 2D tactile)
                 const btnGps = document.getElementById('btn-request-gps');
                 if (btnGps) {
-                    btnGps.className = "btn btn-sm btn-success";
-                    btnGps.style.background = "#27ae60";
-                    btnGps.style.boxShadow = "0 4px 12px rgba(39, 174, 96, 0.35)";
-                    btnGps.innerHTML = '<ion-icon name="checkmark-circle-outline" style="font-size: 15px;"></ion-icon><span>GPS Terhubung</span>';
+                    btnGps.className = "btn btn-sm";
+                    btnGps.style.background = "#15803D";
+                    btnGps.style.borderColor = "rgba(255, 255, 255, 0.25)";
+                    btnGps.style.color = "#ffffff";
+                    btnGps.style.boxShadow = "none";
+                    btnGps.innerHTML = '<ion-icon name="checkmark-circle" style="font-size: 15px; color:#A3E635;"></ion-icon><span>GPS Terverifikasi</span>';
                     btnGps.disabled = false;
                 }
 
@@ -1653,6 +1769,13 @@
             // =========================================================
 
             window.initialServerWajah = @json($user_wajah ?? []);
+            const THEME_PRIMARY = "{{ $theme['primary'] ?? '#1B365D' }}";
+            const THEME_PRIMARY_RGB = "{{ $theme['primary_rgb'] ?? '27, 54, 93' }}";
+            const THEME_SECONDARY = "{{ $theme['secondary'] ?? '#4B6B94' }}";
+            const THEME_SECONDARY_RGB = "{{ $theme['secondary_rgb'] ?? '75, 107, 148' }}";
+            const THEME_ACCENT = "{{ $theme['accent'] ?? '#4A6741' }}";
+            const THEME_ACCENT_RGB = "{{ $theme['accent_rgb'] ?? '74, 103, 65' }}";
+
             const FaceConfig = {
                 isEnabled: {{ $isFaceRecognitionRequired ? 1 : 0 }},
                 modelsUrl: '/models',
@@ -1883,15 +2006,39 @@
                         cameraPermissionGranted = true;
                         UI.els.video = video;
 
-                        // Guarantee Webcam.snap compatibility for presensi capture
+                        // Guarantee Webcam.snap compatibility for presensi capture (Client-side pre-compressed for Shared Hosting)
                         window.Webcam = window.Webcam || {};
                         window.Webcam.snap = function(cb) {
                             const canvas = document.createElement('canvas');
-                            canvas.width = video.videoWidth || 640;
-                            canvas.height = video.videoHeight || 480;
+                            const vWidth = video.videoWidth || 640;
+                            const vHeight = video.videoHeight || 480;
+                            const maxDim = 640;
+                            let targetWidth = vWidth;
+                            let targetHeight = vHeight;
+                            if (vWidth > maxDim || vHeight > maxDim) {
+                                if (vWidth >= vHeight) {
+                                    targetWidth = maxDim;
+                                    targetHeight = Math.round((vHeight / vWidth) * maxDim);
+                                } else {
+                                    targetHeight = maxDim;
+                                    targetWidth = Math.round((vWidth / vHeight) * maxDim);
+                                }
+                            }
+                            canvas.width = targetWidth;
+                            canvas.height = targetHeight;
                             const ctx = canvas.getContext('2d');
-                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                            cb(canvas.toDataURL('image/jpeg', 0.95));
+                            ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+
+                            let dataUri = '';
+                            try {
+                                dataUri = canvas.toDataURL('image/webp', 0.78);
+                            } catch (e) {
+                                dataUri = '';
+                            }
+                            if (!dataUri || !dataUri.startsWith('data:image/webp')) {
+                                dataUri = canvas.toDataURL('image/jpeg', 0.78);
+                            }
+                            cb(dataUri);
                         };
 
                         return new Promise((resolve) => {
@@ -2006,6 +2153,21 @@
                             }
                             UI.removeLoading('data-loading');
                             this.matcher = null;
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Wajah Belum Terdaftar',
+                                    text: 'Data biometrik wajah Anda belum terdaftar di sistem. Silakan daftarkan wajah terlebih dahulu untuk presensi.',
+                                    confirmButtonText: 'Daftarkan Wajah Sekarang',
+                                    confirmButtonColor: THEME_PRIMARY || '#1B365D',
+                                    showCancelButton: true,
+                                    cancelButtonText: 'Tutup'
+                                }).then((res) => {
+                                    if (res.isConfirmed) {
+                                        window.location.href = "{{ route('facerecognition.karyawan.create') }}";
+                                    }
+                                });
+                            }
                             return;
                         }
 
@@ -2085,8 +2247,8 @@
                         if(descriptions.length > 0) {
                             const labelName = FaceConfig.user.fullName;
                             const labeledDescriptors = new faceapi.LabeledFaceDescriptors(labelName, descriptions);
-                            // Threshold 0.42: Strict matching threshold (lower = stricter, preventing imposter matches)
-                            this.matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.42);
+                            // Threshold 0.48: Balanced matching threshold (allows realistic indoor/lighting variances while strictly rejecting impostors)
+                            this.matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.48);
                         } else {
                             this.matcher = null; 
                         }
@@ -2185,7 +2347,7 @@
 
                                         let match = null;
                                         let isRecognized = false;
-                                        let labelText = 'Wajah Tidak Dikenali';
+                                        let labelText = this.matcher ? 'Menyelaraskan Wajah...' : 'Wajah Belum Terdaftar';
                                         
                                         if(this.matcher) {
                                             // Use ORIGINAL descriptor (not resized) for matching
@@ -2193,15 +2355,18 @@
                                             const matchesLabel = match.label !== 'unknown';
                                             
                                             if (!isCentered) {
-                                                labelText = 'Posisikan Wajah di Tengah Lingkaran';
+                                                labelText = 'Posisikan di Tengah';
                                                 isRecognized = false;
                                             } else if (matchesLabel) {
                                                 isRecognized = true;
                                                 labelText = `${match.label} (${match.distance.toFixed(2)})`;
                                             } else {
                                                 isRecognized = false;
-                                                labelText = `Wajah Tidak Dikenali (${match.distance.toFixed(2)})`;
+                                                labelText = `Tidak Cocok (${match.distance.toFixed(2)})`;
                                             }
+                                        } else {
+                                            labelText = 'Wajah Belum Terdaftar';
+                                            isRecognized = false;
                                         }
                                         
                                         // Update Global State
@@ -2222,21 +2387,14 @@
                                         };
                                         box = squareBox;
                                         
-                                        const color = isRecognized ? '#4CAF50' : '#FFC107';
+                                        const color = isRecognized ? (THEME_ACCENT || '#15803D') : THEME_PRIMARY;
                                         const ctx = canvas.getContext('2d');
                                         
-                                        // Draw rounded rectangle with glow
-                                        const cornerRadius = 16;
-                                        const lineWidth = 4;
+                                        // Swiss Precision Hairline Frame (Clean 2px, radius 14px, zero neon blur)
+                                        const cornerRadius = 14;
+                                        const lineWidth = 2;
                                         
-                                        // Shadow/Glow effect
                                         ctx.save();
-                                        ctx.shadowColor = color;
-                                        ctx.shadowBlur = 20;
-                                        ctx.shadowOffsetX = 0;
-                                        ctx.shadowOffsetY = 0;
-                                        
-                                        // Draw rounded box
                                         ctx.strokeStyle = color;
                                         ctx.lineWidth = lineWidth;
                                         ctx.lineJoin = 'round';
@@ -2256,92 +2414,81 @@
                                         ctx.stroke();
                                         ctx.restore();
                                         
-                                        // === SCANNING ANIMATION ===
-                                        // Animated scanning line that moves up and down
-                                        const scanSpeed = 0.05; // Speed of animation
+                                        // Subtle hairline scan indicator (No neon glow)
+                                        const scanSpeed = 0.04;
                                         const scanProgress = (Date.now() * scanSpeed) % (box.height * 2);
                                         const scanY = scanProgress < box.height 
                                             ? box.y + scanProgress 
                                             : box.y + (box.height * 2 - scanProgress);
                                         
                                         ctx.save();
-                                        // Create gradient for scan line
-                                        const scanGradient = ctx.createLinearGradient(box.x, scanY - 15, box.x, scanY + 15);
-                                        scanGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                                        scanGradient.addColorStop(0.5, `rgba(255, 255, 255, 0.6)`);
-                                        scanGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                                        const scanGradient = ctx.createLinearGradient(box.x, scanY, box.x + box.width, scanY);
+                                        scanGradient.addColorStop(0, 'rgba(' + (isRecognized ? THEME_ACCENT_RGB : THEME_PRIMARY_RGB) + ', 0)');
+                                        scanGradient.addColorStop(0.5, isRecognized ? 'rgba(' + THEME_ACCENT_RGB + ', 0.45)' : 'rgba(' + THEME_PRIMARY_RGB + ', 0.35)');
+                                        scanGradient.addColorStop(1, 'rgba(' + (isRecognized ? THEME_ACCENT_RGB : THEME_PRIMARY_RGB) + ', 0)');
                                         
                                         ctx.strokeStyle = scanGradient;
-                                        ctx.lineWidth = 3;
-                                        ctx.shadowColor = '#FFFFFF';
-                                        ctx.shadowBlur = 10;
-                                        
+                                        ctx.lineWidth = 1.5;
                                         ctx.beginPath();
-                                        ctx.moveTo(box.x + 10, scanY);
-                                        ctx.lineTo(box.x + box.width - 10, scanY);
+                                        ctx.moveTo(box.x + 8, scanY);
+                                        ctx.lineTo(box.x + box.width - 8, scanY);
                                         ctx.stroke();
                                         ctx.restore();
                                         
-                                        // Draw corner brackets for extra tech feel
+                                        // Minimal corner markers (8px precision marks)
                                         ctx.save();
                                         ctx.strokeStyle = color;
-                                        ctx.lineWidth = 3;
-                                        const bracketSize = 20;
+                                        ctx.lineWidth = 2.5;
+                                        const markerLen = 14;
                                         
                                         // Top-left
                                         ctx.beginPath();
                                         ctx.moveTo(box.x + cornerRadius, box.y);
                                         ctx.lineTo(box.x, box.y);
-                                        ctx.lineTo(box.x, box.y + bracketSize);
+                                        ctx.lineTo(box.x, box.y + markerLen);
                                         ctx.stroke();
                                         
                                         // Top-right
                                         ctx.beginPath();
                                         ctx.moveTo(box.x + box.width - cornerRadius, box.y);
                                         ctx.lineTo(box.x + box.width, box.y);
-                                        ctx.lineTo(box.x + box.width, box.y + bracketSize);
+                                        ctx.lineTo(box.x + box.width, box.y + markerLen);
                                         ctx.stroke();
                                         
                                         // Bottom-left
                                         ctx.beginPath();
-                                        ctx.moveTo(box.x, box.y + box.height - bracketSize);
+                                        ctx.moveTo(box.x, box.y + box.height - markerLen);
                                         ctx.lineTo(box.x, box.y + box.height);
                                         ctx.lineTo(box.x + cornerRadius, box.y + box.height);
                                         ctx.stroke();
                                         
                                         // Bottom-right
                                         ctx.beginPath();
-                                        ctx.moveTo(box.x + box.width, box.y + box.height - bracketSize);
+                                        ctx.moveTo(box.x + box.width, box.y + box.height - markerLen);
                                         ctx.lineTo(box.x + box.width, box.y + box.height);
                                         ctx.lineTo(box.x + box.width - cornerRadius, box.y + box.height);
                                         ctx.stroke();
                                         ctx.restore();
                                         
-                                        // Draw modern label
+                                        // Dynamic Theme Pill Badge with status dot
                                         ctx.save();
-                                        ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                                        ctx.font = '600 12px "Inter", -apple-system, sans-serif';
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'middle';
                                         
-                                        const labelPadding = 8;
-                                        const textMetrics = ctx.measureText(labelText);
-                                        const labelWidth = textMetrics.width + labelPadding * 2;
-                                        const labelHeight = 28;
+                                        const badgeText = isRecognized ? ('✓ ' + labelText) : ('● ' + labelText);
+                                        const textMetrics = ctx.measureText(badgeText);
+                                        const labelPadding = 12;
+                                        const labelWidth = Math.max(130, textMetrics.width + labelPadding * 2);
+                                        const labelHeight = 26;
                                         const labelX = box.x + box.width / 2 - labelWidth / 2;
                                         const labelY = box.y - labelHeight - 8;
                                         
-                                        // Label background with gradient
-                                        const gradient = ctx.createLinearGradient(labelX, labelY, labelX, labelY + labelHeight);
-                                        gradient.addColorStop(0, color);
-                                        gradient.addColorStop(1, color + 'CC'); // Add transparency
+                                        ctx.fillStyle = THEME_PRIMARY;
+                                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
+                                        ctx.lineWidth = 1;
                                         
-                                        ctx.fillStyle = gradient;
-                                        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                                        ctx.shadowBlur = 8;
-                                        ctx.shadowOffsetY = 2;
-                                        
-                                        // Rounded label background
-                                        const labelRadius = 6;
+                                        const labelRadius = 8;
                                         ctx.beginPath();
                                         ctx.moveTo(labelX + labelRadius, labelY);
                                         ctx.lineTo(labelX + labelWidth - labelRadius, labelY);
@@ -2354,11 +2501,10 @@
                                         ctx.quadraticCurveTo(labelX, labelY, labelX + labelRadius, labelY);
                                         ctx.closePath();
                                         ctx.fill();
+                                        ctx.stroke();
                                         
-                                        // Label text
-                                        ctx.shadowBlur = 0;
                                         ctx.fillStyle = '#FFFFFF';
-                                        ctx.fillText(labelText, labelX + labelWidth / 2, labelY + labelHeight / 2);
+                                        ctx.fillText(badgeText, labelX + labelWidth / 2, labelY + labelHeight / 2);
                                         ctx.restore();
 
                                         if (isRecognized) {
@@ -2375,53 +2521,41 @@
                                         lastRecognizedState = false;
                                         UI.disableButtons();
                                         
-                                        // === DRAW NO FACE DETECTED ALERT ===
+                                        // Dynamic Theme Viewfinder Guide Badge (Clean & calm, zero arcade emoji)
                                         const ctx = canvas.getContext('2d');
-                                        
-                                        // Alert box dimensions
-                                        const alertWidth = 280;
-                                        const alertHeight = 80;
-                                        const alertX = (canvas.width - alertWidth) / 2;
-                                        const alertY = (canvas.height - alertHeight) / 2;
-                                        const alertRadius = 12;
-                                        
-                                        // Draw alert background with gradient
+                                        const promptText = 'Arahkan wajah ke depan kamera';
                                         ctx.save();
-                                        const gradient = ctx.createLinearGradient(alertX, alertY, alertX, alertY + alertHeight);
-                                        gradient.addColorStop(0, 'rgba(244, 67, 54, 0.95)'); // Red
-                                        gradient.addColorStop(1, 'rgba(244, 67, 54, 0.85)');
-                                        
-                                        ctx.fillStyle = gradient;
-                                        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-                                        ctx.shadowBlur = 20;
-                                        ctx.shadowOffsetY = 4;
-                                        
-                                        // Rounded rectangle
-                                        ctx.beginPath();
-                                        ctx.moveTo(alertX + alertRadius, alertY);
-                                        ctx.lineTo(alertX + alertWidth - alertRadius, alertY);
-                                        ctx.quadraticCurveTo(alertX + alertWidth, alertY, alertX + alertWidth, alertY + alertRadius);
-                                        ctx.lineTo(alertX + alertWidth, alertY + alertHeight - alertRadius);
-                                        ctx.quadraticCurveTo(alertX + alertWidth, alertY + alertHeight, alertX + alertWidth - alertRadius, alertY + alertHeight);
-                                        ctx.lineTo(alertX + alertRadius, alertY + alertHeight);
-                                        ctx.quadraticCurveTo(alertX, alertY + alertHeight, alertX, alertY + alertHeight - alertRadius);
-                                        ctx.lineTo(alertX, alertY + alertRadius);
-                                        ctx.quadraticCurveTo(alertX, alertY, alertX + alertRadius, alertY);
-                                        ctx.closePath();
-                                        ctx.fill();
-                                        
-                                        // Draw icon (!) 
-                                        ctx.shadowBlur = 0;
-                                        ctx.fillStyle = '#FFFFFF';
-                                        ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                                        ctx.font = '500 12px "Inter", -apple-system, sans-serif';
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'middle';
-                                        ctx.fillText('⚠️', alertX + alertWidth / 2, alertY + 28);
                                         
-                                        // Draw text
-                                        ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                                        ctx.fillText('Wajah Tidak Terdeteksi', alertX + alertWidth / 2, alertY + 58);
+                                        const pMetrics = ctx.measureText(promptText);
+                                        const pWidth = pMetrics.width + 24;
+                                        const pHeight = 28;
+                                        const pX = (canvas.width - pWidth) / 2;
+                                        const pY = 56;
+                                        const pRadius = 14;
                                         
+                                        ctx.fillStyle = 'rgba(' + THEME_PRIMARY_RGB + ', 0.90)';
+                                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
+                                        ctx.lineWidth = 1;
+                                        
+                                        ctx.beginPath();
+                                        ctx.moveTo(pX + pRadius, pY);
+                                        ctx.lineTo(pX + pWidth - pRadius, pY);
+                                        ctx.quadraticCurveTo(pX + pWidth, pY, pX + pWidth, pY + pRadius);
+                                        ctx.lineTo(pX + pWidth, pY + pHeight - pRadius);
+                                        ctx.quadraticCurveTo(pX + pWidth, pY + pHeight, pX + pWidth - pRadius, pY + pHeight);
+                                        ctx.lineTo(pX + pRadius, pY + pHeight);
+                                        ctx.quadraticCurveTo(pX, pY + pHeight, pX, pY + pHeight - pRadius);
+                                        ctx.lineTo(pX, pY + pRadius);
+                                        ctx.quadraticCurveTo(pX, pY, pX + pRadius, pY);
+                                        ctx.closePath();
+                                        ctx.fill();
+                                        ctx.stroke();
+                                        
+                                        ctx.fillStyle = '#FFFFFF';
+                                        ctx.fillText(promptText, pX + pWidth / 2, pY + pHeight / 2);
                                         ctx.restore();
                                     }
                                 }
@@ -2706,13 +2840,19 @@
                                 });
                             }
 
-                            // Native canvas.toBlob untuk efisiensi RAM/CPU maksimal
+                            // Native canvas.toBlob untuk efisiensi RAM/CPU maksimal (WebP preferred for Shared Hosting)
+                            let outMime = 'image/jpeg';
+                            try {
+                                if (canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0) {
+                                    outMime = 'image/webp';
+                                }
+                            } catch (e) {}
                             if (canvas.toBlob) {
                                 canvas.toBlob(function(blob) {
-                                    resolve(blob || dataURItoBlob(canvas.toDataURL('image/jpeg', 0.75)));
-                                }, 'image/jpeg', 0.75);
+                                    resolve(blob || dataURItoBlob(canvas.toDataURL(outMime, 0.78)));
+                                }, outMime, 0.78);
                             } else {
-                                resolve(dataURItoBlob(canvas.toDataURL('image/jpeg', 0.75)));
+                                resolve(dataURItoBlob(canvas.toDataURL(outMime, 0.78)));
                             }
                         };
                         img.onerror = function() {
@@ -2742,6 +2882,7 @@
             }
 
             $("#absenmasuk").click(function() {
+                unlockAudio();
                 if (isSubmittingPresensi) {
                     return false;
                 }
@@ -2776,7 +2917,7 @@
                 if (window.AntiFakeGPS) {
                     const mockCheck = AntiFakeGPS.analyze(lastRawPosition);
                     if (mockCheck.isMock) {
-                        speakVoice("Terdeteksi menggunakan fake GPS. Silakan matikan fake GPS dan gunakan GPS asli.");
+                        playAttendanceSound('notifikasi_fakegps', 'Terdeteksi menggunakan fake GPS. Silakan matikan fake GPS dan gunakan GPS asli.');
                         Swal.fire({
                             icon: 'error',
                             title: 'Fake GPS Terdeteksi',
@@ -2794,7 +2935,7 @@
 
                 // === PENGECEKAN JADWAL MASUK SEBELUM FOTO ===
                 if (shiftConfig.sudahMasuk) {
-                    speakVoice("Anda sudah melakukan presensi masuk hari ini.");
+                    playAttendanceSound('notifikasi_sudahabsen', 'Anda sudah melakukan presensi masuk hari ini.');
                     Swal.fire({
                         icon: 'info',
                         title: 'Sudah Absen Masuk',
@@ -2811,7 +2952,7 @@
                     const bMasuk = new Date(jm.getTime() - shiftConfig.batasMasukMenit * 1000);
                     const aMasuk = new Date(jm.getTime() + shiftConfig.batasMasukMenit * 1000);
                     if (nowCheck < bMasuk) {
-                        speakVoice("Maaf, belum waktunya untuk presensi masuk.");
+                        playAttendanceSound('notifikasi_mulaiabsen', 'Maaf, belum waktunya untuk presensi masuk.');
                         Swal.fire({
                             icon: 'warning',
                             title: 'Belum Waktunya Masuk',
@@ -2822,7 +2963,7 @@
                         return false;
                     }
                     if (nowCheck > aMasuk) {
-                        speakVoice("Maaf, waktu absen masuk sudah ditutup.");
+                        playAttendanceSound('notifikasi_akhirabsen', 'Maaf, waktu absen masuk sudah ditutup.');
                         Swal.fire({
                             icon: 'error',
                             title: 'Waktu Absen Habis',
@@ -2840,7 +2981,7 @@
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenmasuk").html(
-                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:14px">Memproses...</span>'
+                    '<span class="btn-spinner" role="status" aria-hidden="true"></span> <span style="font-size:13.5px; font-weight:600;">Memproses Masuk...</span>'
                 );
                 let status = '1';
                 Webcam.snap(function(uri) {
@@ -2850,9 +2991,11 @@
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
                     isSubmittingPresensi = false;
                     swal.fire({
-                        icon: 'error',
-                        title: 'Wajah Tidak Terdeteksi',
-                        text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
+                        icon: 'warning',
+                        title: 'Wajah Belum Terdeteksi',
+                        text: 'Posisikan wajah Anda tepat di depan kamera hingga terdeteksi sebelum melakukan presensi.',
+                        confirmButtonColor: themePrimary,
+                        confirmButtonText: 'Coba Lagi',
                         didClose: function() {
                             resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
                             resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
@@ -2860,6 +3003,9 @@
                     });
                     return false;
                 } else {
+                    if (typeof window.showGlobalLoading === 'function') {
+                        window.showGlobalLoading('Memverifikasi kehadiran & lokasi...');
+                    }
                     addWatermarkToBlob(image, lokasi).then(function(blob) {
                         var formData = new FormData();
                         formData.append('image', blob, 'image.jpg');
@@ -2883,15 +3029,18 @@
                             contentType: false,
                             cache: false,
                             success: function(data) {
+                                if (typeof window.hideGlobalLoading === 'function') {
+                                    window.hideGlobalLoading();
+                                }
                                 if (data && data.new_nonce) {
                                     currentAttendanceNonce = data.new_nonce;
                                 }
                                 if (data.status == true) {
-                                    if (data.suara) speakVoice(data.suara);
+                                    playAttendanceSound(data.notifikasi || 'notifikasi_absenmasuk', data.suara || 'Terima kasih, presensi masuk berhasil. Selamat bekerja!');
                                     shiftConfig.sudahMasuk = true;
                                     swal.fire({
                                         icon: data.is_terlambat ? 'warning' : 'success',
-                                        title: data.is_terlambat ? 'Terlambat' : 'Tepat Waktu',
+                                        title: data.is_terlambat ? 'Presensi Masuk (Terlambat)' : 'Presensi Masuk Berhasil',
                                         text: data.message,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Kembali ke Dashboard',
@@ -2905,15 +3054,32 @@
                                 }
                             },
                             error: function(xhr) {
+                                if (typeof window.hideGlobalLoading === 'function') {
+                                    window.hideGlobalLoading();
+                                }
                                 const resp = xhr.responseJSON || {};
                                 if (resp.new_nonce) {
                                     currentAttendanceNonce = resp.new_nonce;
                                 }
-                                if (resp.suara) speakVoice(resp.suara);
+                                if (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) {
+                                    playAttendanceSound('notifikasi_fakegps', resp.suara || 'Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.');
+                                } else if (resp.notifikasi == "notifikasi_radius") {
+                                    playAttendanceSound('notifikasi_radius', resp.suara || 'Maaf, Anda berada di luar radius kantor.');
+                                } else if (resp.notifikasi == "notifikasi_mulaiabsen") {
+                                    playAttendanceSound('notifikasi_mulaiabsen', resp.suara || 'Maaf, belum waktunya untuk melakukan presensi masuk.');
+                                } else if (resp.notifikasi == "notifikasi_akhirabsen") {
+                                    playAttendanceSound('notifikasi_akhirabsen', resp.suara || 'Maaf, waktu absen masuk sudah habis.');
+                                } else if (resp.notifikasi == "notifikasi_sudahabsen") {
+                                    playAttendanceSound('notifikasi_sudahabsen', resp.suara || 'Anda sudah melakukan presensi masuk hari ini.');
+                                } else if (resp.suara) {
+                                    speakVoice(resp.suara);
+                                }
                                 swal.fire({
                                     icon: 'error',
-                                    title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
-                                    text: resp.message || 'Terjadi kesalahan sistem.',
+                                    title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Presensi Belum Berhasil',
+                                    text: resp.message || 'Terjadi kendala sistem. Silakan periksa koneksi dan coba lagi.',
+                                    confirmButtonColor: themePrimary,
+                                    confirmButtonText: 'Tutup',
                                     didClose: function() {
                                         resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
                                         resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
@@ -2921,6 +3087,9 @@
                                 });
                             },
                             complete: function() {
+                                if (typeof window.hideGlobalLoading === 'function') {
+                                    window.hideGlobalLoading();
+                                }
                                 isSubmittingPresensi = false;
                             }
                         });
@@ -2929,6 +3098,7 @@
             });
 
             $("#absenpulang").click(async function() {
+                unlockAudio();
                 if (isSubmittingPresensi) {
                     return false;
                 }
@@ -2963,7 +3133,7 @@
                 if (window.AntiFakeGPS) {
                     const mockCheck = AntiFakeGPS.analyze(lastRawPosition);
                     if (mockCheck.isMock) {
-                        speakVoice("Terdeteksi menggunakan fake GPS. Silakan matikan fake GPS dan gunakan GPS asli.");
+                        playAttendanceSound('notifikasi_fakegps', 'Terdeteksi menggunakan fake GPS. Silakan matikan fake GPS dan gunakan GPS asli.');
                         Swal.fire({
                             icon: 'error',
                             title: 'Fake GPS Terdeteksi',
@@ -2994,7 +3164,7 @@
 
                 // === STRICT: CEK APAKAH SUDAH SELESAI PULANG ===
                 if (shiftConfig.sudahPulang) {
-                    speakVoice("Anda telah selesai bekerja hari ini.");
+                    playAttendanceSound('notifikasi_sudahabsenpulang', 'Anda telah selesai bekerja hari ini.');
                     Swal.fire({
                         icon: 'info',
                         title: 'Presensi Selesai',
@@ -3047,7 +3217,7 @@
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenpulang").html(
-                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:14px">Memproses...</span>'
+                    '<span class="btn-spinner" role="status" aria-hidden="true"></span> <span style="font-size:13.5px; font-weight:600;">Memproses Pulang...</span>'
                 );
                 let status = '2';
                 Webcam.snap(function(uri) {
@@ -3056,9 +3226,11 @@
                 if (faceRecognitionDetected == 0 && faceRecognition == 1) {
                     isSubmittingPresensi = false;
                     swal.fire({
-                        icon: 'error',
-                        title: 'Wajah Tidak Terdeteksi',
-                        text: 'Pastikan wajah Anda terlihat jelas di depan kamera.',
+                        icon: 'warning',
+                        title: 'Wajah Belum Terdeteksi',
+                        text: 'Posisikan wajah Anda tepat di depan kamera hingga terdeteksi sebelum melakukan presensi.',
+                        confirmButtonColor: themePrimary,
+                        confirmButtonText: 'Coba Lagi',
                         didClose: function() {
                             resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
                             resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
@@ -3066,6 +3238,9 @@
                     });
                     return false;
                 } else {
+                    if (typeof window.showGlobalLoading === 'function') {
+                        window.showGlobalLoading('Memverifikasi presensi pulang...');
+                    }
                     addWatermarkToBlob(image, lokasi).then(function(blob) {
                         var formData = new FormData();
                         formData.append('image', blob, 'image.jpg');
@@ -3090,11 +3265,14 @@
                             contentType: false,
                             cache: false,
                             success: function(data) {
+                                if (typeof window.hideGlobalLoading === 'function') {
+                                    window.hideGlobalLoading();
+                                }
                                 if (data && data.new_nonce) {
                                     currentAttendanceNonce = data.new_nonce;
                                 }
                                 if (data.status == true) {
-                                    if (data.suara) speakVoice(data.suara);
+                                    playAttendanceSound(data.notifikasi || 'notifikasi_absenpulang', data.suara || 'Terima kasih, presensi pulang berhasil. Hati-hati di jalan!');
                                     
                                     shiftConfig.sudahPulang = true;
 
@@ -3113,7 +3291,7 @@
 
                                     swal.fire({
                                         icon: 'success',
-                                        title: 'Berhasil Pulang',
+                                        title: 'Presensi Pulang Berhasil',
                                         text: data.message,
                                         showConfirmButton: true,
                                         confirmButtonText: 'Kembali ke Dashboard',
@@ -3127,15 +3305,28 @@
                                 }
                             },
                             error: function(xhr) {
+                                if (typeof window.hideGlobalLoading === 'function') {
+                                    window.hideGlobalLoading();
+                                }
                                 const resp = xhr.responseJSON || {};
                                 if (resp.new_nonce) {
                                     currentAttendanceNonce = resp.new_nonce;
                                 }
-                                if (resp.suara) speakVoice(resp.suara);
+                                if (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) {
+                                    playAttendanceSound('notifikasi_fakegps', resp.suara || 'Terdeteksi menggunakan fake GPS. Silakan gunakan GPS asli.');
+                                } else if (resp.notifikasi == "notifikasi_radius") {
+                                    playAttendanceSound('notifikasi_radius', resp.suara || 'Maaf, Anda berada di luar radius kantor.');
+                                } else if (resp.notifikasi == "notifikasi_sudahabsen" || resp.notifikasi == "notifikasi_sudahabsenpulang") {
+                                    playAttendanceSound('notifikasi_sudahabsenpulang', resp.suara || 'Anda sudah melakukan presensi pulang hari ini.');
+                                } else if (resp.suara) {
+                                    speakVoice(resp.suara);
+                                }
                                 swal.fire({
                                     icon: 'error',
-                                    title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Gagal Absen',
-                                    text: resp.message || 'Terjadi kesalahan sistem.',
+                                    title: (resp.notifikasi == "notifikasi_fakegps" || (resp.message && resp.message.toLowerCase().includes('fake gps'))) ? 'Fake GPS Terdeteksi' : 'Presensi Belum Berhasil',
+                                    text: resp.message || 'Terjadi kendala sistem. Silakan periksa koneksi dan coba lagi.',
+                                    confirmButtonColor: themePrimary,
+                                    confirmButtonText: 'Tutup',
                                     didClose: function() {
                                         resetButtonPresensi('#absenmasuk', 'finger-print-outline', 'Masuk');
                                         resetButtonPresensi('#absenpulang', 'log-out-outline', 'Pulang');
@@ -3143,6 +3334,9 @@
                                 });
                             },
                             complete: function() {
+                                if (typeof window.hideGlobalLoading === 'function') {
+                                    window.hideGlobalLoading();
+                                }
                                 isSubmittingPresensi = false;
                             }
                         });

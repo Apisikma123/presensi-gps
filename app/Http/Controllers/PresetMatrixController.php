@@ -20,10 +20,15 @@ class PresetMatrixController extends Controller
     }
 
     /**
-     * Display presets matrix list
+     * Display presets matrix list.
+     * Developer/vendor-owned only. Rejects normal client access with 404.
      */
     public function index()
     {
+        if (!$this->entitlementService->isMaintenanceMode()) {
+            abort(404);
+        }
+
         $presets = $this->presetService->getPresets();
         $activeFeatures = ModuleFeature::where('is_enabled', true)->pluck('module_code')->toArray();
         $activePresetCode = $this->presetService->getActivePresetCode();
@@ -35,17 +40,21 @@ class PresetMatrixController extends Controller
 
     /**
      * Apply selected preset configuration.
-     * Enforces deployment lock and entitlement boundaries.
+     * Developer/vendor-owned only. Rejects normal client access with 404/403.
      */
     public function apply(Request $request)
     {
+        if (!$this->entitlementService->isMaintenanceMode()) {
+            abort(404);
+        }
+
         $request->validate([
             'preset_code' => 'required|string|in:A,B,C,D,E',
         ]);
 
         // 1. Deployment lock protection
         if ($this->entitlementService->isDeploymentLocked() && !$this->entitlementService->isMaintenanceMode()) {
-            return redirect()->route('settings.presets.index')->with('error', 'Profil deployment telah dikunci. Penerapan preset baru hanya dapat dilakukan melalui mode pemeliharaan deployment.');
+            abort(403, 'Profil deployment telah dikunci. Penerapan preset baru hanya dapat dilakukan melalui mode pemeliharaan deployment.');
         }
 
         try {

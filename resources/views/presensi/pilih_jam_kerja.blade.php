@@ -5,9 +5,9 @@
         :root {
             --bg-body: #dff9fb;
             --bg-nav: #ffffff;
-            --color-nav: #634832;
+            --color-nav: var(--theme-color-2, #634832);
             --color-nav-active: #58907D;
-            --bg-indicator: #634832;
+            --bg-indicator: var(--theme-color-2, #634832);
             --color-nav-hover: #3ab58c;
         }
 

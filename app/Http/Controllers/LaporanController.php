@@ -246,10 +246,13 @@ class LaporanController extends Controller
             $queryKaryawan->where('kode_dept', $request->kode_dept);
         }
 
-        $karyawanList = $queryKaryawan->orderBy('nama_karyawan')->get();
+        $karyawanList = $queryKaryawan
+            ->select('karyawan.nik', 'karyawan.nama_karyawan', 'karyawan.kode_dept', 'karyawan.kode_jabatan', 'karyawan.kode_cabang', 'karyawan.status_aktif_karyawan', 'karyawan.tanggal_masuk')
+            ->orderBy('nama_karyawan')
+            ->get();
         $allowedNiks = $karyawanList->pluck('nik')->toArray();
 
-        // Query Presensi actual (Phase 6: Multi-Branch Reporting)
+        // Query Presensi actual (Phase 6: Multi-Branch Reporting, Lean Column Selection)
         $presensiQuery = Presensi::leftJoin('presensi_izinabsen_approve', 'presensi.id', '=', 'presensi_izinabsen_approve.id_presensi')
             ->leftJoin('presensi_izinabsen', 'presensi_izinabsen_approve.kode_izin', '=', 'presensi_izinabsen.kode_izin')
             ->leftJoin('presensi_izinsakit_approve', 'presensi.id', '=', 'presensi_izinsakit_approve.id_presensi')
@@ -258,7 +261,16 @@ class LaporanController extends Controller
             ->leftJoin('presensi_izincuti', 'presensi_izincuti_approve.kode_izin_cuti', '=', 'presensi_izincuti.kode_izin_cuti')
             ->join('karyawan as k_pres', 'presensi.nik', '=', 'k_pres.nik')
             ->select(
-                'presensi.*',
+                'presensi.id',
+                'presensi.nik',
+                'presensi.tanggal',
+                'presensi.jam_in',
+                'presensi.jam_out',
+                'presensi.status',
+                'presensi.kode_jam_kerja',
+                'presensi.is_terlambat',
+                'presensi.menit_terlambat',
+                'presensi.is_dispensasi',
                 'presensi_izinabsen.keterangan as keterangan_izin',
                 'presensi_izinsakit.keterangan as keterangan_sakit',
                 'presensi_izincuti.keterangan as keterangan_cuti',

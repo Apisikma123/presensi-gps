@@ -96,9 +96,36 @@
                 @forelse ($payslips as $ps)
                     <tr>
                         <td>
-                            <div>
-                                <span class="fw-bold text-dark d-block">{{ $ps->karyawan?->nama_karyawan ?? '-' }}</span>
-                                <small class="text-muted font-mono" style="font-size: 11px;">{{ $ps->nik }}</small>
+                            @php
+                                $empName = $ps->karyawan?->nama_karyawan ?? $ps->nik;
+                                $words = explode(' ', trim($empName));
+                                $initials = '';
+                                foreach ($words as $w) {
+                                    if (isset($w[0])) $initials .= $w[0];
+                                }
+                                $initials = strtoupper(substr($initials, 0, 2)) ?: 'KR';
+                            @endphp
+                            <div class="d-flex align-items-center gap-2.5">
+                                @if (!empty($ps->karyawan?->foto))
+                                    <img src="{{ getfotoKaryawan($ps->karyawan->foto) }}" alt="Avatar" class="rounded-circle flex-shrink-0"
+                                        style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
+                                        onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                                    <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @else
+                                    <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08)); color: var(--color-primary, #3C2A21); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
+                                        {{ $initials }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <span class="fw-bold text-dark d-block" style="font-size: 13px;">{{ $empName }}</span>
+                                    <span class="badge bg-light text-muted font-mono" style="font-size: 10px; border: 1px solid #E2E8F0;">
+                                        {{ $ps->nik }}
+                                    </span>
+                                </div>
                             </div>
                         </td>
                         <td>
@@ -130,10 +157,10 @@
                         </td>
                         <td class="text-end">
                             <div class="d-inline-flex gap-1.5">
-                                <a href="{{ route('payslip.show', $ps->id) }}" class="btn btn-sm btn-icon btn-outline-secondary" title="Lihat Slip">
+                                <a href="{{ route('payslip.show', $ps->id) }}" class="btnShow btn-action-tbl" title="Lihat Slip">
                                     <i class="ti ti-eye"></i>
                                 </a>
-                                <a href="{{ route('payslip.print', $ps->id) }}" target="_blank" class="btn btn-sm btn-icon btn-outline-secondary" title="Cetak Slip">
+                                <a href="{{ route('payslip.print', $ps->id) }}" target="_blank" class="btnShow btn-action-tbl" title="Cetak Slip">
                                     <i class="ti ti-printer"></i>
                                 </a>
                             </div>

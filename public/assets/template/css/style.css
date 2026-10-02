@@ -6115,14 +6115,21 @@ textarea,
 }
 
 .pagination .page-item .page-link {
-    background: #3C2A21;
-    border: 0;
-    color: #fff;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    color: #475569;
     box-shadow: 0 !important;
     outline: 0 !important;
-    margin: 0 4px;
-    border-radius: 6px !important;
+    margin: 0 3px;
+    border-radius: 8px !important;
     font-size: 13px;
+}
+
+.pagination .page-item.active .page-link,
+.pagination .page-item .page-link.active {
+    background: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+    border-color: var(--color-primary, var(--theme-color-1, #1B365D)) !important;
+    color: #ffffff !important;
 }
 
 .pagination .page-item .page-link:focus {

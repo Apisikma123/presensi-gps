@@ -78,6 +78,52 @@
         color: #0F172A !important;
         transform: translateY(-1px);
     }
+
+    .btn-action-tbl {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E2E8F0;
+        background: #FFFFFF;
+        color: #475569;
+        transition: all 0.15s ease;
+        padding: 0;
+        cursor: pointer;
+    }
+    .btn-action-tbl:hover {
+        background: #F8FAFC;
+        border-color: #CBD5E1;
+        color: #0F172A;
+        transform: translateY(-1px);
+    }
+    .btn-action-tbl.btnShow:hover {
+        background: #F1F5F9;
+        color: var(--color-primary, #3C2A21);
+        border-color: #CBD5E1;
+    }
+    .btn-action-tbl.btnApprove {
+        background: rgba(21, 128, 61, 0.08);
+        border-color: rgba(21, 128, 61, 0.2);
+        color: #15803d;
+    }
+    .btn-action-tbl.btnApprove:hover {
+        background: #15803d;
+        color: #FFFFFF;
+        border-color: #15803d;
+    }
+    .btn-action-tbl.btn-action-delete {
+        background: rgba(186, 26, 26, 0.06);
+        border-color: rgba(186, 26, 26, 0.2);
+        color: #BA1A1A;
+    }
+    .btn-action-tbl.btn-action-delete:hover {
+        background: #BA1A1A;
+        color: #FFFFFF;
+        border-color: #BA1A1A;
+    }
 </style>
 @endpush
 
@@ -294,12 +340,12 @@
                                         style="width: 34px; height: 34px; object-fit: cover; border: 1px solid #E2E8F0;"
                                         onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
                                     <div class="rounded-circle flex-shrink-0 align-items-center justify-content-center fw-bold"
-                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 11.5px; border: 1px solid rgba(60, 42, 33, 0.15);">
+                                        style="display: none; width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                         {{ $initials }}
                                     </div>
                                 @else
                                     <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center fw-bold"
-                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 11.5px; border: 1px solid rgba(60, 42, 33, 0.15);">
+                                        style="width: 34px; height: 34px; background: var(--color-primary-soft, rgba(var(--bs-primary-rgb), 0.08)); color: var(--color-primary); font-size: 11.5px; border: 1px solid var(--theme-border, rgba(var(--bs-primary-rgb, 60, 42, 33), 0.15));">
                                         {{ $initials }}
                                     </div>
                                 @endif
@@ -330,8 +376,8 @@
                         </td>
                         <td class="text-center">
                             @if ($item->receipt_attachment)
-                                <a href="{{ Storage::url($item->receipt_attachment) }}" target="_blank" class="btn btn-sm btn-outline-secondary p-1" title="Lihat Bukti Kwitansi">
-                                    <i class="ti ti-paperclip fs-6"></i>
+                                <a href="{{ Storage::url($item->receipt_attachment) }}" target="_blank" class="btn-action-tbl btnShow" title="Lihat Bukti Kwitansi">
+                                    <i class="ti ti-paperclip" style="font-size: 15px;"></i>
                                 </a>
                             @else
                                 <span class="text-muted small">-</span>
@@ -341,25 +387,25 @@
                             <div class="d-inline-flex gap-1.5 align-items-center justify-content-end">
                                 @if ($item->status === 'SUBMITTED')
                                     @can('reimbursement.approve')
-                                        <form action="{{ route('reimbursement.approve', $item->id) }}" method="POST" class="d-inline form-approve">
+                                        <form action="{{ route('reimbursement.approve', $item->id) }}" method="POST" class="d-inline form-approve m-0">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Setujui Klaim" style="padding: 4px 8px;">
-                                                <i class="ti ti-check fs-6"></i>
+                                            <button type="submit" class="btn-action-tbl btnApprove" title="Setujui Klaim">
+                                                <i class="ti ti-check" style="font-size: 15px;"></i>
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" style="padding: 4px 8px;"
+                                        <button type="button" class="btn-action-tbl btn-action-delete"
                                             data-bs-toggle="modal" data-bs-target="#rejectModal{{ $item->id }}" title="Tolak Klaim">
-                                                <i class="ti ti-x fs-6"></i>
+                                                <i class="ti ti-x" style="font-size: 15px;"></i>
                                         </button>
                                     @endcan
                                 @endif
                                 @can('reimbursement.delete')
                                     @if(in_array($item->status, ['SUBMITTED', 'REJECTED']))
-                                        <form action="{{ route('reimbursement.destroy', $item->id) }}" method="POST" class="d-inline form-delete">
+                                        <form action="{{ route('reimbursement.destroy', $item->id) }}" method="POST" class="d-inline form-delete m-0">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Klaim" style="padding: 4px 8px;">
-                                                <i class="ti ti-trash fs-6"></i>
+                                            <button type="submit" class="btn-action-tbl btn-action-delete" title="Hapus Klaim">
+                                                <i class="ti ti-trash" style="font-size: 15px;"></i>
                                             </button>
                                         </form>
                                     @endif

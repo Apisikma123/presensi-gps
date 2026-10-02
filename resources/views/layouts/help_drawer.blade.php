@@ -24,29 +24,29 @@
                         Pusat Bantuan & Panduan
                     </h6>
                     <span class="badge" id="helpRoleBadge" style="background: rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08); color: var(--theme-color-1, #3C2A21); border: 1px solid rgba(var(--bs-primary-rgb, 60, 42, 33), 0.2); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;">
-                        Panduan Karyawan
+                        Admin & Supervisor
                     </span>
                 </div>
                 <small class="text-muted text-truncate d-block" id="helpCurrentPageSubtitle" style="font-size: 11.5px; margin-top: 1px;">
-                    Petunjuk lengkap presensi masuk/pulang, shift tugas, izin, dan kendala operasional staf
+                    Cara atur jadwal kerja, rotasi cabang, koreksi presensi, dan persetujuan izin
                 </small>
             </div>
         </div>
         <button type="button" class="btn-close text-reset ms-2 flex-shrink-0" data-bs-dismiss="offcanvas" onclick="closeHelpDrawer()" aria-label="Tutup Bantuan" title="Tutup Bantuan (Esc)"></button>
     </div>
 
-    <!-- Topic / Role Navigation Bar (DESIGN.md Clean Architecture) -->
+    <!-- Topic / Role Navigation Bar -->
     <div class="px-4 pt-3 pb-2 bg-white border-bottom flex-shrink-0">
         <!-- Quick Switcher Tabs -->
         <div class="d-flex align-items-center gap-1 p-1 rounded-3 bg-light border mb-2" id="helpTabsBar" style="font-size: 12px;">
-            <button type="button" class="btn btn-sm flex-fill fw-semibold py-1.5 px-2 rounded-2 text-center help-nav-pill" id="tabCurrentPage">
+            <button type="button" class="btn btn-sm flex-fill fw-semibold py-1.5 px-2 rounded-2 text-center help-nav-pill active" id="tabCurrentPage">
                 <i class="ti ti-layout-grid me-1"></i>Halaman Ini
-            </button>
-            <button type="button" class="btn btn-sm flex-fill fw-semibold py-1.5 px-2 rounded-2 text-center help-nav-pill active" id="tabKaryawan">
-                <i class="ti ti-user me-1"></i>Karyawan
             </button>
             <button type="button" class="btn btn-sm flex-fill fw-semibold py-1.5 px-2 rounded-2 text-center help-nav-pill" id="tabAdmin">
                 <i class="ti ti-calendar-event me-1"></i>Admin & Roster
+            </button>
+            <button type="button" class="btn btn-sm flex-fill fw-semibold py-1.5 px-2 rounded-2 text-center help-nav-pill" id="tabKaryawan">
+                <i class="ti ti-user me-1"></i>Panduan Karyawan
             </button>
         </div>
 
@@ -54,27 +54,28 @@
         <div class="d-flex align-items-center gap-2">
             <label for="helpTopicSelect" class="text-muted small fw-medium flex-shrink-0" style="font-size: 11.5px;">Topik:</label>
             <select class="form-select form-select-sm" id="helpTopicSelect" style="font-size: 12px; border-radius: 8px; border-color: #CBD5E1; color: #1E293B;">
-                <optgroup label="Panduan Alur Lengkap">
-                    <option value="panduan_karyawan" selected>Panduan Operasional Karyawan</option>
-                    <option value="panduan_admin_roster">Panduan Roster & Supervisor Admin</option>
+                <optgroup label="Panduan Alur Ringkas">
+                    <option value="panduan_admin_roster" selected>Panduan Roster & Admin Supervisor</option>
+                    <option value="panduan_karyawan">Panduan Presensi Karyawan</option>
                 </optgroup>
                 <optgroup label="Operasional Kehadiran">
                     <option value="dashboard">Dashboard Presensi</option>
                     @if(module_enabled('attendance'))
                     <option value="presensi">Monitoring Presensi Harian</option>
-                    <option value="trackingpresensi">Live Tracking GPS Presensi</option>
+                    <option value="trackingpresensi">Peta Lokasi Presensi GPS</option>
                     <option value="harilibur">Hari Libur & Tanggal Merah</option>
                     <option value="jamkerja">Shift & Jam Kerja</option>
+                    <option value="dispensasi">Dispensasi Keterlambatan</option>
                     @endif
                 </optgroup>
                 <optgroup label="Data Master & Kepegawaian">
                     <option value="karyawan">Data Karyawan & Penugasan</option>
-                    <option value="karyawan_detail">Detail Profil{{ module_enabled('face_recognition') ? ' & Biometrik Wajah' : '' }}</option>
-                    <option value="cabang">Outlet & Cabang Kantor</option>
+                    <option value="karyawan_detail">Detail Profil & Biometrik Wajah</option>
+                    <option value="cabang">Cabang & Lokasi Kantor</option>
                     <option value="departemen">Departemen / Divisi</option>
                     <option value="jabatan">Jabatan Pekerjaan</option>
                     @if(module_enabled('leave'))
-                    <option value="cuti">Jenis Cuti & Kuota</option>
+                    <option value="cuti">Jenis & Kuota Cuti</option>
                     @endif
                 </optgroup>
                 <optgroup label="Pengajuan & Persetujuan">
@@ -83,10 +84,38 @@
                     <option value="izinsakit">Persetujuan Izin Sakit (SID)</option>
                     <option value="izincuti">Persetujuan Cuti Karyawan</option>
                     @endif
-                    @if(module_enabled('attendance'))
-                    <option value="dispensasi">Dispensasi Keterlambatan</option>
+                </optgroup>
+                @if(module_enabled('overtime') || module_enabled('payroll') || module_enabled('loans') || module_enabled('reimbursement') || module_enabled('warning') || module_enabled('recruitment') || module_enabled('onboarding') || module_enabled('performance') || module_enabled('resignation'))
+                <optgroup label="Modul SDM & Keuangan">
+                    @if(module_enabled('overtime'))
+                    <option value="lembur">Lembur & SPK (Overtime)</option>
+                    @endif
+                    @if(module_enabled('payroll'))
+                    <option value="payroll">Penggajian & Slip Gaji (Payroll)</option>
+                    @endif
+                    @if(module_enabled('loans'))
+                    <option value="loan">Pinjaman & Kasbon Karyawan</option>
+                    @endif
+                    @if(module_enabled('reimbursement'))
+                    <option value="reimbursement">Klaim Reimbursement</option>
+                    @endif
+                    @if(module_enabled('warning'))
+                    <option value="warning">Disiplin & Surat Peringatan (SP)</option>
+                    @endif
+                    @if(module_enabled('recruitment'))
+                    <option value="recruitment">Rekrutmen Karyawan</option>
+                    @endif
+                    @if(module_enabled('onboarding'))
+                    <option value="onboarding">Onboarding Staf Baru</option>
+                    @endif
+                    @if(module_enabled('performance'))
+                    <option value="performance">Penilaian Kinerja (KPI)</option>
+                    @endif
+                    @if(module_enabled('resignation'))
+                    <option value="offboarding">Karyawan Keluar & Pesangon</option>
                     @endif
                 </optgroup>
+                @endif
                 <optgroup label="Laporan & Sistem">
                     @if(module_enabled('attendance'))
                     <option value="laporan_presensi">Laporan Multi-Cabang Presensi</option>
@@ -95,10 +124,8 @@
                     <option value="laporan_cuti">Laporan Rekap Cuti</option>
                     @endif
                     <option value="generalsetting">Pengaturan Umum Sistem</option>
-                    <option value="users">Manajemen Pengguna Admin</option>
-                    <option value="permissiongroups">Grup Hak Akses</option>
-                    <option value="permissions">Daftar Izin & Hak Akses</option>
-                    <option value="backup">Backup & Restore Database</option>
+                    <option value="users">Manajemen Akun Admin</option>
+                    <option value="backup">Pencadangan Database (Backup)</option>
                 </optgroup>
             </select>
         </div>
@@ -175,17 +202,25 @@
     /* Topic Pill Buttons */
     .help-nav-pill {
         background: transparent;
-        border: none;
+        border: 1px solid transparent;
         color: #64748B;
-        transition: all 0.15s ease;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
     }
-    .help-nav-pill:hover {
-        color: #1E293B;
+    .help-nav-pill:hover:not(.active) {
+        background-color: rgba(var(--bs-primary-rgb, 60, 42, 33), 0.08) !important;
+        color: var(--color-primary, #3C2A21) !important;
+    }
+    .help-nav-pill:active {
+        transform: translateY(1px) scale(0.98);
     }
     .help-nav-pill.active {
         background: #FFFFFF !important;
-        color: var(--theme-color-1, #3C2A21) !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        color: var(--color-primary, #3C2A21) !important;
+        border-color: rgba(0, 0, 0, 0.06) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        font-weight: 700 !important;
     }
 
     /* Help Cards (DESIGN.md Surface Hierarchy) */
@@ -300,8 +335,8 @@
 (function() {
     'use strict';
 
-    let currentDetectedKey = 'panduan_karyawan';
-    let viewingKey = 'panduan_karyawan';
+    let currentDetectedKey = 'panduan_admin_roster';
+    let viewingKey = 'panduan_admin_roster';
 
     // Cleanup any stray backdrop immediately so the page is NEVER dimmed
     function purgeStrayBackdrops() {
@@ -332,14 +367,35 @@
         if (cleanPath.startsWith('trackingpresensi')) {
             return 'trackingpresensi';
         }
+        if (cleanPath.includes('lembur') || cleanPath.startsWith('kepegawaian/lembur')) {
+            return 'lembur';
+        }
+        if (cleanPath.includes('payroll') || cleanPath.includes('payslip') || cleanPath.startsWith('keuangan/payroll') || cleanPath.startsWith('keuangan/payslip')) {
+            return 'payroll';
+        }
+        if (cleanPath.includes('loan') || cleanPath.startsWith('keuangan/loan')) {
+            return 'loan';
+        }
+        if (cleanPath.includes('reimbursement') || cleanPath.startsWith('keuangan/reimbursement')) {
+            return 'reimbursement';
+        }
+        if (cleanPath.includes('warning') || cleanPath.startsWith('kepegawaian/warning') || cleanPath.startsWith('governance/warning')) {
+            return 'warning';
+        }
+        if (cleanPath.includes('recruitment') || cleanPath.startsWith('kepegawaian/recruitment')) {
+            return 'recruitment';
+        }
+        if (cleanPath.includes('onboarding') || cleanPath.startsWith('kepegawaian/onboarding')) {
+            return 'onboarding';
+        }
+        if (cleanPath.includes('performance') || cleanPath.startsWith('kepegawaian/performance')) {
+            return 'performance';
+        }
+        if (cleanPath.includes('offboarding') || cleanPath.startsWith('kepegawaian/offboarding') || cleanPath.includes('resignation')) {
+            return 'offboarding';
+        }
         if (cleanPath.startsWith('generalsetting')) {
             return 'generalsetting';
-        }
-        if (cleanPath.startsWith('permissiongroups')) {
-            return 'permissiongroups';
-        }
-        if (cleanPath.startsWith('permissions')) {
-            return 'permissions';
         }
         if (cleanPath.startsWith('users')) {
             return 'users';
@@ -387,11 +443,11 @@
             return firstSegment;
         }
 
-        return 'panduan_karyawan';
+        return 'panduan_admin_roster';
     }
 
     // Sync Tabs and Dropdown UI
-    function updateTopicNavigationUI(key) {
+    function updateTopicNavigationUI(key, sourceTab) {
         // Dropdown
         const selectEl = document.getElementById('helpTopicSelect');
         if (selectEl && selectEl.value !== key) {
@@ -407,25 +463,31 @@
         if (tabKaryawan) tabKaryawan.classList.remove('active');
         if (tabAdmin) tabAdmin.classList.remove('active');
 
-        if (key === 'panduan_karyawan') {
+        if (sourceTab === 'current') {
+            if (tabCurrent) tabCurrent.classList.add('active');
+        } else if (sourceTab === 'panduan_karyawan') {
             if (tabKaryawan) tabKaryawan.classList.add('active');
-        } else if (key === 'panduan_admin_roster') {
+        } else if (sourceTab === 'panduan_admin_roster') {
             if (tabAdmin) tabAdmin.classList.add('active');
         } else if (key === currentDetectedKey) {
             if (tabCurrent) tabCurrent.classList.add('active');
+        } else if (key === 'panduan_karyawan') {
+            if (tabKaryawan) tabKaryawan.classList.add('active');
+        } else if (key === 'panduan_admin_roster') {
+            if (tabAdmin) tabAdmin.classList.add('active');
         }
     }
 
     // Render Help Topic: Ultra-fast Toggle of Blade Pre-rendered Section
-    function renderHelp(key) {
+    function renderHelp(key, sourceTab) {
         let targetEl = document.getElementById('help-topic-' + key);
         if (!targetEl) {
-            key = 'panduan_karyawan';
-            targetEl = document.getElementById('help-topic-panduan_karyawan');
+            key = 'panduan_admin_roster';
+            targetEl = document.getElementById('help-topic-panduan_admin_roster');
         }
         viewingKey = key;
 
-        updateTopicNavigationUI(key);
+        updateTopicNavigationUI(key, sourceTab);
 
         // Hide all topics, show target
         document.querySelectorAll('.help-topic-section').forEach(el => el.classList.add('d-none'));
@@ -451,9 +513,9 @@
     // Tab Switcher Handler
     function switchHelpTab(tabKey) {
         if (tabKey === 'current') {
-            renderHelp(currentDetectedKey);
+            renderHelp(currentDetectedKey, 'current');
         } else {
-            renderHelp(tabKey);
+            renderHelp(tabKey, tabKey);
         }
     }
 
@@ -514,7 +576,7 @@
         const targetKey = topicKey || resolveHelpKey(window.location.pathname);
         currentDetectedKey = targetKey;
         loadHelpContent(function() {
-            renderHelp(targetKey);
+            renderHelp(targetKey, topicKey ? null : 'current');
         });
         setTimeout(purgeStrayBackdrops, 50);
     };
@@ -542,7 +604,7 @@
         document.body.classList.add('help-drawer-open');
         currentDetectedKey = resolveHelpKey(window.location.pathname);
         loadHelpContent(function() {
-            renderHelp(currentDetectedKey);
+            renderHelp(currentDetectedKey, 'current');
         });
         setTimeout(purgeStrayBackdrops, 50);
     }

@@ -106,6 +106,32 @@ class ClientPresetService
                 ],
                 'must_work' => ['App boots and operates with zero attendance dependencies', 'Contracts & Document storage', 'KPI & Talent Reviews', 'Independent Payroll'],
             ],
+            'FULL' => [
+                'code' => 'FULL',
+                'name' => 'Preset FULL: All Modules Active (Universal Enterprise)',
+                'subtitle' => 'Semua modul ON: GPS + Face Recognition, Lembur, Payroll (PPh21/BPJS), Reimbursement, Kasbon, HR Dokumen',
+                'badge' => 'Enterprise / Semua Modul ON',
+                'icon' => 'ti-crown',
+                'color' => '#1b3b22',
+                'enabled_modules' => [
+                    'attendance', 'gps', 'face_recognition', 'leave', 'overtime',
+                    'payroll', 'pph21', 'bpjs', 'thr', 'compliance', 'reimbursement',
+                    'loans', 'recruitment', 'onboarding', 'offboarding', 'performance',
+                    'training', 'contracts', 'movements', 'documents', 'asset_assignment',
+                    'announcements', 'discipline', 'governance', 'reports', 'settings',
+                    'organization', 'security', 'employee',
+                ],
+                'disabled_modules' => [],
+                'settings' => [
+                    'company_type' => 'Universal Enterprise',
+                    'attendance_enabled' => '1',
+                    'attendance_require_gps' => '1',
+                    'attendance_require_face' => '1',
+                    'attendance_radius_meters' => '100',
+                    'overtime_depnaker_rules' => '1',
+                ],
+                'must_work' => ['All 12 Modules Active', 'Attendance with Face & GPS', 'Full Statutory Payroll', 'Reimbursements & Loans'],
+            ],
         ];
     }
 
@@ -115,6 +141,9 @@ class ClientPresetService
     public function applyPreset(string $presetKey, ?int $userId = null): array
     {
         $presetKey = strtoupper(trim($presetKey));
+        if ($presetKey === 'F') {
+            $presetKey = 'FULL';
+        }
         $presets = $this->getPresets();
 
         if (!isset($presets[$presetKey])) {
@@ -248,13 +277,69 @@ class ClientPresetService
     }
 
     /**
-     * Get currently active preset code (A - E)
+     * Apply business and policy settings for a preset without touching module entitlements
+     * (used during developer package assignment / upgrade)
+     */
+    public function applyPresetSettings(string $presetKey): void
+    {
+        $presetKey = strtoupper(trim($presetKey));
+        if ($presetKey === 'F') {
+            $presetKey = 'FULL';
+        }
+        $presets = $this->getPresets();
+        if (!isset($presets[$presetKey])) {
+            return;
+        }
+
+        $preset = $presets[$presetKey];
+
+        // 1. Update CompanySetting business_type
+        try {
+            $company = CompanySetting::getSetting();
+            if ($company && isset($preset['settings']['company_type'])) {
+                $company->update(['business_type' => $preset['settings']['company_type']]);
+            }
+        } catch (\Throwable $e) {}
+
+        // 2. Update Pengaturanumum (General Setting)
+        try {
+            $general = \App\Models\Pengaturanumum::getSetting();
+            if ($general && isset($preset['settings']['attendance_require_face'])) {
+                $general->update(['face_recognition' => (int) $preset['settings']['attendance_require_face']]);
+            }
+        } catch (\Throwable $e) {}
+
+        // 3. Update AttendancePolicy
+        try {
+            $policy = \App\Models\AttendancePolicy::getActivePolicy();
+            if ($policy) {
+                $polUpdate = [];
+                if (isset($preset['settings']['attendance_require_gps'])) {
+                    $polUpdate['require_gps'] = (bool) $preset['settings']['attendance_require_gps'];
+                }
+                if (isset($preset['settings']['attendance_require_face'])) {
+                    $polUpdate['require_face_recognition'] = (bool) $preset['settings']['attendance_require_face'];
+                }
+                if (isset($preset['settings']['attendance_radius_meters'])) {
+                    $polUpdate['max_out_of_radius_meters'] = (int) $preset['settings']['attendance_radius_meters'];
+                }
+                if (!empty($polUpdate)) {
+                    $policy->update($polUpdate);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        Cache::forever('active_client_preset_code', $presetKey);
+    }
+
+    /**
+     * Get currently active preset code (A - E, FULL)
      */
     public function getActivePresetCode(): string
     {
         $cached = Cache::get('active_client_preset_code');
-        if ($cached && in_array($cached, ['A', 'B', 'C', 'D', 'E'])) {
-            return $cached;
+        if ($cached && in_array($cached, ['A', 'B', 'C', 'D', 'E', 'FULL', 'F'])) {
+            return $cached === 'F' ? 'FULL' : $cached;
         }
 
         // Auto-detect based on active module features
@@ -268,6 +353,9 @@ class ClientPresetService
         $isOvertime = is_module_enabled('overtime', false);
         $isReimbursement = is_module_enabled('reimbursement', false);
 
+        if ($isFace && $isPayroll && $isReimbursement) {
+            return 'FULL';
+        }
         if ($isFace && !$isPayroll) {
             return 'A';
         }

@@ -65,10 +65,17 @@
                     <td>{{ $inc->incident_date->format('d M Y') }}</td>
                     <td>
                         @if($inc->subject)
-                            <div><span class="text-muted small">Subjek:</span> <span class="fw-semibold text-dark">{{ $inc->subject->nama_karyawan }}</span></div>
+                            <div class="d-flex align-items-center gap-1.5 mb-1">
+                                <span class="badge bg-label-danger font-mono" style="font-size: 9.5px; padding: 2px 6px;">SUBJEK</span>
+                                <span class="fw-semibold text-dark" style="font-size: 12.5px;">{{ $inc->subject->nama_karyawan }}</span>
+                                <span class="text-muted font-mono" style="font-size: 11px;">({{ $inc->subject_nik }})</span>
+                            </div>
                         @endif
                         @if($inc->reporter)
-                            <div><span class="text-muted small">Pelapor:</span> {{ $inc->reporter->nama_karyawan }}</div>
+                            <div class="d-flex align-items-center gap-1.5 text-muted" style="font-size: 12px;">
+                                <span class="badge bg-light text-muted font-mono" style="font-size: 9.5px; padding: 2px 6px; border: 1px solid #E2E8F0;">PELAPOR</span>
+                                <span>{{ $inc->reporter->nama_karyawan }}</span>
+                            </div>
                         @endif
                         @if(!$inc->subject && !$inc->reporter)
                             <span class="text-muted small">-</span>
@@ -85,14 +92,14 @@
                     </td>
                     <td class="text-end">
                         @if($inc->status !== 'RESOLVED' && $inc->status !== 'CLOSED')
-                        <button type="button" class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" 
+                        <button type="button" class="btn-table-detail text-success" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalResolveIncident" 
                             data-incident-id="{{ $inc->id }}" 
                             data-incident-case="{{ $inc->case_number }}" 
                             data-incident-title="{{ $inc->title }}"
-                            style="border-radius: 6px;">
-                            <i class="ti ti-check"></i>
+                            title="Selesaikan Kasus">
+                            <i class="ti ti-check text-success"></i>
                             <span>Selesaikan</span>
                         </button>
                         @else

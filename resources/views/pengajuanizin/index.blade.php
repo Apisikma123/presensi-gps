@@ -5,7 +5,7 @@
 @section('header_left')
     <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('dashboard.index') }}"
         onclick="if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) { event.preventDefault(); window.history.back(); }"
-        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-90 transition-transform"
+        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/15 text-white active:scale-[0.98] transition-transform duration-150"
         title="Kembali">
         <ion-icon name="chevron-back-outline" class="text-base"></ion-icon>
     </a>
@@ -60,10 +60,10 @@
             color: var(--theme-primary-contrast, #ffffff) !important;
             text-decoration: none !important;
             box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb), 0.2);
-            transition: all 0.15s ease;
+            transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.14s ease;
         }
         .bento-btn-ajukan:active {
-            transform: scale(0.95);
+            transform: translateY(1px) scale(0.985);
         }
         .bento-cuti-metrics {
             display: grid;
@@ -197,7 +197,7 @@
             color: #0f172a !important;
         }
         .btn-close-modal:active {
-            transform: scale(0.92);
+            transform: scale(0.96);
         }
 
         /* Status Colors per Global Standard (matching Histori & Dashboard) */
@@ -221,11 +221,11 @@
             gap: 6px !important;
             padding: 8px 16px !important;
             border-radius: 12px !important;
-            background: var(--color-nav, #3C2A21) !important;
+            background: var(--color-primary, var(--color-nav, #1B365D)) !important;
             color: #ffffff !important;
             font-size: 12px !important;
             font-weight: 600 !important;
-            border: 1px solid var(--color-nav, #3C2A21) !important;
+            border: 1px solid var(--color-primary, var(--color-nav, #1B365D)) !important;
             cursor: pointer !important;
             transition: all 0.15s ease !important;
             box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb), 0.15) !important;
@@ -518,18 +518,15 @@
 
                                 <div class="flex items-center gap-1.5 shrink-0">
                                     @if ($d->status_izin == 1)
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>
+                                        <span class="inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
                                             DISETUJUI
                                         </span>
                                     @elseif ($d->status_izin == 2)
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#e11d48]"></span>
+                                        <span class="inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#fef2f2] text-[#e11d48] border border-[#fecdd3]">
                                             DITOLAK
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>
+                                        <span class="inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
                                             PENDING
                                         </span>
                                     @endif
@@ -625,7 +622,7 @@
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 text-blue-600 shrink-0">
                             <ion-icon name="document-text-outline" class="text-lg"></ion-icon>
                         </div>
-                        <span class="text-[13px] font-semibold">Izin Absen</span>
+                        <span class="text-[13px] font-semibold">Permisi & Izin</span>
                     </a>
                     <a href="{{ route('izinsakit.create') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors">
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 text-rose-600 shrink-0">
@@ -650,9 +647,9 @@
 
             {{-- Main Toggle Button (Squircle 12px) --}}
             <button id="fab-main"
-                class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md active:scale-90 transition-all duration-200"
-                style="background: {{ $t['primary'] ?? '#3C2A21' }};">
-                <ion-icon name="add-outline" id="fab-icon" class="text-2xl transition-transform duration-200"></ion-icon>
+                class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md active:scale-[0.96] transition-all duration-150"
+                style="background: var(--color-primary, {{ $t['primary'] ?? '#1B365D' }});">
+                <ion-icon name="add-outline" id="fab-icon" class="text-2xl transition-transform duration-150"></ion-icon>
             </button>
         </div>
     </div>
@@ -937,7 +934,7 @@
                     text: 'Pengajuan yang masih pending akan dibatalkan, dan form baru akan langsung dibuka.',
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '{{ $t['primary'] ?? '#3C2A21' }}',
+                    confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-color-1').trim() || '{{ $t['primary'] ?? '#1B365D' }}',
                     cancelButtonColor: '#64748b',
                     confirmButtonText: 'Ya, Lanjutkan',
                     cancelButtonText: 'Batal',

@@ -243,7 +243,7 @@ class HariliburController extends Controller
         $data['harilibur'] = $harilibur;
 
         $query = Karyawan::query();
-        $query->select('karyawan.nik', 'karyawan.nik_show', 'karyawan.nama_karyawan', 'harilibur.nik as ceklibur', 'departemen.nama_dept');
+        $query->select('karyawan.nik', 'karyawan.nik_show', 'karyawan.nama_karyawan', 'karyawan.foto', 'harilibur.nik as ceklibur', 'departemen.nama_dept');
         $query->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept');
 
         if (!empty($request->kode_dept)) {
@@ -294,7 +294,7 @@ class HariliburController extends Controller
         $kode_libur = Crypt::decrypt($kode_libur);
         $data['detailharilibur'] = Detailharilibur::join('karyawan', 'hari_libur_detail.nik', '=', 'karyawan.nik')
             ->join('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept')
-            ->select('hari_libur_detail.*', 'karyawan.nik', 'karyawan.nik_show', 'karyawan.nama_karyawan', 'karyawan.kode_dept', 'departemen.nama_dept')
+            ->select('hari_libur_detail.*', 'karyawan.nik', 'karyawan.nik_show', 'karyawan.nama_karyawan', 'karyawan.foto', 'karyawan.kode_dept', 'departemen.nama_dept')
             ->where('kode_libur', $kode_libur)
             ->orderBy('karyawan.nama_karyawan')
             ->get();
